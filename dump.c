@@ -6,32 +6,61 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <stdatomic.h>
+#include <dirent.h> 
 
 #include "def.h"
 
-int load_proc(struct ovniproc *proc, char *procdir)
+int load_proc(struct eproc *proc, char *procdir)
 {
-	FILE *f;
-	int cpu;
+	struct dirent *dirent;
+	DIR *dir;
 	char path[PATH_MAX];
+	char *p;
+	struct ethread *thread;
 
-	for(cpu=0; cpu<MAX_CPU; cpu++)
+	if((dir = opendir(procdir)) == NULL)
 	{
-		sprintf(path, "%s/cpu.%d", procdir, cpu);
-		f = fopen(path, "r");
-
-		if(f == NULL)
-			break;
-
-		proc->cpustream[cpu] = f;
+		fprintf(stderr, "opendir %s failed: %s\n",
+				procdir, strerror(errno));
+		return -1;
 	}
 
-	proc->ncpus = cpu;
+	while((dirent = readdir(dir)) != NULL)
+	{
+		if(dirent->d_name[0] != 't')
+			continue;
+		p = strchr(dirent->d_name, '.');
+		if(p == NULL)
+			continue;
+		p++;
+		if(*p == '\0')
+		{
+			fprintf(stderr, "bad thread stream file: %s\n",
+					dirent->d_name);
+			return -1;
+		}
+
+
+		thread = &proc->thread[proc->nthreads++];
+		thread->tid = atoi(p);
+
+		sprintf(path, "%s/%s", procdir, dirent->d_name);
+		thread->f = fopen(path, "r");
+
+		if(thread->f == NULL)
+		{
+			fprintf(stderr, "fopen %s failed: %s\n",
+					path, strerror(errno));
+			return -1;
+		}
+	}
+
+	closedir(dir);
 
 	return 0;
 }
 
-int load_loom(struct ovniloom *loom, char *loomdir)
+int load_loom(struct loom *loom, char *loomdir)
 {
 	int proc;
 	char path[PATH_MAX];
@@ -43,7 +72,7 @@ int load_loom(struct ovniloom *loom, char *loomdir)
 
 		if(stat(path, &st) != 0)
 		{
-			/* Proc numbers exausted */
+			/* No more proc.N directories */
 			if(errno == ENOENT)
 				break;
 
@@ -67,7 +96,7 @@ int load_loom(struct ovniloom *loom, char *loomdir)
 	return 0;
 }
 
-int load_trace(struct ovnitrace *trace, char *tracedir)
+int load_trace(struct trace *trace, char *tracedir)
 {
 	int loom, nlooms;
 	char path[PATH_MAX];
@@ -87,12 +116,12 @@ int load_trace(struct ovnitrace *trace, char *tracedir)
 }
 
 /* Populates the streams in a single array */
-int load_streams(struct ovnitrace *trace)
+int load_streams(struct trace *trace)
 {
 	int i, j, k, s;
-	struct ovniloom *loom;
-	struct ovniproc *proc;
-	struct ovnistream *stream;
+	struct loom *loom;
+	struct eproc *proc;
+	struct stream *stream;
 
 	trace->nstreams = 0;
 
@@ -102,14 +131,14 @@ int load_streams(struct ovnitrace *trace)
 		for(j=0; j<loom->nprocs; j++)
 		{
 			proc = &loom->proc[j];
-			for(k=0; k<proc->ncpus; k++)
+			for(k=0; k<proc->nthreads; k++)
 			{
 				trace->nstreams++;
 			}
 		}
 	}
 
-	trace->stream = calloc(trace->nstreams, sizeof(struct ovnistream));
+	trace->stream = calloc(trace->nstreams, sizeof(struct stream));
 
 	if(trace->stream == NULL)
 	{
@@ -125,11 +154,10 @@ int load_streams(struct ovnitrace *trace)
 		for(j=0; j<loom->nprocs; j++)
 		{
 			proc = &loom->proc[j];
-			for(k=0; k<proc->ncpus; k++)
+			for(k=0; k<proc->nthreads; k++)
 			{
 				stream = &trace->stream[s++];
-				stream->f = proc->cpustream[k];
-				stream->cpu = k;
+				stream->f = proc->thread[k].f;
 				stream->active = 1;
 			}
 		}
@@ -138,11 +166,11 @@ int load_streams(struct ovnitrace *trace)
 	return 0;
 }
 
-int load_first_event(struct ovnitrace *trace)
+int load_first_event(struct trace *trace)
 {
 	int i;
-	struct ovnistream *stream;
-	struct ovnievent *ev;
+	struct stream *stream;
+	struct event *ev;
 
 	for(i=0; i<trace->nstreams; i++)
 	{
@@ -160,7 +188,7 @@ int load_first_event(struct ovnitrace *trace)
 	return 0;
 }
 
-void emit(struct ovnievent *ev, int cpu)
+void emit(struct event *ev, int cpu)
 {
 	static uint64_t lastclock = 0;
 	uint64_t delta;
@@ -173,11 +201,11 @@ void emit(struct ovnievent *ev, int cpu)
 	lastclock = ev->clock;
 }
 
-void load_next_event(struct ovnistream *stream)
+void load_next_event(struct stream *stream)
 {
 	int i;
 	size_t n;
-	struct ovnievent *ev;
+	struct event *ev;
 
 	if(!stream->active)
 		return;
@@ -193,12 +221,12 @@ void load_next_event(struct ovnistream *stream)
 	stream->active = 1;
 }
 
-void dump_events(struct ovnitrace *trace)
+void dump_events(struct trace *trace)
 {
 	int i, f;
 	uint64_t minclock, lastclock;
-	struct ovnievent *ev;
-	struct ovnistream *stream;
+	struct event *ev;
+	struct stream *stream;
 
 	/* Load events */
 	for(i=0; i<trace->nstreams; i++)
@@ -257,7 +285,7 @@ void dump_events(struct ovnitrace *trace)
 	}
 }
 
-void free_streams(struct ovnitrace *trace)
+void free_streams(struct trace *trace)
 {
 	free(trace->stream);
 }
@@ -265,7 +293,7 @@ void free_streams(struct ovnitrace *trace)
 int main(int argc, char *argv[])
 {
 	char *tracedir;
-	struct ovnitrace trace;
+	struct trace trace;
 
 	if(argc != 2)
 	{

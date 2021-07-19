@@ -7,15 +7,16 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <stdatomic.h>
+#include <assert.h>
 
 #include "ovni.h"
 #include "def.h"
 
 /* Data per process */
-struct ovniproc ovniproc = {0};
+struct rproc rproc = {0};
 
 /* Data per thread */
-_Thread_local struct ovnithr ovnithr = {0};
+_Thread_local struct rthread rthread = {0};
 
 static int
 create_trace_dirs(char *tracedir, int loom, int proc)
@@ -41,11 +42,11 @@ create_trace_dirs(char *tracedir, int loom, int proc)
 		//return -1;
 	}
 
-	snprintf(ovniproc.dir, PATH_MAX, "%s/loom.%d/proc.%d", tracedir, loom, proc);
+	snprintf(rproc.dir, PATH_MAX, "%s/loom.%d/proc.%d", tracedir, loom, proc);
 
-	if(mkdir(ovniproc.dir, 0755))
+	if(mkdir(rproc.dir, 0755))
 	{
-		fprintf(stderr, "mkdir %s: %s\n", ovniproc.dir, strerror(errno));
+		fprintf(stderr, "mkdir %s: %s\n", rproc.dir, strerror(errno));
 		return -1;
 	}
 
@@ -53,47 +54,53 @@ create_trace_dirs(char *tracedir, int loom, int proc)
 }
 
 static int
-create_trace_streams(int ncpus)
+create_trace_stream()
 {
 	char path[PATH_MAX];
-	int i;
 
-	for(i=0; i<ncpus; i++)
+	snprintf(path, PATH_MAX, "%s/thread.%d", rproc.dir, rthread.tid);
+	if((rthread.stream = fopen(path, "w")) == NULL)
 	{
-		snprintf(path, PATH_MAX, "%s/cpu.%d", ovniproc.dir, i);
-		if((ovniproc.cpustream[i] = fopen(path, "w")) == NULL)
-		{
-			perror("fopen");
-			return -1;
-		}
+		fprintf(stderr, "fopen %s failed: %s\n", path, strerror(errno));
+		return -1;
 	}
 
 	return 0;
 }
 
 int
-ovni_init(int loom, int proc, int ncpus)
+ovni_proc_init(int loom, int proc, int ncpus)
 {
 	int i;
+	memset(&rproc, 0, sizeof(rproc));
 
-	fprintf(stderr, "ovni_init\n");
-	memset(&ovniproc, 0, sizeof(ovniproc));
-	memset(&ovnithr, 0, sizeof(ovnithr));
-
-	for(i=0; i<MAX_CPU; i++)
-		ovniproc.opened[i] = ATOMIC_VAR_INIT(0);
-
-	ovniproc.loom = loom;
-	ovniproc.proc = proc;
-	ovniproc.ncpus = ncpus;
+	rproc.loom = loom;
+	rproc.proc = proc;
+	rproc.ncpus = ncpus;
 
 	/* By default we use the monotonic clock */
-	ovniproc.clockid = CLOCK_MONOTONIC;
+	rproc.clockid = CLOCK_MONOTONIC;
 
 	if(create_trace_dirs(TRACEDIR, loom, proc))
 		return -1;
 
-	if(create_trace_streams(ncpus))
+	return 0;
+}
+
+int
+ovni_thread_init(pid_t tid)
+{
+	int i;
+
+	assert(tid != 0);
+
+	memset(&rthread, 0, sizeof(rthread));
+
+	rthread.tid = tid;
+	rthread.cpu = -1;
+	rthread.state = ST_THREAD_INIT;
+
+	if(create_trace_stream(tid))
 		return -1;
 
 	return 0;
@@ -102,7 +109,7 @@ ovni_init(int loom, int proc, int ncpus)
 void
 ovni_cpu_set(int cpu)
 {
-	ovnithr.cpu = cpu;
+	rthread.cpu = cpu;
 }
 
 /* Sets the current time so that all subsequent events have the new
@@ -114,63 +121,22 @@ ovni_clock_update()
 	uint64_t ns = 1000LL * 1000LL * 1000LL;
 	uint64_t raw;
 
-	if(clock_gettime(ovniproc.clockid, &tp))
+	if(clock_gettime(rproc.clockid, &tp))
 		return -1;
 
 	raw = tp.tv_sec * ns + tp.tv_nsec;
 	//raw = raw >> 6;
-	ovnithr.clockvalue = (uint64_t) raw;
+	rthread.clockvalue = (uint64_t) raw;
 
 	return 0;
 }
 
-//static void
-//pack_int64(uint8_t **q, int64_t n)
-//{
-//	uint8_t *p = *q;
-//
-//	*p++ = (n >>  0) & 0xff;
-//	*p++ = (n >>  8) & 0xff;
-//	*p++ = (n >> 16) & 0xff;
-//	*p++ = (n >> 24) & 0xff;
-//	*p++ = (n >> 32) & 0xff;
-//	*p++ = (n >> 40) & 0xff;
-//	*p++ = (n >> 48) & 0xff;
-//	*p++ = (n >> 56) & 0xff;
-//
-//	*q = p;
-//}
-
 static void
-pack_uint32(uint8_t **q, uint32_t n)
+hexdump(uint8_t *buf, size_t size)
 {
-	uint8_t *p = *q;
-
-	*p++ = (n >>  0) & 0xff;
-	*p++ = (n >>  8) & 0xff;
-	*p++ = (n >> 16) & 0xff;
-	*p++ = (n >> 24) & 0xff;
-
-	*q = p;
-}
-
-static void
-pack_uint8(uint8_t **q, uint8_t n)
-{
-	uint8_t *p = *q;
-
-	*p++ = n;
-
-	*q = p;
-}
-
-static int
-ovni_write(uint8_t *buf, size_t size)
-{
-	FILE *f;
 	int i, j;
 
-	printf("writing %ld bytes in cpu=%d\n", size, ovnithr.cpu);
+	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
 
 	for(i=0; i<size; i+=16)
 	{
@@ -180,16 +146,19 @@ ovni_write(uint8_t *buf, size_t size)
 		}
 		printf("\n");
 	}
+}
 
-	f = ovniproc.cpustream[ovnithr.cpu];
-
-	if(fwrite(buf, 1, size, f) != size)
+static int
+ovni_write(uint8_t *buf, size_t size)
+{
+	fprintf(stderr, "writing %ld bytes in thread.%d\n", size, rthread.tid);
+	if(fwrite(buf, 1, size, rthread.stream) != size)
 	{
 		perror("fwrite");
 		return -1;
 	}
 
-	fflush(f);
+	fflush(rthread.stream);
 
 	return 0;
 }
@@ -197,9 +166,9 @@ ovni_write(uint8_t *buf, size_t size)
 static int
 ovni_ev(uint8_t fsm, uint8_t event, int32_t data)
 {
-	struct ovnievent ev;
+	struct event ev;
 
-	ev.clock = ovnithr.clockvalue;
+	ev.clock = rthread.clockvalue;
 	ev.fsm = fsm;
 	ev.event = event;
 	ev.data = data;
@@ -210,21 +179,6 @@ ovni_ev(uint8_t fsm, uint8_t event, int32_t data)
 int
 ovni_ev_worker(uint8_t fsm, uint8_t event, int32_t data)
 {
+	assert(rthread.state == ST_THREAD_INIT);
 	return ovni_ev(fsm, event, data);
-}
-
-void
-ovni_stream_open(int cpu)
-{
-	if(atomic_fetch_add(&ovniproc.opened[cpu], 1) + 1 > 1)
-	{
-		fprintf(stderr, "the stream for cpu.%d is already in use\n", cpu);
-		abort();
-	}
-}
-
-void
-ovni_stream_close(int cpu)
-{
-	atomic_fetch_sub(&ovniproc.opened[cpu], 1);
 }

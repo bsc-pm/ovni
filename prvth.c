@@ -162,10 +162,10 @@ int load_streams(struct trace *trace)
 
 				stream->f = thread->f;
 				stream->tid = thread->tid;
+				stream->thread = k;
 				stream->proc = j;
 				stream->loom = i;
 				stream->active = 1;
-				stream->lastclock = 0;
 			}
 		}
 	}
@@ -197,15 +197,25 @@ int load_first_event(struct trace *trace)
 
 void emit(struct stream *stream, struct event *ev)
 {
+	static uint64_t firstclock = 0;
 	int64_t delta;
+	int task;
 
-	delta = ev->clock - stream->lastclock;
+	if(firstclock == 0)
+		firstclock = ev->clock;
 
-	printf("%d.%d.%d %c %c % 6u % 6u % 20lu %+15ld ns\n",
-			stream->loom, stream->proc, stream->tid,
-			ev->fsm, ev->event, ev->a, ev->b, ev->clock, delta);
+	delta = ev->clock - firstclock;
 
-	stream->lastclock = ev->clock;
+	//#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(00000000000000000008:1)
+	//2:0:1:1:7:1540663:6400010:1
+	//2:0:1:1:7:1540663:6400015:1
+	//2:0:1:1:7:1540663:6400017:0
+	//2:0:1:1:7:1542091:6400010:1
+	//2:0:1:1:7:1542091:6400015:1
+	//2:0:1:1:7:1542091:6400025:1
+	//2:0:1:1:7:1542091:6400017:0
+
+	printf("2:0:1:1:%d:%ld:%d:%d\n", stream->thread+1, delta, ev->fsm, ev->event);
 }
 
 void load_next_event(struct stream *stream)
@@ -315,6 +325,8 @@ int main(int argc, char *argv[])
 
 	if(load_streams(&trace))
 		return 1;
+
+	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", trace.nstreams);
 
 	dump_events(&trace);
 

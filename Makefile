@@ -3,7 +3,7 @@ CFLAGS=-g -O0 -fPIC
 CFLAGS+=-fsanitize=address
 LDFLAGS+=-fsanitize=address
 
-BIN=dump libovni.a
+BIN=dump libovni.a prvth
 
 all: $(BIN)
 

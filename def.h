@@ -18,7 +18,8 @@ struct __attribute__((__packed__)) event {
 	uint64_t clock;
 	uint8_t fsm;
 	uint8_t event;
-	int32_t data;
+	uint16_t a;
+	uint16_t b;
 };
 
 /* ----------------------- runtime ------------------------ */
@@ -38,7 +39,7 @@ struct rthread {
 	/* Stream trace file */
 	FILE *stream;
 
-	enum thread_state state;
+	int ready;
 };
 
 /* State of each process on runtime */
@@ -51,6 +52,8 @@ struct rproc {
 	int ncpus;
 	clockid_t clockid;
 	char procdir[PATH_MAX];
+
+	int ready;
 };
 
 /* ----------------------- emulated ------------------------ */
@@ -91,10 +94,14 @@ struct loom {
 
 struct stream {
 	FILE *f;
-	int cpu;
+	int tid;
+	int thread;
+	int proc;
+	int loom;
 	int loaded;
 	int active;
 	struct event last;
+	uint64_t lastclock;
 };
 
 struct trace {

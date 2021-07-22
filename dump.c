@@ -201,7 +201,7 @@ void emit(struct stream *stream, struct event *ev)
 
 	delta = ev->clock - stream->lastclock;
 
-	printf("%d.%d.%d %c %c % 6u % 6u % 20lu %+15ld ns\n",
+	printf("%d.%d.%d %c %c % 6u % 6u % 20lu % 15ld\n",
 			stream->loom, stream->proc, stream->tid,
 			ev->fsm, ev->event, ev->a, ev->b, ev->clock, delta);
 
@@ -272,9 +272,10 @@ void dump_events(struct trace *trace)
 
 		stream = &trace->stream[f];
 
-		if(lastclock >= stream->last.clock)
+		if(lastclock > stream->last.clock)
 		{
-			fprintf(stderr, "warning: backwards jump in time\n");
+			fprintf(stdout, "warning: backwards jump in time %lu -> %lu\n",
+					lastclock, stream->last.clock);
 		}
 
 		/* Emit current event */

@@ -7,6 +7,9 @@
 #define MAX_LOOM 4
 #define TRACEDIR "ovni"
 
+#define MAX_EV (16*1024) /* 16 kev per thread */
+//#define MAX_EV (16) /* 16 ev per thread */
+
 /* ----------------------- common ------------------------ */
 
 enum thread_state {
@@ -36,10 +39,14 @@ struct rthread {
 	/* Clock value of the events being emitted */
 	uint64_t clockvalue;
 
-	/* Stream trace file */
-	FILE *stream;
+	/* Stream trace file descriptor */
+	int streamfd;
 
 	int ready;
+
+	/* Buffer to write events */
+	int nevents;
+	struct event events[MAX_EV];
 };
 
 /* State of each process on runtime */

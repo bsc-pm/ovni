@@ -11,9 +11,15 @@
 #include <sys/stat.h>
 #include <stdatomic.h>
 #include <assert.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 
 #include "ovni.h"
 #include "def.h"
+
+//#define ENABLE_SLOW_CHECKS
 
 /* Data per process */
 struct rproc rproc = {0};
@@ -59,17 +65,23 @@ create_trace_dirs(char *tracedir, int loom, int proc)
 static int
 create_trace_stream()
 {
+	int fd;
 	char path[PATH_MAX];
 
 	fprintf(stderr, "create thread stream tid=%d gettid=%d rproc.proc=%d rproc.ready=%d\n",
 			rthread.tid, gettid(), rproc.proc, rproc.ready);
 
 	snprintf(path, PATH_MAX, "%s/thread.%d", rproc.dir, rthread.tid);
-	if((rthread.stream = fopen(path, "w")) == NULL)
+
+	//rthread.streamfd = open(path, O_WRONLY | O_CREAT | O_DSYNC, 0644);
+	rthread.streamfd = open(path, O_WRONLY | O_CREAT, 0644);
+
+	if(rthread.streamfd == -1)
 	{
-		fprintf(stderr, "fopen %s failed: %s\n", path, strerror(errno));
+		fprintf(stderr, "open %s failed: %s\n", path, strerror(errno));
+		/* Shall we just return -1 ? */
 		abort();
-		return -1;
+		//return -1;
 	}
 
 	return 0;
@@ -123,6 +135,7 @@ ovni_thread_init(pid_t tid)
 
 	rthread.tid = tid;
 	rthread.cpu = -666;
+	rthread.nevents = 0;
 
 	if(create_trace_stream(tid))
 		abort();
@@ -146,21 +159,23 @@ ovni_cpu_set(int cpu)
 
 /* Sets the current time so that all subsequent events have the new
  * timestamp */
-int
+void
 ovni_clock_update()
 {
 	struct timespec tp;
 	uint64_t ns = 1000LL * 1000LL * 1000LL;
 	uint64_t raw;
+	int ret;
 
-	if(clock_gettime(rproc.clockid, &tp))
-		return -1;
+	ret = clock_gettime(rproc.clockid, &tp);
+
+#ifdef ENABLE_SLOW_CHECKS
+	if(ret) abort();
+#endif
 
 	raw = tp.tv_sec * ns + tp.tv_nsec;
 	//raw = raw >> 6;
 	rthread.clockvalue = (uint64_t) raw;
-
-	return 0;
 }
 
 static void
@@ -183,32 +198,73 @@ hexdump(uint8_t *buf, size_t size)
 static int
 ovni_write(uint8_t *buf, size_t size)
 {
-	assert(rthread.stream);
+	ssize_t written;
 
-	fprintf(stderr, "writing %ld bytes in thread.%d\n", size, rthread.tid);
-	if(fwrite(buf, 1, size, rthread.stream) != size)
+	do
 	{
-		perror("fwrite");
-		return -1;
-	}
+		written = write(rthread.streamfd, buf, size);
 
-	//fflush(rthread.stream);
+		if(written < 0)
+		{
+			perror("write");
+			return -1;
+		}
+
+		size -= written;
+		buf += written;
+	} while(size > 0);
 
 	return 0;
+}
+
+int
+ovni_thread_flush()
+{
+	int ret = 0;
+	struct event pre={0}, post={0};
+
+	assert(rthread.ready);
+	assert(rproc.ready);
+
+	ovni_clock_update();
+	pre.clock = rthread.clockvalue;
+	pre.fsm  = 'F';
+	pre.event = '[';
+
+	ret = ovni_write((uint8_t *) rthread.events, rthread.nevents * sizeof(struct event));
+	rthread.nevents = 0;
+
+	ovni_clock_update();
+	post.clock = rthread.clockvalue;
+	post.fsm = 'F';
+	post.event = ']';
+
+	/* Also emit the two flush events */
+	memcpy(&rthread.events[rthread.nevents++], &pre, sizeof(struct event));;
+	memcpy(&rthread.events[rthread.nevents++], &post, sizeof(struct event));;
+
+	return ret;
 }
 
 static int
 ovni_ev(uint8_t fsm, uint8_t event, uint16_t a, uint16_t b)
 {
-	struct event ev;
+	struct event *ev;
+	int ret = 0;
 
-	ev.clock = rthread.clockvalue;
-	ev.fsm = fsm;
-	ev.event = event;
-	ev.a = a;
-	ev.b = b;
+	ev = &rthread.events[rthread.nevents++];
 
-	return ovni_write((uint8_t *) &ev, sizeof(ev));
+	ev->clock = rthread.clockvalue;
+	ev->fsm = fsm;
+	ev->event = event;
+	ev->a = a;
+	ev->b = b;
+
+	/* Flush */
+	if(rthread.nevents >= MAX_EV)
+		ret = ovni_thread_flush();
+
+	return ret;
 }
 
 int
@@ -218,3 +274,4 @@ ovni_thread_ev(uint8_t fsm, uint8_t event, uint16_t a, uint16_t b)
 	assert(rproc.ready);
 	return ovni_ev(fsm, event, a, b);
 }
+

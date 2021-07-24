@@ -10,61 +10,28 @@
 
 #include "ovni.h"
 
-#define ENABLE_DEBUG
-
-#ifdef ENABLE_DEBUG
-#define dbg(...) fprintf(stderr, __VA_ARGS__);
-#else
-#define dbg(...)
-#endif
-
-#define err(...) fprintf(stderr, __VA_ARGS__);
-
-
-static void
-hexdump(uint8_t *buf, size_t size)
-{
-	int i, j;
-
-	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
-
-	for(i=0; i<size; i+=16)
-	{
-		for(j=0; j<16 && i+j < size; j++)
-		{
-			fprintf(stderr, "%02x ", buf[i+j]);
-		}
-		fprintf(stderr, "\n");
-	}
-}
-
 void emit(struct ovni_stream *stream, struct ovni_ev *ev)
 {
+	static uint64_t firstclock = 0;
 	int64_t delta;
-	uint64_t clock;
-	int i, payloadsize;
+	int task;
 
-	//printf("sizeof(*ev) = %d\n", sizeof(*ev));
-	//hexdump((uint8_t *) ev, sizeof(*ev));
+	if(firstclock == 0)
+		firstclock = ovni_ev_get_clock(ev);
 
-	clock = ovni_ev_get_clock(ev);
+	delta = ovni_ev_get_clock(ev) - firstclock;
 
-	delta = clock - stream->lastclock;
+	//#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(00000000000000000008:1)
+	//2:0:1:1:7:1540663:6400010:1
+	//2:0:1:1:7:1540663:6400015:1
+	//2:0:1:1:7:1540663:6400017:0
+	//2:0:1:1:7:1542091:6400010:1
+	//2:0:1:1:7:1542091:6400015:1
+	//2:0:1:1:7:1542091:6400025:1
+	//2:0:1:1:7:1542091:6400017:0
 
-	printf("%d.%d.%d %c %c %c % 20lu % 15ld ",
-			stream->loom, stream->proc, stream->tid,
-			ev->model, ev->class, ev->value, clock, delta);
-
-	payloadsize = ovni_payload_size(ev);
-	for(i=0; i<payloadsize; i++)
-	{
-		printf("%d ", ev->payload.payload_u8[i]);
-	}
-	printf("\n");
-
-	stream->lastclock = clock;
+	printf("2:0:1:1:%d:%ld:%d:%d\n", stream->thread+1, delta, ev->class, ev->value);
 }
-
 
 void dump_events(struct ovni_trace *trace)
 {
@@ -110,10 +77,9 @@ void dump_events(struct ovni_trace *trace)
 
 		stream = &trace->stream[f];
 
-		if(lastclock > ovni_ev_get_clock(&stream->last))
+		if(lastclock >= ovni_ev_get_clock(&stream->last))
 		{
-			fprintf(stdout, "warning: backwards jump in time %lu -> %lu\n",
-					lastclock, ovni_ev_get_clock(&stream->last));
+			fprintf(stderr, "warning: backwards jump in time\n");
 		}
 
 		/* Emit current event */
@@ -149,6 +115,8 @@ int main(int argc, char *argv[])
 
 	if(ovni_load_streams(&trace))
 		return 1;
+
+	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", trace.nstreams);
 
 	dump_events(&trace);
 

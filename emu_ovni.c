@@ -3,6 +3,67 @@
 
 #include <assert.h>
 
+struct ovni_cpu *
+emu_get_cpu(struct ovni_emu *emu, int cpuid)
+{
+	assert(cpuid < OVNI_MAX_CPU);
+
+	if(cpuid < 0)
+	{
+		return &emu->vcpu;
+	}
+
+	return &emu->cpu[emu->cpuind[cpuid]];
+}
+
+int
+emu_cpu_find_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
+{
+	int i;
+
+	for(i=0; i<cpu->nthreads; i++)
+		if(cpu->thread[i] == thread)
+			break;
+
+	/* Not found */
+	if(i >= cpu->nthreads)
+		return -1;
+
+	return i;
+}
+
+void
+emu_cpu_add_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
+{
+	/* Found, abort */
+	if(emu_cpu_find_thread(cpu, thread) >= 0)
+		abort();
+
+	assert(cpu->nthreads < OVNI_MAX_THR);
+
+	cpu->thread[cpu->nthreads++] = thread;
+}
+
+void
+emu_cpu_remove_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
+{
+	int i, j;
+
+	i = emu_cpu_find_thread(cpu, thread);
+
+	/* Not found, abort */
+	if(i < 0)
+		abort();
+
+	for(j=i; j+1 < cpu->nthreads; j++)
+	{
+		cpu->thread[i] = cpu->thread[j+1];
+	}
+
+	cpu->nthreads--;
+}
+
+
 static void
 print_threads_state(struct ovni_emu *emu)
 {
@@ -245,7 +306,7 @@ ev_cpu(struct ovni_emu *emu)
 }
 
 void
-emu_process_ovni_ev(struct ovni_emu *emu)
+hook_pre_ovni(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
 
@@ -263,3 +324,52 @@ emu_process_ovni_ev(struct ovni_emu *emu)
 
 	print_threads_state(emu);
 }
+
+static void
+view_thread_count(struct ovni_emu *emu)
+{
+	int i;
+
+	/* Check every CPU looking for a change in nthreads */
+	for(i=0; i<emu->ncpus; i++)
+	{
+		if(emu->cpu[i].last_nthreads == emu->cpu[i].nthreads)
+			continue;
+
+		/* Emit the number of threads in the cpu */
+		dbg("cpu %d runs %d threads\n", i, emu->cpu[i].nthreads);
+	}
+
+	/* Same with the virtual CPU */
+	if(emu->vcpu.last_nthreads != emu->vcpu.nthreads)
+		dbg("vpu runs %d threads\n", emu->vcpu.nthreads);
+}
+
+void
+hook_view_ovni(struct ovni_emu *emu)
+{
+	switch(emu->cur_ev->class)
+	{
+		case 'H':
+		case 'A':
+		case 'C':
+			view_thread_count(emu);
+			break;
+		default:
+			break;
+	}
+}
+
+void
+hook_post_ovni(struct ovni_emu *emu)
+{
+	int i;
+
+	/* Update last_nthreads in the CPUs */
+
+	for(i=0; i<emu->ncpus; i++)
+		emu->cpu[i].last_nthreads = emu->cpu[i].nthreads;
+
+	emu->vcpu.last_nthreads = emu->vcpu.nthreads;
+}
+

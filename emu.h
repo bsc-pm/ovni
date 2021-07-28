@@ -104,6 +104,8 @@ struct ovni_cpu {
 	enum ovni_cpu_state state;
 	enum ovni_cpu_type type;
 
+	size_t last_nthreads;
+
 	/* The threads the cpu is currently running */
 	size_t nthreads;
 	struct ovni_ethread *thread[OVNI_MAX_THR];
@@ -135,14 +137,10 @@ struct ovni_emu {
 /* Emulator function declaration */
 
 void emu_emit(struct ovni_emu *emu);
-void emu_process_ovni_ev(struct ovni_emu *emu);
 
-
-int emu_cpu_find_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread);
-
-void emu_cpu_remove_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread);
-
-void emu_cpu_add_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread);
+void hook_pre_ovni(struct ovni_emu *emu);
+void hook_view_ovni(struct ovni_emu *emu);
+void hook_post_ovni(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_emu *emu, int cpuid);
 

@@ -85,15 +85,41 @@ find_thread(struct ovni_eproc *proc, pid_t tid)
 }
 
 static void
-step_emulator(struct ovni_emu *emu)
+hook_pre(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
 
 	switch(emu->cur_ev->model)
 	{
-		case 'O': emu_process_ovni_ev(emu); break;
-		//case 'V': emu_process_nosv_ev(emu); break;
-		//case 'M': emu_process_tampi_ev(emu); break;
+		case 'O': hook_pre_ovni(emu); break;
+		default:
+			  //dbg("unknown model %c\n", emu->cur_ev->model);
+			  break;
+	}
+}
+
+static void
+hook_view(struct ovni_emu *emu)
+{
+	//emu_emit(emu);
+
+	switch(emu->cur_ev->model)
+	{
+		case 'O': hook_view_ovni(emu); break;
+		default:
+			  //dbg("unknown model %c\n", emu->cur_ev->model);
+			  break;
+	}
+}
+
+static void
+hook_post(struct ovni_emu *emu)
+{
+	//emu_emit(emu);
+
+	switch(emu->cur_ev->model)
+	{
+		case 'O': hook_post_ovni(emu); break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;
@@ -183,71 +209,13 @@ emulate(struct ovni_emu *emu)
 	while(next_event(emu) == 0)
 	{
 		//fprintf(stdout, "step %i\n", i);
-		step_emulator(emu);
+		hook_pre(emu);
+		hook_view(emu);
+		hook_post(emu);
 
 		/* Read the next event */
 		ovni_load_next_event(emu->cur_stream);
 	}
-}
-
-int
-emu_cpu_find_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
-{
-	int i;
-
-	for(i=0; i<cpu->nthreads; i++)
-		if(cpu->thread[i] == thread)
-			break;
-
-	/* Not found */
-	if(i >= cpu->nthreads)
-		return -1;
-
-	return i;
-}
-
-void
-emu_cpu_remove_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
-{
-	int i, j;
-
-	i = emu_cpu_find_thread(cpu, thread);
-
-	/* Not found, abort */
-	if(i < 0)
-		abort();
-
-	for(j=i; j+1 < cpu->nthreads; j++)
-	{
-		cpu->thread[i] = cpu->thread[j+1];
-	}
-
-	cpu->nthreads--;
-}
-
-void
-emu_cpu_add_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
-{
-	/* Found, abort */
-	if(emu_cpu_find_thread(cpu, thread) >= 0)
-		abort();
-
-	assert(cpu->nthreads < OVNI_MAX_THR);
-
-	cpu->thread[cpu->nthreads++] = thread;
-}
-
-struct ovni_cpu *
-emu_get_cpu(struct ovni_emu *emu, int cpuid)
-{
-	assert(cpuid < OVNI_MAX_CPU);
-
-	if(cpuid < 0)
-	{
-		return &emu->vcpu;
-	}
-
-	return &emu->cpu[emu->cpuind[cpuid]];
 }
 
 struct ovni_ethread *

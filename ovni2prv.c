@@ -9,6 +9,7 @@
 #include <dirent.h> 
 
 #include "ovni.h"
+#include "ovni_trace.h"
 
 void emit(struct ovni_stream *stream, struct ovni_ev *ev)
 {

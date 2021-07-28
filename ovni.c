@@ -17,6 +17,7 @@
 #include <dirent.h>
 
 #include "ovni.h"
+#include "ovni_trace.h"
 
 #define ENABLE_DEBUG
 
@@ -237,9 +238,9 @@ hexdump(uint8_t *buf, size_t size)
 	{
 		for(j=0; j<16 && i+j < size; j++)
 		{
-			printf("%02x ", buf[i+j]);
+			dbg("%02x ", buf[i+j]);
 		}
-		printf("\n");
+		dbg("\n");
 	}
 }
 
@@ -307,16 +308,34 @@ ovni_ev_set_mcv(struct ovni_ev *ev, char *mcv)
 int
 ovni_payload_size(struct ovni_ev *ev)
 {
-	return ev->flags & 0x0f;
+	int size;
+
+	size = ev->flags & 0x0f;
+
+	if(size == 0)
+		return 0;
+
+	/* The minimum size is 2 bytes, so we can encode a length of 16
+	 * bytes using 4 bits (0x0f) */
+	size++;
+
+	return size;
 }
 
 void
 ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size)
 {
-	/* Ensure we have room */
-	assert(ovni_payload_size(ev) + size < 16);
+	int payload_size;
 
-	ev->flags = ev->flags & 0xf0 | size & 0x0f;
+	payload_size = ovni_payload_size(ev);
+
+	/* Ensure we have room */
+	assert(payload_size + size <= sizeof(ev->payload));
+
+	memcpy(&ev->payload.u8[payload_size], buf, size);
+	payload_size += size;
+
+	ev->flags = ev->flags & 0xf0 | (payload_size-1) & 0x0f;
 }
 
 int
@@ -412,6 +431,7 @@ load_proc(struct ovni_eproc *proc, char *procdir)
 
 		sprintf(path, "%s/%s", procdir, dirent->d_name);
 		thread->f = fopen(path, "r");
+		thread->state = TH_ST_UNKNOWN;
 
 		if(thread->f == NULL)
 		{

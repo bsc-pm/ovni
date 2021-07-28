@@ -9,6 +9,8 @@
 #include <dirent.h> 
 
 #include "ovni.h"
+#include "ovni_trace.h"
+#include "emu.h"
 
 #define ENABLE_DEBUG
 
@@ -58,7 +60,7 @@ void emit(struct ovni_stream *stream, struct ovni_ev *ev)
 	payloadsize = ovni_payload_size(ev);
 	for(i=0; i<payloadsize; i++)
 	{
-		printf("%d ", ev->payload.payload_u8[i]);
+		printf("%02x ", ev->payload.u8[i]);
 	}
 	printf("\n");
 

@@ -92,6 +92,7 @@ hook_pre(struct ovni_emu *emu)
 	switch(emu->cur_ev->model)
 	{
 		case 'O': hook_pre_ovni(emu); break;
+		case 'V': hook_pre_nosv(emu); break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;
@@ -106,6 +107,7 @@ hook_view(struct ovni_emu *emu)
 	switch(emu->cur_ev->model)
 	{
 		case 'O': hook_view_ovni(emu); break;
+		case 'V': hook_view_nosv(emu); break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;
@@ -144,6 +146,7 @@ next_event(struct ovni_emu *emu)
 	struct ovni_ev *ev;
 	struct ovni_stream *stream;
 	struct ovni_trace *trace;
+	static int64_t t0 = -1;
 
 	trace = &emu->trace;
 
@@ -183,6 +186,11 @@ next_event(struct ovni_emu *emu)
 	}
 
 	emu->lastclock = ovni_ev_get_clock(&stream->last);
+
+	if(t0 < 0)
+		t0 = emu->lastclock;
+
+	emu->delta_time = emu->lastclock - t0;
 
 	return 0;
 }
@@ -271,6 +279,8 @@ main(int argc, char *argv[])
 
 	if(ovni_load_streams(&emu.trace))
 		return 1;
+
+	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", 10);
 
 	emulate(&emu);
 

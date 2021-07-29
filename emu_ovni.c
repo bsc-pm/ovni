@@ -100,8 +100,8 @@ ev_thread_execute(struct ovni_emu *emu)
 	assert(emu->cur_thread->state != TH_ST_RUNNING);
 
 	cpuid = emu->cur_ev->payload.i32[0];
-	dbg("thread %d runs in cpuid %d\n", emu->cur_thread->tid,
-			cpuid);
+	//dbg("thread %d runs in cpuid %d\n", emu->cur_thread->tid,
+	//		cpuid);
 	cpu = emu_get_cpu(emu, cpuid);
 
 	emu->cur_thread->state = TH_ST_RUNNING;
@@ -152,7 +152,7 @@ ev_thread(struct ovni_emu *emu)
 	struct ovni_ethread *thread, *remote_thread;
 	int i;
 
-	emu_emit(emu);
+	//emu_emit(emu);
 
 	thread = emu->cur_thread;
 	cpu = thread->cpu;
@@ -196,7 +196,7 @@ ev_affinity_set(struct ovni_emu *emu)
 
 	emu->cur_thread->cpu = newcpu;
 
-	dbg("cpu %d now runs %d\n", cpuid, emu->cur_thread->tid);
+	//dbg("cpu %d now runs %d\n", cpuid, emu->cur_thread->tid);
 }
 
 static void
@@ -223,14 +223,14 @@ ev_affinity_remote(struct ovni_emu *emu)
 
 	thread->cpu = newcpu;
 
-	dbg("thread %d switches to cpu %d by remote petition\n", tid,
-			cpuid);
+	//dbg("thread %d switches to cpu %d by remote petition\n", tid,
+	//		cpuid);
 }
 
 static void
 ev_affinity(struct ovni_emu *emu)
 {
-	emu_emit(emu);
+	//emu_emit(emu);
 	switch(emu->cur_ev->value)
 	{
 		case 's': ev_affinity_set(emu); break;
@@ -322,27 +322,46 @@ hook_pre_ovni(struct ovni_emu *emu)
 			break;
 	}
 
-	print_threads_state(emu);
+	//print_threads_state(emu);
 }
 
 static void
 view_thread_count(struct ovni_emu *emu)
 {
-	int i;
+	int i, n, cpu = -1;
+	int64_t delta_time;
+	static int64_t t0 = -1;
+
+	if(t0 < 0)
+		t0 = ovni_ev_get_clock(emu->cur_ev);
+
+	delta_time = ovni_ev_get_clock(emu->cur_ev) - t0;
 
 	/* Check every CPU looking for a change in nthreads */
 	for(i=0; i<emu->ncpus; i++)
 	{
-		if(emu->cpu[i].last_nthreads == emu->cpu[i].nthreads)
-			continue;
-
-		/* Emit the number of threads in the cpu */
-		dbg("cpu %d runs %d threads\n", i, emu->cpu[i].nthreads);
+		if(emu->cpu[i].last_nthreads != emu->cpu[i].nthreads)
+		{
+			cpu = i + 1;
+			n = emu->cpu[i].nthreads;
+			goto emit;
+		}
 	}
 
 	/* Same with the virtual CPU */
 	if(emu->vcpu.last_nthreads != emu->vcpu.nthreads)
-		dbg("vpu runs %d threads\n", emu->vcpu.nthreads);
+	{
+		cpu = 0;
+		n = emu->vcpu.nthreads;
+		goto emit;
+	}
+
+	return;
+
+emit:
+
+	printf("2:0:1:1:%d:%ld:100:%d\n",
+			cpu+1, delta_time, n);
 }
 
 void

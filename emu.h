@@ -2,6 +2,7 @@
 #define OVNI_EMU_H
 
 #include "ovni.h"
+#include "uthash.h"
 #include <stdio.h>
 
 /* Debug macros */
@@ -24,6 +25,23 @@ enum ethread_state {
 	TH_ST_DEAD,
 };
 
+
+enum nosv_task_state {
+	TASK_ST_CREATED,
+	TASK_ST_RUNNING,
+	TASK_ST_PAUSED,
+	TASK_ST_DEAD,
+};
+
+struct ovni_ethread;
+
+struct nosv_task {
+	int id;
+	struct ovni_ethread *thread;
+	enum nosv_task_state state;
+	UT_hash_handle hh;
+};
+
 /* State of each emulated thread */
 struct ovni_ethread {
 	/* Emulated thread tid */
@@ -39,6 +57,12 @@ struct ovni_ethread {
 
 	/* Current cpu */
 	struct ovni_cpu *cpu;
+
+	/* FIXME: Use a table with registrable pointers to custom data
+	 * structures */
+
+	/* nosv task */
+	struct nosv_task *task;
 };
 
 /* State of each emulated process */
@@ -132,6 +156,9 @@ struct ovni_emu {
 	struct ovni_ethread *cur_thread;
 
 	uint64_t lastclock;
+	int64_t delta_time;
+
+	struct nosv_task *cur_task;
 };
 
 /* Emulator function declaration */
@@ -141,6 +168,10 @@ void emu_emit(struct ovni_emu *emu);
 void hook_pre_ovni(struct ovni_emu *emu);
 void hook_view_ovni(struct ovni_emu *emu);
 void hook_post_ovni(struct ovni_emu *emu);
+
+void hook_pre_nosv(struct ovni_emu *emu);
+void hook_view_nosv(struct ovni_emu *emu);
+void hook_post_nosv(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_emu *emu, int cpuid);
 

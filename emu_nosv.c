@@ -5,26 +5,30 @@
 #include <assert.h>
 
 struct nosv_task *tasks = NULL;
+struct nosv_task_type *types = NULL;
 
 struct hook_entry {
 	char id[4];
 	void (*hook)(struct ovni_emu *);
 };
 
+/* --------------------------- pre ------------------------------- */
+
 static void
 pre_task_create(struct ovni_emu *emu)
 {
 	struct nosv_task *task, *p = NULL;
 	
-	task = malloc(sizeof(*task));
+	task = calloc(1, sizeof(*task));
 
 	if(task == NULL)
 	{
-		perror("malloc");
+		perror("calloc");
 		abort();
 	}
 
 	task->id = emu->cur_ev->payload.i32[0];
+	task->type_id = emu->cur_ev->payload.i32[1];
 	task->state = TASK_ST_CREATED;
 
 	/* Ensure the task id is new */
@@ -32,7 +36,7 @@ pre_task_create(struct ovni_emu *emu)
 
 	if(p != NULL)
 	{
-		err("A task with id %d already exists\n", task->id);
+		err("A task with id %d already exists\n", p->id);
 		abort();
 	}
 
@@ -122,7 +126,6 @@ pre_task_end(struct ovni_emu *emu)
 
 	taskid = emu->cur_ev->payload.i32[0];
 
-	/* Ensure the task id is new */
 	HASH_FIND_INT(tasks, &taskid, task);
 
 	assert(task != NULL);
@@ -158,6 +161,50 @@ pre_task(struct ovni_emu *emu)
 	}
 }
 
+static void
+pre_type_create(struct ovni_emu *emu)
+{
+	struct nosv_task_type *type, *p = NULL;
+	int typeid;
+
+	typeid = emu->cur_ev->payload.i32[0];
+
+	/* Ensure the type id is new */
+	HASH_FIND_INT(types, &typeid, type);
+
+	if(type != NULL)
+	{
+		err("A task type with id %d already exists\n", p->id);
+		abort();
+	}
+	
+	type = calloc(1, sizeof(*type));
+
+	if(type == NULL)
+	{
+		perror("calloc");
+		abort();
+	}
+
+	type->id = typeid;
+
+	/* Add the new task type to the hash table */
+	HASH_ADD_INT(types, id, type);
+
+	dbg("new task type created id=%d\n", type->id);
+}
+
+static void
+pre_type(struct ovni_emu *emu)
+{
+	switch(emu->cur_ev->value)
+	{
+		case 'c': pre_type_create(emu); break;
+		default:
+			  break;
+	}
+}
+
 void
 hook_pre_nosv(struct ovni_emu *emu)
 {
@@ -165,12 +212,13 @@ hook_pre_nosv(struct ovni_emu *emu)
 	switch(emu->cur_ev->class)
 	{
 		case 'T': pre_task(emu); break;
+		case 'Y': pre_type(emu); break;
 		default:
 			  break;
 	}
 }
 
-/* --------------------------- views ------------------------------- */
+/* --------------------------- emit ------------------------------- */
 
 static void
 emit_prv(struct ovni_emu *emu, int type, int val)
@@ -191,24 +239,28 @@ static void
 emit_task_execute(struct ovni_emu *emu)
 {
 	emit_prv(emu, 200, emu->cur_task->id + 1);
+	emit_prv(emu, 300, emu->cur_task->type_id + 1);
 }
 
 static void
 emit_task_pause(struct ovni_emu *emu)
 {
 	emit_prv(emu, 200, 0);
+	emit_prv(emu, 300, 0);
 }
 
 static void
 emit_task_resume(struct ovni_emu *emu)
 {
 	emit_prv(emu, 200, emu->cur_task->id + 1);
+	emit_prv(emu, 300, emu->cur_task->type_id + 1);
 }
 
 static void
 emit_task_end(struct ovni_emu *emu)
 {
 	emit_prv(emu, 200, 0);
+	emit_prv(emu, 300, 0);
 }
 
 static void

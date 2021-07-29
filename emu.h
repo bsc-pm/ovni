@@ -37,10 +37,17 @@ struct ovni_ethread;
 
 struct nosv_task {
 	int id;
+	int type_id;
 	struct ovni_ethread *thread;
 	enum nosv_task_state state;
 	UT_hash_handle hh;
 };
+
+struct nosv_task_type {
+	int id;
+	UT_hash_handle hh;
+};
+
 
 /* State of each emulated thread */
 struct ovni_ethread {

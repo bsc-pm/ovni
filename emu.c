@@ -79,14 +79,14 @@ hook_pre(struct ovni_emu *emu)
 }
 
 static void
-hook_view(struct ovni_emu *emu)
+hook_emit(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
 
 	switch(emu->cur_ev->header.model)
 	{
-		case 'O': hook_view_ovni(emu); break;
-		case 'V': hook_view_nosv(emu); break;
+		case 'O': hook_emit_ovni(emu); break;
+		case 'V': hook_emit_nosv(emu); break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;
@@ -197,7 +197,7 @@ emulate(struct ovni_emu *emu)
 	{
 		//fprintf(stdout, "step %i\n", i);
 		hook_pre(emu);
-		hook_view(emu);
+		hook_emit(emu);
 		hook_post(emu);
 
 		/* Read the next event */
@@ -236,6 +236,16 @@ emu_get_thread(struct ovni_emu *emu, int tid)
 
 	return thread;
 }
+
+void
+emu_emit_prv(struct ovni_emu *emu, int type, int val)
+{
+	printf("2:0:1:1:%d:%ld:%d:%d\n",
+			emu->cur_thread->cpu->cpu_id + 2,
+			emu->delta_time,
+			type, val);
+}
+
 
 int
 main(int argc, char *argv[])

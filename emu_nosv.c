@@ -4,8 +4,9 @@
 #include "uthash.h"
 #include <assert.h>
 
-struct nosv_task *tasks = NULL;
-struct nosv_task_type *types = NULL;
+enum nosv_prv_type {
+	PRV_TYPE_PROCID
+};
 
 struct hook_entry {
 	char id[4];
@@ -32,7 +33,7 @@ pre_task_create(struct ovni_emu *emu)
 	task->state = TASK_ST_CREATED;
 
 	/* Ensure the task id is new */
-	HASH_FIND_INT(tasks, &task->id, p);
+	HASH_FIND_INT(emu->cur_proc->tasks, &task->id, p);
 
 	if(p != NULL)
 	{
@@ -41,7 +42,7 @@ pre_task_create(struct ovni_emu *emu)
 	}
 
 	/* Add the new task to the hash table */
-	HASH_ADD_INT(tasks, id, task);
+	HASH_ADD_INT(emu->cur_proc->tasks, id, task);
 
 	emu->cur_task = task;
 
@@ -56,7 +57,7 @@ pre_task_execute(struct ovni_emu *emu)
 
 	taskid = emu->cur_ev->payload.i32[0];
 
-	HASH_FIND_INT(tasks, &taskid, task);
+	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
 	assert(task != NULL);
 	assert(emu->cur_thread->state == TH_ST_RUNNING);
@@ -79,7 +80,7 @@ pre_task_pause(struct ovni_emu *emu)
 
 	taskid = emu->cur_ev->payload.i32[0];
 
-	HASH_FIND_INT(tasks, &taskid, task);
+	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
 	assert(task != NULL);
 	assert(task->state == TASK_ST_RUNNING);
@@ -102,7 +103,7 @@ pre_task_resume(struct ovni_emu *emu)
 
 	taskid = emu->cur_ev->payload.i32[0];
 
-	HASH_FIND_INT(tasks, &taskid, task);
+	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
 	assert(task != NULL);
 	assert(task->state == TASK_ST_PAUSED);
@@ -126,7 +127,7 @@ pre_task_end(struct ovni_emu *emu)
 
 	taskid = emu->cur_ev->payload.i32[0];
 
-	HASH_FIND_INT(tasks, &taskid, task);
+	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
 	assert(task != NULL);
 	assert(task->state == TASK_ST_RUNNING);
@@ -164,7 +165,7 @@ pre_task(struct ovni_emu *emu)
 static void
 pre_type_create(struct ovni_emu *emu)
 {
-	struct nosv_task_type *type, *p = NULL;
+	struct nosv_task_type *type;
 	uint8_t *data;
 	uint32_t *typeid;
 	const char *label;
@@ -181,7 +182,7 @@ pre_type_create(struct ovni_emu *emu)
 	label = (const char *) data;
 
 	/* Ensure the type id is new */
-	HASH_FIND_INT(types, typeid, type);
+	HASH_FIND_INT(emu->cur_proc->types, typeid, type);
 
 	if(type != NULL)
 	{
@@ -201,7 +202,7 @@ pre_type_create(struct ovni_emu *emu)
 	type->label = label;
 
 	/* Add the new task type to the hash table */
-	HASH_ADD_INT(types, id, type);
+	HASH_ADD_INT(emu->cur_proc->types, id, type);
 
 	dbg("new task type created id=%d label=%s\n", type->id,
 			type->label);
@@ -234,46 +235,38 @@ hook_pre_nosv(struct ovni_emu *emu)
 /* --------------------------- emit ------------------------------- */
 
 static void
-emit_prv(struct ovni_emu *emu, int type, int val)
-{
-	printf("2:0:1:1:%d:%ld:%d:%d\n",
-			emu->cur_thread->cpu->cpu_id + 2,
-			emu->delta_time,
-			type, val);
-}
-
-static void
 emit_task_create(struct ovni_emu *emu)
 {
-	//emit_prv(emu, 200, emu->cur_task->id);
+	//emu_emit_prv(emu, 200, emu->cur_task->id);
 }
 
 static void
 emit_task_execute(struct ovni_emu *emu)
 {
-	emit_prv(emu, 200, emu->cur_task->id + 1);
-	emit_prv(emu, 300, emu->cur_task->type_id + 1);
+	emu_emit_prv(emu, 200, emu->cur_task->id + 1);
+	emu_emit_prv(emu, 300, emu->cur_task->type_id + 1);
+	emu_emit_prv(emu, 300, emu->cur_task->type_id + 1);
 }
 
 static void
 emit_task_pause(struct ovni_emu *emu)
 {
-	emit_prv(emu, 200, 0);
-	emit_prv(emu, 300, 0);
+	emu_emit_prv(emu, 200, 0);
+	emu_emit_prv(emu, 300, 0);
 }
 
 static void
 emit_task_resume(struct ovni_emu *emu)
 {
-	emit_prv(emu, 200, emu->cur_task->id + 1);
-	emit_prv(emu, 300, emu->cur_task->type_id + 1);
+	emu_emit_prv(emu, 200, emu->cur_task->id + 1);
+	emu_emit_prv(emu, 300, emu->cur_task->type_id + 1);
 }
 
 static void
 emit_task_end(struct ovni_emu *emu)
 {
-	emit_prv(emu, 200, 0);
-	emit_prv(emu, 300, 0);
+	emu_emit_prv(emu, 200, 0);
+	emu_emit_prv(emu, 300, 0);
 }
 
 static void
@@ -292,7 +285,7 @@ emit_task(struct ovni_emu *emu)
 }
 
 void
-hook_view_nosv(struct ovni_emu *emu)
+hook_emit_nosv(struct ovni_emu *emu)
 {
 	dbg("pre nosv\n");
 	switch(emu->cur_ev->header.class)

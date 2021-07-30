@@ -73,9 +73,7 @@ struct ovni_ethread {
 
 /* State of each emulated process */
 struct ovni_eproc {
-	/* Monotonic counter for process index */
-	/* TODO: Use pid? */
-	int proc;
+	int pid;
 
 	/* Path of the process tracedir */
 	char dir[PATH_MAX];
@@ -83,6 +81,13 @@ struct ovni_eproc {
 	/* Threads */
 	size_t nthreads;
 	struct ovni_ethread thread[OVNI_MAX_THR];
+
+	/* ------ Subsystem specific data --------*/
+	/* TODO: Use dynamic allocation */
+
+	struct nosv_task_type *types;
+	struct nosv_task *tasks;
+
 };
 
 /* ----------------------- trace ------------------------ */
@@ -174,15 +179,17 @@ struct ovni_emu {
 void emu_emit(struct ovni_emu *emu);
 
 void hook_pre_ovni(struct ovni_emu *emu);
-void hook_view_ovni(struct ovni_emu *emu);
+void hook_emit_ovni(struct ovni_emu *emu);
 void hook_post_ovni(struct ovni_emu *emu);
 
 void hook_pre_nosv(struct ovni_emu *emu);
-void hook_view_nosv(struct ovni_emu *emu);
+void hook_emit_nosv(struct ovni_emu *emu);
 void hook_post_nosv(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_emu *emu, int cpuid);
 
 struct ovni_ethread *emu_get_thread(struct ovni_emu *emu, int tid);
+
+void emu_emit_prv(struct ovni_emu *emu, int type, int val);
 
 #endif /* OVNI_EMU_H */

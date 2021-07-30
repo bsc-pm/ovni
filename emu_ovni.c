@@ -326,7 +326,7 @@ hook_pre_ovni(struct ovni_emu *emu)
 }
 
 static void
-view_thread_count(struct ovni_emu *emu)
+emit_thread_count(struct ovni_emu *emu)
 {
 	int i, n, cpu = -1;
 	int64_t delta_time;
@@ -364,15 +364,25 @@ emit:
 			cpu+1, delta_time, n);
 }
 
+static void
+emit_current_pid(struct ovni_emu *emu)
+{
+	if(emu->cur_thread->cpu == NULL)
+		return;
+
+	emu_emit_prv(emu, 400, emu->cur_proc->pid);
+}
+
 void
-hook_view_ovni(struct ovni_emu *emu)
+hook_emit_ovni(struct ovni_emu *emu)
 {
 	switch(emu->cur_ev->header.class)
 	{
 		case 'H':
 		case 'A':
 		case 'C':
-			view_thread_count(emu);
+			emit_thread_count(emu);
+			emit_current_pid(emu);
 			break;
 		default:
 			break;
@@ -391,4 +401,3 @@ hook_post_ovni(struct ovni_emu *emu)
 
 	emu->vcpu.last_nthreads = emu->vcpu.nthreads;
 }
-

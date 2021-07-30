@@ -445,6 +445,31 @@ ovni_ev(struct ovni_ev *ev)
 }
 
 static int
+find_dir_prefix(struct dirent *dirent, const char *prefix, int *num)
+{
+	const char *p;
+
+	p = dirent->d_name;
+
+	/* Check the prefix */
+	if(strncmp(p, prefix, strlen(prefix)) != 0)
+		return -1;
+
+	p += strlen(prefix);
+
+	/* Find the dot */
+	if(*p != '.')
+		return -1;
+
+	p++;
+
+	/* Convert the end to a number */
+	*num = atoi(p);
+
+	return 0;
+}
+
+static int
 load_thread(struct ovni_ethread *thread, int tid, char *filepath)
 {
 	thread->tid = tid;
@@ -461,13 +486,15 @@ load_thread(struct ovni_ethread *thread, int tid, char *filepath)
 }
 
 static int
-load_proc(struct ovni_eproc *proc, char *procdir)
+load_proc(struct ovni_eproc *proc, int pid, char *procdir)
 {
 	struct dirent *dirent;
 	DIR *dir;
 	char path[PATH_MAX];
-	char *p;
 	struct ovni_ethread *thread;
+	int tid;
+
+	proc->pid = pid;
 
 	if((dir = opendir(procdir)) == NULL)
 	{
@@ -478,24 +505,24 @@ load_proc(struct ovni_eproc *proc, char *procdir)
 
 	while((dirent = readdir(dir)) != NULL)
 	{
-		if(dirent->d_name[0] != 't')
-			continue;
-		p = strchr(dirent->d_name, '.');
-		if(p == NULL)
-			continue;
-		p++;
-		if(*p == '\0')
+		if(find_dir_prefix(dirent, "thread", &tid) != 0)
 		{
-			fprintf(stderr, "bad thread stream file: %s\n",
+			err("warning: ignoring bogus directory entry %s\n",
 					dirent->d_name);
-			return -1;
+			continue;
 		}
 
 		sprintf(path, "%s/%s", procdir, dirent->d_name);
 
+		if(proc->nthreads >= OVNI_MAX_THR)
+		{
+			err("too many thread streams for process %d\n", pid);
+			abort();
+		}
+
 		thread = &proc->thread[proc->nthreads++];
 
-		if(load_thread(thread, atoi(p), path) != 0)
+		if(load_thread(thread, tid, path) != 0)
 			return -1;
 	}
 
@@ -505,38 +532,47 @@ load_proc(struct ovni_eproc *proc, char *procdir)
 }
 
 static int
-load_loom(struct ovni_loom *loom, char *loomdir)
+load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 {
-	int proc;
+	int pid;
 	char path[PATH_MAX];
 	struct stat st;
+	DIR *dir;
+	struct dirent *dirent;
+	struct ovni_eproc *proc;
 
-	for(proc=0; proc<OVNI_MAX_PROC; proc++)
+	if((dir = opendir(loomdir)) == NULL)
 	{
-		sprintf(path, "%s/proc.%d", loomdir, proc);
+		fprintf(stderr, "opendir %s failed: %s\n",
+				loomdir, strerror(errno));
+		return -1;
+	}
 
-		if(stat(path, &st) != 0)
+	while((dirent = readdir(dir)) != NULL)
+	{
+		if(find_dir_prefix(dirent, "proc", &pid) != 0)
 		{
-			/* No more proc.N directories */
-			if(errno == ENOENT)
-				break;
-
-			fprintf(stderr, "cannot stat %s: %s\n", path,
-					strerror(errno));
-			return -1;
+			err("warning: ignoring bogus directory entry %s\n",
+					dirent->d_name);
+			continue;
 		}
 
-		if(!S_ISDIR(st.st_mode))
+		sprintf(path, "%s/%s", loomdir, dirent->d_name);
+
+		if(loom->nprocs >= OVNI_MAX_PROC)
 		{
-			fprintf(stderr, "not a dir %s\n", path);
-			return -1;
+			err("too many process streams for loom %d\n",
+					loomid);
+			abort();
 		}
 
-		if(load_proc(&loom->proc[proc], path))
+		proc = &loom->proc[loom->nprocs++];
+
+		if(load_proc(proc, pid, path) != 0)
 			return -1;
 	}
 
-	loom->nprocs = proc;
+	closedir(dir);
 
 	return 0;
 }
@@ -553,7 +589,7 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 
 	sprintf(path, "%s/loom.%d", tracedir, loom);
 
-	if(load_loom(&trace->loom[loom], path))
+	if(load_loom(&trace->loom[loom], loom, path))
 		return -1;
 
 	trace->nlooms = nlooms;

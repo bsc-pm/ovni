@@ -25,7 +25,6 @@ enum ethread_state {
 	TH_ST_DEAD,
 };
 
-
 enum nosv_task_state {
 	TASK_ST_CREATED,
 	TASK_ST_RUNNING,
@@ -45,17 +44,17 @@ struct nosv_task {
 
 struct nosv_task_type {
 	int id;
+	const char *label;
 	UT_hash_handle hh;
 };
-
 
 /* State of each emulated thread */
 struct ovni_ethread {
 	/* Emulated thread tid */
 	pid_t tid;
 
-	/* Stream file */
-	FILE *f;
+	/* Stream fd */
+	int stream_fd;
 
 	enum ethread_state state;
 
@@ -95,14 +94,17 @@ struct ovni_loom {
 };
 
 struct ovni_stream {
-	FILE *f;
+	uint8_t *buf;
+	size_t size;
+	size_t offset;
+
 	int tid;
 	int thread;
 	int proc;
 	int loom;
 	int loaded;
 	int active;
-	struct ovni_ev last;
+	struct ovni_ev *cur_ev;
 	uint64_t lastclock;
 };
 
@@ -141,7 +143,6 @@ struct ovni_cpu {
 	size_t nthreads;
 	struct ovni_ethread *thread[OVNI_MAX_THR];
 };
-
 
 struct ovni_emu {
 	struct ovni_trace trace;

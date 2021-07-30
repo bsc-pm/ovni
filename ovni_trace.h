@@ -4,7 +4,7 @@
 #include "ovni.h"
 #include "emu.h"
 
-void ovni_load_next_event(struct ovni_stream *stream);
+int ovni_load_next_event(struct ovni_stream *stream);
 
 int ovni_load_trace(struct ovni_trace *trace, char *tracedir);
 

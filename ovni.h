@@ -18,25 +18,46 @@
 
 /* ----------------------- common ------------------------ */
 
-union __attribute__((__packed__)) ovni_ev_payload {
-	uint8_t u8[16];
-	int8_t i8[16];
-	uint16_t u16[8];
-	int16_t i16[8];
-	uint32_t u32[4];
-	int32_t i32[4];
-	uint64_t u64[2];
-	int64_t i64[2];
+enum ovni_ev_flags {
+	OVNI_EV_JUMBO = 0x10,
 };
 
-struct __attribute__((__packed__)) ovni_ev {
+struct __attribute__((__packed__)) ovni_jumbo_payload {
+	uint32_t size;
+	uint8_t data[1];
+};
+
+union __attribute__((__packed__)) ovni_ev_payload {
+
+	int8_t i8[16];
+	int16_t i16[8];
+	int32_t i32[4];
+	int64_t i64[2];
+
+	uint8_t u8[16];
+	uint16_t u16[8];
+	uint32_t u32[4];
+	uint64_t u64[2];
+
+	struct ovni_jumbo_payload jumbo;
+};
+
+struct __attribute__((__packed__)) ovni_ev_header {
 	/* first 4 bits reserved, last 4 for payload size */
 	uint8_t flags;
 	uint8_t model;
 	uint8_t class;
 	uint8_t value;
-	uint16_t clock_hi;
 	uint32_t clock_lo;
+	uint16_t clock_hi;
+};
+
+struct __attribute__((__packed__)) ovni_ev {
+	struct ovni_ev_header header;
+
+	/* The payload size may vary depending on the ev type:
+	 *   - normal: 0, or 2 to 16 bytes
+	 *   - jumbo: 0 to 2^32 - 1 bytes */
 	union ovni_ev_payload payload;
 };
 
@@ -100,6 +121,7 @@ int ovni_payload_size(struct ovni_ev *ev);
 
 /* Set the current clock in the event and queue it */
 void ovni_ev(struct ovni_ev *ev);
+void ovni_ev_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize);
 
 int ovni_flush();
 

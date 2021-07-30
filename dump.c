@@ -55,7 +55,7 @@ void emit(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	printf("%d.%d.%d %c %c %c % 20lu % 15ld ",
 			stream->loom, stream->proc, stream->tid,
-			ev->model, ev->class, ev->value, clock, delta);
+			ev->header.model, ev->header.class, ev->header.value, clock, delta);
 
 	payloadsize = ovni_payload_size(ev);
 	for(i=0; i<payloadsize; i++)
@@ -97,7 +97,7 @@ void dump_events(struct ovni_trace *trace)
 			if(!stream->active)
 				continue;
 
-			ev = &stream->last;
+			ev = stream->cur_ev;
 			if(f < 0 || ovni_ev_get_clock(ev) < minclock)
 			{
 				f = i;
@@ -112,16 +112,16 @@ void dump_events(struct ovni_trace *trace)
 
 		stream = &trace->stream[f];
 
-		if(lastclock > ovni_ev_get_clock(&stream->last))
+		if(lastclock > ovni_ev_get_clock(stream->cur_ev))
 		{
 			fprintf(stdout, "warning: backwards jump in time %lu -> %lu\n",
-					lastclock, ovni_ev_get_clock(&stream->last));
+					lastclock, ovni_ev_get_clock(stream->cur_ev));
 		}
 
 		/* Emit current event */
-		emit(stream, &stream->last);
+		emit(stream, stream->cur_ev);
 
-		lastclock = ovni_ev_get_clock(&stream->last);
+		lastclock = ovni_ev_get_clock(stream->cur_ev);
 
 		/* Read the next one */
 		ovni_load_next_event(stream);

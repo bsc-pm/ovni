@@ -29,7 +29,7 @@ emit_ev(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	dbg("%d.%d.%d %c %c %c % 20lu % 15ld ",
 			stream->loom, stream->proc, stream->tid,
-			ev->model, ev->class, ev->value, clock, delta);
+			ev->header.model, ev->header.class, ev->header.value, clock, delta);
 
 	payloadsize = ovni_payload_size(ev);
 	for(i=0; i<payloadsize; i++)
@@ -45,27 +45,6 @@ void
 emu_emit(struct ovni_emu *emu)
 {
 	emit_ev(emu->cur_stream, emu->cur_ev);
-}
-
-static void
-load_first_event(struct ovni_stream *stream)
-{
-	int i;
-	size_t n;
-	struct ovni_ev *ev;
-
-	if(!stream->active)
-		return;
-
-	ev = &stream->last;
-	if((n = fread(ev, sizeof(*ev), 1, stream->f)) != 1)
-	{
-		//fprintf(stderr, "failed to read an event, n=%ld\n", n);
-		stream->active = 0;
-		return;
-	}
-
-	stream->active = 1;
 }
 
 struct ovni_ethread *
@@ -89,7 +68,7 @@ hook_pre(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
 
-	switch(emu->cur_ev->model)
+	switch(emu->cur_ev->header.model)
 	{
 		case 'O': hook_pre_ovni(emu); break;
 		case 'V': hook_pre_nosv(emu); break;
@@ -104,7 +83,7 @@ hook_view(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
 
-	switch(emu->cur_ev->model)
+	switch(emu->cur_ev->header.model)
 	{
 		case 'O': hook_view_ovni(emu); break;
 		case 'V': hook_view_nosv(emu); break;
@@ -119,7 +98,7 @@ hook_post(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
 
-	switch(emu->cur_ev->model)
+	switch(emu->cur_ev->header.model)
 	{
 		case 'O': hook_post_ovni(emu); break;
 		default:
@@ -132,7 +111,7 @@ static void
 set_current(struct ovni_emu *emu, struct ovni_stream *stream)
 {
 	emu->cur_stream = stream;
-	emu->cur_ev = &stream->last;
+	emu->cur_ev = stream->cur_ev;
 	emu->cur_loom = &emu->trace.loom[stream->loom];
 	emu->cur_proc = &emu->cur_loom->proc[stream->proc];
 	emu->cur_thread = &emu->cur_proc->thread[stream->thread];
@@ -163,7 +142,7 @@ next_event(struct ovni_emu *emu)
 		if(!stream->active)
 			continue;
 
-		ev = &stream->last;
+		ev = stream->cur_ev;
 		if(f < 0 || ovni_ev_get_clock(ev) < minclock)
 		{
 			f = i;
@@ -179,13 +158,13 @@ next_event(struct ovni_emu *emu)
 
 	set_current(emu, stream);
 
-	if(emu->lastclock > ovni_ev_get_clock(&stream->last))
+	if(emu->lastclock > ovni_ev_get_clock(stream->cur_ev))
 	{
 		fprintf(stdout, "warning: backwards jump in time %lu -> %lu\n",
-				emu->lastclock, ovni_ev_get_clock(&stream->last));
+				emu->lastclock, ovni_ev_get_clock(stream->cur_ev));
 	}
 
-	emu->lastclock = ovni_ev_get_clock(&stream->last);
+	emu->lastclock = ovni_ev_get_clock(stream->cur_ev);
 
 	if(t0 < 0)
 		t0 = emu->lastclock;

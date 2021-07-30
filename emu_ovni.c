@@ -158,7 +158,7 @@ ev_thread(struct ovni_emu *emu)
 	cpu = thread->cpu;
 	ev = emu->cur_ev;
 
-	switch(ev->value)
+	switch(ev->header.value)
 	{
 		case 'c': /* create */
 			dbg("thread %d creates a new thread at cpu=%d with args=%x %x\n",
@@ -231,13 +231,13 @@ static void
 ev_affinity(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
-	switch(emu->cur_ev->value)
+	switch(emu->cur_ev->header.value)
 	{
 		case 's': ev_affinity_set(emu); break;
 		case 'r': ev_affinity_remote(emu); break;
 		default:
 			dbg("unknown affinity event value %c\n",
-					emu->cur_ev->value);
+					emu->cur_ev->header.value);
 			break;
 	}
 }
@@ -294,13 +294,13 @@ ev_cpu_id(struct ovni_emu *emu)
 static void
 ev_cpu(struct ovni_emu *emu)
 {
-	switch(emu->cur_ev->value)
+	switch(emu->cur_ev->header.value)
 	{
 		case 'n': ev_cpu_count(emu); break;
 		case 'i': ev_cpu_id(emu); break;
 		default:
 			dbg("unknown cpu event value %c\n",
-					emu->cur_ev->value);
+					emu->cur_ev->header.value);
 			break;
 	}
 }
@@ -310,15 +310,15 @@ hook_pre_ovni(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
 
-	switch(emu->cur_ev->class)
+	switch(emu->cur_ev->header.class)
 	{
 		case 'H': ev_thread(emu); break;
 		case 'A': ev_affinity(emu); break;
 		case 'C': ev_cpu(emu); break;
-		case 'B': dbg("burst %c\n", emu->cur_ev->value); break;
+		case 'B': dbg("burst %c\n", emu->cur_ev->header.value); break;
 		default:
 			dbg("unknown ovni event class %c\n",
-					emu->cur_ev->class);
+					emu->cur_ev->header.class);
 			break;
 	}
 
@@ -367,7 +367,7 @@ emit:
 void
 hook_view_ovni(struct ovni_emu *emu)
 {
-	switch(emu->cur_ev->class)
+	switch(emu->cur_ev->header.class)
 	{
 		case 'H':
 		case 'A':

@@ -9,6 +9,7 @@
 #include <linux/limits.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <stdatomic.h>
 #include <assert.h>
 #include <unistd.h>
@@ -284,8 +285,8 @@ flush_evbuf()
 static void
 ovni_ev_set_clock(struct ovni_ev *ev)
 {
-	ev->clock_lo = (uint32_t) (rthread.clockvalue & 0xffffffff);
-	ev->clock_hi = (uint16_t) ((rthread.clockvalue >> 32) & 0xffff);
+	ev->header.clock_lo = (uint32_t) (rthread.clockvalue & 0xffffffff);
+	ev->header.clock_hi = (uint16_t) ((rthread.clockvalue >> 32) & 0xffff);
 }
 
 uint64_t
@@ -293,16 +294,22 @@ ovni_ev_get_clock(struct ovni_ev *ev)
 {
 	uint64_t clock;
 
-	clock = ((uint64_t) ev->clock_hi) << 32 | ((uint64_t) ev->clock_lo);
+	clock = ((uint64_t) ev->header.clock_hi) << 32 | ((uint64_t) ev->header.clock_lo);
 	return clock;
 }
 
 void
 ovni_ev_set_mcv(struct ovni_ev *ev, char *mcv)
 {
-	ev->model = mcv[0];
-	ev->class = mcv[1];
-	ev->value = mcv[2];
+	ev->header.model = mcv[0];
+	ev->header.class = mcv[1];
+	ev->header.value = mcv[2];
+}
+
+static size_t
+get_jumbo_payload_size(struct ovni_ev *ev)
+{
+	return sizeof(ev->payload.jumbo.size) + ev->payload.jumbo.size;
 }
 
 int
@@ -310,7 +317,10 @@ ovni_payload_size(struct ovni_ev *ev)
 {
 	int size;
 
-	size = ev->flags & 0x0f;
+	if(ev->header.flags & OVNI_EV_JUMBO)
+		return get_jumbo_payload_size(ev);
+
+	size = ev->header.flags & 0x0f;
 
 	if(size == 0)
 		return 0;
@@ -327,6 +337,9 @@ ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size)
 {
 	int payload_size;
 
+	assert((ev->header.flags & OVNI_EV_JUMBO) == 0);
+	assert(size >= 2);
+
 	payload_size = ovni_payload_size(ev);
 
 	/* Ensure we have room */
@@ -335,37 +348,17 @@ ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size)
 	memcpy(&ev->payload.u8[payload_size], buf, size);
 	payload_size += size;
 
-	ev->flags = ev->flags & 0xf0 | (payload_size-1) & 0x0f;
+	ev->header.flags = ev->header.flags & 0xf0 | (payload_size-1) & 0x0f;
 }
 
 int
 ovni_ev_size(struct ovni_ev *ev)
 {
-	return sizeof(*ev) - sizeof(ev->payload) +
-		ovni_payload_size(ev);
+	return sizeof(ev->header) + ovni_payload_size(ev);
 }
-
 
 static void
-ovni_ev_add(struct ovni_ev *ev)
-{
-	int size;	
-
-	ovni_ev_set_clock(ev);
-	
-	size = ovni_ev_size(ev);
-
-
-	memcpy(&rthread.evbuf[rthread.evlen], ev, size);
-	rthread.evlen += size;
-}
-
-void
-ovni_ev(struct ovni_ev *ev)
-{
-	ovni_ev_set_clock(ev);
-	ovni_ev_add(ev);
-}
+ovni_ev_add(struct ovni_ev *ev);
 
 int
 ovni_flush()
@@ -393,6 +386,79 @@ ovni_flush()
 	return ret;
 }
 
+void
+ovni_ev_add_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
+{
+	size_t evsize, totalsize;
+
+	assert(ovni_payload_size(ev) == 0);
+
+	ovni_payload_add(ev, (uint8_t *) &bufsize, sizeof(bufsize));
+	evsize = ovni_ev_size(ev);
+
+	totalsize = evsize + bufsize;
+
+	/* Check if the event fits or flush first otherwise */
+	if(rthread.evlen + totalsize >= OVNI_MAX_EV_BUF)
+		ovni_flush();
+
+	/* Se the jumbo flag here, so we capture the previous evsize
+	 * properly, ignoring the jumbo buffer */
+	ev->header.flags |= OVNI_EV_JUMBO;
+
+	memcpy(&rthread.evbuf[rthread.evlen], ev, evsize);
+	rthread.evlen += evsize;
+	memcpy(&rthread.evbuf[rthread.evlen], buf, bufsize);
+	rthread.evlen += bufsize;
+
+	assert(rthread.evlen < OVNI_MAX_EV_BUF);
+}
+
+
+static void
+ovni_ev_add(struct ovni_ev *ev)
+{
+	int size;	
+
+	size = ovni_ev_size(ev);
+
+	/* Check if the event fits or flush first otherwise */
+	if(rthread.evlen + size >= OVNI_MAX_EV_BUF)
+		ovni_flush();
+
+	memcpy(&rthread.evbuf[rthread.evlen], ev, size);
+	rthread.evlen += size;
+}
+
+void
+ovni_ev_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
+{
+	ovni_ev_set_clock(ev);
+	ovni_ev_add_jumbo(ev, buf, bufsize);
+}
+
+void
+ovni_ev(struct ovni_ev *ev)
+{
+	ovni_ev_set_clock(ev);
+	ovni_ev_add(ev);
+}
+
+static int
+load_thread(struct ovni_ethread *thread, int tid, char *filepath)
+{
+	thread->tid = tid;
+	thread->stream_fd = open(filepath, O_RDONLY);
+
+	if(thread->stream_fd == -1)
+	{
+		perror("open");
+		return -1;
+	}
+
+	thread->state = TH_ST_UNKNOWN;
+	return 0;
+}
 
 static int
 load_proc(struct ovni_eproc *proc, char *procdir)
@@ -425,20 +491,12 @@ load_proc(struct ovni_eproc *proc, char *procdir)
 			return -1;
 		}
 
+		sprintf(path, "%s/%s", procdir, dirent->d_name);
 
 		thread = &proc->thread[proc->nthreads++];
-		thread->tid = atoi(p);
 
-		sprintf(path, "%s/%s", procdir, dirent->d_name);
-		thread->f = fopen(path, "r");
-		thread->state = TH_ST_UNKNOWN;
-
-		if(thread->f == NULL)
-		{
-			fprintf(stderr, "fopen %s failed: %s\n",
-					path, strerror(errno));
+		if(load_thread(thread, atoi(p), path) != 0)
 			return -1;
-		}
 	}
 
 	closedir(dir);
@@ -503,6 +561,30 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 	return 0;
 }
 
+static int
+load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
+{
+	struct stat st;
+
+	if(fstat(thread->stream_fd, &st) < 0)
+	{
+		perror("fstat");
+		return -1;
+	}
+
+	stream->size = st.st_size;
+	stream->buf = mmap(NULL, stream->size, PROT_READ, MAP_SHARED,
+			thread->stream_fd, 0);
+
+	if(stream->buf == MAP_FAILED)
+	{
+		perror("mmap");
+		return -1;
+	}
+
+	return 0;
+}
+
 /* Populates the streams in a single array */
 int
 ovni_load_streams(struct ovni_trace *trace)
@@ -549,13 +631,20 @@ ovni_load_streams(struct ovni_trace *trace)
 				thread = &proc->thread[k];
 				stream = &trace->stream[s++];
 
-				stream->f = thread->f;
+				if(load_stream_buf(stream, thread) != 0)
+				{
+					err("load_stream_buf failed\n");
+					return -1;
+				}
+
 				stream->tid = thread->tid;
 				stream->thread = k;
 				stream->proc = j;
 				stream->loom = i;
 				stream->active = 1;
 				stream->lastclock = 0;
+				stream->offset = 0;
+				stream->cur_ev = NULL;
 			}
 		}
 	}
@@ -569,45 +658,51 @@ ovni_free_streams(struct ovni_trace *trace)
 	free(trace->stream);
 }
 
-void
+int
 ovni_load_next_event(struct ovni_stream *stream)
 {
 	int i;
 	size_t n, size;
-	struct ovni_ev *ev;
 	uint8_t flags;
 
-	if(!stream->active)
-		return;
-
-	ev = &stream->last;
-	if((n = fread(&ev->flags, sizeof(ev->flags), 1, stream->f)) != 1)
+	if(stream->active == 0)
 	{
-		dbg("stream is empty\n");
-		stream->active = 0;
-		return;
+		dbg("stream is inactive, cannot load more events\n");
+		return -1;
 	}
 
-	//dbg("flags = %d\n", ev->flags);
-
-	size = ovni_ev_size(ev) - sizeof(ev->flags);
-	//dbg("ev size = %d\n", size);
-
-
-	/* Clean payload from previous event */
-	memset(&ev->payload, 0, sizeof(ev->payload));
-
-	if((n = fread(((uint8_t *) ev) + sizeof(ev->flags), 1, size, stream->f)) != size)
+	if(stream->cur_ev == NULL)
 	{
-		err("warning: garbage found at the end of the stream\n");
-		stream->active = 0;
-		return;
+		stream->cur_ev = (struct ovni_ev *) stream->buf;
+		stream->offset = 0;
+		dbg("first event\n");
+		goto out;
 	}
 
+	//printf("advancing offset %ld bytes\n", ovni_ev_size(stream->cur_ev));
+	stream->offset += ovni_ev_size(stream->cur_ev);
+
+	/* We have reached the end */
+	if(stream->offset == stream->size)
+	{
+		stream->active = 0;
+		dbg("stream runs out of events\n");
+		return -1;
+	}
+
+	/* It cannot overflow, otherwise we are reading garbage */
+	assert(stream->offset < stream->size);
+
+	stream->cur_ev = (struct ovni_ev *) &stream->buf[stream->offset];
+
+out:
+
+	//dbg("---------\n");
+	//dbg("ev size = %d\n", ovni_ev_size(stream->cur_ev));
+	//dbg("ev flags = %02x\n", stream->cur_ev->header.flags);
 	//dbg("loaded next event:\n");
-	//hexdump((uint8_t *) ev, ovni_ev_size(ev));
+	//hexdump((uint8_t *) stream->cur_ev, ovni_ev_size(stream->cur_ev));
 	//dbg("---------\n");
 
-	stream->active = 1;
-
+	return 0;
 }

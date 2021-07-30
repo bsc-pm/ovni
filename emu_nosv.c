@@ -148,7 +148,7 @@ static void
 pre_task(struct ovni_emu *emu)
 {
 	emu_emit(emu);
-	switch(emu->cur_ev->value)
+	switch(emu->cur_ev->header.value)
 	{
 		case 'c': pre_task_create(emu); break;
 		case 'x': pre_task_execute(emu); break;
@@ -165,16 +165,27 @@ static void
 pre_type_create(struct ovni_emu *emu)
 {
 	struct nosv_task_type *type, *p = NULL;
-	int typeid;
+	uint8_t *data;
+	uint32_t *typeid;
+	const char *label;
 
-	typeid = emu->cur_ev->payload.i32[0];
+	if((emu->cur_ev->header.flags & OVNI_EV_JUMBO) == 0)
+	{
+		err("expecting a jumbo event\n");
+		abort();
+	}
+
+	data = &emu->cur_ev->payload.jumbo.data[0];
+	typeid = (uint32_t *) data;
+	data += sizeof(*typeid);
+	label = (const char *) data;
 
 	/* Ensure the type id is new */
-	HASH_FIND_INT(types, &typeid, type);
+	HASH_FIND_INT(types, typeid, type);
 
 	if(type != NULL)
 	{
-		err("A task type with id %d already exists\n", p->id);
+		err("A task type with id %d already exists\n", *typeid);
 		abort();
 	}
 	
@@ -186,18 +197,20 @@ pre_type_create(struct ovni_emu *emu)
 		abort();
 	}
 
-	type->id = typeid;
+	type->id = *typeid;
+	type->label = label;
 
 	/* Add the new task type to the hash table */
 	HASH_ADD_INT(types, id, type);
 
-	dbg("new task type created id=%d\n", type->id);
+	dbg("new task type created id=%d label=%s\n", type->id,
+			type->label);
 }
 
 static void
 pre_type(struct ovni_emu *emu)
 {
-	switch(emu->cur_ev->value)
+	switch(emu->cur_ev->header.value)
 	{
 		case 'c': pre_type_create(emu); break;
 		default:
@@ -209,7 +222,7 @@ void
 hook_pre_nosv(struct ovni_emu *emu)
 {
 	dbg("pre nosv\n");
-	switch(emu->cur_ev->class)
+	switch(emu->cur_ev->header.class)
 	{
 		case 'T': pre_task(emu); break;
 		case 'Y': pre_type(emu); break;
@@ -266,7 +279,7 @@ emit_task_end(struct ovni_emu *emu)
 static void
 emit_task(struct ovni_emu *emu)
 {
-	switch(emu->cur_ev->value)
+	switch(emu->cur_ev->header.value)
 	{
 		case 'c': emit_task_create(emu); break;
 		case 'x': emit_task_execute(emu); break;
@@ -282,7 +295,7 @@ void
 hook_view_nosv(struct ovni_emu *emu)
 {
 	dbg("pre nosv\n");
-	switch(emu->cur_ev->class)
+	switch(emu->cur_ev->header.class)
 	{
 		case 'T': emit_task(emu); break;
 		default:

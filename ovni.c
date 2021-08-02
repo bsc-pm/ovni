@@ -470,9 +470,15 @@ find_dir_prefix(struct dirent *dirent, const char *prefix, int *num)
 }
 
 static int
-load_thread(struct ovni_ethread *thread, int tid, char *filepath)
+load_thread(struct ovni_ethread *thread, struct ovni_eproc *proc, int index, int tid, char *filepath)
 {
+	static int total_threads = 0;
+
 	thread->tid = tid;
+	thread->index = index;
+	thread->gindex = total_threads++;
+	thread->state = TH_ST_UNKNOWN;
+	thread->proc = proc;
 	thread->stream_fd = open(filepath, O_RDONLY);
 
 	if(thread->stream_fd == -1)
@@ -480,14 +486,14 @@ load_thread(struct ovni_ethread *thread, int tid, char *filepath)
 		perror("open");
 		return -1;
 	}
-
-	thread->state = TH_ST_UNKNOWN;
 	return 0;
 }
 
 static int
-load_proc(struct ovni_eproc *proc, int pid, char *procdir)
+load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
 {
+	static int total_procs = 0;
+
 	struct dirent *dirent;
 	DIR *dir;
 	char path[PATH_MAX];
@@ -495,6 +501,8 @@ load_proc(struct ovni_eproc *proc, int pid, char *procdir)
 	int tid;
 
 	proc->pid = pid;
+	proc->index = index;
+	proc->gindex = total_procs++;
 
 	if((dir = opendir(procdir)) == NULL)
 	{
@@ -520,10 +528,12 @@ load_proc(struct ovni_eproc *proc, int pid, char *procdir)
 			abort();
 		}
 
-		thread = &proc->thread[proc->nthreads++];
+		thread = &proc->thread[proc->nthreads];
 
-		if(load_thread(thread, tid, path) != 0)
+		if(load_thread(thread, proc, proc->nthreads, tid, path) != 0)
 			return -1;
+
+		proc->nthreads++;
 	}
 
 	closedir(dir);
@@ -566,10 +576,12 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 			abort();
 		}
 
-		proc = &loom->proc[loom->nprocs++];
+		proc = &loom->proc[loom->nprocs];
 
-		if(load_proc(proc, pid, path) != 0)
+		if(load_proc(proc, loom->nprocs, pid, path) != 0)
 			return -1;
+
+		loom->nprocs++;
 	}
 
 	closedir(dir);

@@ -1,5 +1,6 @@
 #include "ovni.h"
 #include "emu.h"
+#include "prv.h"
 
 #include <assert.h>
 
@@ -326,42 +327,59 @@ hook_pre_ovni(struct ovni_emu *emu)
 }
 
 static void
+emit_thread_state(struct ovni_emu *emu)
+{
+	int row, st, tid;
+	
+	st = emu->cur_thread->state;
+	row = emu->cur_thread->gindex + 1;
+	tid = emu->cur_thread->tid;
+
+	prv_ev_row(emu, row, PTT_THREAD_STATE, st);
+
+	if(st == TH_ST_RUNNING)
+		prv_ev_row(emu, row, PTT_THREAD_TID, tid);
+	else
+		prv_ev_row(emu, row, PTT_THREAD_TID, 0);
+}
+
+static void
 emit_thread_count(struct ovni_emu *emu)
 {
-	int i, n, cpu = -1;
-	int64_t delta_time;
-	static int64_t t0 = -1;
-
-	if(t0 < 0)
-		t0 = ovni_ev_get_clock(emu->cur_ev);
-
-	delta_time = ovni_ev_get_clock(emu->cur_ev) - t0;
+	int i, n, row, pid, tid;
 
 	/* Check every CPU looking for a change in nthreads */
 	for(i=0; i<emu->ncpus; i++)
 	{
 		if(emu->cpu[i].last_nthreads != emu->cpu[i].nthreads)
 		{
-			cpu = i + 1;
+			/* Start at 1 */
+			row = i + 1;
 			n = emu->cpu[i].nthreads;
-			goto emit;
+			prv_ev_row(emu, row, PTC_NTHREADS, n);
+
+			pid = n == 1 ? emu->cpu[i].thread[0]->proc->pid : 1;
+			prv_ev_row(emu, row, PTC_PROC_PID, pid);
+
+			tid = n == 1 ? emu->cpu[i].thread[0]->tid : 1;
+			prv_ev_row(emu, row, PTC_THREAD_TID, tid);
 		}
 	}
 
 	/* Same with the virtual CPU */
 	if(emu->vcpu.last_nthreads != emu->vcpu.nthreads)
 	{
-		cpu = 0;
+		/* Place the virtual CPU after the physical CPUs */
+		row = emu->ncpus + 1;
 		n = emu->vcpu.nthreads;
-		goto emit;
+		prv_ev_row(emu, row, PTC_NTHREADS, n);
+
+		pid = n == 1 ? emu->vcpu.thread[0]->proc->pid : 1;
+		prv_ev_row(emu, row, PTC_PROC_PID, pid);
+
+		tid = n == 1 ? emu->vcpu.thread[0]->tid : 1;
+		prv_ev_row(emu, row, PTC_THREAD_TID, tid);
 	}
-
-	return;
-
-emit:
-
-	printf("2:0:1:1:%d:%ld:100:%d\n",
-			cpu+1, delta_time, n);
 }
 
 static void
@@ -370,7 +388,7 @@ emit_current_pid(struct ovni_emu *emu)
 	if(emu->cur_thread->cpu == NULL)
 		return;
 
-	emu_emit_prv(emu, 400, emu->cur_proc->pid);
+	prv_ev_autocpu(emu, PTC_PROC_PID, emu->cur_proc->pid);
 }
 
 void
@@ -379,10 +397,12 @@ hook_emit_ovni(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.class)
 	{
 		case 'H':
+			emit_thread_state(emu);
+			/* falltrough */
 		case 'A':
 		case 'C':
 			emit_thread_count(emu);
-			emit_current_pid(emu);
+			//emit_current_pid(emu);
 			break;
 		default:
 			break;

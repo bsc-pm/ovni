@@ -33,6 +33,7 @@ enum nosv_task_state {
 };
 
 struct ovni_ethread;
+struct ovni_eproc;
 
 struct nosv_task {
 	int id;
@@ -52,6 +53,12 @@ struct nosv_task_type {
 struct ovni_ethread {
 	/* Emulated thread tid */
 	pid_t tid;
+
+	int index;
+	int gindex;
+
+	/* The process associated with this thread */
+	struct ovni_eproc *proc;
 
 	/* Stream fd */
 	int stream_fd;
@@ -74,6 +81,8 @@ struct ovni_ethread {
 /* State of each emulated process */
 struct ovni_eproc {
 	int pid;
+	int index;
+	int gindex;
 
 	/* Path of the process tracedir */
 	char dir[PATH_MAX];
@@ -140,7 +149,7 @@ struct ovni_cpu {
 	int index;
 
 	enum ovni_cpu_state state;
-	enum ovni_cpu_type type;
+	//enum ovni_cpu_type type;
 
 	size_t last_nthreads;
 
@@ -170,6 +179,10 @@ struct ovni_emu {
 
 	uint64_t lastclock;
 	int64_t delta_time;
+
+	/* Total counters */
+	int total_thread;
+	int total_proc;
 
 	struct nosv_task *cur_task;
 };

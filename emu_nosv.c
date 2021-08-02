@@ -1,8 +1,10 @@
+#include <assert.h>
+#include "uthash.h"
+
 #include "ovni.h"
 #include "ovni_trace.h"
 #include "emu.h"
-#include "uthash.h"
-#include <assert.h>
+#include "prv.h"
 
 enum nosv_prv_type {
 	PRV_TYPE_PROCID
@@ -235,50 +237,37 @@ hook_pre_nosv(struct ovni_emu *emu)
 /* --------------------------- emit ------------------------------- */
 
 static void
-emit_task_create(struct ovni_emu *emu)
+emit_task_running(struct ovni_emu *emu, struct nosv_task *task)
 {
-	//emu_emit_prv(emu, 200, emu->cur_task->id);
+	prv_ev_autocpu(emu, PTC_TASK_ID, task->id + 1);
+	prv_ev_autocpu(emu, PTC_TASK_TYPE_ID, task->type_id + 1);
 }
 
 static void
-emit_task_execute(struct ovni_emu *emu)
+emit_task_not_running(struct ovni_emu *emu, struct nosv_task *task)
 {
-	emu_emit_prv(emu, 200, emu->cur_task->id + 1);
-	emu_emit_prv(emu, 300, emu->cur_task->type_id + 1);
-	emu_emit_prv(emu, 300, emu->cur_task->type_id + 1);
-}
-
-static void
-emit_task_pause(struct ovni_emu *emu)
-{
-	emu_emit_prv(emu, 200, 0);
-	emu_emit_prv(emu, 300, 0);
-}
-
-static void
-emit_task_resume(struct ovni_emu *emu)
-{
-	emu_emit_prv(emu, 200, emu->cur_task->id + 1);
-	emu_emit_prv(emu, 300, emu->cur_task->type_id + 1);
-}
-
-static void
-emit_task_end(struct ovni_emu *emu)
-{
-	emu_emit_prv(emu, 200, 0);
-	emu_emit_prv(emu, 300, 0);
+	prv_ev_autocpu(emu, PTC_TASK_ID, 0);
+	prv_ev_autocpu(emu, PTC_TASK_TYPE_ID, 0);
 }
 
 static void
 emit_task(struct ovni_emu *emu)
 {
+	struct nosv_task *task;
+
+	task = emu->cur_task;
+
 	switch(emu->cur_ev->header.value)
 	{
-		case 'c': emit_task_create(emu); break;
-		case 'x': emit_task_execute(emu); break;
-		case 'p': emit_task_pause(emu); break;
-		case 'r': emit_task_resume(emu); break;
-		case 'e': emit_task_end(emu); break;
+		case 'x':
+		case 'r':
+			emit_task_running(emu, task);
+			break;
+		case 'p':
+		case 'e':
+			emit_task_not_running(emu, task);
+			break;
+		case 'c':
 		default:
 			break;
 	}

@@ -13,8 +13,8 @@
 #define OVNI_MAX_LOOM 4
 #define OVNI_TRACEDIR "ovni"
 
-/* Reserved buffer for event allocation */
-#define OVNI_MAX_EV_BUF (16 * 1024LL * 1024LL * 1024LL)
+/* Reserved buffer for event allocation per thread */
+#define OVNI_MAX_EV_BUF (2 * 1024LL * 1024LL) /* 2 MiB */
 
 /* ----------------------- common ------------------------ */
 

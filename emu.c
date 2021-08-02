@@ -237,14 +237,6 @@ emu_get_thread(struct ovni_emu *emu, int tid)
 	return thread;
 }
 
-void
-emu_emit_prv(struct ovni_emu *emu, int type, int val)
-{
-	printf("2:0:1:1:%d:%ld:%d:%d\n",
-			emu->cur_thread->cpu->cpu_id + 2,
-			emu->delta_time,
-			type, val);
-}
 
 
 int

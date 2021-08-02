@@ -5,16 +5,16 @@
 #include <assert.h>
 
 struct ovni_cpu *
-emu_get_cpu(struct ovni_emu *emu, int cpuid)
+emu_get_cpu(struct ovni_loom *loom, int cpuid)
 {
 	assert(cpuid < OVNI_MAX_CPU);
 
 	if(cpuid < 0)
 	{
-		return &emu->vcpu;
+		return &loom->vcpu;
 	}
 
-	return &emu->cpu[cpuid];
+	return &loom->cpu[cpuid];
 }
 
 int
@@ -66,14 +66,14 @@ emu_cpu_remove_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 
 
 static void
-print_threads_state(struct ovni_emu *emu)
+print_threads_state(struct ovni_loom *loom)
 {
 	struct ovni_cpu *cpu;
 	int i, j;
 
-	for(i=0; i<emu->ncpus; i++)
+	for(i=0; i<loom->ncpus; i++)
 	{
-		cpu = &emu->cpu[i];
+		cpu = &loom->cpu[i];
 
 		dbg("-- cpu %d runs %d threads:", i, cpu->nthreads);
 		for(j=0; j<cpu->nthreads; j++)
@@ -83,10 +83,10 @@ print_threads_state(struct ovni_emu *emu)
 		dbg("\n");
 	}
 
-	dbg("-- vcpu runs %d threads:", emu->vcpu.nthreads);
-	for(j=0; j<emu->vcpu.nthreads; j++)
+	dbg("-- vcpu runs %d threads:", loom->vcpu.nthreads);
+	for(j=0; j<loom->vcpu.nthreads; j++)
 	{
-		dbg(" %d", emu->vcpu.thread[j]->tid);
+		dbg(" %d", loom->vcpu.thread[j]->tid);
 	}
 	dbg("\n");
 }
@@ -103,7 +103,7 @@ ev_thread_execute(struct ovni_emu *emu)
 	cpuid = emu->cur_ev->payload.i32[0];
 	//dbg("thread %d runs in cpuid %d\n", emu->cur_thread->tid,
 	//		cpuid);
-	cpu = emu_get_cpu(emu, cpuid);
+	cpu = emu_get_cpu(emu->cur_loom, cpuid);
 
 	emu->cur_thread->state = TH_ST_RUNNING;
 	emu->cur_thread->cpu = cpu;
@@ -190,7 +190,7 @@ ev_affinity_set(struct ovni_emu *emu)
 	assert(emu->cur_thread->cpu);
 
 	/* Migrate current cpu to the one at cpuid */
-	newcpu = emu_get_cpu(emu, cpuid);
+	newcpu = emu_get_cpu(emu->cur_loom, cpuid);
 
 	emu_cpu_remove_thread(emu->cur_thread->cpu, emu->cur_thread);
 	emu_cpu_add_thread(newcpu, emu->cur_thread);
@@ -216,7 +216,7 @@ ev_affinity_remote(struct ovni_emu *emu)
 	assert(thread->state == TH_ST_PAUSED);
 	assert(thread->cpu);
 
-	newcpu = emu_get_cpu(emu, cpuid);
+	newcpu = emu_get_cpu(emu->cur_loom, cpuid);
 
 	/* It must not be running in any of the cpus */
 	assert(emu_cpu_find_thread(thread->cpu, thread) == -1);
@@ -247,7 +247,9 @@ static void
 ev_cpu_count(struct ovni_emu *emu)
 {
 	int i, max_ncpus, max_phyid;
+	struct ovni_loom *loom;
 
+	loom = emu->cur_loom;
 	max_ncpus = emu->cur_ev->payload.i32[0];
 	max_phyid = emu->cur_ev->payload.i32[1];
 
@@ -256,38 +258,42 @@ ev_cpu_count(struct ovni_emu *emu)
 
 	for(i=0; i<OVNI_MAX_CPU; i++)
 	{
-		emu->cpu[i].state = CPU_ST_UNKNOWN;
-		emu->cpu[i].i = -1;
-		emu->cpu[i].phyid = -1;
+		loom->cpu[i].state = CPU_ST_UNKNOWN;
+		loom->cpu[i].i = -1;
+		loom->cpu[i].phyid = -1;
+		loom->cpu[i].gindex = -1;
 	}
 
-	emu->ncpus = 0;
-	emu->max_ncpus = max_ncpus;
-	emu->max_phyid = max_phyid;
+	loom->ncpus = 0;
+	loom->max_ncpus = max_ncpus;
+	loom->max_phyid = max_phyid;
 }
 
 static void
 ev_cpu_id(struct ovni_emu *emu)
 {
 	int i, phyid;
+	struct ovni_loom *loom;
 
+	loom = emu->cur_loom;
 	i = emu->cur_ev->payload.i32[0];
 	phyid = emu->cur_ev->payload.i32[1];
 
 	/* The logical id must match our index */
-	assert(i == emu->ncpus);
+	assert(i == loom->ncpus);
 
-	assert(0 <= phyid && phyid <= emu->max_phyid);
+	assert(0 <= phyid && phyid <= loom->max_phyid);
 
-	assert(emu->cpu[i].state == CPU_ST_UNKNOWN);
+	assert(loom->cpu[i].state == CPU_ST_UNKNOWN);
 
-	emu->cpu[emu->ncpus].state = CPU_ST_READY;
-	emu->cpu[emu->ncpus].i = i;
-	emu->cpu[emu->ncpus].phyid = phyid;
+	loom->cpu[loom->ncpus].state = CPU_ST_READY;
+	loom->cpu[loom->ncpus].i = i;
+	loom->cpu[loom->ncpus].phyid = phyid;
+	loom->cpu[loom->ncpus].gindex = emu->total_cpu++;
 
 	dbg("new cpu %d at phyid=%d\n", i, phyid);
 
-	emu->ncpus++;
+	loom->ncpus++;
 }
 
 
@@ -346,37 +352,42 @@ static void
 emit_thread_count(struct ovni_emu *emu)
 {
 	int i, n, row, pid, tid;
+	struct ovni_loom *loom;
+
+	loom = emu->cur_loom;
+
+	/* TODO: Use a table to quickly access the updated elements */
 
 	/* Check every CPU looking for a change in nthreads */
-	for(i=0; i<emu->ncpus; i++)
+	for(i=0; i<loom->ncpus; i++)
 	{
-		if(emu->cpu[i].last_nthreads != emu->cpu[i].nthreads)
+		if(loom->cpu[i].last_nthreads != loom->cpu[i].nthreads)
 		{
 			/* Start at 1 */
 			row = i + 1;
-			n = emu->cpu[i].nthreads;
+			n = loom->cpu[i].nthreads;
 			prv_ev_row(emu, row, PTC_NTHREADS, n);
 
-			pid = n == 1 ? emu->cpu[i].thread[0]->proc->pid : 1;
+			pid = n == 1 ? loom->cpu[i].thread[0]->proc->pid : 1;
 			prv_ev_row(emu, row, PTC_PROC_PID, pid);
 
-			tid = n == 1 ? emu->cpu[i].thread[0]->tid : 1;
+			tid = n == 1 ? loom->cpu[i].thread[0]->tid : 1;
 			prv_ev_row(emu, row, PTC_THREAD_TID, tid);
 		}
 	}
 
 	/* Same with the virtual CPU */
-	if(emu->vcpu.last_nthreads != emu->vcpu.nthreads)
+	if(loom->vcpu.last_nthreads != loom->vcpu.nthreads)
 	{
 		/* Place the virtual CPU after the physical CPUs */
-		row = emu->ncpus + 1;
-		n = emu->vcpu.nthreads;
+		row = loom->ncpus + 1;
+		n = loom->vcpu.nthreads;
 		prv_ev_row(emu, row, PTC_NTHREADS, n);
 
-		pid = n == 1 ? emu->vcpu.thread[0]->proc->pid : 1;
+		pid = n == 1 ? loom->vcpu.thread[0]->proc->pid : 1;
 		prv_ev_row(emu, row, PTC_PROC_PID, pid);
 
-		tid = n == 1 ? emu->vcpu.thread[0]->tid : 1;
+		tid = n == 1 ? loom->vcpu.thread[0]->tid : 1;
 		prv_ev_row(emu, row, PTC_THREAD_TID, tid);
 	}
 }
@@ -412,11 +423,14 @@ void
 hook_post_ovni(struct ovni_emu *emu)
 {
 	int i;
+	struct ovni_loom *loom;
+
+	loom = emu->cur_loom;
 
 	/* Update last_nthreads in the CPUs */
 
-	for(i=0; i<emu->ncpus; i++)
-		emu->cpu[i].last_nthreads = emu->cpu[i].nthreads;
+	for(i=0; i<loom->ncpus; i++)
+		loom->cpu[i].last_nthreads = loom->cpu[i].nthreads;
 
-	emu->vcpu.last_nthreads = emu->vcpu.nthreads;
+	loom->vcpu.last_nthreads = loom->vcpu.nthreads;
 }

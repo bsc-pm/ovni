@@ -29,3 +29,9 @@ prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
 
 	prv_ev_row(emu, row, type, val);
 }
+
+void
+prv_header(struct ovni_emu *emu, int nrows)
+{
+	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", nrows);
+}

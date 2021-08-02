@@ -99,36 +99,6 @@ struct ovni_eproc {
 
 };
 
-/* ----------------------- trace ------------------------ */
-
-/* State of each loom on post-process */
-struct ovni_loom {
-	size_t nprocs;
-	char name[HOST_NAME_MAX];
-	struct ovni_eproc proc[OVNI_MAX_PROC];
-};
-
-struct ovni_stream {
-	uint8_t *buf;
-	size_t size;
-	size_t offset;
-
-	int tid;
-	int thread;
-	int proc;
-	int loom;
-	int loaded;
-	int active;
-	struct ovni_ev *cur_ev;
-	uint64_t lastclock;
-};
-
-struct ovni_trace {
-	int nlooms;
-	struct ovni_loom loom[OVNI_MAX_LOOM];
-	int nstreams;
-	struct ovni_stream *stream;
-};
 
 /* ------------------ emulation ---------------- */
 
@@ -149,6 +119,9 @@ struct ovni_cpu {
 	/* Physical id: as reported by lscpu(1) */
 	int phyid;
 
+	/* Global index for all CPUs */
+	int gindex;
+
 	enum ovni_cpu_state state;
 
 	size_t last_nthreads;
@@ -158,8 +131,12 @@ struct ovni_cpu {
 	struct ovni_ethread *thread[OVNI_MAX_THR];
 };
 
-struct ovni_emu {
-	struct ovni_trace trace;
+/* ----------------------- trace ------------------------ */
+
+/* State of each loom on post-process */
+struct ovni_loom {
+	size_t nprocs;
+	char name[HOST_NAME_MAX];
 
 	int max_ncpus;
 	int max_phyid;
@@ -169,6 +146,34 @@ struct ovni_emu {
 	/* Virtual CPU */
 	struct ovni_cpu vcpu;
 
+	struct ovni_eproc proc[OVNI_MAX_PROC];
+};
+
+struct ovni_trace {
+	int nlooms;
+	struct ovni_loom loom[OVNI_MAX_LOOM];
+	int nstreams;
+	struct ovni_stream *stream;
+};
+
+struct ovni_stream {
+	uint8_t *buf;
+	size_t size;
+	size_t offset;
+
+	int tid;
+	int thread;
+	int proc;
+	int loom;
+	int loaded;
+	int active;
+	struct ovni_ev *cur_ev;
+	uint64_t lastclock;
+};
+
+struct ovni_emu {
+	struct ovni_trace trace;
+
 	struct ovni_stream *cur_stream;
 	struct ovni_ev *cur_ev;
 
@@ -176,14 +181,15 @@ struct ovni_emu {
 	struct ovni_eproc *cur_proc;
 	struct ovni_ethread *cur_thread;
 
+	struct nosv_task *cur_task;
+
 	uint64_t lastclock;
 	int64_t delta_time;
 
 	/* Total counters */
 	int total_thread;
 	int total_proc;
-
-	struct nosv_task *cur_task;
+	int total_cpu;
 };
 
 /* Emulator function declaration */
@@ -198,7 +204,7 @@ void hook_pre_nosv(struct ovni_emu *emu);
 void hook_emit_nosv(struct ovni_emu *emu);
 void hook_post_nosv(struct ovni_emu *emu);
 
-struct ovni_cpu *emu_get_cpu(struct ovni_emu *emu, int cpuid);
+struct ovni_cpu *emu_get_cpu(struct ovni_loom *loom, int cpuid);
 
 struct ovni_ethread *emu_get_thread(struct ovni_emu *emu, int tid);
 

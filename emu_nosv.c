@@ -224,7 +224,6 @@ pre_type(struct ovni_emu *emu)
 void
 hook_pre_nosv(struct ovni_emu *emu)
 {
-	dbg("pre nosv\n");
 	switch(emu->cur_ev->header.class)
 	{
 		case 'T': pre_task(emu); break;
@@ -276,7 +275,6 @@ emit_task(struct ovni_emu *emu)
 void
 hook_emit_nosv(struct ovni_emu *emu)
 {
-	dbg("pre nosv\n");
 	switch(emu->cur_ev->header.class)
 	{
 		case 'T': emit_task(emu); break;

@@ -11,7 +11,7 @@
 #include "ovni.h"
 #include "ovni_trace.h"
 
-void emit(struct ovni_stream *stream, struct ovni_ev *ev)
+void emit(struct ovni_stream *stream, struct ovni_ev *ev, int row)
 {
 	static uint64_t firstclock = 0;
 	int64_t delta;
@@ -31,12 +31,12 @@ void emit(struct ovni_stream *stream, struct ovni_ev *ev)
 	//2:0:1:1:7:1542091:6400025:1
 	//2:0:1:1:7:1542091:6400017:0
 
-	printf("2:0:1:1:%d:%ld:%d:%d\n", stream->thread+1, delta, ev->header.class, ev->header.value);
+	printf("2:0:1:1:%d:%ld:%d:%d\n", row, delta, ev->header.class, ev->header.value);
 }
 
 void dump_events(struct ovni_trace *trace)
 {
-	int i, f;
+	int i, f, row;
 	uint64_t minclock, lastclock;
 	struct ovni_ev *ev;
 	struct ovni_stream *stream;
@@ -84,7 +84,8 @@ void dump_events(struct ovni_trace *trace)
 		}
 
 		/* Emit current event */
-		emit(stream, stream->cur_ev);
+		row = f + 1;
+		emit(stream, stream->cur_ev, row);
 
 		lastclock = ovni_ev_get_clock(stream->cur_ev);
 

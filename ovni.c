@@ -620,6 +620,16 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 		return -1;
 	}
 
+	if(st.st_size == 0)
+	{
+		err("warning: stream %s is empty\n", stream->tid);
+		stream->size = 0;
+		stream->buf = NULL;
+		stream->active = 0;
+
+		return 0;
+	}
+
 	stream->size = st.st_size;
 	stream->buf = mmap(NULL, stream->size, PROT_READ, MAP_SHARED,
 			thread->stream_fd, 0);
@@ -629,6 +639,8 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 		perror("mmap");
 		return -1;
 	}
+
+	stream->active = 1;
 
 	return 0;
 }
@@ -679,20 +691,20 @@ ovni_load_streams(struct ovni_trace *trace)
 				thread = &proc->thread[k];
 				stream = &trace->stream[s++];
 
+				stream->tid = thread->tid;
+				stream->thread = k;
+				stream->proc = j;
+				stream->loom = i;
+				stream->lastclock = 0;
+				stream->offset = 0;
+				stream->cur_ev = NULL;
+
 				if(load_stream_buf(stream, thread) != 0)
 				{
 					err("load_stream_buf failed\n");
 					return -1;
 				}
 
-				stream->tid = thread->tid;
-				stream->thread = k;
-				stream->proc = j;
-				stream->loom = i;
-				stream->active = 1;
-				stream->lastclock = 0;
-				stream->offset = 0;
-				stream->cur_ev = NULL;
 			}
 		}
 	}
@@ -734,7 +746,7 @@ ovni_load_next_event(struct ovni_stream *stream)
 	if(stream->offset == stream->size)
 	{
 		stream->active = 0;
-		dbg("stream runs out of events\n");
+		dbg("stream %d runs out of events\n", stream->tid);
 		return -1;
 	}
 

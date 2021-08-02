@@ -10,7 +10,7 @@ CFLAGS+=-g -O0
 #CFLAGS+=-fstack-protector-explicit
 #CFLAGS+=-flto
 
-BIN=dump test_speed ovni2prv emu libovni.so
+BIN=dump test_speed ovni2prv emu libovni.so ovnisync
 
 all: $(BIN)
 
@@ -27,6 +27,9 @@ libovni.so: ovni.o
 	$(LINK.c) -shared $^ -o $@
 
 ovni2prv: ovni2prv.c ovni.o
+
+ovnisync: ovnisync.c
+	mpicc -lm $^ -o $@
 
 clean:
 	rm -f *.o $(BIN)

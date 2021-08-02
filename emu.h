@@ -142,14 +142,13 @@ enum ovni_cpu_state {
 };
 
 struct ovni_cpu {
-	/* Physical id */
-	int cpu_id;
+	/* Logical index: 0 to ncpus - 1 */
+	int i;
 
-	/* Position in emu->cpu */
-	int index;
+	/* Physical id: as reported by lscpu(1) */
+	int phyid;
 
 	enum ovni_cpu_state state;
-	//enum ovni_cpu_type type;
 
 	size_t last_nthreads;
 
@@ -161,11 +160,10 @@ struct ovni_cpu {
 struct ovni_emu {
 	struct ovni_trace trace;
 
-	/* Physical CPUs */
 	int max_ncpus;
+	int max_phyid;
 	int ncpus;
 	struct ovni_cpu cpu[OVNI_MAX_CPU];
-	int cpuind[OVNI_MAX_CPU];
 
 	/* Virtual CPU */
 	struct ovni_cpu vcpu;

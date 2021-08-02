@@ -22,11 +22,10 @@ prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
 	cpu = emu->cur_thread->cpu;
 
 	assert(cpu);
-	assert(cpu->index >= 0);
-	assert(cpu->cpu_id >= 0);
+	assert(cpu->i >= 0);
 
 	/* Begin at 1 */
-	row = cpu->index + 1;
+	row = cpu->i + 1;
 
 	prv_ev_row(emu, row, type, val);
 }

@@ -14,7 +14,7 @@ emu_get_cpu(struct ovni_emu *emu, int cpuid)
 		return &emu->vcpu;
 	}
 
-	return &emu->cpu[emu->cpuind[cpuid]];
+	return &emu->cpu[cpuid];
 }
 
 int
@@ -246,47 +246,46 @@ ev_affinity(struct ovni_emu *emu)
 static void
 ev_cpu_count(struct ovni_emu *emu)
 {
-	int i, ncpus, maxcpu;
+	int i, max_ncpus, max_phyid;
 
-	ncpus = emu->cur_ev->payload.i32[0];
-	maxcpu = emu->cur_ev->payload.i32[1];
+	max_ncpus = emu->cur_ev->payload.i32[0];
+	max_phyid = emu->cur_ev->payload.i32[1];
 
-	assert(ncpus < OVNI_MAX_CPU);
-	assert(maxcpu < OVNI_MAX_CPU);
+	assert(max_ncpus < OVNI_MAX_CPU);
+	assert(max_phyid < OVNI_MAX_CPU);
 
 	for(i=0; i<OVNI_MAX_CPU; i++)
 	{
 		emu->cpu[i].state = CPU_ST_UNKNOWN;
-		emu->cpu[i].cpu_id = -1;
-		emu->cpuind[i] = -1;
+		emu->cpu[i].i = -1;
+		emu->cpu[i].phyid = -1;
 	}
 
 	emu->ncpus = 0;
-	emu->max_ncpus = ncpus;
+	emu->max_ncpus = max_ncpus;
+	emu->max_phyid = max_phyid;
 }
 
 static void
 ev_cpu_id(struct ovni_emu *emu)
 {
-	int cpuid;
+	int i, phyid;
 
-	cpuid = emu->cur_ev->payload.i32[0];
+	i = emu->cur_ev->payload.i32[0];
+	phyid = emu->cur_ev->payload.i32[1];
 
-	assert(cpuid < emu->max_ncpus);
-	assert(emu->ncpus < emu->max_ncpus);
-	assert(emu->ncpus < OVNI_MAX_CPU);
+	/* The logical id must match our index */
+	assert(i == emu->ncpus);
 
-	assert(emu->cpu[emu->ncpus].state == CPU_ST_UNKNOWN);
+	assert(0 <= phyid && phyid <= emu->max_phyid);
+
+	assert(emu->cpu[i].state == CPU_ST_UNKNOWN);
 
 	emu->cpu[emu->ncpus].state = CPU_ST_READY;
-	emu->cpu[emu->ncpus].cpu_id = cpuid;
-	emu->cpu[emu->ncpus].index = emu->ncpus;
+	emu->cpu[emu->ncpus].i = i;
+	emu->cpu[emu->ncpus].phyid = phyid;
 
-	/* Fill the translation to cpu index too */
-	assert(emu->cpuind[cpuid] == -1);
-	emu->cpuind[cpuid] = emu->ncpus;
-
-	dbg("new cpu id=%d at %d\n", cpuid, emu->ncpus);
+	dbg("new cpu %d at phyid=%d\n", i, phyid);
 
 	emu->ncpus++;
 }

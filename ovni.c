@@ -439,7 +439,7 @@ ovni_ev(struct ovni_ev *ev)
 }
 
 static int
-find_dir_prefix(struct dirent *dirent, const char *prefix, int *num)
+find_dir_prefix_str(struct dirent *dirent, const char *prefix, const char **str)
 {
 	const char *p;
 
@@ -457,7 +457,20 @@ find_dir_prefix(struct dirent *dirent, const char *prefix, int *num)
 
 	p++;
 
-	/* Convert the end to a number */
+	*str = p;
+
+	return 0;
+}
+
+static int
+find_dir_prefix_int(struct dirent *dirent, const char *prefix, int *num)
+{
+	const char *p;
+
+	if(find_dir_prefix_str(dirent, prefix, &p) != 0)
+		return -1;
+
+	/* Convert the suffix string to a number */
 	*num = atoi(p);
 
 	return 0;
@@ -507,7 +520,7 @@ load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
 
 	while((dirent = readdir(dir)) != NULL)
 	{
-		if(find_dir_prefix(dirent, "thread", &tid) != 0)
+		if(find_dir_prefix_int(dirent, "thread", &tid) != 0)
 		{
 			err("warning: ignoring bogus directory entry %s\n",
 					dirent->d_name);
@@ -554,7 +567,7 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 
 	while((dirent = readdir(dir)) != NULL)
 	{
-		if(find_dir_prefix(dirent, "proc", &pid) != 0)
+		if(find_dir_prefix_int(dirent, "proc", &pid) != 0)
 		{
 			err("warning: ignoring bogus directory entry %s\n",
 					dirent->d_name);
@@ -586,19 +599,53 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 int
 ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 {
-	int loom, nlooms;
+	int i;
 	char path[PATH_MAX];
+	const char *loom_name;
+	struct stat st;
+	DIR *dir;
+	struct dirent *dirent;
+	struct ovni_loom *loom;
 
-	/* TODO: For now only one loom */
-	nlooms = 1;
-	loom = 0;
+	trace->nlooms = 0;
 
-	sprintf(path, "%s/loom.%d", tracedir, loom);
-
-	if(load_loom(&trace->loom[loom], loom, path))
+	if((dir = opendir(tracedir)) == NULL)
+	{
+		fprintf(stderr, "opendir %s failed: %s\n",
+				tracedir, strerror(errno));
 		return -1;
+	}
 
-	trace->nlooms = nlooms;
+	while((dirent = readdir(dir)) != NULL)
+	{
+		if(find_dir_prefix_str(dirent, "loom", &loom_name) != 0)
+		{
+			/* Ignore other files in tracedir */
+			continue;
+		}
+
+		if(trace->nlooms >= OVNI_MAX_LOOM)
+		{
+			err("too many looms for trace %s\n",
+					tracedir);
+			abort();
+		}
+
+		i = trace->nlooms;
+		loom = &trace->loom[i];
+
+		/* FIXME: Unsafe */
+		strcpy(loom->name, loom_name);
+
+		sprintf(path, "%s/%s", tracedir, dirent->d_name);
+
+		if(load_loom(&trace->loom[i], i, path) != 0)
+			return -1;
+
+		trace->nlooms++;
+	}
+
+	closedir(dir);
 
 	return 0;
 }

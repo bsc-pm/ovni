@@ -104,6 +104,7 @@ struct ovni_eproc {
 /* State of each loom on post-process */
 struct ovni_loom {
 	size_t nprocs;
+	char name[HOST_NAME_MAX];
 	struct ovni_eproc proc[OVNI_MAX_PROC];
 };
 

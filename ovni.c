@@ -41,31 +41,26 @@ struct ovni_rproc rproc = {0};
 _Thread_local struct ovni_rthread rthread = {0};
 
 static int
-create_trace_dirs(char *tracedir, int loom, int proc)
+create_trace_dirs(char *tracedir, char *loom, int proc)
 {
 	char path[PATH_MAX];
 
-	fprintf(stderr, "create trace dirs for loom=%d, proc=%d\n",
+	fprintf(stderr, "create trace dirs for loom=%s, proc=%d\n",
 			loom, proc);
 
 	snprintf(path, PATH_MAX, "%s", tracedir);
 
-	if(mkdir(path, 0755))
-	{
-		fprintf(stderr, "mkdir %s: %s\n", path, strerror(errno));
-		//return -1;
-	}
+	/* May fail if another loom created the directory already */
+	mkdir(path, 0755);
 
-	snprintf(path, PATH_MAX, "%s/loom.%d", tracedir, loom);
+	snprintf(path, PATH_MAX, "%s/loom.%s", tracedir, loom);
 
-	if(mkdir(path, 0755))
-	{
-		fprintf(stderr, "mkdir %s: %s\n", path, strerror(errno));
-		//return -1;
-	}
+	/* Also may fail */
+	mkdir(path, 0755);
 
-	snprintf(rproc.dir, PATH_MAX, "%s/loom.%d/proc.%d", tracedir, loom, proc);
+	snprintf(rproc.dir, PATH_MAX, "%s/loom.%s/proc.%d", tracedir, loom, proc);
 
+	/* But this one shall not fail */
 	if(mkdir(rproc.dir, 0755))
 	{
 		fprintf(stderr, "mkdir %s: %s\n", rproc.dir, strerror(errno));
@@ -92,16 +87,14 @@ create_trace_stream()
 	if(rthread.streamfd == -1)
 	{
 		fprintf(stderr, "open %s failed: %s\n", path, strerror(errno));
-		/* Shall we just return -1 ? */
-		abort();
-		//return -1;
+		return -1;
 	}
 
 	return 0;
 }
 
 int
-ovni_proc_init(int loom, int proc)
+ovni_proc_init(char *loom, int proc)
 {
 	int i;
 
@@ -109,7 +102,8 @@ ovni_proc_init(int loom, int proc)
 
 	memset(&rproc, 0, sizeof(rproc));
 
-	rproc.loom = loom;
+	/* FIXME: strcpy is insecure */
+	strcpy(rproc.loom, loom);
 	rproc.proc = proc;
 
 	/* By default we use the monotonic clock */

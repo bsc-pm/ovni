@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <linux/limits.h>
+#include <limits.h>
 
 #define OVNI_MAX_CPU 256
 #define OVNI_MAX_PROC 32
@@ -93,7 +94,7 @@ struct ovni_rproc {
 	char dir[PATH_MAX];
 
 	int proc;
-	int loom;
+	char loom[HOST_NAME_MAX];
 	int ncpus;
 	clockid_t clockid;
 	char procdir[PATH_MAX];
@@ -101,7 +102,7 @@ struct ovni_rproc {
 	int ready;
 };
 
-int ovni_proc_init(int loom, int proc);
+int ovni_proc_init(char *loom, int proc);
 
 int ovni_thread_init(pid_t tid);
 

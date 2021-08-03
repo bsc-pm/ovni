@@ -194,6 +194,8 @@ struct ovni_emu {
 
 	FILE *prv_thread;
 	FILE *prv_cpu;
+	FILE *pcf_thread;
+	FILE *pcf_cpu;
 
 	char *clock_offset_file;
 	char *tracedir;

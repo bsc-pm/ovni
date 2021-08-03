@@ -14,6 +14,7 @@
 #include "ovni_trace.h"
 #include "emu.h"
 #include "prv.h"
+#include "pcf.h"
 
 /* Obtains the corrected clock of the given event */
 int64_t
@@ -382,10 +383,37 @@ open_prvs(struct ovni_emu *emu, char *tracedir)
 }
 
 static void
+open_pcfs(struct ovni_emu *emu, char *tracedir)
+{
+	char path[PATH_MAX];
+
+	sprintf(path, "%s/%s", tracedir, "thread.pcf");
+
+	emu->pcf_thread = fopen(path, "w");
+
+	if(emu->pcf_thread == NULL)
+		abort();
+
+	sprintf(path, "%s/%s", tracedir, "cpu.pcf");
+
+	emu->pcf_cpu = fopen(path, "w");
+
+	if(emu->pcf_cpu == NULL)
+		abort();
+}
+
+static void
 close_prvs(struct ovni_emu *emu)
 {
 	fclose(emu->prv_thread);
 	fclose(emu->prv_cpu);
+}
+
+static void
+close_pcfs(struct ovni_emu *emu)
+{
+	fclose(emu->pcf_thread);
+	fclose(emu->pcf_cpu);
 }
 
 static void
@@ -505,6 +533,47 @@ load_clock_offsets(struct ovni_emu *emu)
 }
 
 static void
+write_row_cpu(struct ovni_emu *emu)
+{
+	FILE *f;
+	int i, j;
+	char path[PATH_MAX];
+	struct ovni_loom *loom;
+	struct ovni_cpu *cpu;
+
+	sprintf(path, "%s/%s", emu->tracedir, "cpu.row");
+
+	f = fopen(path, "w");
+
+	if(f == NULL)
+	{
+		perror("cannot open row file");
+		exit(EXIT_FAILURE);
+	}
+
+	fprintf(f, "LEVEL NODE SIZE 1\n");
+	fprintf(f, "hostname\n");
+	fprintf(f, "\n");
+
+	/* Add an extra row for the virtual CPU */
+	fprintf(f, "LEVEL THREAD SIZE %d\n", emu->total_cpus + 1);
+
+	for(i=0; i<emu->trace.nlooms; i++)
+	{
+		loom = &emu->trace.loom[i];
+		for(j=0; j<loom->ncpus; j++)
+		{
+			cpu = &loom->cpu[j];
+			fprintf(f, "CPU %d.%d\n", i, cpu->i);
+		}
+	}
+
+	fprintf(f, "UNSET\n");
+
+	fclose(f);
+}
+
+static void
 emu_init(struct ovni_emu *emu, int argc, char *argv[])
 {
 	memset(emu, 0, sizeof(emu));
@@ -524,6 +593,17 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 		load_clock_offsets(emu);
 
 	open_prvs(emu, emu->tracedir);
+	open_pcfs(emu, emu->tracedir);
+}
+
+static void
+emu_post(struct ovni_emu *emu)
+{
+	/* Write the PCF files */
+	pcf_write(emu->pcf_thread);
+	pcf_write(emu->pcf_cpu);
+
+	write_row_cpu(emu);
 }
 
 static void
@@ -542,6 +622,8 @@ main(int argc, char *argv[])
 	emu_init(&emu, argc, argv);
 
 	emulate(&emu);
+
+	emu_post(&emu);
 
 	emu_destroy(&emu);
 

@@ -1,6 +1,10 @@
 #ifndef OVNI_PRV_H
 #define OVNI_PRV_H
 
+#include <stdint.h>
+#include "ovni.h"
+#include "emu.h"
+
 /* All PRV event types */
 enum prv_type {
 	/* Rows are CPUs */

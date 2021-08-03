@@ -21,7 +21,7 @@ dump: ovni.o dump.o parson.o
 
 test_speed: test_speed.c ovni.o parson.o
 
-emu: emu.o emu_ovni.o emu_nosv.o ovni.o prv.o parson.o
+emu: emu.o emu_ovni.o emu_nosv.o ovni.o prv.o pcf.o parson.o
 
 libovni.so: ovni.o parson.o
 	$(LINK.c) -shared $^ -o $@

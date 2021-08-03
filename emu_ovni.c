@@ -271,12 +271,12 @@ emit_thread_state(struct ovni_emu *emu)
 	row = emu->cur_thread->gindex + 1;
 	tid = emu->cur_thread->tid;
 
-	prv_ev_row(emu, row, PTT_THREAD_STATE, st);
+	prv_ev_thread(emu, row, PTT_THREAD_STATE, st);
 
 	if(st == TH_ST_RUNNING)
-		prv_ev_row(emu, row, PTT_THREAD_TID, tid);
+		prv_ev_thread(emu, row, PTT_THREAD_TID, tid);
 	else
-		prv_ev_row(emu, row, PTT_THREAD_TID, 0);
+		prv_ev_thread(emu, row, PTT_THREAD_TID, 0);
 }
 
 static void
@@ -297,13 +297,13 @@ emit_thread_count(struct ovni_emu *emu)
 			/* Start at 1 */
 			row = i + 1;
 			n = loom->cpu[i].nthreads;
-			prv_ev_row(emu, row, PTC_NTHREADS, n);
+			prv_ev_cpu(emu, row, PTC_NTHREADS, n);
 
 			pid = n == 1 ? loom->cpu[i].thread[0]->proc->pid : 1;
-			prv_ev_row(emu, row, PTC_PROC_PID, pid);
+			prv_ev_cpu(emu, row, PTC_PROC_PID, pid);
 
 			tid = n == 1 ? loom->cpu[i].thread[0]->tid : 1;
-			prv_ev_row(emu, row, PTC_THREAD_TID, tid);
+			prv_ev_cpu(emu, row, PTC_THREAD_TID, tid);
 		}
 	}
 
@@ -313,13 +313,13 @@ emit_thread_count(struct ovni_emu *emu)
 		/* Place the virtual CPU after the physical CPUs */
 		row = loom->ncpus + 1;
 		n = loom->vcpu.nthreads;
-		prv_ev_row(emu, row, PTC_NTHREADS, n);
+		prv_ev_cpu(emu, row, PTC_NTHREADS, n);
 
 		pid = n == 1 ? loom->vcpu.thread[0]->proc->pid : 1;
-		prv_ev_row(emu, row, PTC_PROC_PID, pid);
+		prv_ev_cpu(emu, row, PTC_PROC_PID, pid);
 
 		tid = n == 1 ? loom->vcpu.thread[0]->tid : 1;
-		prv_ev_row(emu, row, PTC_THREAD_TID, tid);
+		prv_ev_cpu(emu, row, PTC_THREAD_TID, tid);
 	}
 }
 

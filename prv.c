@@ -5,10 +5,21 @@
 #include "emu.h"
 
 void
-prv_ev_row(struct ovni_emu *emu, int row, int type, int val)
+prv_ev(FILE *f, int row, int64_t time, int type, int val)
 {
-	printf("2:0:1:1:%d:%ld:%d:%d\n",
-			row, emu->delta_time, type, val);
+	fprintf(f, "2:0:1:1:%d:%ld:%d:%d\n", row, time, type, val);
+}
+
+void
+prv_ev_thread(struct ovni_emu *emu, int row, int type, int val)
+{
+	prv_ev(emu->prv_thread, row, emu->delta_time, type, val);
+}
+
+void
+prv_ev_cpu(struct ovni_emu *emu, int row, int type, int val)
+{
+	prv_ev(emu->prv_cpu, row, emu->delta_time, type, val);
 }
 
 void
@@ -27,11 +38,11 @@ prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
 	/* Begin at 1 */
 	row = cpu->i + 1;
 
-	prv_ev_row(emu, row, type, val);
+	prv_ev_cpu(emu, row, type, val);
 }
 
 void
-prv_header(struct ovni_emu *emu, int nrows)
+prv_header(FILE *f, int nrows)
 {
-	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", nrows);
+	fprintf(f, "#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", nrows);
 }

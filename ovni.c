@@ -617,6 +617,18 @@ load_thread(struct ovni_ethread *thread, struct ovni_eproc *proc, int index, int
 	return 0;
 }
 
+static void
+load_proc_metadata(struct ovni_eproc *proc)
+{
+	JSON_Object *meta;
+
+	meta = json_value_get_object(proc->meta);
+	assert(meta);
+
+	proc->appid = (int) json_object_get_number(meta, "app_id");
+}
+
+
 static int
 load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
 {
@@ -634,8 +646,10 @@ load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
 
 	sprintf(path, "%s/%s", procdir, "metadata.json");
 	proc->meta = json_parse_file_with_comments(path);
-
 	assert(proc->meta);
+
+	/* The appid is populated from the metadata */
+	load_proc_metadata(proc);
 
 	if((dir = opendir(procdir)) == NULL)
 	{

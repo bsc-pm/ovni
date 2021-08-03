@@ -240,6 +240,7 @@ emit_task_running(struct ovni_emu *emu, struct nosv_task *task)
 {
 	prv_ev_autocpu(emu, PTC_TASK_ID, task->id + 1);
 	prv_ev_autocpu(emu, PTC_TASK_TYPE_ID, task->type_id + 1);
+	prv_ev_autocpu(emu, PTC_APP_ID, emu->cur_proc->appid + 1);
 }
 
 static void
@@ -247,6 +248,7 @@ emit_task_not_running(struct ovni_emu *emu, struct nosv_task *task)
 {
 	prv_ev_autocpu(emu, PTC_TASK_ID, 0);
 	prv_ev_autocpu(emu, PTC_TASK_TYPE_ID, 0);
+	prv_ev_autocpu(emu, PTC_APP_ID, 0);
 }
 
 static void

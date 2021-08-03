@@ -84,6 +84,7 @@ struct ovni_eproc {
 	int pid;
 	int index;
 	int gindex;
+	int appid;
 
 	/* Path of the process tracedir */
 	char dir[PATH_MAX];
@@ -188,6 +189,9 @@ struct ovni_emu {
 
 	uint64_t lastclock;
 	int64_t delta_time;
+
+	FILE *prv_thread;
+	FILE *prv_cpu;
 
 	/* Total counters */
 	int total_thread;

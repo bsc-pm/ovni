@@ -124,5 +124,7 @@ int main(int argc, char *argv[])
 
 	ovni_free_streams(&trace);
 
+	fflush(stdout);
+
 	return 0;
 }

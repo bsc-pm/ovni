@@ -12,6 +12,7 @@
 #include "ovni.h"
 #include "ovni_trace.h"
 #include "emu.h"
+#include "prv.h"
 
 static void
 emit_ev(struct ovni_stream *stream, struct ovni_ev *ev)
@@ -345,6 +346,36 @@ destroy_metadata(struct ovni_emu *emu)
 	return 0;
 }
 
+static void
+open_prvs(struct ovni_emu *emu, char *tracedir)
+{
+	char path[PATH_MAX];
+
+	sprintf(path, "%s/%s", tracedir, "thread.prv");
+
+	emu->prv_thread = fopen(path, "w");
+
+	if(emu->prv_thread == NULL)
+		abort();
+
+	sprintf(path, "%s/%s", tracedir, "cpu.prv");
+
+	emu->prv_cpu = fopen(path, "w");
+
+	if(emu->prv_cpu == NULL)
+		abort();
+
+	prv_header(emu->prv_thread, emu->trace.nstreams);
+	prv_header(emu->prv_cpu, emu->total_cpus + 1);
+}
+
+static void
+close_prvs(struct ovni_emu *emu)
+{
+	fclose(emu->prv_thread);
+	fclose(emu->prv_cpu);
+}
+
 
 int
 main(int argc, char *argv[])
@@ -371,10 +402,13 @@ main(int argc, char *argv[])
 	if(load_metadata(&emu) != 0)
 		abort();
 
+	open_prvs(&emu, tracedir);
 
 	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", emu.total_cpus);
 
 	emulate(&emu);
+
+	close_prvs(&emu);
 
 	destroy_metadata(&emu);
 

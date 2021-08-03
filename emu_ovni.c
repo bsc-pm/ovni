@@ -243,74 +243,6 @@ ev_affinity(struct ovni_emu *emu)
 	}
 }
 
-static void
-ev_cpu_count(struct ovni_emu *emu)
-{
-	int i, max_ncpus, max_phyid;
-	struct ovni_loom *loom;
-
-	loom = emu->cur_loom;
-	max_ncpus = emu->cur_ev->payload.i32[0];
-	max_phyid = emu->cur_ev->payload.i32[1];
-
-	assert(max_ncpus < OVNI_MAX_CPU);
-	assert(max_phyid < OVNI_MAX_CPU);
-
-	for(i=0; i<OVNI_MAX_CPU; i++)
-	{
-		loom->cpu[i].state = CPU_ST_UNKNOWN;
-		loom->cpu[i].i = -1;
-		loom->cpu[i].phyid = -1;
-		loom->cpu[i].gindex = -1;
-	}
-
-	loom->ncpus = 0;
-	loom->max_ncpus = max_ncpus;
-	loom->max_phyid = max_phyid;
-}
-
-static void
-ev_cpu_id(struct ovni_emu *emu)
-{
-	int i, phyid;
-	struct ovni_loom *loom;
-
-	loom = emu->cur_loom;
-	i = emu->cur_ev->payload.i32[0];
-	phyid = emu->cur_ev->payload.i32[1];
-
-	/* The logical id must match our index */
-	assert(i == loom->ncpus);
-
-	assert(0 <= phyid && phyid <= loom->max_phyid);
-
-	assert(loom->cpu[i].state == CPU_ST_UNKNOWN);
-
-	loom->cpu[loom->ncpus].state = CPU_ST_READY;
-	loom->cpu[loom->ncpus].i = i;
-	loom->cpu[loom->ncpus].phyid = phyid;
-	loom->cpu[loom->ncpus].gindex = emu->total_cpu++;
-
-	dbg("new cpu %d at phyid=%d\n", i, phyid);
-
-	loom->ncpus++;
-}
-
-
-static void
-ev_cpu(struct ovni_emu *emu)
-{
-	switch(emu->cur_ev->header.value)
-	{
-		case 'n': ev_cpu_count(emu); break;
-		case 'i': ev_cpu_id(emu); break;
-		default:
-			dbg("unknown cpu event value %c\n",
-					emu->cur_ev->header.value);
-			break;
-	}
-}
-
 void
 hook_pre_ovni(struct ovni_emu *emu)
 {
@@ -320,7 +252,6 @@ hook_pre_ovni(struct ovni_emu *emu)
 	{
 		case 'H': ev_thread(emu); break;
 		case 'A': ev_affinity(emu); break;
-		case 'C': ev_cpu(emu); break;
 		case 'B': dbg("burst %c\n", emu->cur_ev->header.value); break;
 		default:
 			dbg("unknown ovni event class %c\n",
@@ -410,7 +341,6 @@ hook_emit_ovni(struct ovni_emu *emu)
 			emit_thread_state(emu);
 			/* falltrough */
 		case 'A':
-		case 'C':
 			emit_thread_count(emu);
 			//emit_current_pid(emu);
 			break;

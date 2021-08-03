@@ -13,7 +13,7 @@ int main()
 	struct ovni_ev ev = {0};
 	int i;
 
-	ovni_proc_init(0, 0);
+	ovni_proc_init(0, "test", 0);
 	ovni_thread_init(1);
 
 	ovni_ev_set_mcv(&ev, "OB.");

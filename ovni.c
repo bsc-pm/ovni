@@ -19,6 +19,7 @@
 
 #include "ovni.h"
 #include "ovni_trace.h"
+#include "parson.h"
 
 #define ENABLE_DEBUG
 
@@ -93,8 +94,113 @@ create_trace_stream()
 	return 0;
 }
 
+static int
+proc_metadata_init(struct ovni_rproc *proc)
+{
+	JSON_Value *meta;
+
+	proc->meta = json_value_init_object();
+
+	if(proc->meta == NULL)
+	{
+		err("failed to create json object\n");
+		abort();
+	}
+
+	return 0;
+}
+
+static int
+proc_metadata_store(struct ovni_rproc *proc)
+{
+	char path[PATH_MAX];
+       
+	snprintf(path, PATH_MAX, "%s/metadata.json", proc->dir);
+
+	assert(proc->meta != NULL);
+
+	puts(json_serialize_to_string_pretty(proc->meta));
+
+	if(json_serialize_to_file_pretty(proc->meta, path) != JSONSuccess)
+	{
+		err("failed to write proc metadata\n");
+		abort();
+	}
+
+	return 0;
+}
+
+void
+ovni_add_cpu(int index, int phyid)
+{
+	JSON_Array *cpuarray;
+	JSON_Object *cpu;
+	JSON_Object *meta;
+	JSON_Value *valcpu, *valcpuarray;
+	int append = 0;
+
+	assert(rproc.ready == 1);
+	assert(rproc.meta != NULL);
+
+	meta = json_value_get_object(rproc.meta);
+
+	assert(meta);
+
+	/* Find the CPU array and create it if needed  */
+	cpuarray = json_object_dotget_array(meta, "cpus");
+
+	if(cpuarray == NULL)
+	{
+		valcpuarray = json_value_init_array();
+		assert(valcpuarray);
+
+		cpuarray = json_array(valcpuarray);
+		assert(cpuarray);
+		append = 1;
+	}
+
+	valcpuarray = json_array_get_wrapping_value(cpuarray);
+	assert(valcpuarray);
+
+	valcpu = json_value_init_object();
+	assert(valcpu);
+
+	cpu = json_object(valcpu);
+	assert(cpu);
+
+	if(json_object_set_number(cpu, "index", index) != 0)
+		abort();
+
+	if(json_object_set_number(cpu, "phyid", phyid) != 0)
+		abort();
+
+	if(json_array_append_value(cpuarray, valcpu) != 0)
+		abort();
+
+	if(append && json_object_set_value(meta, "cpus", valcpuarray) != 0)
+		abort();
+
+	//puts(json_serialize_to_string_pretty(rproc.meta));
+}
+
+static void
+proc_set_app(int appid)
+{
+	JSON_Object *meta;
+
+	assert(rproc.ready == 1);
+	assert(rproc.meta != NULL);
+
+	meta = json_value_get_object(rproc.meta);
+
+	assert(meta);
+
+	if(json_object_set_number(meta, "app_id", appid) != 0)
+		abort();
+}
+
 int
-ovni_proc_init(char *loom, int proc)
+ovni_proc_init(int app, char *loom, int proc)
 {
 	int i;
 
@@ -105,6 +211,7 @@ ovni_proc_init(char *loom, int proc)
 	/* FIXME: strcpy is insecure */
 	strcpy(rproc.loom, loom);
 	rproc.proc = proc;
+	rproc.app = app;
 
 	/* By default we use the monotonic clock */
 	rproc.clockid = CLOCK_MONOTONIC;
@@ -112,7 +219,21 @@ ovni_proc_init(char *loom, int proc)
 	if(create_trace_dirs(OVNI_TRACEDIR, loom, proc))
 		abort();
 
+	if(proc_metadata_init(&rproc) != 0)
+		abort();
+
 	rproc.ready = 1;
+
+	proc_set_app(app);
+
+	return 0;
+}
+
+int
+ovni_proc_fini()
+{
+	if(proc_metadata_store(&rproc) != 0)
+		abort();
 
 	return 0;
 }
@@ -511,6 +632,11 @@ load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
 	proc->index = index;
 	proc->gindex = total_procs++;
 
+	sprintf(path, "%s/%s", procdir, "metadata.json");
+	proc->meta = json_parse_file_with_comments(path);
+
+	assert(proc->meta);
+
 	if((dir = opendir(procdir)) == NULL)
 	{
 		fprintf(stderr, "opendir %s failed: %s\n",
@@ -544,6 +670,8 @@ load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
 	}
 
 	closedir(dir);
+
+
 
 	return 0;
 }

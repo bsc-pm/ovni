@@ -8,6 +8,8 @@
 #include <linux/limits.h>
 #include <limits.h>
 
+#include "parson.h"
+
 #define OVNI_MAX_CPU 256
 #define OVNI_MAX_PROC 32
 #define OVNI_MAX_THR 32
@@ -93,6 +95,7 @@ struct ovni_rproc {
 	/* Path of the process tracedir */
 	char dir[PATH_MAX];
 
+	int app;
 	int proc;
 	char loom[HOST_NAME_MAX];
 	int ncpus;
@@ -100,9 +103,13 @@ struct ovni_rproc {
 	char procdir[PATH_MAX];
 
 	int ready;
+
+	JSON_Value *meta;
 };
 
-int ovni_proc_init(char *loom, int proc);
+int ovni_proc_init(int app, char *loom, int proc);
+
+int ovni_proc_fini();
 
 int ovni_thread_init(pid_t tid);
 
@@ -119,6 +126,8 @@ void ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size);
 int ovni_ev_size(struct ovni_ev *ev);
 
 int ovni_payload_size(struct ovni_ev *ev);
+
+void ovni_add_cpu(int index, int phyid);
 
 /* Set the current clock in the event and queue it */
 void ovni_ev(struct ovni_ev *ev);

@@ -3,6 +3,7 @@
 
 #include "ovni.h"
 #include "uthash.h"
+#include "parson.h"
 #include <stdio.h>
 
 /* Debug macros */
@@ -90,6 +91,8 @@ struct ovni_eproc {
 	/* Threads */
 	size_t nthreads;
 	struct ovni_ethread thread[OVNI_MAX_THR];
+
+	JSON_Value *meta;
 
 	/* ------ Subsystem specific data --------*/
 	/* TODO: Use dynamic allocation */
@@ -189,7 +192,7 @@ struct ovni_emu {
 	/* Total counters */
 	int total_thread;
 	int total_proc;
-	int total_cpu;
+	int total_cpus;
 };
 
 /* Emulator function declaration */

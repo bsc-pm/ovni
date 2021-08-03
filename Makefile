@@ -17,16 +17,16 @@ all: $(BIN)
 libovni.a: ovni.o
 	ar -crs $@ $^
 
-dump: ovni.o dump.o
+dump: ovni.o dump.o parson.o
 
-test_speed: test_speed.c ovni.o
+test_speed: test_speed.c ovni.o parson.o
 
-emu: emu.o emu_ovni.o emu_nosv.o ovni.o prv.o
+emu: emu.o emu_ovni.o emu_nosv.o ovni.o prv.o parson.o
 
-libovni.so: ovni.o
+libovni.so: ovni.o parson.o
 	$(LINK.c) -shared $^ -o $@
 
-ovni2prv: ovni2prv.c ovni.o
+ovni2prv: ovni2prv.c ovni.o parson.o
 
 ovnisync: ovnisync.c
 	mpicc -lm $^ -o $@

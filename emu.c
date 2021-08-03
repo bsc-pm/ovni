@@ -190,6 +190,7 @@ emulate(struct ovni_emu *emu)
 		ovni_load_next_event(stream);
 	}
 
+
 	emu->lastclock = 0;
 
 	/* Then process all events */
@@ -237,6 +238,112 @@ emu_get_thread(struct ovni_emu *emu, int tid)
 	return thread;
 }
 
+static void
+add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
+{
+	/* The logical id must match our index */
+	assert(i == loom->ncpus);
+
+	assert(loom->cpu[i].state == CPU_ST_UNKNOWN);
+
+	loom->cpu[loom->ncpus].state = CPU_ST_READY;
+	loom->cpu[loom->ncpus].i = i;
+	loom->cpu[loom->ncpus].phyid = phyid;
+	loom->cpu[loom->ncpus].gindex = emu->total_cpus++;
+
+	dbg("new cpu %d at phyid=%d\n", i, phyid);
+
+	loom->ncpus++;
+}
+
+void
+proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *proc)
+{
+	JSON_Array *cpuarray;
+	JSON_Object *cpu;
+	JSON_Object *meta;
+	int i, index, phyid;
+
+	meta = json_value_get_object(proc->meta);
+
+	assert(meta);
+
+	cpuarray = json_object_get_array(meta, "cpus");
+
+	/* This process doesn't have the cpu list */
+	if(cpuarray == NULL)
+		return;
+
+	assert(loom->ncpus == 0);
+
+	for(i = 0; i < json_array_get_count(cpuarray); i++)
+	{
+		cpu = json_array_get_object(cpuarray, i);
+
+		index = (int) json_object_get_number(cpu, "index");
+		phyid = (int) json_object_get_number(cpu, "phyid");
+
+		add_new_cpu(emu, loom, index, phyid);
+	}
+}
+
+/* Obtain CPUs in the metadata files and other data */
+static int
+load_metadata(struct ovni_emu *emu)
+{
+	int i, j, k, s;
+	struct ovni_loom *loom;
+	struct ovni_eproc *proc;
+	struct ovni_ethread *thread;
+	struct ovni_stream *stream;
+	struct ovni_trace *trace;
+
+	trace = &emu->trace;
+
+	for(i=0; i<trace->nlooms; i++)
+	{
+		loom = &trace->loom[i];
+		for(j=0; j<loom->nprocs; j++)
+		{
+			proc = &loom->proc[j];
+
+			proc_load_cpus(emu, loom, proc);
+		}
+
+		/* One of the process must have the list of CPUs */
+		/* FIXME: The CPU list should be at the loom dir */
+		assert(loom->ncpus > 0);
+	}
+
+	return 0;
+}
+
+static int
+destroy_metadata(struct ovni_emu *emu)
+{
+	int i, j, k, s;
+	struct ovni_loom *loom;
+	struct ovni_eproc *proc;
+	struct ovni_ethread *thread;
+	struct ovni_stream *stream;
+	struct ovni_trace *trace;
+
+	trace = &emu->trace;
+
+	for(i=0; i<trace->nlooms; i++)
+	{
+		loom = &trace->loom[i];
+		for(j=0; j<loom->nprocs; j++)
+		{
+			proc = &loom->proc[j];
+
+			assert(proc->meta);
+			json_value_free(proc->meta);
+		}
+	}
+
+	return 0;
+}
 
 
 int
@@ -256,16 +363,23 @@ main(int argc, char *argv[])
 	memset(&emu, 0, sizeof(emu));
 
 	if(ovni_load_trace(&emu.trace, tracedir))
-		return 1;
+		abort();
 
 	if(ovni_load_streams(&emu.trace))
-		return 1;
+		abort();
 
-	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", 10);
+	if(load_metadata(&emu) != 0)
+		abort();
+
+
+	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", emu.total_cpus);
 
 	emulate(&emu);
 
+	destroy_metadata(&emu);
+
 	ovni_free_streams(&emu.trace);
+
 
 	return 0;
 }

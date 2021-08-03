@@ -8,8 +8,6 @@
 
 /* Debug macros */
 
-#define ENABLE_DEBUG
-
 #ifdef ENABLE_DEBUG
 # define dbg(...) fprintf(stderr, __VA_ARGS__);
 #else
@@ -140,12 +138,14 @@ struct ovni_cpu {
 /* State of each loom on post-process */
 struct ovni_loom {
 	size_t nprocs;
-	char name[HOST_NAME_MAX];
+	char hostname[HOST_NAME_MAX];
 
 	int max_ncpus;
 	int max_phyid;
 	int ncpus;
 	struct ovni_cpu cpu[OVNI_MAX_CPU];
+
+	int64_t clock_offset;
 
 	/* Virtual CPU */
 	struct ovni_cpu vcpu;
@@ -173,6 +173,7 @@ struct ovni_stream {
 	int active;
 	struct ovni_ev *cur_ev;
 	uint64_t lastclock;
+	int64_t clock_offset;
 };
 
 struct ovni_emu {
@@ -187,11 +188,15 @@ struct ovni_emu {
 
 	struct nosv_task *cur_task;
 
-	uint64_t lastclock;
+	int64_t firstclock;
+	int64_t lastclock;
 	int64_t delta_time;
 
 	FILE *prv_thread;
 	FILE *prv_cpu;
+
+	char *clock_offset_file;
+	char *tracedir;
 
 	/* Total counters */
 	int total_thread;

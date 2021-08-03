@@ -21,16 +21,6 @@
 #include "ovni_trace.h"
 #include "parson.h"
 
-#define ENABLE_DEBUG
-
-#ifdef ENABLE_DEBUG
-#define dbg(...) fprintf(stderr, __VA_ARGS__);
-#else
-#define dbg(...)
-#endif
-
-#define err(...) fprintf(stderr, __VA_ARGS__);
-
 //#define ENABLE_SLOW_CHECKS
 
 //#define USE_RDTSC
@@ -661,11 +651,7 @@ load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
 	while((dirent = readdir(dir)) != NULL)
 	{
 		if(find_dir_prefix_int(dirent, "thread", &tid) != 0)
-		{
-			err("warning: ignoring bogus directory entry %s\n",
-					dirent->d_name);
 			continue;
-		}
 
 		sprintf(path, "%s/%s", procdir, dirent->d_name);
 
@@ -710,11 +696,7 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 	while((dirent = readdir(dir)) != NULL)
 	{
 		if(find_dir_prefix_int(dirent, "proc", &pid) != 0)
-		{
-			err("warning: ignoring bogus directory entry %s\n",
-					dirent->d_name);
 			continue;
-		}
 
 		sprintf(path, "%s/%s", loomdir, dirent->d_name);
 
@@ -777,7 +759,7 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		loom = &trace->loom[i];
 
 		/* FIXME: Unsafe */
-		strcpy(loom->name, loom_name);
+		strcpy(loom->hostname, loom_name);
 
 		sprintf(path, "%s/%s", tracedir, dirent->d_name);
 
@@ -861,7 +843,7 @@ ovni_load_streams(struct ovni_trace *trace)
 		return -1;
 	}
 
-	fprintf(stderr, "loaded %d streams\n", trace->nstreams);
+	err("loaded %d streams\n", trace->nstreams);
 
 	for(s=0, i=0; i<trace->nlooms; i++)
 	{
@@ -918,7 +900,6 @@ ovni_load_next_event(struct ovni_stream *stream)
 	{
 		stream->cur_ev = (struct ovni_ev *) stream->buf;
 		stream->offset = 0;
-		dbg("first event\n");
 		goto out;
 	}
 

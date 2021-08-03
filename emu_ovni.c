@@ -252,7 +252,9 @@ hook_pre_ovni(struct ovni_emu *emu)
 	{
 		case 'H': ev_thread(emu); break;
 		case 'A': ev_affinity(emu); break;
-		case 'B': dbg("burst %c\n", emu->cur_ev->header.value); break;
+		case 'B':
+			  //dbg("burst %c\n", emu->cur_ev->header.value);
+			  break;
 		default:
 			dbg("unknown ovni event class %c\n",
 					emu->cur_ev->header.class);

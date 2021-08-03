@@ -12,16 +12,6 @@
 #include "ovni_trace.h"
 #include "emu.h"
 
-#define ENABLE_DEBUG
-
-#ifdef ENABLE_DEBUG
-#define dbg(...) fprintf(stderr, __VA_ARGS__);
-#else
-#define dbg(...)
-#endif
-
-#define err(...) fprintf(stderr, __VA_ARGS__);
-
 
 static void
 hexdump(uint8_t *buf, size_t size)

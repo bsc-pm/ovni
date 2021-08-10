@@ -213,15 +213,31 @@ ev_affinity_remote(struct ovni_emu *emu)
 	thread = emu_get_thread(emu, tid);
 
 	assert(thread);
-	assert(thread->state == TH_ST_PAUSED);
+
+	/* The thread may still be running */
+	assert(thread->state == TH_ST_RUNNING ||
+			thread->state == TH_ST_PAUSED);
+
+	/* It must have an assigned CPU */
 	assert(thread->cpu);
 
+	/* Migrate current cpu to the one at cpuid */
 	newcpu = emu_get_cpu(emu->cur_loom, cpuid);
 
-	/* It must not be running in any of the cpus */
-	assert(emu_cpu_find_thread(thread->cpu, thread) == -1);
-	assert(emu_cpu_find_thread(newcpu, thread) == -1);
+	/* If running, update the CPU thread lists */
+	if(thread->state == TH_ST_RUNNING)
+	{
+		emu_cpu_remove_thread(thread->cpu, thread);
+		emu_cpu_add_thread(newcpu, thread);
+	}
+	else
+	{
+		/* Otherwise, ensure that it is not in any CPU list */
+		assert(emu_cpu_find_thread(thread->cpu, thread) == -1);
+		assert(emu_cpu_find_thread(newcpu, thread) == -1);
+	}
 
+	/* Always set the assigned CPU in the thread */
 	thread->cpu = newcpu;
 
 	//dbg("thread %d switches to cpu %d by remote petition\n", tid,

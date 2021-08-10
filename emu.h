@@ -138,7 +138,7 @@ struct ovni_cpu {
 /* State of each loom on post-process */
 struct ovni_loom {
 	size_t nprocs;
-	char hostname[HOST_NAME_MAX];
+	char hostname[OVNI_MAX_HOSTNAME];
 
 	int max_ncpus;
 	int max_phyid;

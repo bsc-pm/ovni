@@ -483,7 +483,7 @@ load_clock_offsets(struct ovni_emu *emu)
 	char buf[1024];
 	int i, rank;
 	double offset, std;
-	char host[HOST_NAME_MAX];
+	char host[OVNI_MAX_HOSTNAME];
 	struct ovni_loom *loom;
 	struct ovni_trace *trace;
 	struct ovni_stream *stream;

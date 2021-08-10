@@ -6,6 +6,8 @@
 #include <math.h>
 #include <unistd.h>
 
+#include "ovni.h"
+
 static double
 get_time()
 {
@@ -37,7 +39,7 @@ cmp_double(const void *pa, const void *pb)
 
 /* Called by rank 0 */
 static void
-get_offset(double *timetable, char (*hosttable)[HOST_NAME_MAX], int nproc, int nsamples)
+get_offset(double *timetable, char (*hosttable)[OVNI_MAX_HOSTNAME], int nproc, int nsamples)
 {
 	int i, j;
 	double median, mean, var, std;
@@ -95,7 +97,7 @@ main(int argc, char *argv[])
 	double *t;
 	double *timetable;
 	int i, rank, nprocs, nsamples;
-	char (*hosttable)[HOST_NAME_MAX];
+	char (*hosttable)[OVNI_MAX_HOSTNAME];
 
 	MPI_Init(&argc, &argv);
 
@@ -130,7 +132,7 @@ main(int argc, char *argv[])
 		t[i] = get_time();
 	}
 
-	if(gethostname(hosttable[rank], HOST_NAME_MAX) != 0)
+	if(gethostname(hosttable[rank], OVNI_MAX_HOSTNAME) != 0)
 	{
 		perror("gethostname");
 		exit(EXIT_FAILURE);

@@ -9,6 +9,7 @@
 #include <linux/limits.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <sys/mman.h>
 #include <stdatomic.h>
 #include <assert.h>
@@ -68,7 +69,7 @@ create_trace_stream()
 	char path[PATH_MAX];
 
 	fprintf(stderr, "create thread stream tid=%d gettid=%d rproc.proc=%d rproc.ready=%d\n",
-			rthread.tid, gettid(), rproc.proc, rproc.ready);
+			rthread.tid, syscall(SYS_gettid), rproc.proc, rproc.ready);
 
 	snprintf(path, PATH_MAX, "%s/thread.%d", rproc.dir, rthread.tid);
 

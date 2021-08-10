@@ -15,6 +15,7 @@
 #define OVNI_MAX_THR 32
 #define OVNI_MAX_LOOM 4
 #define OVNI_TRACEDIR "ovni"
+#define OVNI_MAX_HOSTNAME 512
 
 /* Reserved buffer for event allocation per thread */
 #define OVNI_MAX_EV_BUF (2 * 1024LL * 1024LL) /* 2 MiB */
@@ -97,7 +98,7 @@ struct ovni_rproc {
 
 	int app;
 	int proc;
-	char loom[HOST_NAME_MAX];
+	char loom[OVNI_MAX_HOSTNAME];
 	int ncpus;
 	clockid_t clockid;
 	char procdir[PATH_MAX];

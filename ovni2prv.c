@@ -102,7 +102,7 @@ void dump_events(struct ovni_trace *trace)
 int main(int argc, char *argv[])
 {
 	char *tracedir;
-	struct ovni_trace trace;
+	struct ovni_trace *trace = malloc(sizeof(struct ovni_trace));
 
 	if(argc != 2)
 	{
@@ -112,19 +112,21 @@ int main(int argc, char *argv[])
 
 	tracedir = argv[1];
 
-	if(ovni_load_trace(&trace, tracedir))
+	if(ovni_load_trace(trace, tracedir))
 		return 1;
 
-	if(ovni_load_streams(&trace))
+	if(ovni_load_streams(trace))
 		return 1;
 
-	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", trace.nstreams);
+	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", trace->nstreams);
 
-	dump_events(&trace);
+	dump_events(trace);
 
-	ovni_free_streams(&trace);
+	ovni_free_streams(trace);
 
 	fflush(stdout);
+
+	free(trace);
 
 	return 0;
 }

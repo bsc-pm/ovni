@@ -576,7 +576,7 @@ write_row_cpu(struct ovni_emu *emu)
 static void
 emu_init(struct ovni_emu *emu, int argc, char *argv[])
 {
-	memset(emu, 0, sizeof(emu));
+	memset(emu, 0, sizeof(*emu));
 
 	parse_args(emu, argc, argv);
 

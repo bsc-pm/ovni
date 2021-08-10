@@ -11,8 +11,8 @@
 #include "parson.h"
 
 #define OVNI_MAX_CPU 256
-#define OVNI_MAX_PROC 32
-#define OVNI_MAX_THR 32
+#define OVNI_MAX_PROC 256
+#define OVNI_MAX_THR 256
 #define OVNI_MAX_LOOM 4
 #define OVNI_TRACEDIR "ovni"
 #define OVNI_MAX_HOSTNAME 512

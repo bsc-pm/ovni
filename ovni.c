@@ -110,8 +110,6 @@ proc_metadata_store(struct ovni_rproc *proc)
 
 	assert(proc->meta != NULL);
 
-	puts(json_serialize_to_string_pretty(proc->meta));
-
 	if(json_serialize_to_file_pretty(proc->meta, path) != JSONSuccess)
 	{
 		err("failed to write proc metadata\n");

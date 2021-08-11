@@ -52,8 +52,7 @@ struct __attribute__((__packed__)) ovni_ev_header {
 	uint8_t model;
 	uint8_t class;
 	uint8_t value;
-	uint32_t clock_lo;
-	uint16_t clock_hi;
+	uint64_t clock;
 };
 
 struct __attribute__((__packed__)) ovni_ev {

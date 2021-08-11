@@ -389,17 +389,13 @@ flush_evbuf()
 static void
 ovni_ev_set_clock(struct ovni_ev *ev)
 {
-	ev->header.clock_lo = (uint32_t) (rthread.clockvalue & 0xffffffff);
-	ev->header.clock_hi = (uint16_t) ((rthread.clockvalue >> 32) & 0xffff);
+	ev->header.clock = rthread.clockvalue;
 }
 
 uint64_t
 ovni_ev_get_clock(struct ovni_ev *ev)
 {
-	uint64_t clock;
-
-	clock = ((uint64_t) ev->header.clock_hi) << 32 | ((uint64_t) ev->header.clock_lo);
-	return clock;
+	return ev->header.clock;
 }
 
 void

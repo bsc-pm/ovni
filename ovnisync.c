@@ -66,7 +66,7 @@ get_offset(double *timetable, char (*hosttable)[OVNI_MAX_HOSTNAME], int nproc, i
 		mean = 0.0;
 		var = 0.0;
 
-		qsort(delta, sizeof(*delta), nsamples, cmp_double);
+		qsort(delta, nsamples, sizeof(*delta), cmp_double);
 
 		median = delta[nsamples / 2];
 
@@ -138,7 +138,9 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	MPI_Gather(hosttable[rank], sizeof(*hosttable), MPI_CHAR,
+	void *sendbuff = (rank > 0) ? hosttable[rank] : MPI_IN_PLACE;
+
+	MPI_Gather(sendbuff, sizeof(*hosttable), MPI_CHAR,
 		hosttable[0], sizeof(*hosttable), MPI_CHAR,
 		0, MPI_COMM_WORLD);
 

@@ -29,7 +29,8 @@ libovni.so: ovni.o parson.o
 ovni2prv: ovni2prv.c ovni.o parson.o
 
 ovnisync: ovnisync.c
-	mpicc -lm $^ -o $@
+	#OMPI_CC=clang mpicc -fsanitize=memory -fsanitize-recover=memory -fno-omit-frame-pointer -g -O2 -lm $^ -o $@
+	mpicc -g -O0 -lm $^ -o $@
 
 clean:
 	rm -f *.o $(BIN)

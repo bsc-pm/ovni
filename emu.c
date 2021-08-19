@@ -301,6 +301,8 @@ load_metadata(struct ovni_emu *emu)
 	for(i=0; i<trace->nlooms; i++)
 	{
 		loom = &trace->loom[i];
+		loom->offset_ncpus = emu->total_cpus;
+
 		for(j=0; j<loom->nprocs; j++)
 		{
 			proc = &loom->proc[j];

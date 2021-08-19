@@ -313,7 +313,7 @@ emit_thread_count(struct ovni_emu *emu)
 		if(loom->cpu[i].last_nthreads != loom->cpu[i].nthreads)
 		{
 			/* Start at 1 */
-			row = i + 1;
+			row = loom->offset_ncpus + i + 1;
 			n = loom->cpu[i].nthreads;
 			prv_ev_cpu(emu, row, PTC_NTHREADS, n);
 

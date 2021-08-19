@@ -36,7 +36,7 @@ prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
 	assert(cpu->i >= 0);
 
 	/* Begin at 1 */
-	row = cpu->i + 1;
+	row = emu->cur_loom->offset_ncpus + cpu->i + 1;
 
 	prv_ev_cpu(emu, row, type, val);
 }

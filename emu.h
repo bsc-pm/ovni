@@ -143,6 +143,7 @@ struct ovni_loom {
 	int max_ncpus;
 	int max_phyid;
 	int ncpus;
+	int offset_ncpus;
 	struct ovni_cpu cpu[OVNI_MAX_CPU];
 
 	int64_t clock_offset;

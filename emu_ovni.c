@@ -210,7 +210,7 @@ ev_affinity_remote(struct ovni_emu *emu)
 	cpuid = emu->cur_ev->payload.i32[0];
 	tid = emu->cur_ev->payload.i32[1];
 
-	thread = emu_get_thread(emu, tid);
+	thread = emu_get_thread(emu->cur_proc, tid);
 
 	assert(thread);
 

@@ -220,7 +220,7 @@ void hook_post_nosv(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_loom *loom, int cpuid);
 
-struct ovni_ethread *emu_get_thread(struct ovni_emu *emu, int tid);
+struct ovni_ethread *emu_get_thread(struct ovni_eproc *proc, int tid);
 
 void emu_emit_prv(struct ovni_emu *emu, int type, int val);
 

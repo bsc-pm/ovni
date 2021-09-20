@@ -221,35 +221,19 @@ emulate(struct ovni_emu *emu)
 }
 
 struct ovni_ethread *
-emu_get_thread(struct ovni_emu *emu, int tid)
+emu_get_thread(struct ovni_eproc *proc, int tid)
 {
-	int i, j, k;
-	struct ovni_loom *loom;
-	struct ovni_eproc *proc;
+	int i;
 	struct ovni_ethread *thread;
 
-	for(i=0; i<emu->trace.nlooms; i++)
+	for(i=0; i<proc->nthreads; i++)
 	{
-		loom = &emu->trace.loom[i];
-		for(j=0; j<loom->nprocs; j++)
-		{
-			proc = &loom->proc[j];
-			for(k=0; k<proc->nthreads; k++)
-			{
-				thread = &proc->thread[k];
-				if(thread->tid == tid)
-				{
-					/* Only same process threads can
-					 * change the affinity to each
-					 * others */
-					assert(emu->cur_proc == proc);
-					return thread;
-				}
-			}
-		}
+		thread = &proc->thread[i];
+		if(thread->tid == tid)
+			return thread;
 	}
 
-	return thread;
+	return NULL;
 }
 
 static void

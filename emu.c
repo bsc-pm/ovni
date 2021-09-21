@@ -603,7 +603,15 @@ emu_destroy(struct ovni_emu *emu)
 int
 main(int argc, char *argv[])
 {
-	struct ovni_emu *emu = (struct ovni_emu *) malloc(sizeof(struct ovni_emu));
+	struct ovni_emu *emu;
+       
+	emu = malloc(sizeof(struct ovni_emu));
+
+	if(emu == NULL)
+	{
+		perror("malloc");
+		return 1;
+	}
 
 	emu_init(emu, argc, argv);
 

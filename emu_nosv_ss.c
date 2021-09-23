@@ -35,7 +35,7 @@ ss_push(struct ovni_ethread *t, int st)
 }
 
 static int
-ss_pop(struct ovni_ethread *t)
+ss_pop(struct ovni_ethread *t, int expected_st)
 {
 	int st;
 
@@ -46,6 +46,14 @@ ss_pop(struct ovni_ethread *t)
 	}
 
 	st = t->ss[t->nss - 1];
+
+	if(st > 0 && st != expected_st)
+	{
+		err("thread %d expected subsystem state %d (got %d)\n",
+				expected_st, st);
+		exit(EXIT_FAILURE);
+	}
+
 	t->nss--;
 
 	return st;
@@ -80,13 +88,13 @@ pre_sched(struct ovni_emu *emu)
 			ss_push(th, ST_SCHED_HUNGRY);
 			break;
 		case 'f': /* Fill: no longer hungry */
-			ss_pop(th);
+			ss_pop(th, ST_SCHED_HUNGRY);
 			break;
 		case '[': /* Server enter */
 			ss_push(th, ST_SCHED_SERVING);
 			break;
 		case ']': /* Server exit */
-			ss_pop(th);
+			ss_pop(th, ST_SCHED_SERVING);
 			break;
 		case '@': ss_ev(th, EV_SCHED_SELF); break;
 		case 'r': ss_ev(th, EV_SCHED_RECV); break;
@@ -105,7 +113,7 @@ pre_submit(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[': ss_push(th, ST_SCHED_SUBMITTING); break;
-		case ']': ss_pop(th); break;
+		case ']': ss_pop(th, ST_SCHED_SUBMITTING); break;
 		default:
 			  break;
 	}
@@ -120,7 +128,7 @@ pre_memory(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[': ss_push(th, ST_MEM_ALLOCATING); break;
-		case ']': ss_pop(th); break;
+		case ']': ss_pop(th, ST_MEM_ALLOCATING); break;
 		default:
 			  break;
 	}

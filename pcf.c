@@ -114,6 +114,19 @@ struct event_type thread_tid = {
 	thread_tid_values
 };
 
+struct event_value thread_ss_values[] = {
+	{ ST_NULL, "NULL" },
+	{ ST_SCHED_HUNGRY,	"Scheduler: Hungry" },
+	{ ST_SCHED_SERVING,	"Scheduler: Serving" },
+	{ ST_SCHED_SUBMITTING,	"Scheduler: Submitting" },
+	{ -1, NULL },
+};
+
+struct event_type thread_ss = {
+	0, PTT_SUBSYSTEM, "Thread: Subsystem",
+	thread_ss_values
+};
+
 static void
 decompose_rgb(uint32_t col, uint8_t *r, uint8_t *g, uint8_t *b)
 {
@@ -176,6 +189,7 @@ write_events(FILE *f)
 {
 	write_event_type(f, &thread_state);
 	write_event_type(f, &thread_tid);
+	write_event_type(f, &thread_ss);
 }
 
 int

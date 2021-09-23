@@ -31,6 +31,20 @@ enum nosv_task_state {
 	TASK_ST_DEAD,
 };
 
+enum nosv_thread_ss_state {
+	ST_NULL = 0,
+	ST_SCHED_HUNGRY = 6,
+	ST_SCHED_SERVING = 7,
+	ST_SCHED_SUBMITTING = 8,
+};
+
+enum nosv_thread_ss_event {
+	EV_NULL = 0,
+	EV_SCHED_RECV = 11,
+	EV_SCHED_SEND = 12,
+	EV_SCHED_SELF = 13,
+};
+
 struct ovni_ethread;
 struct ovni_eproc;
 
@@ -47,6 +61,8 @@ struct nosv_task_type {
 	const char *label;
 	UT_hash_handle hh;
 };
+
+#define MAX_SS_STACK 128
 
 /* State of each emulated thread */
 struct ovni_ethread {
@@ -69,6 +85,14 @@ struct ovni_ethread {
 
 	/* Current cpu */
 	struct ovni_cpu *cpu;
+
+	/* Number of subsystem states in the stack */
+	int nss;
+
+	/* Stack of subsystem states */
+	int ss[MAX_SS_STACK];
+
+	int ss_event;
 
 	/* FIXME: Use a table with registrable pointers to custom data
 	 * structures */
@@ -218,6 +242,10 @@ void hook_post_ovni(struct ovni_emu *emu);
 void hook_pre_nosv(struct ovni_emu *emu);
 void hook_emit_nosv(struct ovni_emu *emu);
 void hook_post_nosv(struct ovni_emu *emu);
+
+void hook_pre_nosv_ss(struct ovni_emu *emu);
+void hook_emit_nosv_ss(struct ovni_emu *emu);
+void hook_post_nosv_ss(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_loom *loom, int cpuid);
 

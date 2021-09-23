@@ -221,6 +221,7 @@ pre_type(struct ovni_emu *emu)
 	}
 }
 
+
 void
 hook_pre_nosv(struct ovni_emu *emu)
 {
@@ -231,6 +232,8 @@ hook_pre_nosv(struct ovni_emu *emu)
 		default:
 			  break;
 	}
+
+	hook_pre_nosv_ss(emu);
 }
 
 /* --------------------------- emit ------------------------------- */
@@ -283,6 +286,8 @@ hook_emit_nosv(struct ovni_emu *emu)
 		default:
 			break;
 	}
+
+	hook_emit_nosv_ss(emu);
 }
 
 struct hook_entry pre_hooks[] = {

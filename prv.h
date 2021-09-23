@@ -18,6 +18,7 @@ enum prv_type {
 	/* Rows are threads */
 	PTT_THREAD_STATE  = 60,
 	PTT_THREAD_TID    = 61,
+	PTT_SUBSYSTEM     = 62,
 };
 
 

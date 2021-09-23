@@ -26,6 +26,9 @@ void
 prv_ev(FILE *f, int row, int64_t time, int type, int val);
 
 void
+prv_ev_thread_raw(struct ovni_emu *emu, int row, int64_t time, int type, int val);
+
+void
 prv_ev_thread(struct ovni_emu *emu, int row, int type, int val);
 
 void

@@ -3,6 +3,7 @@
 
 #include "ovni.h"
 #include "emu.h"
+#include "prv.h"
 
 void
 prv_ev(FILE *f, int row, int64_t time, int type, int val)
@@ -11,9 +12,15 @@ prv_ev(FILE *f, int row, int64_t time, int type, int val)
 }
 
 void
+prv_ev_thread_raw(struct ovni_emu *emu, int row, int64_t time, int type, int val)
+{
+	prv_ev(emu->prv_thread, row, time, type, val);
+}
+
+void
 prv_ev_thread(struct ovni_emu *emu, int row, int type, int val)
 {
-	prv_ev(emu->prv_thread, row, emu->delta_time, type, val);
+	prv_ev_thread_raw(emu, row, emu->delta_time, type, val);
 }
 
 void

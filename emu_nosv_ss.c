@@ -57,6 +57,15 @@ ss_ev(struct ovni_ethread *th, int ev)
 	th->ss_event = ev;
 }
 
+static int
+ss_last_st(struct ovni_ethread *th)
+{
+	if(th->nss == 0)
+		return ST_NULL;
+
+	return th->ss[th->nss - 1];
+}
+
 /* --------------------------- pre ------------------------------- */
 
 static void
@@ -121,10 +130,30 @@ emit_thread_state(struct ovni_emu *emu, struct ovni_ethread *th,
 		int type, int st)
 {
 	int row;
-	
+
 	row = th->gindex + 1;
 
 	prv_ev_thread(emu, row, type, st);
+}
+
+static void
+emit_thread_event(struct ovni_emu *emu, struct ovni_ethread *th,
+		int type, int st)
+{
+	int64_t t0, t1;
+	int row;
+	int prev_st;
+
+	row = th->gindex + 1;
+
+	t0 = emu->delta_time - 1;
+	t1 = emu->delta_time;
+
+	prev_st = ss_last_st(th);
+
+	/* Fake event using 1 nanosecond in the past */
+	prv_ev_thread_raw(emu, row, t0, type, st);
+	prv_ev_thread_raw(emu, row, t1, type, prev_st);
 }
 
 void
@@ -134,23 +163,16 @@ hook_emit_nosv_ss(struct ovni_emu *emu)
 
 	th = emu->cur_thread;
 
-//	/* Only emit a state if needed */
-//	if(th->ss_event != EV_NULL)
-//	{
-//		emit_thread_state(emu, th, PTT_SUBSYSTEM,
-//				th->ss_event);
-//	}
-//	else
+	/* Only emit a state if needed */
+	if(th->ss_event != EV_NULL)
+	{
+		emit_thread_event(emu, th, PTT_SUBSYSTEM,
+				th->ss_event);
 
-	if(th->nss > 0)
-	{
-		emit_thread_state(emu, th, PTT_SUBSYSTEM,
-				th->ss[th->nss - 1]);
+		return;
 	}
-	else
-	{
-		emit_thread_state(emu, th, PTT_SUBSYSTEM, ST_NULL);
-	}
+
+	emit_thread_state(emu, th, PTT_SUBSYSTEM, ss_last_st(th));
 }
 
 /* --------------------------- post ------------------------------- */

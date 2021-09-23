@@ -119,6 +119,9 @@ struct event_value thread_ss_values[] = {
 	{ ST_SCHED_HUNGRY,	"Scheduler: Hungry" },
 	{ ST_SCHED_SERVING,	"Scheduler: Serving" },
 	{ ST_SCHED_SUBMITTING,	"Scheduler: Submitting" },
+	{ EV_SCHED_SEND,	"EV Scheduler: Send task" },
+	{ EV_SCHED_RECV,	"EV Scheduler: Recv task" },
+	{ EV_SCHED_SELF,	"EV Scheduler: Self-assign task" },
 	{ -1, NULL },
 };
 

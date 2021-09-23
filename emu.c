@@ -113,6 +113,7 @@ hook_post(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.model)
 	{
 		case 'O': hook_post_ovni(emu); break;
+		case 'V': hook_post_nosv(emu); break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;

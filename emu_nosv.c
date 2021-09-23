@@ -290,7 +290,8 @@ hook_emit_nosv(struct ovni_emu *emu)
 	hook_emit_nosv_ss(emu);
 }
 
-struct hook_entry pre_hooks[] = {
-	{ "VTc", pre_task_create },
-	{ "VTx", pre_task_create },
-};
+void
+hook_post_nosv(struct ovni_emu *emu)
+{
+	hook_post_nosv_ss(emu);
+}

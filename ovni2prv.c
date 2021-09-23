@@ -102,7 +102,13 @@ void dump_events(struct ovni_trace *trace)
 int main(int argc, char *argv[])
 {
 	char *tracedir;
-	struct ovni_trace *trace = malloc(sizeof(struct ovni_trace));
+	struct ovni_trace *trace = calloc(1, sizeof(struct ovni_trace));
+
+	if(trace == NULL)
+	{
+		perror("calloc");
+		exit(EXIT_FAILURE);
+	}
 
 	if(argc != 2)
 	{

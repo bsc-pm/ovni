@@ -126,7 +126,15 @@ void dump_events(struct ovni_trace *trace)
 int main(int argc, char *argv[])
 {
 	char *tracedir;
-	struct ovni_trace trace;
+	struct ovni_trace *trace;
+
+	trace = calloc(1, sizeof(struct ovni_trace));
+
+	if(trace == NULL)
+	{
+		perror("calloc");
+		exit(EXIT_FAILURE);
+	}
 
 	if(argc != 2)
 	{
@@ -136,15 +144,17 @@ int main(int argc, char *argv[])
 
 	tracedir = argv[1];
 
-	if(ovni_load_trace(&trace, tracedir))
+	if(ovni_load_trace(trace, tracedir))
 		return 1;
 
-	if(ovni_load_streams(&trace))
+	if(ovni_load_streams(trace))
 		return 1;
 
-	dump_events(&trace);
+	dump_events(trace);
 
-	ovni_free_streams(&trace);
+	ovni_free_streams(trace);
+
+	free(trace);
 
 	return 0;
 }

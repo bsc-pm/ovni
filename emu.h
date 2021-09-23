@@ -36,6 +36,7 @@ enum nosv_thread_ss_state {
 	ST_SCHED_HUNGRY = 6,
 	ST_SCHED_SERVING = 7,
 	ST_SCHED_SUBMITTING = 8,
+	ST_MEM_ALLOCATING = 9,
 };
 
 enum nosv_thread_ss_event {

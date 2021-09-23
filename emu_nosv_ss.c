@@ -111,6 +111,21 @@ pre_submit(struct ovni_emu *emu)
 	}
 }
 
+static void
+pre_memory(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+
+	th = emu->cur_thread;
+	switch(emu->cur_ev->header.value)
+	{
+		case '[': ss_push(th, ST_MEM_ALLOCATING); break;
+		case ']': ss_pop(th); break;
+		default:
+			  break;
+	}
+}
+
 void
 hook_pre_nosv_ss(struct ovni_emu *emu)
 {
@@ -118,6 +133,7 @@ hook_pre_nosv_ss(struct ovni_emu *emu)
 	{
 		case 'S': pre_sched(emu); break;
 		case 'U': pre_submit(emu); break;
+		case 'M': pre_memory(emu); break;
 		default:
 			  break;
 	}

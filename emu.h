@@ -14,7 +14,7 @@
 # define dbg(...)
 #endif
 
-#define err(...) fprintf(stderr, __VA_ARGS__);
+#define err(...) fprintf(stderr, "error: " __VA_ARGS__);
 
 /* Emulated thread runtime status */
 enum ethread_state {

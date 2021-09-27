@@ -624,6 +624,7 @@ static void
 emu_destroy(struct ovni_emu *emu)
 {
 	close_prvs(emu);
+	close_pcfs(emu);
 	destroy_metadata(emu);
 	ovni_free_streams(&emu->trace);
 }

@@ -19,6 +19,7 @@ static void
 ss_init(struct ovni_ethread *t)
 {
 	t->nss = 0;
+	t->show_ss = 0;
 }
 
 static void
@@ -134,16 +135,58 @@ pre_memory(struct ovni_emu *emu)
 	}
 }
 
+/* Hook for the virtual "thread changed" event */
+static void
+pre_thread_change(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+
+	th = emu->cur_thread;
+
+	/* Only print the subsystem if the thread is running */
+	if(th->state == TH_ST_RUNNING)
+		th->show_ss = 1;
+	else
+		th->show_ss = 0;
+}
+
+static void
+pre_thread(struct ovni_emu *emu)
+{
+	switch(emu->cur_ev->header.value)
+	{
+		case 'c': pre_thread_change(emu); break;
+		default:
+			break;
+	}
+}
+
 void
 hook_pre_nosv_ss(struct ovni_emu *emu)
 {
-	switch(emu->cur_ev->header.class)
+	switch(emu->cur_ev->header.model)
 	{
-		case 'S': pre_sched(emu); break;
-		case 'U': pre_submit(emu); break;
-		case 'M': pre_memory(emu); break;
+		/* Listen for virtual events as well */
+		case '*':
+			switch(emu->cur_ev->header.class)
+			{
+				case 'H': pre_thread(emu); break;
+				default:
+					break;
+			}
+			break;
+		case 'V':
+			switch(emu->cur_ev->header.class)
+			{
+				case 'S': pre_sched(emu); break;
+				case 'U': pre_submit(emu); break;
+				case 'M': pre_memory(emu); break;
+				default:
+					break;
+			}
+			break;
 		default:
-			  break;
+			break;
 	}
 }
 
@@ -186,6 +229,12 @@ hook_emit_nosv_ss(struct ovni_emu *emu)
 	struct ovni_ethread *th;
 
 	th = emu->cur_thread;
+
+	if(th->show_ss == 0)
+	{
+		emit_thread_state(emu, th, PTT_SUBSYSTEM, ST_NULL);
+		return;
+	}
 
 	/* Only emit a state if needed */
 	if(th->ss_event != EV_NULL)

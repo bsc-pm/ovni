@@ -174,8 +174,14 @@ ev_thread(struct ovni_emu *emu)
 		case 'p': ev_thread_pause(emu); break;
 		case 'r': ev_thread_resume(emu); break;
 		default:
-			break;
+			  err("unknown thread event value %c\n",
+					  ev->header.value);
+			  exit(EXIT_FAILURE);
 	}
+
+	/* All events change the thread state: inject a virtual event to
+	 * notify other modules */
+	emu_virtual_ev(emu, "*Hc");
 }
 
 static void

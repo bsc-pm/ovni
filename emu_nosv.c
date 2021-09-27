@@ -146,7 +146,6 @@ pre_task_end(struct ovni_emu *emu)
 	dbg("task id=%d ends\n", task->id);
 }
 
-
 static void
 pre_task(struct ovni_emu *emu)
 {
@@ -221,16 +220,23 @@ pre_type(struct ovni_emu *emu)
 	}
 }
 
-
 void
 hook_pre_nosv(struct ovni_emu *emu)
 {
-	switch(emu->cur_ev->header.class)
+	switch(emu->cur_ev->header.model)
 	{
-		case 'T': pre_task(emu); break;
-		case 'Y': pre_type(emu); break;
+		/* Only listen for nosv events */
+		case 'V':
+			switch(emu->cur_ev->header.class)
+			{
+				case 'T': pre_task(emu); break;
+				case 'Y': pre_type(emu); break;
+				default:
+					break;
+			}
+			break;
 		default:
-			  break;
+			break;
 	}
 
 	hook_pre_nosv_ss(emu);

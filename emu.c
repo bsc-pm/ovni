@@ -82,11 +82,14 @@ hook_pre(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.model)
 	{
-		case 'O': hook_pre_ovni(emu); break;
-		case 'V': hook_pre_nosv(emu); break;
-		default:
-			  //dbg("unknown model %c\n", emu->cur_ev->model);
+		case 'O': hook_pre_ovni(emu);
 			  break;
+		case 'V': hook_pre_nosv(emu);
+			  break;
+		case '*': hook_pre_nosv(emu);
+			  break;
+		default:
+			break;
 	}
 }
 
@@ -97,8 +100,12 @@ hook_emit(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.model)
 	{
-		case 'O': hook_emit_ovni(emu); break;
-		case 'V': hook_emit_nosv(emu); break;
+		case 'O': hook_emit_ovni(emu);
+			  break;
+		case 'V': hook_emit_nosv(emu);
+			  break;
+		case '*': hook_emit_nosv(emu);
+			  break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;
@@ -112,8 +119,12 @@ hook_post(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.model)
 	{
-		case 'O': hook_post_ovni(emu); break;
-		case 'V': hook_post_nosv(emu); break;
+		case 'O': hook_post_ovni(emu);
+			  break;
+		case 'V': hook_post_nosv(emu);
+			  break;
+		case '*': hook_post_nosv(emu);
+			  break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;
@@ -142,6 +153,21 @@ next_event(struct ovni_emu *emu)
 	static int done_first = 0;
 
 	trace = &emu->trace;
+
+	/* Look for virtual events first */
+
+	if(trace->ivirtual < trace->nvirtual)
+	{
+		emu->cur_ev = &trace->virtual_events[trace->ivirtual];
+		trace->ivirtual++;
+		return 0;
+	}
+	else
+	{
+		/* Reset virtual events to 0 */
+		trace->ivirtual = 0;
+		trace->nvirtual = 0;
+	}
 
 	f = -1;
 	minclock = 0;
@@ -218,8 +244,9 @@ emulate(struct ovni_emu *emu)
 		hook_emit(emu);
 		hook_post(emu);
 
-		/* Read the next event */
-		ovni_load_next_event(emu->cur_stream);
+		/* Read the next event if no virtual events exist */
+		if(emu->trace.ivirtual == emu->trace.nvirtual)
+			ovni_load_next_event(emu->cur_stream);
 	}
 }
 
@@ -587,6 +614,53 @@ write_row_cpu(struct ovni_emu *emu)
 	fclose(f);
 }
 
+static int
+emu_virtual_init(struct ovni_emu *emu)
+{
+	struct ovni_trace *trace;
+
+	trace = &emu->trace;
+
+	trace->ivirtual = 0;
+	trace->nvirtual = 0;
+
+	trace->virtual_events = calloc(MAX_VIRTUAL_EVENTS,
+			sizeof(struct ovni_ev));
+
+	if(trace->virtual_events == NULL)
+	{
+		perror("calloc");
+		exit(EXIT_FAILURE);
+	}
+
+	return 0;
+}
+
+void
+emu_virtual_ev(struct ovni_emu *emu, char *mcv)
+{
+	struct ovni_trace *trace;
+	struct ovni_ev *ev;
+
+	trace = &emu->trace;
+
+	if(trace->nvirtual >= MAX_VIRTUAL_EVENTS)
+	{
+		err("too many virtual events\n");
+		exit(EXIT_FAILURE);
+	}
+
+	ev = &trace->virtual_events[trace->nvirtual];
+
+	ev->header.flags = 0;
+	ev->header.model = mcv[0];
+	ev->header.class = mcv[1];
+	ev->header.value = mcv[2];
+	ev->header.clock = emu->cur_ev->header.clock;
+
+	trace->nvirtual++;
+}
+
 static void
 emu_init(struct ovni_emu *emu, int argc, char *argv[])
 {
@@ -595,6 +669,9 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 	parse_args(emu, argc, argv);
 
 	if(ovni_load_trace(&emu->trace, emu->tracedir))
+		abort();
+
+	if(emu_virtual_init(emu))
 		abort();
 
 	if(ovni_load_streams(&emu->trace))

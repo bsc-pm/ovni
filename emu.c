@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200112L
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -483,7 +485,11 @@ load_clock_offsets(struct ovni_emu *emu)
 	}
 
 	/* Ignore header line */
-	fgets(buf, 1024, f);
+	if(fgets(buf, 1024, f) == NULL)
+	{
+		perror("fgets failed");
+		exit(EXIT_FAILURE);
+	}
 
 	while(1)
 	{

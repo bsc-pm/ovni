@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200112L
+
 #include <limits.h>
 #include <time.h>
 #include <stdio.h>
@@ -6,6 +8,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <assert.h>
+#include <time.h>
 
 #include "ovni.h"
 
@@ -400,7 +403,7 @@ do_work(struct options *options, int rank)
 		}
 
 		if(drift_mode)
-			usleep(options->drift_wait * 1000 * 1000);
+			sleep(options->drift_wait);
 	}
 }
 

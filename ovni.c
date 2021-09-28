@@ -9,7 +9,6 @@
 #include <linux/limits.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include <sys/syscall.h>
 #include <sys/mman.h>
 #include <stdatomic.h>
 #include <assert.h>
@@ -21,6 +20,11 @@
 #include "ovni.h"
 #include "ovni_trace.h"
 #include "parson.h"
+
+#ifndef gettid
+# include <sys/syscall.h>
+# define gettid() ((pid_t)syscall(SYS_gettid))
+#endif
 
 //#define ENABLE_SLOW_CHECKS
 
@@ -69,7 +73,7 @@ create_trace_stream()
 	char path[PATH_MAX];
 
 	fprintf(stderr, "create thread stream tid=%d gettid=%d rproc.proc=%d rproc.ready=%d\n",
-			rthread.tid, syscall(SYS_gettid), rproc.proc, rproc.ready);
+			rthread.tid, gettid(), rproc.proc, rproc.ready);
 
 	snprintf(path, PATH_MAX, "%s/thread.%d", rproc.dir, rthread.tid);
 
@@ -294,7 +298,7 @@ uint64_t rdtsc(void)
     uint32_t lo, hi;
 
     // RDTSC copies contents of 64-bit TSC into EDX:EAX
-    asm volatile("rdtsc" : "=a" (lo), "=d" (hi));
+    __asm__ volatile("rdtsc" : "=a" (lo), "=d" (hi));
     return (uint64_t) hi << 32 | lo;
 }
 
@@ -782,7 +786,7 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 
 	if(st.st_size == 0)
 	{
-		err("warning: stream %s is empty\n", stream->tid);
+		err("warning: stream %d is empty\n", stream->tid);
 		stream->size = 0;
 		stream->buf = NULL;
 		stream->active = 0;

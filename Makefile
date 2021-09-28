@@ -1,4 +1,5 @@
 CFLAGS=-fPIC
+CFLAGS+=-std=c11 -pedantic -Werror -Wformat
 
 # Debug flags
 #CFLAGS+=-fsanitize=address

@@ -1,9 +1,13 @@
+#define _POSIX_C_SOURCE 200112L
+#define _GNU_SOURCE
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <linux/limits.h>
+#include <limits.h>
 
 #include "ovni.h"
 

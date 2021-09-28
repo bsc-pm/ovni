@@ -43,7 +43,7 @@ void emit(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	delta = clock - stream->lastclock;
 
-	printf("%d.%d.%d %c %c %c % 20lu % 15ld ",
+	printf("%d.%d.%d %c %c %c % 20ld % 15ld ",
 			stream->loom, stream->proc, stream->tid,
 			ev->header.model, ev->header.class, ev->header.value, clock, delta);
 

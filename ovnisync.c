@@ -172,7 +172,7 @@ fill_offset(struct offset *offset, int nsamples)
 }
 
 void
-offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples)
+offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int verbose)
 {
 	int i;
 	double *delta;
@@ -188,8 +188,13 @@ offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples)
 	for(i=0; i<nsamples; i++)
 	{
 		delta[i] = ref->clock_sample[i] - cur->clock_sample[i];
-		//printf("rank=%d  sample=%d  delta=%f  ref=%f  cur=%f\n",
-		//		cur->rank, i, delta[i], ref->clock_sample[i], cur->clock_sample[i]);
+		if(verbose)
+		{
+			printf("rank=%d  sample=%d  delta=%f  ref=%f  cur=%f\n",
+					cur->rank, i, delta[i],
+					ref->clock_sample[i],
+					cur->clock_sample[i]);
+		}
 	}
 
 	qsort(delta, nsamples, sizeof(double), cmp_double);
@@ -232,7 +237,7 @@ table_get_offset(struct offset_table *table, int i, int nsamples)
 }
 
 struct offset_table *
-build_offset_table(int nsamples, int rank)
+build_offset_table(int nsamples, int rank, int verbose)
 {
 	int i;
 	struct offset_table *table = NULL;
@@ -304,7 +309,7 @@ build_offset_table(int nsamples, int rank)
 		for(i=0; i<table->nprocs; i++)
 		{
 			offset_compute_delta(offset, table->offset[i],
-					nsamples);
+					nsamples, verbose);
 		}
 	}
 
@@ -373,7 +378,7 @@ do_work(struct options *options, int rank)
 
 	for(i=0; i<options->ndrift_samples; i++)
 	{
-		table = build_offset_table(options->nsamples, rank);
+		table = build_offset_table(options->nsamples, rank, options->verbose);
 
 		if(rank == 0)
 		{

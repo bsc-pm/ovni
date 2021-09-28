@@ -51,7 +51,7 @@ ss_pop(struct ovni_ethread *t, int expected_st)
 	if(st > 0 && st != expected_st)
 	{
 		err("thread %d expected subsystem state %d (got %d)\n",
-				expected_st, st);
+				t->tid, expected_st, st);
 		exit(EXIT_FAILURE);
 	}
 

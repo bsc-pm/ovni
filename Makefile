@@ -1,14 +1,16 @@
 CFLAGS=-fPIC
 
-# Debug CFLAGS
-CFLAGS+=-fsanitize=address
-LDFLAGS+=-fsanitize=address
-CFLAGS+=-g -O0
+# Debug flags
+#CFLAGS+=-fsanitize=address
+#LDFLAGS+=-fsanitize=address
+#CFLAGS+=-g -O0
+#CFLAGS+=-DENABLE_DEBUG
+#CFLAGS+=-fno-omit-frame-pointer
 
-# Performance CFLAGS
-#CFLAGS+=-O3
-#CFLAGS+=-fstack-protector-explicit
-#CFLAGS+=-flto
+# Performance flags
+CFLAGS+=-O3
+CFLAGS+=-fstack-protector-explicit
+CFLAGS+=-flto
 
 BIN=dump test_speed ovni2prv emu libovni.so ovnisync
 
@@ -29,8 +31,7 @@ libovni.so: ovni.o parson.o
 ovni2prv: ovni2prv.c ovni.o parson.o
 
 ovnisync: ovnisync.c
-	#OMPI_CC=clang mpicc -fsanitize=memory -fsanitize-recover=memory -fno-omit-frame-pointer -g -O2 -lm $^ -o $@
-	mpicc -g -O0 -lm $^ -o $@
+	mpicc $(CFLAGS) $(LDFLAGS) -lm $^ -o $@
 
 clean:
 	rm -f *.o $(BIN)

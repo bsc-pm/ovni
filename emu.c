@@ -467,8 +467,8 @@ load_clock_offsets(struct ovni_emu *emu)
 {
 	FILE *f;
 	char buf[1024];
-	int i, rank;
-	double offset, std;
+	int i, rank, ret;
+	double offset, mean, std;
 	char host[OVNI_MAX_HOSTNAME];
 	struct ovni_loom *loom;
 	struct ovni_trace *trace;
@@ -485,8 +485,29 @@ load_clock_offsets(struct ovni_emu *emu)
 	/* Ignore header line */
 	fgets(buf, 1024, f);
 
-	while(fscanf(f, "%d %s %lf %lf", &rank, host, &offset, &std) == 4)
+	while(1)
 	{
+		errno = 0;
+		ret = fscanf(f, "%d %s %lf %lf %lf", &rank, host, &offset, &mean, &std);
+
+		if(ret == EOF)
+		{
+			if(errno != 0)
+			{
+				perror("fscanf failed");
+				exit(EXIT_FAILURE);
+			}
+
+			break;
+		}
+
+		if(ret != 5)
+		{
+			err("fscanf read %d instead of 5 fields in %s\n",
+					ret, emu->clock_offset_file);
+			exit(EXIT_FAILURE);
+		}
+
 		loom = find_loom_by_hostname(emu, host);
 
 		if(loom == NULL)

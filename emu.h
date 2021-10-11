@@ -166,6 +166,8 @@ const static int chan_to_prvtype[CHAN_MAX][3] = {
 //	PTT_TASK_APP_ID   = 65,
 //};
 
+#define MAX_BURSTS 100
+
 /* State of each emulated thread */
 struct ovni_ethread {
 	/* Emulated thread tid */
@@ -196,6 +198,10 @@ struct ovni_ethread {
 
 	/* Channels are used to output the emulator state in PRV */
 	struct ovni_chan chan[CHAN_MAX];
+
+	/* Burst times */
+	int nbursts;
+	int64_t burst_time[MAX_BURSTS];
 };
 
 /* State of each emulated process */
@@ -325,8 +331,6 @@ struct ovni_stream {
 	int64_t clock_offset;
 };
 
-#define MAX_BURSTS 100
-
 struct ovni_emu {
 	struct ovni_trace trace;
 
@@ -359,10 +363,6 @@ struct ovni_emu {
 	int total_nthreads;
 	int total_proc;
 	int total_ncpus;
-
-	/* Burst times */
-	int nbursts;
-	int64_t burst_time[MAX_BURSTS];
 };
 
 /* Emulator function declaration */

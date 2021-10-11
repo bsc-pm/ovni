@@ -518,22 +518,27 @@ pre_affinity(struct ovni_emu *emu)
 void
 pre_burst(struct ovni_emu *emu)
 {
+	struct ovni_ethread *th;
 	int64_t dt;
-	if(emu->nbursts >= MAX_BURSTS)
+
+	th = emu->cur_thread;
+
+	if(th->nbursts >= MAX_BURSTS)
 	{
-		err("too many bursts\n");
-		abort();
+		err("too many bursts: ignored\n");
+		return;
 	}
 
-	emu->burst_time[emu->nbursts] = emu->delta_time;
-	if(emu->nbursts > 0)
+	th->burst_time[th->nbursts] = emu->delta_time;
+	if(th->nbursts > 0)
 	{
-		dt = emu->burst_time[emu->nbursts] -
-			emu->burst_time[emu->nbursts - 1];
+		dt = th->burst_time[th->nbursts] -
+			th->burst_time[th->nbursts - 1];
 
 		err("burst delta time %ld ns\n", dt);
 	}
-	emu->nbursts++;
+
+	th->nbursts++;
 }
 
 void

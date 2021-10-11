@@ -48,6 +48,15 @@ enum nosv_thread_ss_state {
 	ST_BAD = 666,
 };
 
+enum nosv_tampi_state {
+	ST_TAMPI_SEND = 1,
+	ST_TAMPI_RECV = 2,
+	ST_TAMPI_ISEND = 3,
+	ST_TAMPI_IRECV = 4,
+	ST_TAMPI_WAIT = 5,
+	ST_TAMPI_WAITALL = 6,
+};
+
 enum nosv_thread_ss_event {
 	EV_NULL = 0,
 	EV_SCHED_RECV = 50,
@@ -130,6 +139,9 @@ enum chan {
 	CHAN_NOSV_TYPEID,
 	CHAN_NOSV_APPID,
 	CHAN_NOSV_SUBSYSTEM,
+
+	CHAN_TAMPI_MODE,
+
 	CHAN_MAX
 };
 
@@ -147,6 +159,8 @@ const static int chan_to_prvtype[CHAN_MAX][3] = {
 	{ CHAN_NOSV_TYPEID,	21, 71 },
 	{ CHAN_NOSV_APPID,	22, 72 },
 	{ CHAN_NOSV_SUBSYSTEM,	23, 73 },
+
+	{ CHAN_TAMPI_MODE,	30, 80 },
 };
 
 ///* All PRV event types */
@@ -387,6 +401,9 @@ void hook_init_nosv_ss(struct ovni_emu *emu);
 void hook_pre_nosv_ss(struct ovni_emu *emu);
 void hook_emit_nosv_ss(struct ovni_emu *emu);
 void hook_post_nosv_ss(struct ovni_emu *emu);
+
+void hook_init_tampi(struct ovni_emu *emu);
+void hook_pre_tampi(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_loom *loom, int cpuid);
 

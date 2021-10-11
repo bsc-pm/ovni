@@ -163,6 +163,7 @@ hook_init(struct ovni_emu *emu)
 {
 	hook_init_ovni(emu);
 	hook_init_nosv(emu);
+	hook_init_tampi(emu);
 }
 
 static void
@@ -175,6 +176,8 @@ hook_pre(struct ovni_emu *emu)
 		case 'O': hook_pre_ovni(emu);
 			  break;
 		case 'V': hook_pre_nosv(emu);
+			  break;
+		case 'T': hook_pre_tampi(emu);
 			  break;
 		default:
 			break;

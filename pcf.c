@@ -146,6 +146,27 @@ struct event_type cpu_ss = {
 	ss_values
 };
 
+struct event_value tampi_mode_values[] = {
+	{ ST_NULL,		"NULL" },
+	{ ST_TAMPI_SEND,	"TAMPI: Send" },
+	{ ST_TAMPI_RECV,	"TAMPI: Recv" },
+	{ ST_TAMPI_ISEND,	"TAMPI: Isend" },
+	{ ST_TAMPI_IRECV,	"TAMPI: Irecv" },
+	{ ST_TAMPI_WAIT,	"TAMPI: Wait" },
+	{ ST_TAMPI_WAITALL,	"TAMPI: Waitall" },
+	{ -1, NULL },
+};
+
+struct event_type cpu_tampi_mode = {
+	0, 80, "CPU: TAMPI running thread mode",
+	tampi_mode_values
+};
+
+struct event_type thread_tampi_mode = {
+	0, 30, "Thread: TAMPI mode",
+	tampi_mode_values
+};
+
 struct event_type thread_cpu_affinity = {
 	0, chan_to_prvtype[CHAN_OVNI_CPU][1], "Thread: current CPU affinity",
 	/* Ignored */ NULL
@@ -230,6 +251,8 @@ write_events(FILE *f, struct ovni_emu *emu)
 	write_event_type(f, &thread_tid);
 	write_event_type(f, &thread_ss);
 	write_event_type(f, &cpu_ss);
+	write_event_type(f, &cpu_tampi_mode);
+	write_event_type(f, &thread_tampi_mode);
 
 	write_cpu_type(f, &thread_cpu_affinity, emu);
 }

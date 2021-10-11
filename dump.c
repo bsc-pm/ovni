@@ -45,7 +45,7 @@ void emit(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	printf("%d.%d.%d %c %c %c % 20ld % 15ld ",
 			stream->loom, stream->proc, stream->tid,
-			ev->header.model, ev->header.class, ev->header.value, clock, delta);
+			ev->header.model, ev->header.category, ev->header.value, clock, delta);
 
 	payloadsize = ovni_payload_size(ev);
 	for(i=0; i<payloadsize; i++)

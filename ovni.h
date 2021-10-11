@@ -51,7 +51,7 @@ struct __attribute__((__packed__)) ovni_ev_header {
 	/* first 4 bits reserved, last 4 for payload size */
 	uint8_t flags;
 	uint8_t model;
-	uint8_t class;
+	uint8_t category;
 	uint8_t value;
 	uint64_t clock;
 };

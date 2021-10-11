@@ -422,7 +422,7 @@ hook_pre_nosv(struct ovni_emu *emu)
 {
 	assert(emu->cur_ev->header.model == 'V');
 
-	switch(emu->cur_ev->header.class)
+	switch(emu->cur_ev->header.category)
 	{
 		case 'T': pre_task(emu); break;
 		case 'Y': pre_type(emu); break;

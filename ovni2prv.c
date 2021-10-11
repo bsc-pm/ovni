@@ -31,7 +31,7 @@ void emit(struct ovni_stream *stream, struct ovni_ev *ev, int row)
 	//2:0:1:1:7:1542091:6400025:1
 	//2:0:1:1:7:1542091:6400017:0
 
-	printf("2:0:1:1:%d:%ld:%d:%d\n", row, delta, ev->header.class, ev->header.value);
+	printf("2:0:1:1:%d:%ld:%d:%d\n", row, delta, ev->header.category, ev->header.value);
 }
 
 void dump_events(struct ovni_trace *trace)

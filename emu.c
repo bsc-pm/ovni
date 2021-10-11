@@ -42,7 +42,7 @@ emit_ev(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	dbg(">>> %d.%d.%d %c %c %c % 20ld % 15ld ",
 			stream->loom, stream->proc, stream->tid,
-			ev->header.model, ev->header.class, ev->header.value, clock, delta);
+			ev->header.model, ev->header.category, ev->header.value, clock, delta);
 
 	payloadsize = ovni_payload_size(ev);
 	for(i=0; i<payloadsize; i++)
@@ -776,7 +776,7 @@ emu_virtual_ev(struct ovni_emu *emu, char *mcv)
 
 	ev->header.flags = 0;
 	ev->header.model = mcv[0];
-	ev->header.class = mcv[1];
+	ev->header.category = mcv[1];
 	ev->header.value = mcv[2];
 	ev->header.clock = emu->cur_ev->header.clock;
 

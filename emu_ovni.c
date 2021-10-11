@@ -549,14 +549,14 @@ hook_pre_ovni(struct ovni_emu *emu)
 	if(emu->cur_ev->header.model != 'O')
 		return;
 
-	switch(emu->cur_ev->header.class)
+	switch(emu->cur_ev->header.category)
 	{
 		case 'H': pre_thread(emu); break;
 		case 'A': pre_affinity(emu); break;
 		case 'B': pre_burst(emu); break;
 		default:
-			dbg("unknown ovni event class %c\n",
-					emu->cur_ev->header.class);
+			dbg("unknown ovni event category %c\n",
+					emu->cur_ev->header.category);
 			break;
 	}
 

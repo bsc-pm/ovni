@@ -411,7 +411,7 @@ void
 ovni_ev_set_mcv(struct ovni_ev *ev, char *mcv)
 {
 	ev->header.model = mcv[0];
-	ev->header.class = mcv[1];
+	ev->header.category = mcv[1];
 	ev->header.value = mcv[2];
 }
 

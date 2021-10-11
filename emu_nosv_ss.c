@@ -111,7 +111,7 @@ hook_pre_nosv_ss(struct ovni_emu *emu)
 {
 	assert(emu->cur_ev->header.model == 'V');
 
-	switch(emu->cur_ev->header.class)
+	switch(emu->cur_ev->header.category)
 	{
 		case 'S': pre_sched(emu); break;
 		case 'U': pre_submit(emu); break;

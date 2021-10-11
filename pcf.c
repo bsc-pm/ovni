@@ -167,6 +167,23 @@ struct event_type thread_tampi_mode = {
 	tampi_mode_values
 };
 
+struct event_value openmp_mode_values[] = {
+	{ ST_NULL,		"NULL" },
+	{ ST_OPENMP_TASK,	"OpenMP: Task" },
+	{ ST_OPENMP_PARALLEL,	"OpenMP: Parallel" },
+	{ -1, NULL },
+};
+
+struct event_type cpu_openmp_mode = {
+	0, 90, "CPU: OpenMP running thread mode",
+	openmp_mode_values
+};
+
+struct event_type thread_openmp_mode = {
+	0, 40, "Thread: OpenMP mode",
+	openmp_mode_values
+};
+
 struct event_type thread_cpu_affinity = {
 	0, chan_to_prvtype[CHAN_OVNI_CPU][1], "Thread: current CPU affinity",
 	/* Ignored */ NULL
@@ -253,6 +270,8 @@ write_events(FILE *f, struct ovni_emu *emu)
 	write_event_type(f, &cpu_ss);
 	write_event_type(f, &cpu_tampi_mode);
 	write_event_type(f, &thread_tampi_mode);
+	write_event_type(f, &cpu_openmp_mode);
+	write_event_type(f, &thread_openmp_mode);
 
 	write_cpu_type(f, &thread_cpu_affinity, emu);
 }

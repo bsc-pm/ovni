@@ -1,6 +1,10 @@
 #ifndef OVNI_H
 #define OVNI_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -136,5 +140,8 @@ void ovni_ev_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize);
 
 int ovni_flush();
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* OVNI_H */

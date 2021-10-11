@@ -43,6 +43,10 @@ hook_init_ovni(struct ovni_emu *emu)
 		chan_enable(&th->chan[CHAN_OVNI_PID], 1);
 		chan_set(&th->chan[CHAN_OVNI_PID], th->proc->pid);
 		chan_enable(&th->chan[CHAN_OVNI_PID], 0);
+
+		/* All threads begin in unknown state */
+		chan_enable(&th->chan[CHAN_OVNI_STATE], 1);
+		chan_set(&th->chan[CHAN_OVNI_STATE], TH_ST_UNKNOWN);
 	}
 
 	/* Init the ovni channels in all cpus */
@@ -72,23 +76,40 @@ hook_init_ovni(struct ovni_emu *emu)
 /* --------------------------- pre ------------------------------- */
 
 static void
-thread_set_channel_enabled(struct ovni_ethread *th, int enabled)
+thread_update_channels(struct ovni_ethread *th)
 {
 	struct ovni_chan *chan;
-	int i;
+	int i, st, enabled, is_running, is_unpaused;
+
+	st = th->state;
+	is_running = (st == TH_ST_RUNNING);
+	is_unpaused = (st == TH_ST_RUNNING
+			|| st == TH_ST_COOLING
+			|| st == TH_ST_WARMING);
 
 	for(i=0; i<CHAN_MAX; i++)
 	{
 		chan = &th->chan[i];
 
-		if(chan->track == CHAN_TRACK_TH_RUNNING)
+		switch (chan->track)
 		{
-			chan_enable(chan, enabled);
-			dbg("thread %d: %s chan %d\n",
-					th->tid,
-					enabled ? "enable" : "disable",
-					i);
+			case CHAN_TRACK_TH_RUNNING:
+				enabled = is_running ? 1 : 0;
+				break;
+			case CHAN_TRACK_TH_UNPAUSED:
+				enabled = is_unpaused ? 1 : 0;
+				break;
+			default:
+				continue;
 		}
+
+		/* The channel is already in the proper state */
+		if(chan_is_enabled(chan) == enabled)
+			continue;
+
+		dbg("thread %d changes state to %d: chan %d enabled=%d\n",
+				th->tid, th->state, i, enabled);
+		chan_enable(chan, enabled);
 	}
 }
 
@@ -99,36 +120,48 @@ thread_set_state(struct ovni_ethread *th, int state)
 
 	th->state = state;
 
-	enabled = (state == TH_ST_RUNNING ? 1 : 0);
-
-	thread_set_channel_enabled(th, enabled);
+	chan_set(&th->chan[CHAN_OVNI_STATE], th->state);
+	
+	/* Enable or disable the thread channels that track the thread state */
+	thread_update_channels(th);
 }
 
 void
 update_cpu(struct ovni_emu *emu, struct ovni_cpu *cpu)
 {
-	int i, tid, pid, enabled;
+	int i, tid, pid, enabled, nrunning;
 	struct ovni_loom *loom;
-	struct ovni_ethread *th;
+	struct ovni_ethread *th, *last_th;
 	struct ovni_chan *chan;
 
 	loom = emu->cur_loom;
 
-	chan_set(&cpu->chan[CHAN_OVNI_NTHREADS], cpu->nthreads);
+	/* Count running threads */
+	for(i=0, nrunning=0; i<cpu->nthreads; i++)
+	{
+		th = cpu->thread[i];
+		if(th->state == TH_ST_RUNNING)
+		{
+			last_th = th;
+			nrunning++;
+		}
+	}
+
+	chan_set(&cpu->chan[CHAN_OVNI_NTHREADS], nrunning);
 
 	th = NULL;
 
-	if(cpu->nthreads == 0)
+	if(nrunning == 0)
 	{
 		/* No thread running */
 		tid = pid = 0;
 	}
-	else if(cpu->nthreads == 1)
+	else if(nrunning == 1)
 	{
-		/* Take the info from the unique thread */
-		tid = cpu->thread[0]->tid;
-		pid = cpu->thread[0]->proc->pid;
-		th = cpu->thread[0];
+		/* Take the info from the running thread */
+		tid = last_th->tid;
+		pid = last_th->proc->pid;
+		th = last_th;
 	}
 	else
 	{
@@ -186,8 +219,8 @@ emu_cpu_find_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 	return i;
 }
 
-void
-emu_cpu_add_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_ethread *thread)
+static void
+cpu_add_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_ethread *thread)
 {
 	/* Found, abort */
 	if(emu_cpu_find_thread(cpu, thread) >= 0)
@@ -200,8 +233,8 @@ emu_cpu_add_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_ethre
 	update_cpu(emu, cpu);
 }
 
-void
-emu_cpu_remove_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_ethread *thread)
+static void
+cpu_remove_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_ethread *thread)
 {
 	int i, j;
 
@@ -217,6 +250,52 @@ emu_cpu_remove_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_et
 	cpu->nthreads--;
 
 	update_cpu(emu, cpu);
+}
+
+void
+cpu_migrate_thread(struct ovni_emu *emu,
+		struct ovni_cpu *cpu,
+		struct ovni_ethread *thread,
+		struct ovni_cpu *newcpu)
+{
+
+	cpu_remove_thread(emu, cpu, thread);
+	cpu_add_thread(emu, newcpu, thread);
+}
+
+/* Sets the thread assigned CPU to the given one.
+ * Precondition: the thread CPU must be null */
+void
+thread_set_cpu(struct ovni_ethread *th, struct ovni_cpu *cpu)
+{
+	assert(th->cpu == NULL);
+	th->cpu = cpu;
+
+	chan_enable(&th->chan[CHAN_OVNI_CPU], 1);
+	chan_set(&th->chan[CHAN_OVNI_CPU], cpu->gindex + 1);
+}
+
+/* Unsets the thread assigned CPU.
+ * Precondition: the thread CPU must be not null */
+void
+thread_unset_cpu(struct ovni_ethread *th)
+{
+	assert(th->cpu != NULL);
+	th->cpu = NULL;
+
+	chan_enable(&th->chan[CHAN_OVNI_CPU], 0);
+}
+
+/* Migrates the thread assigned CPU to the given one.
+ * Precondition: the thread CPU must be not null */
+void
+thread_migrate_cpu(struct ovni_ethread *th, struct ovni_cpu *cpu)
+{
+	assert(th->cpu != NULL);
+	th->cpu = cpu;
+
+	assert(chan_is_enabled(&th->chan[CHAN_OVNI_CPU]));
+	chan_set(&th->chan[CHAN_OVNI_CPU], cpu->gindex + 1);
 }
 
 static void
@@ -246,13 +325,10 @@ print_threads_state(struct ovni_loom *loom)
 }
 
 static void
-pre_thread_execute(struct ovni_emu *emu)
+pre_thread_execute(struct ovni_emu *emu, struct ovni_ethread *th)
 {
 	struct ovni_cpu *cpu;
-	struct ovni_ethread *th;
 	int cpuid;
-
-	th = emu->cur_thread;
 
 	/* The thread cannot be already running */
 	assert(th->state != TH_ST_RUNNING);
@@ -263,70 +339,65 @@ pre_thread_execute(struct ovni_emu *emu)
 	cpu = emu_get_cpu(emu->cur_loom, cpuid);
 
 	thread_set_state(th, TH_ST_RUNNING);
-	th->cpu = cpu;
+	thread_set_cpu(th, cpu);
 
-	emu_cpu_add_thread(emu, cpu, th);
-
-	/* Enable the cpu channel of the thread */
-	chan_enable(&th->chan[CHAN_OVNI_CPU], 1);
-	chan_set(&th->chan[CHAN_OVNI_CPU], cpu->gindex + 1);
+	cpu_add_thread(emu, cpu, th);
 
 	/* Enable thread TID and PID */
 	chan_enable(&th->chan[CHAN_OVNI_TID], 1);
 	chan_enable(&th->chan[CHAN_OVNI_PID], 1);
-
-	/* Enable and set the thread state */
-	chan_enable(&th->chan[CHAN_OVNI_STATE], 1);
-	chan_set(&th->chan[CHAN_OVNI_STATE], th->state);
 }
 
 static void
-pre_thread_end(struct ovni_emu *emu)
+pre_thread_end(struct ovni_emu *emu, struct ovni_ethread *th)
 {
-	struct ovni_ethread *th;
-
-	th = emu->cur_thread;
 	assert(th->state == TH_ST_RUNNING);
 	assert(th->cpu);
 
-	emu_cpu_remove_thread(emu, th->cpu, th);
+	cpu_remove_thread(emu, th->cpu, th);
 
 	thread_set_state(th, TH_ST_DEAD);
-	th->cpu = NULL;
-
-	/* Disable the cpu channel of the thread */
-	chan_enable(&th->chan[CHAN_OVNI_CPU], 0);
+	thread_unset_cpu(th);
 
 	/* Disable thread TID and PID */
 	chan_enable(&th->chan[CHAN_OVNI_TID], 0);
 	chan_enable(&th->chan[CHAN_OVNI_PID], 0);
-
-	/* Disable thread state */
-	chan_enable(&th->chan[CHAN_OVNI_STATE], 0);
 }
 
 static void
-pre_thread_pause(struct ovni_emu *emu)
+pre_thread_pause(struct ovni_emu *emu, struct ovni_ethread *th)
 {
-	assert(emu->cur_thread->state == TH_ST_RUNNING);
-	assert(emu->cur_thread->cpu);
+	assert(th->state == TH_ST_RUNNING || th->state == TH_ST_COOLING);
+	assert(th->cpu);
 
-	emu_cpu_remove_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
-
-	thread_set_state(emu->cur_thread, TH_ST_PAUSED);
-	chan_set(&emu->cur_thread->chan[CHAN_OVNI_STATE], emu->cur_thread->state);
+	thread_set_state(th, TH_ST_PAUSED);
 }
 
 static void
-pre_thread_resume(struct ovni_emu *emu)
+pre_thread_resume(struct ovni_emu *emu, struct ovni_ethread *th)
 {
-	assert(emu->cur_thread->state == TH_ST_PAUSED);
-	assert(emu->cur_thread->cpu);
+	assert(th->state == TH_ST_PAUSED || th->state == TH_ST_WARMING);
+	assert(th->cpu);
 
-	emu_cpu_add_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
+	thread_set_state(th, TH_ST_RUNNING);
+}
 
-	thread_set_state(emu->cur_thread, TH_ST_RUNNING);
-	chan_set(&emu->cur_thread->chan[CHAN_OVNI_STATE], emu->cur_thread->state);
+static void
+pre_thread_cool(struct ovni_emu *emu, struct ovni_ethread *th)
+{
+	assert(th->state == TH_ST_RUNNING);
+	assert(th->cpu);
+
+	thread_set_state(th, TH_ST_COOLING);
+}
+
+static void
+pre_thread_warm(struct ovni_emu *emu, struct ovni_ethread *th)
+{
+	assert(th->state == TH_ST_PAUSED);
+	assert(th->cpu);
+
+	thread_set_state(th, TH_ST_WARMING);
 }
 
 static void
@@ -334,29 +405,31 @@ pre_thread(struct ovni_emu *emu)
 {
 	struct ovni_ev *ev;
 	struct ovni_cpu *cpu;
-	struct ovni_ethread *thread, *remote_thread;
+	struct ovni_ethread *th, *remote_thread;
 	int i;
 
 	//emu_emit(emu);
 
-	thread = emu->cur_thread;
-	cpu = thread->cpu;
+	th = emu->cur_thread;
+	cpu = th->cpu;
 	ev = emu->cur_ev;
 
 	switch(ev->header.value)
 	{
-		case 'c': /* create */
+		case 'C': /* create */
 			dbg("thread %d creates a new thread at cpu=%d with args=%x %x\n",
-					thread->tid,
+					th->tid,
 					ev->payload.u32[0],
 					ev->payload.u32[1],
 					ev->payload.u32[2]);
 
 			break;
-		case 'x': pre_thread_execute(emu); break;
-		case 'e': pre_thread_end(emu); break;
-		case 'p': pre_thread_pause(emu); break;
-		case 'r': pre_thread_resume(emu); break;
+		case 'x': pre_thread_execute(emu, th); break;
+		case 'e': pre_thread_end(emu, th); break;
+		case 'p': pre_thread_pause(emu, th); break;
+		case 'r': pre_thread_resume(emu, th); break;
+		case 'c': pre_thread_cool(emu, th); break;
+		case 'w': pre_thread_warm(emu, th); break;
 		default:
 			  err("unknown thread event value %c\n",
 					  ev->header.value);
@@ -369,32 +442,31 @@ pre_affinity_set(struct ovni_emu *emu)
 {
 	int cpuid;
 	struct ovni_cpu *newcpu;
+	struct ovni_ethread *th;
 
+	th = emu->cur_thread;
 	cpuid = emu->cur_ev->payload.i32[0];
 
-	assert(emu->cur_thread->state == TH_ST_RUNNING);
-	assert(emu->cur_thread->cpu);
+	assert(th->cpu);
+	assert(th->state == TH_ST_RUNNING
+			|| th->state == TH_ST_COOLING
+			|| th->state == TH_ST_WARMING);
 
 	/* Migrate current cpu to the one at cpuid */
 	newcpu = emu_get_cpu(emu->cur_loom, cpuid);
 
-	if(emu->cur_thread->cpu == newcpu)
+	if(th->cpu == newcpu)
 	{
 		err("warning: thread %d affinity already set to cpu %d\n",
-				emu->cur_thread->tid,
-				emu->cur_thread->cpu->gindex);
+				th->tid,
+				th->cpu->gindex);
 		return;
 	}
 
-	emu_cpu_remove_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
-	emu_cpu_add_thread(emu, newcpu, emu->cur_thread);
+	cpu_migrate_thread(emu, th->cpu, th, newcpu);
+	thread_migrate_cpu(th, newcpu);
 
-	emu->cur_thread->cpu = newcpu;
-
-	chan_set(&emu->cur_thread->chan[CHAN_OVNI_CPU],
-			newcpu->gindex + 1);
-
-	//dbg("cpu %d now runs %d\n", cpuid, emu->cur_thread->tid);
+	//dbg("cpu %d now runs %d\n", cpuid, th->tid);
 }
 
 static void
@@ -402,45 +474,29 @@ pre_affinity_remote(struct ovni_emu *emu)
 {
 	int cpuid, tid;
 	struct ovni_cpu *newcpu;
-	struct ovni_ethread *thread;
+	struct ovni_ethread *remote_th;
 
 	cpuid = emu->cur_ev->payload.i32[0];
 	tid = emu->cur_ev->payload.i32[1];
 
-	thread = emu_get_thread(emu->cur_proc, tid);
+	remote_th = emu_get_thread(emu->cur_proc, tid);
 
-	assert(thread);
+	assert(remote_th);
 
-	/* The thread may still be running */
-	assert(thread->state == TH_ST_RUNNING ||
-			thread->state == TH_ST_PAUSED);
+	/* The remote_th cannot be in states dead or unknown */
+	assert(remote_th->state != TH_ST_DEAD
+			&& remote_th->state != TH_ST_UNKNOWN);
 
 	/* It must have an assigned CPU */
-	assert(thread->cpu);
+	assert(remote_th->cpu);
 
 	/* Migrate current cpu to the one at cpuid */
 	newcpu = emu_get_cpu(emu->cur_loom, cpuid);
 
-	/* If running, update the CPU thread lists */
-	if(thread->state == TH_ST_RUNNING)
-	{
-		emu_cpu_remove_thread(emu, thread->cpu, thread);
-		emu_cpu_add_thread(emu, newcpu, thread);
-	}
-	else
-	{
-		/* Otherwise, ensure that it is not in any CPU list */
-		assert(emu_cpu_find_thread(thread->cpu, thread) == -1);
-		assert(emu_cpu_find_thread(newcpu, thread) == -1);
-	}
+	cpu_migrate_thread(emu, remote_th->cpu, remote_th, newcpu);
+	thread_migrate_cpu(remote_th, newcpu);
 
-	/* Always set the assigned CPU in the thread */
-	thread->cpu = newcpu;
-
-	chan_set(&thread->chan[CHAN_OVNI_CPU],
-			newcpu->gindex + 1);
-
-	//dbg("thread %d switches to cpu %d by remote petition\n", tid,
+	//dbg("remote_th %d switches to cpu %d by remote petition\n", tid,
 	//		cpuid);
 }
 
@@ -460,6 +516,27 @@ pre_affinity(struct ovni_emu *emu)
 }
 
 void
+pre_burst(struct ovni_emu *emu)
+{
+	int64_t dt;
+	if(emu->nbursts >= MAX_BURSTS)
+	{
+		err("too many bursts\n");
+		abort();
+	}
+
+	emu->burst_time[emu->nbursts] = emu->delta_time;
+	if(emu->nbursts > 0)
+	{
+		dt = emu->burst_time[emu->nbursts] -
+			emu->burst_time[emu->nbursts - 1];
+
+		err("burst delta time %ld ns\n", dt);
+	}
+	emu->nbursts++;
+}
+
+void
 hook_pre_ovni(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
@@ -471,9 +548,7 @@ hook_pre_ovni(struct ovni_emu *emu)
 	{
 		case 'H': pre_thread(emu); break;
 		case 'A': pre_affinity(emu); break;
-		case 'B':
-			  //dbg("burst %c\n", emu->cur_ev->header.value);
-			  break;
+		case 'B': pre_burst(emu); break;
 		default:
 			dbg("unknown ovni event class %c\n",
 					emu->cur_ev->header.class);

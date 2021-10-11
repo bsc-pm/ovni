@@ -92,6 +92,9 @@ emit_channels(struct ovni_emu *emu)
 			cpu = emu->global_cpu[j];
 			chan_cpu = &cpu->chan[i];
 
+			/* Not implemented */
+			assert(chan_cpu->track != CHAN_TRACK_TH_UNPAUSED);
+
 			if(chan_cpu->track != CHAN_TRACK_TH_RUNNING)
 			{
 				//dbg("cpu chan %d not tracking threads\n", i);
@@ -120,19 +123,25 @@ emit_channels(struct ovni_emu *emu)
 				//dbg("cpu chan %d bad: multiple threads\n", i);
 				if(!chan_is_enabled(chan_cpu))
 					chan_enable(chan_cpu, 1);
-				chan_set(chan_cpu, -1);
+				chan_set(chan_cpu, ST_BAD);
 			}
 			else
 			{
+				th = last_th;
 				chan_th = &th->chan[i];
 
 				//dbg("cpu chan %d good: one thread\n", i);
 				if(!chan_is_enabled(chan_cpu))
 					chan_enable(chan_cpu, 1);
+
 				if(chan_is_enabled(chan_th))
-					chan_set(chan_cpu, chan_get_st(&last_th->chan[i]));
+					st = chan_get_st(&last_th->chan[i]);
 				else
-					chan_set(chan_cpu, ST_BAD);
+					st = ST_BAD;
+
+				/* Only update the CPU chan if needed */
+				if(chan_get_st(chan_cpu) != st)
+					chan_set(chan_cpu, st);
 			}
 		}
 	}
@@ -667,7 +676,6 @@ write_row_cpu(struct ovni_emu *emu)
 	FILE *f;
 	int i, j;
 	char path[PATH_MAX];
-	struct ovni_loom *loom;
 	struct ovni_cpu *cpu;
 
 	sprintf(path, "%s/%s", emu->tracedir, "cpu.row");
@@ -686,18 +694,11 @@ write_row_cpu(struct ovni_emu *emu)
 
 	fprintf(f, "LEVEL THREAD SIZE %d\n", emu->total_ncpus);
 
-	/* TODO: Use a cpu name per CPU */
-	for(i=0; i<emu->trace.nlooms; i++)
+	for(i=0; i<emu->total_ncpus; i++)
 	{
-		loom = &emu->trace.loom[i];
-		for(j=0; j<loom->ncpus; j++)
-		{
-			cpu = &loom->cpu[j];
-			fprintf(f, "CPU %d.%d\n", i, cpu->i);
-		}
+		cpu = emu->global_cpu[i];
+		fprintf(f, "%s\n", cpu->name);
 	}
-
-	fprintf(f, "UNSET\n");
 
 	fclose(f);
 }
@@ -861,9 +862,20 @@ init_cpus(struct ovni_emu *emu)
 		{
 			cpu = &loom->cpu[j];
 			emu->global_cpu[cpu->gindex] = cpu;
+
+			if(snprintf(cpu->name, MAX_CPU_NAME, "CPU %d.%d",
+						i, j) >= MAX_CPU_NAME)
+			{
+				abort();
+			}
 		}
 
 		emu->global_cpu[loom->vcpu.gindex] = &loom->vcpu;
+		if(snprintf(loom->vcpu.name, MAX_CPU_NAME, "CPU %d.*",
+					i) >= MAX_CPU_NAME)
+		{
+			abort();
+		}
 	}
 }
 
@@ -904,8 +916,8 @@ static void
 emu_post(struct ovni_emu *emu)
 {
 	/* Write the PCF files */
-	pcf_write(emu->pcf_thread);
-	pcf_write(emu->pcf_cpu);
+	pcf_write(emu->pcf_thread, emu);
+	pcf_write(emu->pcf_cpu, emu);
 
 	write_row_cpu(emu);
 	write_row_thread(emu);

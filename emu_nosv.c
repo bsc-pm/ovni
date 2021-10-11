@@ -37,7 +37,12 @@ hook_init_nosv(struct ovni_emu *emu)
 
 		chan_th_init(th, CHAN_NOSV_TYPEID, CHAN_TRACK_TH_RUNNING, row, prv_th, clock);
 		chan_th_init(th, CHAN_NOSV_APPID, CHAN_TRACK_TH_RUNNING, row, prv_th, clock);
-		chan_th_init(th, CHAN_NOSV_SUBSYSTEM, CHAN_TRACK_TH_RUNNING, row, prv_th, clock);
+
+		/* We allow threads to emit subsystem events in cooling and
+		 * warming states as well, as they may be allocating memory.
+		 * However, these information won't be presented in the CPU
+		 * channel, as it only shows the thread in the running state */
+		chan_th_init(th, CHAN_NOSV_SUBSYSTEM, CHAN_TRACK_TH_UNPAUSED, row, prv_th, clock);
 	}
 
 	/* Init the nosv channels in all cpus */
@@ -200,6 +205,8 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 	chan_set(&th->chan[CHAN_NOSV_TASKID], task->id + 1);
 	chan_set(&th->chan[CHAN_NOSV_TYPEID], task->type_id + 1);
 	chan_set(&th->chan[CHAN_NOSV_APPID], proc->appid + 1);
+
+	chan_push(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_TASK_RUNNING);
 }
 
 static void
@@ -212,6 +219,8 @@ pre_task_not_running(struct ovni_emu *emu, struct nosv_task *task)
 	chan_set(&th->chan[CHAN_NOSV_TASKID], 0);
 	chan_set(&th->chan[CHAN_NOSV_TYPEID], 0);
 	chan_set(&th->chan[CHAN_NOSV_APPID], 0);
+
+	chan_pop(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_TASK_RUNNING);
 }
 
 static void
@@ -386,6 +395,28 @@ pre_memory(struct ovni_emu *emu)
 	}
 }
 
+static void
+pre_code(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case '[': 
+			chan_push(chan_th, ST_NOSV_CODE);
+			break;
+		case ']':
+			chan_pop(chan_th, ST_NOSV_CODE);
+			break;
+		default:
+			  break;
+	}
+}
+
 void
 hook_pre_nosv(struct ovni_emu *emu)
 {
@@ -398,6 +429,7 @@ hook_pre_nosv(struct ovni_emu *emu)
 		case 'S': pre_sched(emu); break;
 		case 'U': pre_submit(emu); break;
 		case 'M': pre_memory(emu); break;
+		case 'C': pre_code(emu); break;
 		default:
 			break;
 	}

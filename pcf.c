@@ -95,6 +95,8 @@ struct event_value thread_state_values[] = {
 	{ TH_ST_RUNNING, "Running" },
 	{ TH_ST_PAUSED,  "Paused"  },
 	{ TH_ST_DEAD,    "Dead"    },
+	{ TH_ST_COOLING, "Cooling" },
+	{ TH_ST_WARMING, "Warming" },
 	{ -1, NULL },
 };
 
@@ -121,6 +123,8 @@ struct event_value ss_values[] = {
 	{ ST_SCHED_HUNGRY,	"Scheduler: Hungry" },
 	{ ST_SCHED_SERVING,	"Scheduler: Serving" },
 	{ ST_SCHED_SUBMITTING,	"Scheduler: Submitting" },
+	{ ST_TASK_RUNNING,	"Task: Running" },
+	{ ST_NOSV_CODE,		"nOS-V code" },
 	{ EV_SCHED_SEND,	"EV Scheduler: Send task" },
 	{ EV_SCHED_RECV,	"EV Scheduler: Recv task" },
 	{ EV_SCHED_SELF,	"EV Scheduler: Self-assign task" },
@@ -136,6 +140,11 @@ struct event_type thread_ss = {
 struct event_type cpu_ss = {
 	0, 73, "CPU: Current thread subsystem",
 	ss_values
+};
+
+struct event_type thread_cpu_affinity = {
+	0, chan_to_prvtype[CHAN_OVNI_CPU][1], "Thread: current CPU affinity",
+	/* Ignored */ NULL
 };
 
 static void
@@ -196,20 +205,37 @@ write_event_type(FILE *f, struct event_type *ev)
 }
 
 static void
-write_events(FILE *f)
+write_cpu_type(FILE *f, struct event_type *ev, struct ovni_emu *emu)
+{
+	int i;
+
+	write_event_type_header(f, ev->index, ev->type, ev->label);
+
+	fprintf(f, "VALUES\n");
+
+	for(i=0; i<emu->total_ncpus; i++)
+	{
+		fprintf(f, "%-4d %s\n", i+1, emu->global_cpu[i]->name);
+	}
+}
+
+static void
+write_events(FILE *f, struct ovni_emu *emu)
 {
 	write_event_type(f, &thread_state);
 	write_event_type(f, &thread_tid);
 	write_event_type(f, &thread_ss);
 	write_event_type(f, &cpu_ss);
+
+	write_cpu_type(f, &thread_cpu_affinity, emu);
 }
 
 int
-pcf_write(FILE *f)
+pcf_write(FILE *f, struct ovni_emu *emu)
 {
 	write_header(f);
 	write_colors(f, pcf_palette, pcf_palette_len);
-	write_events(f);
+	write_events(f, emu);
 
 	return 0;
 }

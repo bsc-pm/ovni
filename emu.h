@@ -22,6 +22,8 @@ enum ethread_state {
 	TH_ST_RUNNING,
 	TH_ST_PAUSED,
 	TH_ST_DEAD,
+	TH_ST_COOLING,
+	TH_ST_WARMING,
 };
 
 enum nosv_task_state {
@@ -33,11 +35,13 @@ enum nosv_task_state {
 
 enum nosv_thread_ss_state {
 	ST_NULL = 0,
-	ST_BAD = 3,
 	ST_SCHED_HUNGRY = 6,
 	ST_SCHED_SERVING = 7,
 	ST_SCHED_SUBMITTING = 8,
 	ST_MEM_ALLOCATING = 9,
+	ST_TASK_RUNNING = 10,
+	ST_NOSV_CODE = 11,
+	ST_BAD = 666,
 };
 
 enum nosv_thread_ss_event {
@@ -69,6 +73,7 @@ struct nosv_task_type {
 enum chan_track {
 	CHAN_TRACK_NONE = 0,
 	CHAN_TRACK_TH_RUNNING,
+	CHAN_TRACK_TH_UNPAUSED,
 };
 
 struct ovni_chan {
@@ -125,7 +130,7 @@ enum chan {
 };
 
 /* Same order as `enum chan` */
-static int chan_to_prvtype[CHAN_MAX][3] = {
+const static int chan_to_prvtype[CHAN_MAX][3] = {
 	/* Channel		TH  CPU */
 	{ CHAN_OVNI_PID,	10, 60 },
 	{ CHAN_OVNI_TID,	11, 61 },
@@ -230,6 +235,8 @@ enum ovni_cpu_state {
 	CPU_ST_READY,
 };
 
+#define MAX_CPU_NAME 32
+
 struct ovni_cpu {
 	/* Logical index: 0 to ncpus - 1 */
 	int i;
@@ -253,6 +260,9 @@ struct ovni_cpu {
 	/* The threads the cpu is currently running */
 	size_t nthreads;
 	struct ovni_ethread *thread[OVNI_MAX_THR];
+
+	/* Cpu name as shown in paraver row */
+	char name[MAX_CPU_NAME];
 };
 
 /* ----------------------- trace ------------------------ */
@@ -315,6 +325,8 @@ struct ovni_stream {
 	int64_t clock_offset;
 };
 
+#define MAX_BURSTS 100
+
 struct ovni_emu {
 	struct ovni_trace trace;
 
@@ -347,6 +359,10 @@ struct ovni_emu {
 	int total_nthreads;
 	int total_proc;
 	int total_ncpus;
+
+	/* Burst times */
+	int nbursts;
+	int64_t burst_time[MAX_BURSTS];
 };
 
 /* Emulator function declaration */

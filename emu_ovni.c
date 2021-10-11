@@ -472,16 +472,44 @@ pre_affinity_set(struct ovni_emu *emu)
 static void
 pre_affinity_remote(struct ovni_emu *emu)
 {
-	int cpuid, tid;
+	int i, cpuid, tid;
 	struct ovni_cpu *newcpu;
 	struct ovni_ethread *remote_th;
+	struct ovni_loom *loom;
+	struct ovni_eproc *proc;
 
 	cpuid = emu->cur_ev->payload.i32[0];
 	tid = emu->cur_ev->payload.i32[1];
 
 	remote_th = emu_get_thread(emu->cur_proc, tid);
 
-	assert(remote_th);
+	if(remote_th == NULL)
+	{
+		/* Search the thread in other processes of the loom if
+		 * not found in the current one */
+		loom = emu->cur_loom;
+
+		for(i=0; i<loom->nprocs; i++)
+		{
+			proc = &loom->proc[i];
+
+			/* Skip the current process */
+			if(proc == emu->cur_proc)
+				continue;
+
+			remote_th = emu_get_thread(proc, tid);
+
+			if(remote_th)
+				break;
+		}
+
+		if(remote_th == NULL)
+		{
+			err("thread tid %d not found: cannot set affinity remotely\n",
+					tid);
+			abort();
+		}
+	}
 
 	/* The remote_th cannot be in states dead or unknown */
 	assert(remote_th->state != TH_ST_DEAD

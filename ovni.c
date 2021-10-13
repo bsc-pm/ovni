@@ -724,6 +724,12 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 	return 0;
 }
 
+static int
+compare_alph(const void* a, const void* b)
+{
+	return strcmp(*(const char**)a, *(const char**)b);
+}
+
 int
 ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 {
@@ -744,6 +750,13 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		return -1;
 	}
 
+	char *looms[OVNI_MAX_LOOM];
+	char *hosts[OVNI_MAX_LOOM];
+	for (int l = 0; l < OVNI_MAX_LOOM; ++l) {
+		looms[l] = malloc(PATH_MAX*sizeof(char));
+		hosts[l] = malloc(PATH_MAX*sizeof(char));
+	}
+
 	while((dirent = readdir(dir)) != NULL)
 	{
 		if(find_dir_prefix_str(dirent, "loom", &loom_name) != 0)
@@ -759,21 +772,30 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 			abort();
 		}
 
-		i = trace->nlooms;
-		loom = &trace->loom[i];
+		sprintf(hosts[trace->nlooms], "%s", loom_name);
 
-		/* FIXME: Unsafe */
-		strcpy(loom->hostname, loom_name);
-
-		sprintf(path, "%s/%s", tracedir, dirent->d_name);
-
-		if(load_loom(&trace->loom[i], i, path) != 0)
-			return -1;
+		sprintf(looms[trace->nlooms], "%s/%s", tracedir, dirent->d_name);
 
 		trace->nlooms++;
 	}
 
+	qsort((const char **) hosts, trace->nlooms, sizeof(const char*), compare_alph);
+	qsort((const char **) looms, trace->nlooms, sizeof(const char*), compare_alph);
+
+	for (int l = 0; l < trace->nlooms; ++l) {
+		/* FIXME: Unsafe */
+		strcpy(trace->loom[l].hostname, hosts[l]);
+
+		if(load_loom(&trace->loom[l], l, looms[l]) != 0)
+			return -1;
+	}
+
 	closedir(dir);
+
+	for (int l = 0; l < OVNI_MAX_LOOM; ++l) {
+		free(looms[l]);
+		free(hosts[l]);
+	}
 
 	return 0;
 }

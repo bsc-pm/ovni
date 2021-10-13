@@ -50,9 +50,9 @@ enum nosv_thread_ss_state {
 
 enum nosv_thread_ss_event {
 	EV_NULL = 0,
-	EV_SCHED_RECV = 11,
-	EV_SCHED_SEND = 12,
-	EV_SCHED_SELF = 13,
+	EV_SCHED_RECV = 50,
+	EV_SCHED_SEND = 51,
+	EV_SCHED_SELF = 52,
 };
 
 struct ovni_ethread;

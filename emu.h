@@ -41,6 +41,10 @@ enum nosv_thread_ss_state {
 	ST_MEM_ALLOCATING = 9,
 	ST_TASK_RUNNING = 10,
 	ST_NOSV_CODE = 11,
+	ST_PAUSE = 12,
+	ST_YIELD = 13,
+	ST_WAITFOR = 14,
+	ST_SCHEDPOINT = 15,
 	ST_BAD = 666,
 };
 

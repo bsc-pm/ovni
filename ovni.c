@@ -624,7 +624,7 @@ load_proc_metadata(struct ovni_eproc *proc)
 
 
 static int
-load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
+load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, char *procdir)
 {
 	static int total_procs = 0;
 
@@ -637,6 +637,7 @@ load_proc(struct ovni_eproc *proc, int index, int pid, char *procdir)
 	proc->pid = pid;
 	proc->index = index;
 	proc->gindex = total_procs++;
+	proc->loom = loom;
 
 	sprintf(path, "%s/%s", procdir, "metadata.json");
 	proc->meta = json_parse_file_with_comments(path);
@@ -713,7 +714,7 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 
 		proc = &loom->proc[loom->nprocs];
 
-		if(load_proc(proc, loom->nprocs, pid, path) != 0)
+		if(load_proc(proc, loom, loom->nprocs, pid, path) != 0)
 			return -1;
 
 		loom->nprocs++;

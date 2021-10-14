@@ -236,6 +236,9 @@ struct ovni_eproc {
 	int gindex;
 	int appid;
 
+	/* The loom of the current process */
+	struct ovni_loom *loom;
+
 	/* Path of the process tracedir */
 	char dir[PATH_MAX];
 

@@ -1,0 +1,94 @@
+This file contains an exhaustive list of events supported by the emulator.
+
+- Punctual events don't produce a state transition.
+- All events refer to the current thread.
+- Descriptions must be kept short.
+
+**********************************************************
+Please keep this list synchronized with the emulator code!
+**********************************************************
+
+MCV = Model Category Value
+
+------------------------------------------------------------
+MCV	Description
+--------------------- Ovni (model=O) -----------------------
+
+OHC	Creates a new thread (punctual event)
+OHx	Begins the execution
+OHp	Pauses the execution
+OHc	Enters the cooling state (about to be paused)
+OHw	Enters the warming state (about to be running)
+OHe	Ends the execution
+
+OAs	Switches it's own affinity to the given CPU
+OAr	Remotely switches the affinity of the given thread
+
+OB.	Emits a burst event to measure latency
+
+-------------------- nOS-V (model=V) ----------------------
+
+VTc	Creates a new task (punctual event)
+VTx	Task execute
+VTe	Task end
+VTp	Task pause
+VTr	Task resume
+
+VYc	Task type create (punctual event)
+
+VSr	Receives a task from another thread (punctual event)
+VSs	Sends a task to another thread (punctual event)
+VS@	Self-assigns itself a task (punctual event)
+VSh	Enters the hungry state, waiting for a task
+VSf	Is no longer hungry
+VS[	Enters the scheduler server mode
+VS]	Ends the scheduler server mode
+
+VU[	Starts to submit a task
+VU]	Ends the submission of a task
+
+VM[	Starts allocating memory
+VM]	Ends allocating memory
+
+VP[	Enters nosv_pause()
+VP]	Exits nosv_pause()
+
+VI[	Enters nosv_yield()
+VI]	Exits nosv_yield()
+
+VW[	Enters nosv_waitfor()
+VW]	Exits nosv_waitfor()
+
+VD[	Enters nosv_schedpoint()
+VD]	Exits nosv_schedpoint()
+
+VC[	Begins executing nosv code
+VC]	Ends executing nosv code
+
+-------------------- TAMPI (model=T) ----------------------
+
+TS[	MPI_Send() enter
+TS]	MPI_Send() exit
+
+TR[	MPI_Recv() enter
+TR]	MPI_Recv() exit
+
+Ts[	MPI_Isend() enter
+Ts]	MPI_Isend() exit
+
+Tr[	MPI_Irecv() enter
+Tr]	MPI_Irecv() exit
+
+TV[	MPI_Wait() enter
+TV]	MPI_Wait() exit
+
+TW[	MPI_Waitall() enter
+TW]	MPI_Waitall() exit
+
+-------------------- OpenMP (model=M) ----------------------
+
+MT[	Task begins
+MT]	Task ends
+
+MP]	Parallel region begins
+MP[	Parallel region ends

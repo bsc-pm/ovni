@@ -117,33 +117,33 @@ struct event_type thread_tid = {
 	thread_tid_values
 };
 
-struct event_value ss_values[] = {
-	{ ST_NULL, "NULL" },
-	{ ST_BAD,		"Unknown subsystem: multiple threads" },
-	{ ST_SCHED_HUNGRY,	"Scheduler: Hungry" },
-	{ ST_SCHED_SERVING,	"Scheduler: Serving" },
-	{ ST_SCHED_SUBMITTING,	"Scheduler: Submitting" },
-	{ ST_TASK_RUNNING,	"Task: Running" },
-	{ ST_NOSV_CODE,		"nOS-V code" },
-	{ ST_PAUSE,         "API: Pause" },
-	{ ST_YIELD,         "API: Yield" },
-	{ ST_WAITFOR,       "API: Waitfor" },
-	{ ST_SCHEDPOINT,    "API: Scheduling point" },
-	{ EV_SCHED_SEND,	"EV Scheduler: Send task" },
-	{ EV_SCHED_RECV,	"EV Scheduler: Recv task" },
-	{ EV_SCHED_SELF,	"EV Scheduler: Self-assign task" },
-	{ ST_MEM_ALLOCATING,	"Memory: Allocating" },
+struct event_value nosv_ss_values[] = {
+	{ ST_NULL,			"NULL" },
+	{ ST_BAD,                       "Unknown subsystem: multiple threads" },
+	{ ST_NOSV_SCHED_HUNGRY,         "Scheduler: Hungry" },
+	{ ST_NOSV_SCHED_SERVING,        "Scheduler: Serving" },
+	{ ST_NOSV_SCHED_SUBMITTING,     "Scheduler: Submitting" },
+	{ ST_NOSV_TASK_RUNNING,         "Task: Running" },
+	{ ST_NOSV_CODE,                 "nOS-V code" },
+	{ ST_NOSV_PAUSE,                "API: Pause" },
+	{ ST_NOSV_YIELD,                "API: Yield" },
+	{ ST_NOSV_WAITFOR,              "API: Waitfor" },
+	{ ST_NOSV_SCHEDPOINT,           "API: Scheduling point" },
+	{ EV_NOSV_SCHED_SEND,           "EV Scheduler: Send task" },
+	{ EV_NOSV_SCHED_RECV,           "EV Scheduler: Recv task" },
+	{ EV_NOSV_SCHED_SELF,           "EV Scheduler: Self-assign task" },
+	{ ST_NOSV_MEM_ALLOCATING,	"Memory: Allocating" },
 	{ -1, NULL },
 };
 
-struct event_type thread_ss = {
+struct event_type thread_nosv_ss = {
 	0, 23, "Thread: Subsystem",
-	ss_values
+	nosv_ss_values
 };
 
-struct event_type cpu_ss = {
+struct event_type cpu_nosv_ss = {
 	0, 73, "CPU: Current thread subsystem",
-	ss_values
+	nosv_ss_values
 };
 
 struct event_value tampi_mode_values[] = {
@@ -266,8 +266,8 @@ write_events(FILE *f, struct ovni_emu *emu)
 {
 	write_event_type(f, &thread_state);
 	write_event_type(f, &thread_tid);
-	write_event_type(f, &thread_ss);
-	write_event_type(f, &cpu_ss);
+	write_event_type(f, &thread_nosv_ss);
+	write_event_type(f, &cpu_nosv_ss);
 	write_event_type(f, &cpu_tampi_mode);
 	write_event_type(f, &thread_tampi_mode);
 	write_event_type(f, &cpu_openmp_mode);

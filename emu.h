@@ -33,18 +33,23 @@ enum nosv_task_state {
 	TASK_ST_DEAD,
 };
 
-enum nosv_thread_ss_state {
+enum nosv_ss_values {
 	ST_NULL = 0,
-	ST_SCHED_HUNGRY = 6,
-	ST_SCHED_SERVING = 7,
-	ST_SCHED_SUBMITTING = 8,
-	ST_MEM_ALLOCATING = 9,
-	ST_TASK_RUNNING = 10,
+	ST_NOSV_SCHED_HUNGRY = 6,
+	ST_NOSV_SCHED_SERVING = 7,
+	ST_NOSV_SCHED_SUBMITTING = 8,
+	ST_NOSV_MEM_ALLOCATING = 9,
+	ST_NOSV_TASK_RUNNING = 10,
 	ST_NOSV_CODE = 11,
-	ST_PAUSE = 12,
-	ST_YIELD = 13,
-	ST_WAITFOR = 14,
-	ST_SCHEDPOINT = 15,
+	ST_NOSV_PAUSE = 12,
+	ST_NOSV_YIELD = 13,
+	ST_NOSV_WAITFOR = 14,
+	ST_NOSV_SCHEDPOINT = 15,
+
+	EV_NOSV_SCHED_RECV = 50,
+	EV_NOSV_SCHED_SEND = 51,
+	EV_NOSV_SCHED_SELF = 52,
+
 	ST_BAD = 666,
 };
 
@@ -60,13 +65,6 @@ enum nosv_tampi_state {
 enum nosv_openmp_state {
 	ST_OPENMP_TASK = 1,
 	ST_OPENMP_PARALLEL = 2,
-};
-
-enum nosv_thread_ss_event {
-	EV_NULL = 0,
-	EV_SCHED_RECV = 50,
-	EV_SCHED_SEND = 51,
-	EV_SCHED_SELF = 52,
 };
 
 struct ovni_ethread;

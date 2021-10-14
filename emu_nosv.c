@@ -206,7 +206,7 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 	chan_set(&th->chan[CHAN_NOSV_TYPEID], task->type_id + 1);
 	chan_set(&th->chan[CHAN_NOSV_APPID], proc->appid + 1);
 
-	chan_push(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_TASK_RUNNING);
+	chan_push(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_NOSV_TASK_RUNNING);
 }
 
 static void
@@ -220,7 +220,7 @@ pre_task_not_running(struct ovni_emu *emu, struct nosv_task *task)
 	chan_set(&th->chan[CHAN_NOSV_TYPEID], 0);
 	chan_set(&th->chan[CHAN_NOSV_APPID], 0);
 
-	chan_pop(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_TASK_RUNNING);
+	chan_pop(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_NOSV_TASK_RUNNING);
 }
 
 static void
@@ -326,25 +326,25 @@ pre_sched(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case 'h':
-			chan_push(chan_th, ST_SCHED_HUNGRY);
+			chan_push(chan_th, ST_NOSV_SCHED_HUNGRY);
 			break;
 		case 'f': /* Fill: no longer hungry */
-			chan_pop(chan_th, ST_SCHED_HUNGRY);
+			chan_pop(chan_th, ST_NOSV_SCHED_HUNGRY);
 			break;
 		case '[': /* Server enter */
-			chan_push(chan_th, ST_SCHED_SERVING);
+			chan_push(chan_th, ST_NOSV_SCHED_SERVING);
 			break;
 		case ']': /* Server exit */
-			chan_pop(chan_th, ST_SCHED_SERVING);
+			chan_pop(chan_th, ST_NOSV_SCHED_SERVING);
 			break;
 		case '@':
-			chan_ev(chan_th, EV_SCHED_SELF);
+			chan_ev(chan_th, EV_NOSV_SCHED_SELF);
 			break;
 		case 'r':
-			chan_ev(chan_th, EV_SCHED_RECV);
+			chan_ev(chan_th, EV_NOSV_SCHED_RECV);
 			break;
 		case 's':
-			chan_ev(chan_th, EV_SCHED_SEND);
+			chan_ev(chan_th, EV_NOSV_SCHED_SEND);
 			break;
 		default:
 			break;
@@ -385,12 +385,12 @@ hook_pre_nosv(struct ovni_emu *emu)
 		case 'T': pre_task(emu); break;
 		case 'Y': pre_type(emu); break;
 		case 'S': pre_sched(emu); break;
-		case 'U': pre_ss(emu, ST_SCHED_SUBMITTING); break;
-		case 'M': pre_ss(emu, ST_MEM_ALLOCATING); break;
-		case 'P': pre_ss(emu, ST_PAUSE); break;
-		case 'I': pre_ss(emu, ST_YIELD); break;
-		case 'W': pre_ss(emu, ST_WAITFOR); break;
-		case 'D': pre_ss(emu, ST_SCHEDPOINT); break;
+		case 'U': pre_ss(emu, ST_NOSV_SCHED_SUBMITTING); break;
+		case 'M': pre_ss(emu, ST_NOSV_MEM_ALLOCATING); break;
+		case 'P': pre_ss(emu, ST_NOSV_PAUSE); break;
+		case 'I': pre_ss(emu, ST_NOSV_YIELD); break;
+		case 'W': pre_ss(emu, ST_NOSV_WAITFOR); break;
+		case 'D': pre_ss(emu, ST_NOSV_SCHEDPOINT); break;
 		case 'C': pre_ss(emu, ST_NOSV_CODE); break;
 		default:
 			break;

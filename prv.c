@@ -8,6 +8,7 @@
 void
 prv_ev(FILE *f, int row, int64_t time, int type, int val)
 {
+	dbg("<<< 2:0:1:1:%d:%ld:%d:%d\n", row, time, type, val);
 	fprintf(f, "2:0:1:1:%d:%ld:%d:%d\n", row, time, type, val);
 }
 

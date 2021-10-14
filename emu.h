@@ -405,11 +405,6 @@ void hook_pre_nosv(struct ovni_emu *emu);
 void hook_emit_nosv(struct ovni_emu *emu);
 void hook_post_nosv(struct ovni_emu *emu);
 
-void hook_init_nosv_ss(struct ovni_emu *emu);
-void hook_pre_nosv_ss(struct ovni_emu *emu);
-void hook_emit_nosv_ss(struct ovni_emu *emu);
-void hook_post_nosv_ss(struct ovni_emu *emu);
-
 void hook_init_tampi(struct ovni_emu *emu);
 void hook_pre_tampi(struct ovni_emu *emu);
 

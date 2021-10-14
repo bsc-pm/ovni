@@ -283,6 +283,9 @@ struct ovni_cpu {
 
 	enum ovni_cpu_state state;
 
+	/* The loom of the CPU */
+	struct ovni_loom *loom;
+
 	/* CPU channels */
 	struct ovni_chan chan[CHAN_MAX];
 

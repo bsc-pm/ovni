@@ -369,6 +369,7 @@ add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
 	cpu->i = i;
 	cpu->phyid = phyid;
 	cpu->gindex = emu->total_ncpus++;
+	cpu->loom = loom;
 
 	dbg("new cpu %d at phyid=%d\n", cpu->gindex, phyid);
 
@@ -414,6 +415,7 @@ proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *
 	vcpu->i = -1;
 	vcpu->phyid = -1;
 	vcpu->gindex = emu->total_ncpus++;
+	vcpu->loom = loom;
 
 	dbg("new vcpu %d\n", vcpu->gindex);
 }

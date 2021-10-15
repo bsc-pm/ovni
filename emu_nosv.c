@@ -352,6 +352,52 @@ pre_sched(struct ovni_emu *emu)
 }
 
 static void
+pre_api(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case 's':
+			chan_push(chan_th, ST_NOSV_API_SUBMIT);
+			break;
+		case 'S':
+			chan_pop(chan_th, ST_NOSV_API_SUBMIT);
+			break;
+		case 'p':
+			chan_push(chan_th, ST_NOSV_API_PAUSE);
+			break;
+		case 'P':
+			chan_pop(chan_th, ST_NOSV_API_PAUSE);
+			break;
+		case 'y':
+			chan_push(chan_th, ST_NOSV_API_YIELD);
+			break;
+		case 'Y':
+			chan_pop(chan_th, ST_NOSV_API_YIELD);
+			break;
+		case 'w':
+			chan_push(chan_th, ST_NOSV_API_WAITFOR);
+			break;
+		case 'W':
+			chan_pop(chan_th, ST_NOSV_API_WAITFOR);
+			break;
+		case 'c':
+			chan_push(chan_th, ST_NOSV_API_SCHEDPOINT);
+			break;
+		case 'C':
+			chan_pop(chan_th, ST_NOSV_API_SCHEDPOINT);
+			break;
+		default:
+			break;
+	}
+}
+
+static void
 pre_ss(struct ovni_emu *emu, int st)
 {
 	struct ovni_ethread *th;
@@ -362,7 +408,7 @@ pre_ss(struct ovni_emu *emu, int st)
 
 	switch(emu->cur_ev->header.value)
 	{
-		case '[': 
+		case '[':
 			chan_push(chan_th, st);
 			break;
 		case ']':
@@ -387,11 +433,8 @@ hook_pre_nosv(struct ovni_emu *emu)
 		case 'S': pre_sched(emu); break;
 		case 'U': pre_ss(emu, ST_NOSV_SCHED_SUBMITTING); break;
 		case 'M': pre_ss(emu, ST_NOSV_MEM_ALLOCATING); break;
-		case 'P': pre_ss(emu, ST_NOSV_PAUSE); break;
-		case 'I': pre_ss(emu, ST_NOSV_YIELD); break;
-		case 'W': pre_ss(emu, ST_NOSV_WAITFOR); break;
-		case 'D': pre_ss(emu, ST_NOSV_SCHEDPOINT); break;
 		case 'C': pre_ss(emu, ST_NOSV_CODE); break;
+		case 'A': pre_api(emu); break;
 		default:
 			break;
 	}

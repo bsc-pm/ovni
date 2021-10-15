@@ -50,40 +50,43 @@ VU]	Ends the submission of a task
 VM[	Starts allocating memory
 VM]	Ends allocating memory
 
-VP[	Enters nosv_pause()
-VP]	Exits nosv_pause()
+VAs Enters nosv_submit()
+VAS Exits nosv_submit()
 
-VI[	Enters nosv_yield()
-VI]	Exits nosv_yield()
+VAp	Enters nosv_pause()
+VAP	Exits nosv_pause()
 
-VW[	Enters nosv_waitfor()
-VW]	Exits nosv_waitfor()
+VAy	Enters nosv_yield()
+VAY	Exits nosv_yield()
 
-VD[	Enters nosv_schedpoint()
-VD]	Exits nosv_schedpoint()
+VAw	Enters nosv_waitfor()
+VAW	Exits nosv_waitfor()
+
+VAc	Enters nosv_schedpoint()
+VAC	Exits nosv_schedpoint()
 
 VC[	Begins executing nosv code
 VC]	Ends executing nosv code
 
 -------------------- TAMPI (model=T) ----------------------
 
-TS[	MPI_Send() enter
-TS]	MPI_Send() exit
+TS[	Enters MPI_Send()
+TS]	Exits MPI_Send()
 
-TR[	MPI_Recv() enter
-TR]	MPI_Recv() exit
+TR[	Enters MPI_Recv()
+TR]	Exits MPI_Recv()
 
-Ts[	MPI_Isend() enter
-Ts]	MPI_Isend() exit
+Ts[	Enters MPI_Isend()
+Ts]	Exits MPI_Isend()
 
-Tr[	MPI_Irecv() enter
-Tr]	MPI_Irecv() exit
+Tr[	Enters MPI_Irecv()
+Tr]	Exits MPI_Irecv()
 
-TV[	MPI_Wait() enter
-TV]	MPI_Wait() exit
+TV[	Enters MPI_Wait()
+TV]	Exits MPI_Wait()
 
-TW[	MPI_Waitall() enter
-TW]	MPI_Waitall() exit
+TW[	Enters MPI_Waitall()
+TW]	Exits MPI_Waitall()
 
 -------------------- OpenMP (model=M) ----------------------
 

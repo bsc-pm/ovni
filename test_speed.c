@@ -17,10 +17,9 @@
 #endif
 
 static inline void
-init()
+init(void)
 {
 	char hostname[HOST_NAME_MAX];
-	char *appid;
 
 	if(gethostname(hostname, HOST_NAME_MAX) != 0)
 	{
@@ -38,7 +37,7 @@ int main(int argc, char *argv[])
 	struct ovni_ev ev = {0};
 	int i, n;
 
-	if(argv[1] != NULL)
+	if(argc > 1)
 		n = atoi(argv[1]);
 	else
 		n = 1000;

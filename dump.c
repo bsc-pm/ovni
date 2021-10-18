@@ -12,25 +12,25 @@
 #include "ovni_trace.h"
 #include "emu.h"
 
+//static void
+//hexdump(uint8_t *buf, size_t size)
+//{
+//	size_t i, j;
+//
+//	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
+//
+//	for(i=0; i<size; i+=16)
+//	{
+//		for(j=0; j<16 && i+j < size; j++)
+//		{
+//			fprintf(stderr, "%02x ", buf[i+j]);
+//		}
+//		fprintf(stderr, "\n");
+//	}
+//}
 
 static void
-hexdump(uint8_t *buf, size_t size)
-{
-	int i, j;
-
-	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
-
-	for(i=0; i<size; i+=16)
-	{
-		for(j=0; j<16 && i+j < size; j++)
-		{
-			fprintf(stderr, "%02x ", buf[i+j]);
-		}
-		fprintf(stderr, "\n");
-	}
-}
-
-void emit(struct ovni_stream *stream, struct ovni_ev *ev)
+emit(struct ovni_stream *stream, struct ovni_ev *ev)
 {
 	int64_t delta;
 	uint64_t clock;
@@ -58,9 +58,11 @@ void emit(struct ovni_stream *stream, struct ovni_ev *ev)
 }
 
 
-void dump_events(struct ovni_trace *trace)
+static void
+dump_events(struct ovni_trace *trace)
 {
-	int i, f;
+	size_t i;
+	ssize_t f;
 	uint64_t minclock, lastclock;
 	struct ovni_ev *ev;
 	struct ovni_stream *stream;

@@ -84,8 +84,8 @@ cmp_double(const void *pa, const void *pb)
 		return 0;
 }
 
-void
-usage(int argc, char *argv[])
+static void
+usage(void)
 {
 	fprintf(stderr, "%s: clock synchronization utility\n", progname);
 	fprintf(stderr, "\n");
@@ -94,7 +94,7 @@ usage(int argc, char *argv[])
 	exit(EXIT_FAILURE);
 }
 
-void
+static void
 parse_options(struct options *options, int argc, char *argv[])
 {
 	int opt;
@@ -120,7 +120,7 @@ parse_options(struct options *options, int argc, char *argv[])
 				options->nsamples = atoi(optarg);
 				break;
 			default: /* '?' */
-				usage(argc, argv);
+				usage();
 		}
 	}
 
@@ -131,7 +131,7 @@ parse_options(struct options *options, int argc, char *argv[])
 	}
 }
 
-void
+static void
 get_clock_samples(struct offset *offset, int nsamples)
 {
 	int i;
@@ -150,7 +150,7 @@ get_clock_samples(struct offset *offset, int nsamples)
 	offset->wall_t1 = get_time(CLOCK_REALTIME, 0);
 }
 
-void
+static void
 fill_offset(struct offset *offset, int nsamples)
 {
 	int warmup_nsamples;
@@ -174,7 +174,7 @@ fill_offset(struct offset *offset, int nsamples)
 	get_clock_samples(offset, nsamples);
 }
 
-void
+static void
 offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int verbose)
 {
 	int i;
@@ -222,13 +222,13 @@ offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int v
 	free(delta);
 }
 
-size_t
+static size_t
 offset_size(int nsamples)
 {
 	return sizeof(struct offset) + sizeof(double) * nsamples;
 }
 
-struct offset *
+static struct offset *
 table_get_offset(struct offset_table *table, int i, int nsamples)
 {
 	char *p;
@@ -239,7 +239,7 @@ table_get_offset(struct offset_table *table, int i, int nsamples)
 	return (struct offset *) p;
 }
 
-struct offset_table *
+static struct offset_table *
 build_offset_table(int nsamples, int rank, int verbose)
 {
 	int i;
@@ -323,7 +323,7 @@ build_offset_table(int nsamples, int rank, int verbose)
 	return table;
 }
 
-void
+static void
 print_drift_header(struct offset_table *table)
 {
 	int i;
@@ -340,11 +340,10 @@ print_drift_header(struct offset_table *table)
 	printf("\n");
 }
 
-void
+static void
 print_drift_row(struct offset_table *table)
 {
 	int i;
-	char buf[64];
 
 	printf("%-20f", table->offset[0]->wall_t1);
 
@@ -354,7 +353,7 @@ print_drift_row(struct offset_table *table)
 	printf("\n");
 }
 
-void
+static void
 print_table_detailed(struct offset_table *table)
 {
 	int i;
@@ -370,7 +369,7 @@ print_table_detailed(struct offset_table *table)
 	}
 }
 
-void
+static void
 do_work(struct options *options, int rank)
 {
 	int drift_mode;

@@ -1,5 +1,6 @@
 CFLAGS=-fPIC
 CFLAGS+=-std=c11 -pedantic -Werror -Wformat
+CFLAGS+=-Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition
 
 # Debug flags
 #CFLAGS+=-fsanitize=address

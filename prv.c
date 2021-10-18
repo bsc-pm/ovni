@@ -24,7 +24,7 @@ prv_ev_thread(struct ovni_emu *emu, int row, int type, int val)
 	prv_ev_thread_raw(emu, row, emu->delta_time, type, val);
 }
 
-void
+static void
 prv_ev_cpu_raw(struct ovni_emu *emu, int row, int64_t time, int type, int val)
 {
 	prv_ev(emu->prv_cpu, row, time, type, val);

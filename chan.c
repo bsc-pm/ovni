@@ -1,9 +1,12 @@
+#include "chan.h"
+
 #include <assert.h>
 
 #include "emu.h"
 #include "prv.h"
+#include "utlist.h"
 
-void
+static void
 chan_init(struct ovni_chan *chan, int track, int row, int type, FILE *prv, int64_t *clock)
 {
 	chan->n = 0;
@@ -19,28 +22,81 @@ chan_init(struct ovni_chan *chan, int track, int row, int type, FILE *prv, int64
 	chan->track = track;
 }
 
+static void
+mark_dirty(struct ovni_chan *chan)
+{
+	assert(chan->dirty == 0);
+
+	dbg("adding dirty chan %d to list\n", chan->id);
+	chan->dirty = 1;
+	DL_APPEND(*chan->update_list, chan);
+}
+
 void
-chan_th_init(struct ovni_ethread *th, int chan_index, int track, int row, FILE *prv, int64_t *clock)
+chan_th_init(struct ovni_ethread *th,
+		struct ovni_chan **update_list,
+		enum chan id,
+		int track,
+		int init_st,
+		int enabled,
+		int dirty,
+		int row,
+		FILE *prv,
+		int64_t *clock)
 {
 	struct ovni_chan *chan;
 	int prvth;
 
-	chan = &th->chan[chan_index];
-	prvth = chan_to_prvtype[chan_index][1];
+	chan = &th->chan[id];
+	assert(chan_to_prvtype[id][0] == (int) id);
+	prvth = chan_to_prvtype[id][1];
 
 	chan_init(chan, track, row, prvth, prv, clock);
+
+	chan->id = id;
+	chan->thread = th;
+	chan->update_list = update_list;
+	chan->enabled = enabled;
+	chan->stack[chan->n++] = init_st;
+	if(dirty)
+		mark_dirty(chan);
 }
 
 void
-chan_cpu_init(struct ovni_cpu *cpu, int chan_index, int track, int row, FILE *prv, int64_t *clock)
+chan_cpu_init(struct ovni_cpu *cpu,
+		struct ovni_chan **update_list,
+		enum chan id,
+		int track,
+//		int init_st,
+//		int enabled,
+		int row,
+		FILE *prv,
+		int64_t *clock)
 {
 	struct ovni_chan *chan;
 	int prvcpu;
 
-	chan = &cpu->chan[chan_index];
-	prvcpu = chan_to_prvtype[chan_index][2];
+	chan = &cpu->chan[id];
+	assert(chan_to_prvtype[id][0] == (int) id);
+	prvcpu = chan_to_prvtype[id][2];
+	chan->id = id;
+	chan->cpu = cpu;
+	chan->update_list = update_list;
 
 	chan_init(chan, track, row, prvcpu, prv, clock);
+}
+
+static void
+chan_dump_update_list(struct ovni_chan *chan)
+{
+	struct ovni_chan *c;
+
+	dbg("update list for chan %d at %p:\n",
+			chan->id, (void *) chan);
+	for(c = *chan->update_list; c; c = c->next)
+	{
+		dbg(" chan %d at %p\n", c->id, (void *) c);
+	}
 }
 
 void
@@ -48,7 +104,7 @@ chan_enable(struct ovni_chan *chan, int enabled)
 {
 	/* Can be dirty */
 
-	dbg("chan_enable chan=%p enabled=%d\n", (void*) chan, enabled);
+	dbg("chan_enable chan=%d enabled=%d\n", chan->id, enabled);
 
 	if(chan->enabled == enabled)
 	{
@@ -58,7 +114,24 @@ chan_enable(struct ovni_chan *chan, int enabled)
 
 	chan->enabled = enabled;
 	chan->t = *chan->clock;
-	chan->dirty = 1;
+
+	/* Only append if not dirty */
+	if(!chan->dirty)
+	{
+		mark_dirty(chan);
+	}
+	else
+	{
+		dbg("already dirty chan %d: skip update list\n",
+				chan->id);
+		chan_dump_update_list(chan);
+	}
+}
+
+void
+chan_disable(struct ovni_chan *chan)
+{
+	chan_enable(chan, 0);
 }
 
 int
@@ -70,25 +143,46 @@ chan_is_enabled(struct ovni_chan *chan)
 void
 chan_set(struct ovni_chan *chan, int st)
 {
-	//dbg("chan_set chan=%p st=%d\n", (void*) chan, st);
+	/* Can be dirty */
+
+	dbg("chan_set chan %d st=%d\n", chan->id, st);
 
 	assert(chan->enabled);
-	//assert(chan->dirty == 0);
 
 	if(chan->n == 0)
 		chan->n = 1;
 
 	chan->stack[chan->n - 1] = st;
 	chan->t = *chan->clock;
-	chan->dirty = 1;
+
+	/* Only append if not dirty */
+	if(!chan->dirty)
+	{
+		mark_dirty(chan);
+	}
+	else
+	{
+		dbg("already dirty chan %d: skip update list\n",
+				chan->id);
+		chan_dump_update_list(chan);
+	}
+}
+
+void
+chan_enable_and_set(struct ovni_chan *chan, int st)
+{
+	chan_enable(chan, 1);
+	chan_set(chan, st);
 }
 
 void
 chan_push(struct ovni_chan *chan, int st)
 {
-	//dbg("chan_push chan=%p st=%d\n", (void*) chan, st);
+	dbg("chan_push chan %d st=%d\n", chan->id, st);
 
 	assert(chan->enabled);
+
+	/* Cannot be dirty */
 	assert(chan->dirty == 0);
 
 	if(chan->n >= MAX_CHAN_STACK)
@@ -99,7 +193,8 @@ chan_push(struct ovni_chan *chan, int st)
 
 	chan->stack[chan->n++] = st;
 	chan->t = *chan->clock;
-	chan->dirty = 1;
+
+	mark_dirty(chan);
 }
 
 int
@@ -107,9 +202,11 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 {
 	int st;
 
-	//dbg("chan_pop chan=%p expected_st=%d\n", (void*) chan, expected_st);
+	dbg("chan_pop chan %d expected_st=%d\n", chan->id, expected_st);
 
 	assert(chan->enabled);
+
+	/* Cannot be dirty */
 	assert(chan->dirty == 0);
 
 	if(chan->n <= 0)
@@ -129,7 +226,8 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 
 	chan->n--;
 	chan->t = *chan->clock;
-	chan->dirty = 1;
+
+	mark_dirty(chan);
 
 	return st;
 }
@@ -137,15 +235,18 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 void
 chan_ev(struct ovni_chan *chan, int ev)
 {
-	dbg("chan_ev chan=%p ev=%d\n", (void*) chan, ev);
+	dbg("chan_ev chan %d ev=%d\n", chan->id, ev);
 
 	assert(chan->enabled);
+
+	/* Cannot be dirty */
 	assert(chan->dirty == 0);
 	assert(ev >= 0);
 
 	chan->ev = ev;
 	chan->t = *chan->clock;
-	chan->dirty = 1;
+
+	mark_dirty(chan);
 }
 
 int
@@ -192,10 +293,10 @@ emit_st(struct ovni_chan *chan)
 void
 chan_emit(struct ovni_chan *chan)
 {
-	if(chan->dirty == 0)
+	if(likely(chan->dirty == 0))
 		return;
 
-	//dbg("chan_emit chan=%p\n", (void*) chan);
+	dbg("chan_emit chan %d\n", chan->id);
 
 	/* Emit badst if disabled */
 	if(chan->enabled == 0)

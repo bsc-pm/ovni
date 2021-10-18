@@ -4,6 +4,7 @@
 #include "ovni.h"
 #include "uthash.h"
 #include "parson.h"
+#include "heap.h"
 #include <stdio.h>
 
 /* Debug macros */
@@ -15,6 +16,10 @@
 #endif
 
 #define err(...) fprintf(stderr, __VA_ARGS__);
+
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#define UNUSED(x) (void)(x)
 
 /* Emulated thread runtime status */
 enum ethread_state {
@@ -31,6 +36,10 @@ enum nosv_task_state {
 	TASK_ST_RUNNING,
 	TASK_ST_PAUSED,
 	TASK_ST_DEAD,
+};
+
+enum cpu_st {
+	ST_TOO_MANY_TH = 777,
 };
 
 enum nosv_ss_values {
@@ -88,12 +97,67 @@ struct nosv_task_type {
 #define MAX_CHAN_STACK 128
 
 enum chan_track {
+	/* The channel is manually controlled. */
 	CHAN_TRACK_NONE = 0,
+
+	/* Enables the channel when the thread is running only. */
 	CHAN_TRACK_TH_RUNNING,
-	CHAN_TRACK_TH_UNPAUSED,
+
+	/* The thread active tracking mode a enables the channel when
+	 * the thread is running, cooling or warming. Otherwise the
+	 * channel is disabled. */
+	CHAN_TRACK_TH_ACTIVE,
+};
+
+enum chan {
+	CHAN_OVNI_PID,
+	CHAN_OVNI_TID,
+	CHAN_OVNI_NTHREADS,
+	CHAN_OVNI_STATE,
+	CHAN_OVNI_APPID,
+	CHAN_OVNI_CPU,
+
+	CHAN_NOSV_TASKID,
+	CHAN_NOSV_TYPEID,
+	CHAN_NOSV_APPID,
+	CHAN_NOSV_SUBSYSTEM,
+
+	CHAN_TAMPI_MODE,
+	CHAN_OPENMP_MODE,
+
+	CHAN_MAX
+};
+
+enum chan_to_prv_type {
+	CHAN_ID = 0,
+	CHAN_TH = 1,
+	CHAN_CPU = 2,
+};
+
+/* Same order as `enum chan` */
+static const int chan_to_prvtype[CHAN_MAX][3] = {
+	/* Channel		TH  CPU */
+	{ CHAN_OVNI_PID,	10, 60 },
+	{ CHAN_OVNI_TID,	11, 61 },
+	{ CHAN_OVNI_NTHREADS,	-1, 62 },
+	{ CHAN_OVNI_STATE,	13, -1 },
+	{ CHAN_OVNI_APPID,	14, 64 }, /* Not used */
+	{ CHAN_OVNI_CPU,	15, -1 },
+
+	{ CHAN_NOSV_TASKID,	20, 70 },
+	{ CHAN_NOSV_TYPEID,	21, 71 },
+	{ CHAN_NOSV_APPID,	22, 72 },
+	{ CHAN_NOSV_SUBSYSTEM,	23, 73 },
+
+	{ CHAN_TAMPI_MODE,	30, 80 },
+
+	{ CHAN_OPENMP_MODE,	40, 90 },
 };
 
 struct ovni_chan {
+	/* Channel id */
+	enum chan id;
+
 	/* Number of states in the stack */
 	int n;
 
@@ -129,67 +193,19 @@ struct ovni_chan {
 
 	/* What should cause the channel to become disabled? */
 	enum chan_track track;
+
+	/* The thread associated with the channel if any */
+	struct ovni_ethread *thread;
+
+	/* The CPU associated with the channel if any */
+	struct ovni_cpu *cpu;
+
+	struct ovni_chan **update_list;
+
+	/* Used when the channel is a list */
+	struct ovni_chan *prev;
+	struct ovni_chan *next;
 };
-
-enum chan {
-	CHAN_OVNI_PID,
-	CHAN_OVNI_TID,
-	CHAN_OVNI_NTHREADS,
-	CHAN_OVNI_STATE,
-	CHAN_OVNI_APPID,
-	CHAN_OVNI_CPU,
-
-	CHAN_NOSV_TASKID,
-	CHAN_NOSV_TYPEID,
-	CHAN_NOSV_APPID,
-	CHAN_NOSV_SUBSYSTEM,
-
-	CHAN_TAMPI_MODE,
-	CHAN_OPENMP_MODE,
-
-	CHAN_MAX
-};
-
-/* Same order as `enum chan` */
-const static int chan_to_prvtype[CHAN_MAX][3] = {
-	/* Channel		TH  CPU */
-	{ CHAN_OVNI_PID,	10, 60 },
-	{ CHAN_OVNI_TID,	11, 61 },
-	{ CHAN_OVNI_NTHREADS,	-1, 62 },
-	{ CHAN_OVNI_STATE,	13, 63 },
-	{ CHAN_OVNI_APPID,	14, 64 },
-	{ CHAN_OVNI_CPU,	15, -1 },
-
-	{ CHAN_NOSV_TASKID,	20, 70 },
-	{ CHAN_NOSV_TYPEID,	21, 71 },
-	{ CHAN_NOSV_APPID,	22, 72 },
-	{ CHAN_NOSV_SUBSYSTEM,	23, 73 },
-
-	{ CHAN_TAMPI_MODE,	30, 80 },
-
-	{ CHAN_OPENMP_MODE,	40, 90 },
-};
-
-///* All PRV event types */
-//enum prv_type {
-//	/* Rows are CPUs */
-//	PTC_PROC_PID      = 10,
-//	PTC_THREAD_TID    = 11,
-//	PTC_NTHREADS      = 12,
-//	PTC_TASK_ID       = 20,
-//	PTC_TASK_TYPE_ID  = 21,
-//	PTC_APP_ID        = 30,
-//	PTC_SUBSYSTEM     = 31,
-//
-//	/* Rows are threads */
-//	PTT_THREAD_STATE  = 60,
-//	PTT_THREAD_TID    = 61,
-//	PTT_SUBSYSTEM     = 62,
-//
-//	PTT_TASK_ID       = 63,
-//	PTT_TASK_TYPE_ID  = 64,
-//	PTT_TASK_APP_ID   = 65,
-//};
 
 #define MAX_BURSTS 100
 
@@ -208,6 +224,8 @@ struct ovni_ethread {
 	int stream_fd;
 
 	enum ethread_state state;
+	int is_running;
+	int is_active;
 
 	/* Thread stream */
 	struct ovni_stream *stream;
@@ -294,9 +312,17 @@ struct ovni_cpu {
 	/* 1 if the cpu has updated is threads, 0 if not */
 	int updated;
 
-	/* The threads the cpu is currently running */
+	/* The threads with affinity set to this CPU */
 	size_t nthreads;
 	struct ovni_ethread *thread[OVNI_MAX_THR];
+
+	/* From the assigned threads, how many running */
+	size_t nrunning_threads;
+	struct ovni_ethread *th_running;
+
+	/* Number of assigned threads active */
+	size_t nactive_threads;
+	struct ovni_ethread *th_active;
 
 	/* Cpu name as shown in paraver row */
 	char name[MAX_CPU_NAME];
@@ -309,10 +335,10 @@ struct ovni_loom {
 	size_t nprocs;
 	char hostname[OVNI_MAX_HOSTNAME];
 
-	int max_ncpus;
-	int max_phyid;
-	int ncpus;
-	int offset_ncpus;
+	size_t max_ncpus;
+	size_t max_phyid;
+	size_t ncpus;
+	size_t offset_ncpus;
 	struct ovni_cpu cpu[OVNI_MAX_CPU];
 
 	int64_t clock_offset;
@@ -330,19 +356,19 @@ struct ovni_loom {
 #define MAX_VIRTUAL_EVENTS 16
 
 struct ovni_trace {
-	int nlooms;
+	size_t nlooms;
 	struct ovni_loom loom[OVNI_MAX_LOOM];
 
 	/* Index of next virtual event */
-	int ivirtual;
+	size_t ivirtual;
 
 	/* Number of virtual events stored */
-	int nvirtual;
+	size_t nvirtual;
 
 	/* The virtual events are generated by the emulator */
 	struct ovni_ev *virtual_events;
 
-	int nstreams;
+	size_t nstreams;
 	struct ovni_stream *stream;
 };
 
@@ -357,9 +383,14 @@ struct ovni_stream {
 	int loom;
 	int loaded;
 	int active;
+
+	double progress;
+
 	struct ovni_ev *cur_ev;
-	uint64_t lastclock;
+	int64_t lastclock;
 	int64_t clock_offset;
+
+	heap_node_t hh;
 };
 
 struct ovni_emu {
@@ -378,9 +409,17 @@ struct ovni_emu {
 
 	struct nosv_task *cur_task;
 
+	/* Global processed size and offset of all streams */
+	size_t global_size;
+	size_t global_offset;
+	double start_emulation_time;
+
 	int64_t firstclock;
 	int64_t lastclock;
 	int64_t delta_time;
+
+	/* Counters for statistics */
+	int64_t nev_processed;
 
 	FILE *prv_thread;
 	FILE *prv_cpu;
@@ -391,24 +430,24 @@ struct ovni_emu {
 	char *tracedir;
 
 	/* Total counters */
-	int total_nthreads;
-	int total_proc;
-	int total_ncpus;
+	size_t total_nthreads;
+	size_t total_proc;
+	size_t total_ncpus;
+
+	/* Keep a list of dirty channels for the CPUs and threads */
+	struct ovni_chan *cpu_chan;
+	struct ovni_chan *th_chan;
+
+	heap_head_t sorted_stream;
 };
 
 /* Emulator function declaration */
 
-void emu_emit(struct ovni_emu *emu);
-
 void hook_init_ovni(struct ovni_emu *emu);
 void hook_pre_ovni(struct ovni_emu *emu);
-void hook_emit_ovni(struct ovni_emu *emu);
-void hook_post_ovni(struct ovni_emu *emu);
 
 void hook_init_nosv(struct ovni_emu *emu);
 void hook_pre_nosv(struct ovni_emu *emu);
-void hook_emit_nosv(struct ovni_emu *emu);
-void hook_post_nosv(struct ovni_emu *emu);
 
 void hook_init_tampi(struct ovni_emu *emu);
 void hook_pre_tampi(struct ovni_emu *emu);
@@ -420,7 +459,7 @@ struct ovni_cpu *emu_get_cpu(struct ovni_loom *loom, int cpuid);
 
 struct ovni_ethread *emu_get_thread(struct ovni_eproc *proc, int tid);
 
-void emu_emit_prv(struct ovni_emu *emu, int type, int val);
+void emu_cpu_update_chan(struct ovni_cpu *cpu, struct ovni_chan *cpu_chan);
 
 void
 emu_virtual_ev(struct ovni_emu *emu, char *mcv);

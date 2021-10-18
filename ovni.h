@@ -114,17 +114,21 @@ struct ovni_rproc {
 
 int ovni_proc_init(int app, char *loom, int proc);
 
-int ovni_proc_fini();
+int ovni_proc_fini(void);
 
 int ovni_thread_init(pid_t tid);
 
-int ovni_thread_isready();
+void ovni_thread_free(void);
 
-void ovni_clock_update();
+int ovni_thread_isready(void);
+
+void ovni_clock_update(void);
 
 void ovni_ev_set_mcv(struct ovni_ev *ev, char *mcv);
 
 uint64_t ovni_ev_get_clock(struct ovni_ev *ev);
+
+uint64_t ovni_get_clock(void);
 
 void ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size);
 
@@ -138,7 +142,7 @@ void ovni_add_cpu(int index, int phyid);
 void ovni_ev(struct ovni_ev *ev);
 void ovni_ev_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize);
 
-int ovni_flush();
+int ovni_flush(void);
 
 #ifdef __cplusplus
 }

@@ -11,11 +11,11 @@
 #include "ovni.h"
 #include "ovni_trace.h"
 
-void emit(struct ovni_stream *stream, struct ovni_ev *ev, int row)
+static void
+emit(struct ovni_ev *ev, int row)
 {
 	static uint64_t firstclock = 0;
 	int64_t delta;
-	int task;
 
 	if(firstclock == 0)
 		firstclock = ovni_ev_get_clock(ev);
@@ -34,9 +34,11 @@ void emit(struct ovni_stream *stream, struct ovni_ev *ev, int row)
 	printf("2:0:1:1:%d:%ld:%d:%d\n", row, delta, ev->header.category, ev->header.value);
 }
 
-void dump_events(struct ovni_trace *trace)
+static void
+dump_events(struct ovni_trace *trace)
 {
-	int i, f, row;
+	size_t i;
+	int f, row;
 	uint64_t minclock, lastclock;
 	struct ovni_ev *ev;
 	struct ovni_stream *stream;
@@ -85,7 +87,7 @@ void dump_events(struct ovni_trace *trace)
 
 		/* Emit current event */
 		row = f + 1;
-		emit(stream, stream->cur_ev, row);
+		emit(stream->cur_ev, row);
 
 		lastclock = ovni_ev_get_clock(stream->cur_ev);
 
@@ -124,7 +126,8 @@ int main(int argc, char *argv[])
 	if(ovni_load_streams(trace))
 		return 1;
 
-	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", trace->nstreams);
+	printf("#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%ld:1)\n",
+			trace->nstreams);
 
 	dump_events(trace);
 

@@ -4,22 +4,34 @@
 #include "emu.h"
 
 void
-chan_init(struct ovni_chan *chan, int track, int row, int type, FILE *prv, int64_t *clock);
+chan_th_init(struct ovni_ethread *th,
+		struct ovni_chan **update_list,
+		enum chan id,
+		int track,
+		int init_st,
+		int enabled,
+		int dirty,
+		int row,
+		FILE *prv,
+		int64_t *clock);
 
 void
-chan_th_init(struct ovni_ethread *th, int chan_index, int track, int row, FILE *prv, int64_t *clock);
-
-void
-chan_cpu_init(struct ovni_cpu *cpu, int chan_index, int track, int row, FILE *prv, int64_t *clock);
+chan_cpu_init(struct ovni_cpu *cpu, struct ovni_chan **update_list, enum chan id, int track, int row, FILE *prv, int64_t *clock);
 
 void
 chan_enable(struct ovni_chan *chan, int enabled);
+
+void
+chan_disable(struct ovni_chan *chan);
 
 int
 chan_is_enabled(struct ovni_chan *chan);
 
 void
 chan_set(struct ovni_chan *chan, int st);
+
+void
+chan_enable_and_set(struct ovni_chan *chan, int st);
 
 void
 chan_push(struct ovni_chan *chan, int st);

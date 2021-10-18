@@ -67,9 +67,8 @@ create_trace_dirs(char *tracedir, char *loom, int proc)
 }
 
 static int
-create_trace_stream()
+create_trace_stream(void)
 {
-	int fd;
 	char path[PATH_MAX];
 
 	fprintf(stderr, "create thread stream tid=%d gettid=%d rproc.proc=%d rproc.ready=%d\n",
@@ -96,8 +95,6 @@ create_trace_stream()
 static int
 proc_metadata_init(struct ovni_rproc *proc)
 {
-	JSON_Value *meta;
-
 	proc->meta = json_value_init_object();
 
 	if(proc->meta == NULL)
@@ -200,8 +197,6 @@ proc_set_app(int appid)
 int
 ovni_proc_init(int app, char *loom, int proc)
 {
-	int i;
-
 	assert(rproc.ready == 0);
 
 	memset(&rproc, 0, sizeof(rproc));
@@ -228,7 +223,7 @@ ovni_proc_init(int app, char *loom, int proc)
 }
 
 int
-ovni_proc_fini()
+ovni_proc_fini(void)
 {
 	if(proc_metadata_store(&rproc) != 0)
 		abort();
@@ -239,8 +234,6 @@ ovni_proc_fini()
 int
 ovni_thread_init(pid_t tid)
 {
-	int i;
-
 	assert(tid != 0);
 
 	if(rthread.ready)
@@ -270,7 +263,7 @@ ovni_thread_init(pid_t tid)
 		abort();
 	}
 
-	if(create_trace_stream(tid))
+	if(create_trace_stream())
 		abort();
 
 	rthread.ready = 1;
@@ -278,23 +271,17 @@ ovni_thread_init(pid_t tid)
 	return 0;
 }
 
-int
-ovni_thread_free()
+void
+ovni_thread_free(void)
 {
 	assert(rthread.ready);
 	free(rthread.evbuf);
 }
 
 int
-ovni_thread_isready()
+ovni_thread_isready(void)
 {
 	return rthread.ready;
-}
-
-void
-ovni_cpu_set(int cpu)
-{
-	rthread.cpu = cpu;
 }
 
 static inline
@@ -308,21 +295,21 @@ uint64_t rdtsc(void)
 }
 
 uint64_t
-ovni_get_clock()
+ovni_get_clock(void)
 {
 	struct timespec tp;
 	uint64_t ns = 1000LL * 1000LL * 1000LL;
 	uint64_t raw;
-	int ret;
 
 #ifdef USE_RDTSC
 	raw = rdtsc();
 #else
 
-	ret = clock_gettime(rproc.clockid, &tp);
-
 #ifdef ENABLE_SLOW_CHECKS
+	int ret = clock_gettime(rproc.clockid, &tp);
 	if(ret) abort();
+#else
+	clock_gettime(rproc.clockid, &tp);
 #endif /* ENABLE_SLOW_CHECKS */
 
 	raw = tp.tv_sec * ns + tp.tv_nsec;
@@ -336,27 +323,27 @@ ovni_get_clock()
 /* Sets the current time so that all subsequent events have the new
  * timestamp */
 void
-ovni_clock_update()
+ovni_clock_update(void)
 {
 	rthread.clockvalue = ovni_get_clock();
 }
 
-static void
-hexdump(uint8_t *buf, size_t size)
-{
-	int i, j;
-
-	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
-
-	for(i=0; i<size; i+=16)
-	{
-		for(j=0; j<16 && i+j < size; j++)
-		{
-			dbg("%02x ", buf[i+j]);
-		}
-		dbg("\n");
-	}
-}
+//static void
+//hexdump(uint8_t *buf, size_t size)
+//{
+//	size_t i, j;
+//
+//	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
+//
+//	for(i=0; i<size; i+=16)
+//	{
+//		for(j=0; j<16 && i+j < size; j++)
+//		{
+//			err("%02x ", buf[i+j]);
+//		}
+//		err("\n");
+//	}
+//}
 
 static int
 ovni_write(uint8_t *buf, size_t size)
@@ -381,7 +368,7 @@ ovni_write(uint8_t *buf, size_t size)
 }
 
 static int
-flush_evbuf()
+flush_evbuf(void)
 {
 	int ret;
 
@@ -444,7 +431,7 @@ ovni_payload_size(struct ovni_ev *ev)
 void
 ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size)
 {
-	int payload_size;
+	size_t payload_size;
 
 	assert((ev->header.flags & OVNI_EV_JUMBO) == 0);
 	assert(size >= 2);
@@ -457,7 +444,7 @@ ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size)
 	memcpy(&ev->payload.u8[payload_size], buf, size);
 	payload_size += size;
 
-	ev->header.flags = ev->header.flags & 0xf0 | (payload_size-1) & 0x0f;
+	ev->header.flags = (ev->header.flags & 0xf0) | ((payload_size-1) & 0x0f);
 }
 
 int
@@ -470,7 +457,7 @@ static void
 ovni_ev_add(struct ovni_ev *ev);
 
 int
-ovni_flush()
+ovni_flush(void)
 {
 	int ret = 0;
 	struct ovni_ev pre={0}, post={0};
@@ -495,7 +482,7 @@ ovni_flush()
 	return ret;
 }
 
-void
+static void
 ovni_ev_add_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
 {
 	size_t evsize, totalsize;
@@ -639,9 +626,19 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 	proc->gindex = total_procs++;
 	proc->loom = loom;
 
-	sprintf(path, "%s/%s", procdir, "metadata.json");
+	if(snprintf(path, PATH_MAX, "%s/%s", procdir, "metadata.json") >=
+			PATH_MAX)
+	{
+		err("snprintf: path too large: %s\n", procdir);
+		abort();
+	}
+
 	proc->meta = json_parse_file_with_comments(path);
-	assert(proc->meta);
+	if(proc->meta == NULL)
+	{
+		err("error loading metadata from %s\n", path);
+		return -1;
+	}
 
 	/* The appid is populated from the metadata */
 	load_proc_metadata(proc);
@@ -658,7 +655,12 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 		if(find_dir_prefix_int(dirent, "thread", &tid) != 0)
 			continue;
 
-		sprintf(path, "%s/%s", procdir, dirent->d_name);
+		if(snprintf(path, PATH_MAX, "%s/%s", procdir, dirent->d_name) >=
+				PATH_MAX)
+		{
+			err("snprintf: path too large: %s\n", procdir);
+			abort();
+		}
 
 		if(proc->nthreads >= OVNI_MAX_THR)
 		{
@@ -686,7 +688,6 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 {
 	int pid;
 	char path[PATH_MAX];
-	struct stat st;
 	DIR *dir;
 	struct dirent *dirent;
 	struct ovni_eproc *proc;
@@ -734,13 +735,12 @@ compare_alph(const void* a, const void* b)
 int
 ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 {
-	int i;
-	char path[PATH_MAX];
+	char *looms[OVNI_MAX_LOOM];
+	char *hosts[OVNI_MAX_LOOM];
 	const char *loom_name;
-	struct stat st;
 	DIR *dir;
 	struct dirent *dirent;
-	struct ovni_loom *loom;
+	size_t l;
 
 	trace->nlooms = 0;
 
@@ -751,11 +751,10 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		return -1;
 	}
 
-	char *looms[OVNI_MAX_LOOM];
-	char *hosts[OVNI_MAX_LOOM];
-	for (int l = 0; l < OVNI_MAX_LOOM; ++l) {
-		looms[l] = malloc(PATH_MAX*sizeof(char));
-		hosts[l] = malloc(PATH_MAX*sizeof(char));
+	for(l=0; l<OVNI_MAX_LOOM; l++)
+	{
+		looms[l] = malloc(PATH_MAX);
+		hosts[l] = malloc(PATH_MAX);
 	}
 
 	while((dirent = readdir(dir)) != NULL)
@@ -783,8 +782,15 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 	qsort((const char **) hosts, trace->nlooms, sizeof(const char*), compare_alph);
 	qsort((const char **) looms, trace->nlooms, sizeof(const char*), compare_alph);
 
-	for (int l = 0; l < trace->nlooms; ++l) {
-		/* FIXME: Unsafe */
+	for(l=0; l<trace->nlooms; l++)
+	{
+		if(strlen(hosts[l]) >= PATH_MAX)
+		{
+			err("error hostname too long: %s\n", hosts[l]);
+			exit(EXIT_FAILURE);
+		}
+
+		/* Safe */
 		strcpy(trace->loom[l].hostname, hosts[l]);
 
 		if(load_loom(&trace->loom[l], l, looms[l]) != 0)
@@ -793,7 +799,8 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 
 	closedir(dir);
 
-	for (int l = 0; l < OVNI_MAX_LOOM; ++l) {
+	for(l=0; l<OVNI_MAX_LOOM; l++)
+	{
 		free(looms[l]);
 		free(hosts[l]);
 	}
@@ -841,7 +848,7 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 int
 ovni_load_streams(struct ovni_trace *trace)
 {
-	int i, j, k, s;
+	size_t i, j, k, s;
 	struct ovni_loom *loom;
 	struct ovni_eproc *proc;
 	struct ovni_ethread *thread;
@@ -870,7 +877,7 @@ ovni_load_streams(struct ovni_trace *trace)
 		return -1;
 	}
 
-	err("loaded %d streams\n", trace->nstreams);
+	err("loaded %ld streams\n", trace->nstreams);
 
 	for(s=0, i=0; i<trace->nlooms; i++)
 	{
@@ -913,9 +920,7 @@ ovni_free_streams(struct ovni_trace *trace)
 int
 ovni_load_next_event(struct ovni_stream *stream)
 {
-	int i;
-	size_t n, size;
-	uint8_t flags;
+	size_t size;
 
 	if(stream->active == 0)
 	{
@@ -927,11 +932,13 @@ ovni_load_next_event(struct ovni_stream *stream)
 	{
 		stream->cur_ev = (struct ovni_ev *) stream->buf;
 		stream->offset = 0;
+		size = 0;
 		goto out;
 	}
 
 	//printf("advancing offset %ld bytes\n", ovni_ev_size(stream->cur_ev));
-	stream->offset += ovni_ev_size(stream->cur_ev);
+	size = ovni_ev_size(stream->cur_ev);
+	stream->offset += size;
 
 	/* We have reached the end */
 	if(stream->offset == stream->size)
@@ -955,5 +962,5 @@ out:
 	//hexdump((uint8_t *) stream->cur_ev, ovni_ev_size(stream->cur_ev));
 	//dbg("---------\n");
 
-	return 0;
+	return (int) size;
 }

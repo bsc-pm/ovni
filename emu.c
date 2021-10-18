@@ -8,9 +8,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <stdatomic.h>
-#include <dirent.h> 
-#include <assert.h> 
+#include <dirent.h>
+#include <assert.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "ovni.h"
 #include "ovni_trace.h"
@@ -18,20 +19,22 @@
 #include "prv.h"
 #include "pcf.h"
 #include "chan.h"
+#include "utlist.h"
 
 /* Obtains the corrected clock of the given event */
-int64_t
+static int64_t
 evclock(struct ovni_stream *stream, struct ovni_ev *ev)
 {
 	return (int64_t) ovni_ev_get_clock(ev) + stream->clock_offset;
 }
 
 static void
-emit_ev(struct ovni_stream *stream, struct ovni_ev *ev)
+print_ev(struct ovni_stream *stream, struct ovni_ev *ev)
 {
-	int64_t delta;
-	uint64_t clock;
+	int64_t clock, delta;
 	int i, payloadsize;
+
+	UNUSED(delta);
 
 	//dbg("sizeof(*ev) = %d\n", sizeof(*ev));
 	//hexdump((uint8_t *) ev, sizeof(*ev));
@@ -50,112 +53,189 @@ emit_ev(struct ovni_stream *stream, struct ovni_ev *ev)
 		dbg("%d ", ev->payload.u8[i]);
 	}
 	dbg("\n");
+}
 
-	stream->lastclock = clock;
+static void
+print_cur_ev(struct ovni_emu *emu)
+{
+	print_ev(emu->cur_stream, emu->cur_ev);
+}
+
+/* Update the tracking channel if needed */
+static void
+cpu_update_tracking_chan(struct ovni_chan *cpu_chan, struct ovni_ethread *th)
+{
+	int th_enabled, cpu_enabled;
+	struct ovni_chan *th_chan;
+
+	assert(th);
+
+	switch (cpu_chan->track)
+	{
+		case CHAN_TRACK_TH_RUNNING:
+			cpu_enabled = th->is_running;
+			break;
+		case CHAN_TRACK_TH_ACTIVE:
+			cpu_enabled = th->is_active;
+			break;
+		default:
+			dbg("ignoring thread %d chan %d with track=%d\n",
+				th->tid, cpu_chan->id, cpu_chan->track);
+			return;
+	}
+
+	th_chan = &th->chan[cpu_chan->id];
+	th_enabled = chan_is_enabled(th_chan);
+
+	/* Enable the cpu channel if needed */
+	if(cpu_enabled && !chan_is_enabled(cpu_chan))
+		chan_enable(cpu_chan, cpu_enabled);
+
+	/* Copy the state from the thread channel if needed */
+	if(th_enabled && cpu_enabled)
+	{
+		/* Both enabled: simply follow the same value */
+		chan_set(cpu_chan, chan_get_st(th_chan));
+	}
+	else if(th_enabled && !cpu_enabled)
+	{
+		/* Only thread enabled: disable CPU */
+		if(chan_is_enabled(cpu_chan))
+			chan_disable(cpu_chan);
+	}
+	else if(!th_enabled && cpu_enabled)
+	{
+		/* Only CPU enabled: is this possible? Set to bad */
+		chan_set(cpu_chan, ST_BAD);
+		err("warning: cpu %s chan %d enabled but tracked thread %d chan disabled\n",
+				cpu_chan->cpu->name,
+				cpu_chan->id,
+				th->tid);
+	}
+	else
+	{
+		/* Both disabled: disable CPU channel if needed */
+		if(chan_is_enabled(cpu_chan))
+			chan_disable(cpu_chan);
+	}
+
+	dbg("cpu %s chan %d enabled=%d state=%d\n",
+			cpu_chan->cpu->name, cpu_chan->id,
+			chan_is_enabled(cpu_chan),
+			chan_get_st(cpu_chan));
+
 }
 
 void
-emu_emit(struct ovni_emu *emu)
+emu_cpu_update_chan(struct ovni_cpu *cpu, struct ovni_chan *cpu_chan)
 {
-	emit_ev(emu->cur_stream, emu->cur_ev);
-}
+	int count;
+	struct ovni_ethread *th;
 
-struct ovni_ethread *
-find_thread(struct ovni_eproc *proc, pid_t tid)
-{
-	int i;
-	struct ovni_ethread *thread;
+	/* Determine the source of tracking */
 
-	for(i=0; i<proc->nthreads; i++)
+	switch (cpu_chan->track)
 	{
-		thread = &proc->thread[i];
-		if(thread->tid == tid)
-			return thread;
+		case CHAN_TRACK_TH_RUNNING:
+			count = cpu->nrunning_threads;
+			th = cpu->th_running;
+			break;
+		case CHAN_TRACK_TH_ACTIVE:
+			count = cpu->nactive_threads;
+			th = cpu->th_active;
+			break;
+		default:
+			dbg("ignoring %s chan %d with track=%d\n",
+				cpu->name, cpu_chan->id, cpu_chan->track);
+			return;
 	}
 
-	return NULL;
+	/* Based on how many threads, determine the state */
+	if(count == 0)
+	{
+		/* The channel can be already disabled (migration of paused
+		 * thread) so only disable it if needed. */
+		if(chan_is_enabled(cpu_chan))
+			chan_disable(cpu_chan);
+	}
+	else if(count == 1)
+	{
+		assert(th);
+
+		/* A unique thread found: copy the state */
+		dbg("cpu_update_chan: unique thread %d found, updating chan %d\n",
+				th->tid, cpu_chan->id);
+
+		cpu_update_tracking_chan(cpu_chan, th);
+	}
+	else
+	{
+		/* More than one thread: enable the channel and set it to a
+		 * error value */
+		if(!chan_is_enabled(cpu_chan))
+			chan_enable(cpu_chan, 1);
+
+		chan_set(cpu_chan, ST_TOO_MANY_TH);
+	}
+}
+
+static void
+propagate_channels(struct ovni_emu *emu)
+{
+	struct ovni_cpu *cpu;
+	struct ovni_chan *cpu_chan, *th_chan, *tmp;
+	struct ovni_ethread *thread;
+
+	/* Only propagate thread channels to their corresponding CPU */
+
+	DL_FOREACH_SAFE(emu->th_chan, th_chan, tmp)
+	{
+		assert(th_chan->thread);
+
+		thread = th_chan->thread;
+
+		/* No CPU in the thread */
+		if(thread->cpu == NULL)
+			continue;
+
+		cpu = thread->cpu;
+
+		cpu_chan = &cpu->chan[th_chan->id];
+
+		dbg("propagate thread %d chan %d in cpu %s\n",
+				thread->tid, th_chan->id, cpu->name);
+
+		emu_cpu_update_chan(cpu, cpu_chan);
+	}
 }
 
 static void
 emit_channels(struct ovni_emu *emu)
 {
-	struct ovni_cpu *cpu;
-	struct ovni_chan *chan_cpu, *chan_th;
-	struct ovni_ethread *th, *last_th;
-	int i, j, k, nrunning, st;
+	struct ovni_chan *cpu_chan, *th_chan;
 
-	/* Compute the CPU derived channels from the threads */
-	for(i=0; i<CHAN_MAX; i++)
-	{
-		for(j=0; j<emu->total_ncpus; j++)
-		{
-			cpu = emu->global_cpu[j];
-			chan_cpu = &cpu->chan[i];
-
-			/* Not implemented */
-			assert(chan_cpu->track != CHAN_TRACK_TH_UNPAUSED);
-
-			if(chan_cpu->track != CHAN_TRACK_TH_RUNNING)
-			{
-				//dbg("cpu chan %d not tracking threads\n", i);
-				break;
-			}
-
-			/* Count running threads */
-			for(k=0, nrunning=0; k<cpu->nthreads; k++)
-			{
-				th = cpu->thread[k];
-				if(th->state == TH_ST_RUNNING)
-				{
-					last_th = th;
-					nrunning++;
-				}
-			}
-
-			if(nrunning == 0)
-			{
-				//dbg("cpu chan %d disabled: no running threads\n", i);
-				if(chan_is_enabled(chan_cpu))
-					chan_enable(chan_cpu, 0);
-			}
-			else if(nrunning > 1)
-			{
-				//dbg("cpu chan %d bad: multiple threads\n", i);
-				if(!chan_is_enabled(chan_cpu))
-					chan_enable(chan_cpu, 1);
-				chan_set(chan_cpu, ST_BAD);
-			}
-			else
-			{
-				th = last_th;
-				chan_th = &th->chan[i];
-
-				//dbg("cpu chan %d good: one thread\n", i);
-				if(!chan_is_enabled(chan_cpu))
-					chan_enable(chan_cpu, 1);
-
-				if(chan_is_enabled(chan_th))
-					st = chan_get_st(&last_th->chan[i]);
-				else
-					st = ST_BAD;
-
-				/* Only update the CPU chan if needed */
-				if(chan_get_st(chan_cpu) != st)
-					chan_set(chan_cpu, st);
-			}
-		}
-	}
+	dbg("emu enters emit_channels -------------------\n");
 
 	/* Emit only the channels that have been updated. We need a list
 	 * of updated channels */
-	for(i=0; i<emu->total_nthreads; i++)
-		for(j=0; j<CHAN_MAX; j++)
-			chan_emit(&emu->global_thread[i]->chan[j]);
+	DL_FOREACH(emu->th_chan, th_chan)
+	{
+		dbg("emu emits th chan %d\n", th_chan->id);
+		//assert(th_chan->dirty);
+		chan_emit(th_chan);
+	}
 
-	for(i=0; i<emu->total_ncpus; i++)
-		for(j=0; j<CHAN_MAX; j++)
-			chan_emit(&emu->global_cpu[i]->chan[j]);
+	DL_FOREACH(emu->cpu_chan, cpu_chan)
+	{
+		dbg("emu emits cpu chan %d\n", cpu_chan->id);
+		//assert(cpu_chan->dirty);
+		chan_emit(cpu_chan);
+	}
 
+	/* Reset the list of updated channels */
+	dbg("emu resets the list of dirty channels -------------------\n");
+	emu->th_chan = NULL;
+	emu->cpu_chan = NULL;
 }
 
 static void
@@ -170,43 +250,20 @@ hook_init(struct ovni_emu *emu)
 static void
 hook_pre(struct ovni_emu *emu)
 {
-	//emu_emit(emu);
-
 	switch(emu->cur_ev->header.model)
 	{
-		case 'O': hook_pre_ovni(emu);
-			  break;
-		case 'V': hook_pre_nosv(emu);
-			  break;
-		case 'T': hook_pre_tampi(emu);
-			  break;
-		case 'M': hook_pre_openmp(emu);
-			  break;
+		case 'O': hook_pre_ovni(emu); break;
+		case 'V': hook_pre_nosv(emu); break;
+		case 'T': hook_pre_tampi(emu); break;
+		case 'M': hook_pre_openmp(emu); break;
 		default:
 			break;
 	}
 }
 
 static void
-hook_emit(struct ovni_emu *emu)
-{
-	//emu_emit(emu);
-
-	emit_channels(emu);
-
-	switch(emu->cur_ev->header.model)
-	{
-		default:
-			  //dbg("unknown model %c\n", emu->cur_ev->model);
-			  break;
-	}
-}
-
-static void
 hook_post(struct ovni_emu *emu)
 {
-	//emu_emit(emu);
-
 	switch(emu->cur_ev->header.model)
 	{
 		default:
@@ -225,70 +282,134 @@ set_current(struct ovni_emu *emu, struct ovni_stream *stream)
 	emu->cur_thread = &emu->cur_proc->thread[stream->thread];
 }
 
+/*
+ * heap_node_compare_t - comparison function, returns:
+
+ * 	> 0 if a > b
+ * 	< 0 if a < b
+ * 	= 0 if a == b
+ *
+ * Invert the comparison function to get a min-heap instead
+ */
+static inline int stream_cmp(heap_node_t *a, heap_node_t *b)
+{
+	struct ovni_stream *sa, *sb;
+
+	sa = heap_elem(a, struct ovni_stream, hh);
+	sb = heap_elem(b, struct ovni_stream, hh);
+
+	if(sb->lastclock < sa->lastclock)
+		return -1;
+	else if(sb->lastclock > sa->lastclock)
+		return +1;
+	else
+		return 0;
+}
+
+static double
+get_time(void)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (double)ts.tv_sec + (double)ts.tv_nsec * 1.0e-9;
+}
+
+static void
+print_progress(struct ovni_emu *emu)
+{
+	double progress, time_now, time_elapsed, time_total, time_left;
+	double speed_in, speed_out;
+	double cpu_written, th_written, written;
+	int min, sec;
+
+	cpu_written = (double) ftell(emu->prv_cpu);
+	th_written = (double) ftell(emu->prv_thread);
+
+	written = cpu_written + th_written;
+
+	progress = ((double) emu->global_offset) /
+		((double) emu->global_size);
+
+	time_now = get_time();
+	time_elapsed = time_now - emu->start_emulation_time;
+	time_total = time_elapsed / progress;
+	time_left = time_total - time_elapsed;
+
+	speed_in = (double) emu->nev_processed / time_elapsed;
+	speed_out = written / time_elapsed;
+
+	min = (int) (time_left / 60.0);
+	sec = (int) ((time_left / 60.0 - min) * 60);
+
+	err("%.1f%% done at %.0f Kev/s, out %.1f GB CPU / %.1f GB TH at %.1f MB/s (%d min %d s left)\n",
+			100.0 * progress,
+			speed_in / 1024.0,
+			cpu_written / (1024.0 * 1024.0 * 1024.0),
+			th_written / (1024.0 * 1024.0 * 1024.0),
+			speed_out / (1024.0 * 1024),
+			min, sec);
+}
+
+/* Loads the next event and sets the lastclock in the stream.
+ * Returns -1 if the stream has no more events. */
+static int
+emu_step_stream(struct ovni_emu *emu, struct ovni_stream *stream)
+{
+	if(ovni_load_next_event(stream) < 0)
+		return -1;
+
+	stream->lastclock = evclock(stream, stream->cur_ev);
+
+	heap_insert(&emu->sorted_stream, &stream->hh, &stream_cmp);
+
+	return 0;
+}
+
 static int
 next_event(struct ovni_emu *emu)
 {
-	int i, f;
-	uint64_t minclock;
-	struct ovni_ev *ev;
 	struct ovni_stream *stream;
-	struct ovni_trace *trace;
+	heap_node_t *node;
 
 	static int done_first = 0;
 
-	trace = &emu->trace;
+	/* Extract the next stream based on the event clock */
+	node = heap_pop_max(&emu->sorted_stream, stream_cmp);
 
-	/* Look for virtual events first */
-
-	if(trace->ivirtual < trace->nvirtual)
-	{
-		emu->cur_ev = &trace->virtual_events[trace->ivirtual];
-		trace->ivirtual++;
-		return 0;
-	}
-	else
-	{
-		/* Reset virtual events to 0 */
-		trace->ivirtual = 0;
-		trace->nvirtual = 0;
-	}
-
-	f = -1;
-	minclock = 0;
-
-	/* TODO: use a heap */
-
-	/* Select next event based on the clock */
-	for(i=0; i<trace->nstreams; i++)
-	{
-		stream = &trace->stream[i];
-
-		if(!stream->active)
-			continue;
-
-		ev = stream->cur_ev;
-		if(f < 0 || evclock(stream, ev) < minclock)
-		{
-			f = i;
-			minclock = evclock(stream, ev);
-		}
-	}
-
-	if(f < 0)
+	/* No more streams */
+	if(node == NULL)
 		return -1;
 
-	/* We have a valid stream with a new event */
-	stream = &trace->stream[f];
+	stream = heap_elem(node, struct ovni_stream, hh);
+
+	assert(stream);
 
 	set_current(emu, stream);
 
-	if(emu->lastclock > evclock(stream, stream->cur_ev))
+	emu->global_offset += ovni_ev_size(stream->cur_ev);
+
+	//err("stream %d clock at %ld\n", stream->tid, stream->lastclock);
+
+	/* This can happen if two events are not ordered in the stream, but the
+	 * emulator picks other events in the middle. Example:
+	 *
+	 * Stream A: 10 3 ...
+	 * Stream B: 5 12
+	 *
+	 * emulator output:
+	 * 5
+	 * 10
+	 * 3  -> warning!
+	 * 12
+	 * ...
+	 * */
+	if(emu->lastclock > stream->lastclock)
 	{
-		fprintf(stdout, "warning: backwards jump in time %lu -> %lu\n",
-				emu->lastclock, evclock(stream, stream->cur_ev));
+		err("warning: backwards jump in time %lu -> %lu for tid %d\n",
+				emu->lastclock, stream->lastclock, stream->tid);
 	}
 
-	emu->lastclock = evclock(stream, stream->cur_ev);
+	emu->lastclock = stream->lastclock;
 
 	if(!done_first)
 	{
@@ -302,45 +423,81 @@ next_event(struct ovni_emu *emu)
 }
 
 static void
-emulate(struct ovni_emu *emu)
+emu_load_first_events(struct ovni_emu *emu)
 {
-	int i;
-	struct ovni_ev ev;
-	struct ovni_stream *stream;
+	size_t i;
 	struct ovni_trace *trace;
+	struct ovni_stream *stream;
 
-	/* Load events */
+	/* Prepare the stream heap */
+	heap_init(&emu->sorted_stream);
+
+	emu->lastclock = 0;
+
+	/* Load initial streams and events */
 	trace = &emu->trace;
 	for(i=0; i<trace->nstreams; i++)
 	{
 		stream = &trace->stream[i];
-		ovni_load_next_event(stream);
+		emu->global_size += stream->size;
+
+		if(emu_step_stream(emu, stream) < 0)
+		{
+			dbg("warning: empty stream for tid %d\n", stream->tid);
+			continue;
+		}
+
+		assert(stream->active);
 	}
+}
 
+static void
+emulate(struct ovni_emu *emu)
+{
+	size_t i;
 
-	emu->lastclock = 0;
+	emu->nev_processed = 0;
+
+	err("loading first events\n");
+	emu_load_first_events(emu);
+
+	err("emulation starts\n");
+	emu->start_emulation_time = get_time();
 
 	hook_init(emu);
 
+	emit_channels(emu);
+
 	/* Then process all events */
-	while(next_event(emu) == 0)
+	for(i=0; next_event(emu) == 0; i++)
 	{
-		//fprintf(stdout, "step %i\n", i);
-		emu_emit(emu);
+		print_cur_ev(emu);
+
 		hook_pre(emu);
-		hook_emit(emu);
+
+		propagate_channels(emu);
+		emit_channels(emu);
+
 		hook_post(emu);
 
-		/* Read the next event if no virtual events exist */
-		if(emu->trace.ivirtual == emu->trace.nvirtual)
-			ovni_load_next_event(emu->cur_stream);
+		if(i >= 50000)
+		{
+			print_progress(emu);
+			i = 0;
+		}
+
+		emu->nev_processed++;
+
+		emu_step_stream(emu, emu->cur_stream);
 	}
+
+	print_progress(emu);
 }
 
 struct ovni_ethread *
 emu_get_thread(struct ovni_eproc *proc, int tid)
 {
-	int i;
+	size_t i;
 	struct ovni_ethread *thread;
 
 	for(i=0; i<proc->nthreads; i++)
@@ -359,7 +516,7 @@ add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
 	struct ovni_cpu *cpu;
 
 	/* The logical id must match our index */
-	assert(i == loom->ncpus);
+	assert((size_t) i == loom->ncpus);
 
 	cpu = &loom->cpu[i];
 
@@ -376,13 +533,13 @@ add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
 	loom->ncpus++;
 }
 
-void
+static void
 proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *proc)
 {
 	JSON_Array *cpuarray;
 	JSON_Object *cpu;
 	JSON_Object *meta;
-	int i, index, phyid;
+	size_t i, index, phyid;
 	struct ovni_cpu *vcpu;
 
 	meta = json_value_get_object(proc->meta);
@@ -421,14 +578,12 @@ proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *
 }
 
 /* Obtain CPUs in the metadata files and other data */
-static int
+static void
 load_metadata(struct ovni_emu *emu)
 {
-	int i, j, k, s;
+	size_t i, j;
 	struct ovni_loom *loom;
 	struct ovni_eproc *proc;
-	struct ovni_ethread *thread;
-	struct ovni_stream *stream;
 	struct ovni_trace *trace;
 
 	trace = &emu->trace;
@@ -449,18 +604,14 @@ load_metadata(struct ovni_emu *emu)
 		/* FIXME: The CPU list should be at the loom dir */
 		assert(loom->ncpus > 0);
 	}
-
-	return 0;
 }
 
 static int
 destroy_metadata(struct ovni_emu *emu)
 {
-	int i, j, k, s;
+	size_t i, j;
 	struct ovni_loom *loom;
 	struct ovni_eproc *proc;
-	struct ovni_ethread *thread;
-	struct ovni_stream *stream;
 	struct ovni_trace *trace;
 
 	trace = &emu->trace;
@@ -490,14 +641,22 @@ open_prvs(struct ovni_emu *emu, char *tracedir)
 	emu->prv_thread = fopen(path, "w");
 
 	if(emu->prv_thread == NULL)
-		abort();
+	{
+		err("error opening thread PRV file %s: %s\n", path,
+				strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
 	sprintf(path, "%s/%s", tracedir, "cpu.prv");
 
 	emu->prv_cpu = fopen(path, "w");
 
 	if(emu->prv_cpu == NULL)
-		abort();
+	{
+		err("error opening cpu PRV file %s: %s\n", path,
+				strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
 	prv_header(emu->prv_thread, emu->total_nthreads);
 	prv_header(emu->prv_cpu, emu->total_ncpus);
@@ -513,14 +672,22 @@ open_pcfs(struct ovni_emu *emu, char *tracedir)
 	emu->pcf_thread = fopen(path, "w");
 
 	if(emu->pcf_thread == NULL)
-		abort();
+	{
+		err("error opening thread PCF file %s: %s\n", path,
+				strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
 	sprintf(path, "%s/%s", tracedir, "cpu.pcf");
 
 	emu->pcf_cpu = fopen(path, "w");
 
 	if(emu->pcf_cpu == NULL)
-		abort();
+	{
+		err("error opening cpu PCF file %s: %s\n", path,
+				strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void
@@ -540,6 +707,9 @@ close_pcfs(struct ovni_emu *emu)
 static void
 usage(int argc, char *argv[])
 {
+	UNUSED(argc);
+	UNUSED(argv);
+
 	err("Usage: emu [-c offsetfile] tracedir\n");
 	err("\n");
 	err("Options:\n");
@@ -583,7 +753,7 @@ parse_args(struct ovni_emu *emu, int argc, char *argv[])
 static struct ovni_loom *
 find_loom_by_hostname(struct ovni_emu *emu, char *host)
 {
-	int i;
+	size_t i;
 	struct ovni_loom *loom;
 
 	for(i=0; i<emu->trace.nlooms; i++)
@@ -602,19 +772,22 @@ load_clock_offsets(struct ovni_emu *emu)
 {
 	FILE *f;
 	char buf[1024];
-	int i, rank, ret;
+	size_t i;
+	int rank, ret;
 	double offset, mean, std;
 	char host[OVNI_MAX_HOSTNAME];
 	struct ovni_loom *loom;
 	struct ovni_trace *trace;
 	struct ovni_stream *stream;
-	
+
 	f = fopen(emu->clock_offset_file, "r");
 
 	if(f == NULL)
 	{
-		perror("fopen clock offset file failed\n");
-		abort();
+		err("error opening clock offset file %s: %s\n",
+				emu->clock_offset_file,
+				strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 
 	/* Ignore header line */
@@ -652,7 +825,7 @@ load_clock_offsets(struct ovni_emu *emu)
 		if(loom == NULL)
 		{
 			err("No loom has hostname %s\n", host);
-			abort();
+			exit(EXIT_FAILURE);
 		}
 
 		if(loom->clock_offset != 0)
@@ -682,7 +855,7 @@ static void
 write_row_cpu(struct ovni_emu *emu)
 {
 	FILE *f;
-	int i, j;
+	size_t i;
 	char path[PATH_MAX];
 	struct ovni_cpu *cpu;
 
@@ -700,7 +873,7 @@ write_row_cpu(struct ovni_emu *emu)
 	fprintf(f, "hostname\n");
 	fprintf(f, "\n");
 
-	fprintf(f, "LEVEL THREAD SIZE %d\n", emu->total_ncpus);
+	fprintf(f, "LEVEL THREAD SIZE %ld\n", emu->total_ncpus);
 
 	for(i=0; i<emu->total_ncpus; i++)
 	{
@@ -715,7 +888,7 @@ static void
 write_row_thread(struct ovni_emu *emu)
 {
 	FILE *f;
-	int i, j;
+	size_t i;
 	char path[PATH_MAX];
 	struct ovni_ethread *th;
 
@@ -733,7 +906,7 @@ write_row_thread(struct ovni_emu *emu)
 	fprintf(f, "hostname\n");
 	fprintf(f, "\n");
 
-	fprintf(f, "LEVEL THREAD SIZE %d\n", emu->total_nthreads);
+	fprintf(f, "LEVEL THREAD SIZE %ld\n", emu->total_nthreads);
 
 	for(i=0; i<emu->total_nthreads; i++)
 	{
@@ -744,7 +917,7 @@ write_row_thread(struct ovni_emu *emu)
 	fclose(f);
 }
 
-static int
+static void
 emu_virtual_init(struct ovni_emu *emu)
 {
 	struct ovni_trace *trace;
@@ -762,8 +935,6 @@ emu_virtual_init(struct ovni_emu *emu)
 		perror("calloc");
 		exit(EXIT_FAILURE);
 	}
-
-	return 0;
 }
 
 void
@@ -798,7 +969,7 @@ init_threads(struct ovni_emu *emu)
 	struct ovni_loom *loom;
 	struct ovni_eproc *proc;
 	struct ovni_ethread *thread;
-	int i, j, k, gi;
+	size_t i, j, k, gi;
 
 	emu->total_nthreads = 0;
 
@@ -824,8 +995,8 @@ init_threads(struct ovni_emu *emu)
 
 	if(emu->global_thread == NULL)
 	{
-		perror("calloc");
-		abort();
+		perror("calloc failed");
+		exit(EXIT_FAILURE);
 	}
 
 	for(gi=0, i=0; i<trace->nlooms; i++)
@@ -850,7 +1021,7 @@ init_cpus(struct ovni_emu *emu)
 	struct ovni_trace *trace;
 	struct ovni_loom *loom;
 	struct ovni_cpu *cpu;
-	int i, j, gi;
+	size_t i, j;
 
 	trace = &emu->trace;
 
@@ -860,10 +1031,10 @@ init_cpus(struct ovni_emu *emu)
 	if(emu->global_cpu == NULL)
 	{
 		perror("calloc");
-		abort();
+		exit(EXIT_FAILURE);
 	}
 
-	for(gi=0, i=0; i<trace->nlooms; i++)
+	for(i=0; i<trace->nlooms; i++)
 	{
 		loom = &trace->loom[i];
 		for(j=0; j<loom->ncpus; j++)
@@ -871,18 +1042,20 @@ init_cpus(struct ovni_emu *emu)
 			cpu = &loom->cpu[j];
 			emu->global_cpu[cpu->gindex] = cpu;
 
-			if(snprintf(cpu->name, MAX_CPU_NAME, "CPU %d.%d",
+			if(snprintf(cpu->name, MAX_CPU_NAME, "CPU %ld.%ld",
 						i, j) >= MAX_CPU_NAME)
 			{
-				abort();
+				err("error cpu %ld.%ld name too long\n", i, j);
+				exit(EXIT_FAILURE);
 			}
 		}
 
 		emu->global_cpu[loom->vcpu.gindex] = &loom->vcpu;
-		if(snprintf(loom->vcpu.name, MAX_CPU_NAME, "CPU %d.*",
+		if(snprintf(loom->vcpu.name, MAX_CPU_NAME, "CPU %ld.*",
 					i) >= MAX_CPU_NAME)
 		{
-			abort();
+			err("error cpu %ld.* name too long\n", i);
+			exit(EXIT_FAILURE);
 		}
 	}
 }
@@ -895,16 +1068,20 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 	parse_args(emu, argc, argv);
 
 	if(ovni_load_trace(&emu->trace, emu->tracedir))
-		abort();
+	{
+		err("error loading ovni trace\n");
+		exit(EXIT_FAILURE);
+	}
 
-	if(emu_virtual_init(emu))
-		abort();
+	emu_virtual_init(emu);
 
 	if(ovni_load_streams(&emu->trace))
-		abort();
+	{
+		err("error loading streams\n");
+		exit(EXIT_FAILURE);
+	}
 
-	if(load_metadata(emu) != 0)
-		abort();
+	load_metadata(emu);
 
 	if(emu->clock_offset_file != NULL)
 		load_clock_offsets(emu);
@@ -915,7 +1092,10 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 	open_prvs(emu, emu->tracedir);
 	open_pcfs(emu, emu->tracedir);
 
-	err("loaded %d cpus and %d threads\n",
+	emu->global_size = 0;
+	emu->global_offset = 0;
+
+	err("loaded %ld cpus and %ld threads\n",
 			emu->total_ncpus,
 			emu->total_nthreads);
 }
@@ -944,7 +1124,7 @@ int
 main(int argc, char *argv[])
 {
 	struct ovni_emu *emu;
-       
+
 	emu = malloc(sizeof(struct ovni_emu));
 
 	if(emu == NULL)

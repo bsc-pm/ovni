@@ -291,32 +291,6 @@ thread_migrate_cpu(struct ovni_ethread *th, struct ovni_cpu *cpu)
 	chan_set(&th->chan[CHAN_OVNI_CPU], cpu->gindex + 1);
 }
 
-//static void
-//print_threads_state(struct ovni_loom *loom)
-//{
-//	struct ovni_cpu *cpu;
-//	size_t i, j;
-//
-//	for(i=0; i<loom->ncpus; i++)
-//	{
-//		cpu = &loom->cpu[i];
-//
-//		dbg("-- cpu %ld runs %lu threads:", i, cpu->nthreads);
-//		for(j=0; j<cpu->nthreads; j++)
-//		{
-//			dbg(" %ld", cpu->thread[j]->tid);
-//		}
-//		dbg("\n");
-//	}
-//
-//	dbg("-- vcpu runs %lu threads:", loom->vcpu.nthreads);
-//	for(j=0; j<loom->vcpu.nthreads; j++)
-//	{
-//		dbg(" %ld", loom->vcpu.thread[j]->tid);
-//	}
-//	dbg("\n");
-//}
-
 static void
 pre_thread_execute(struct ovni_emu *emu, struct ovni_ethread *th)
 {
@@ -449,14 +423,9 @@ pre_affinity_set(struct ovni_emu *emu)
 	/* Migrate current cpu to the one at cpuid */
 	newcpu = emu_get_cpu(emu->cur_loom, cpuid);
 
+	/* The CPU is already properly set, return */
 	if(th->cpu == newcpu)
-	{
-		/* No need to warn the user */
-		//err("warning: thread %d affinity already set to cpu %d\n",
-		//		th->tid,
-		//		th->cpu->gindex);
 		return;
-	}
 
 	cpu_migrate_thread(th->cpu, th, newcpu);
 	thread_migrate_cpu(th, newcpu);
@@ -585,6 +554,4 @@ hook_pre_ovni(struct ovni_emu *emu)
 					emu->cur_ev->header.category);
 			break;
 	}
-
-	//print_threads_state(emu);
 }

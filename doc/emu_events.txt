@@ -50,18 +50,14 @@ VU]	Ends the submission of a task
 VM[	Starts allocating memory
 VM]	Ends allocating memory
 
-VAs Enters nosv_submit()
-VAS Exits nosv_submit()
-
+VAs	Enters nosv_submit()
+VAS	Exits nosv_submit()
 VAp	Enters nosv_pause()
 VAP	Exits nosv_pause()
-
 VAy	Enters nosv_yield()
 VAY	Exits nosv_yield()
-
 VAw	Enters nosv_waitfor()
 VAW	Exits nosv_waitfor()
-
 VAc	Enters nosv_schedpoint()
 VAC	Exits nosv_schedpoint()
 

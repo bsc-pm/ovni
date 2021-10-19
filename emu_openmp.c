@@ -75,6 +75,7 @@ void
 hook_pre_openmp(struct ovni_emu *emu)
 {
 	assert(emu->cur_ev->header.model == 'M');
+	assert(emu->cur_thread->is_active);
 
 	switch(emu->cur_ev->header.category)
 	{

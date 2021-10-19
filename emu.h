@@ -38,7 +38,8 @@ enum nosv_task_state {
 	TASK_ST_DEAD,
 };
 
-enum cpu_st {
+enum error_values {
+	ST_BAD = 666,
 	ST_TOO_MANY_TH = 777,
 };
 
@@ -59,8 +60,6 @@ enum nosv_ss_values {
 	EV_NOSV_SCHED_RECV = 50,
 	EV_NOSV_SCHED_SEND = 51,
 	EV_NOSV_SCHED_SELF = 52,
-
-	ST_BAD = 666,
 };
 
 enum nosv_tampi_state {

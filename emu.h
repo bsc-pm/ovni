@@ -306,20 +306,15 @@ struct ovni_cpu {
 	/* CPU channels */
 	struct ovni_chan chan[CHAN_MAX];
 
-	size_t last_nthreads;
-
-	/* 1 if the cpu has updated is threads, 0 if not */
-	int updated;
-
-	/* The threads with affinity set to this CPU */
+	/* The threads assigned to this CPU */
 	size_t nthreads;
 	struct ovni_ethread *thread[OVNI_MAX_THR];
 
-	/* From the assigned threads, how many running */
+	/* Running threads */
 	size_t nrunning_threads;
 	struct ovni_ethread *th_running;
 
-	/* Number of assigned threads active */
+	/* Active threads (not paused or dead) */
 	size_t nactive_threads;
 	struct ovni_ethread *th_active;
 

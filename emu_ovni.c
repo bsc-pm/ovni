@@ -47,7 +47,7 @@ hook_init_ovni(struct ovni_emu *emu)
 
 		chan_cpu_init(cpu, ucpu, CHAN_OVNI_TID, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_OVNI_PID, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
-		chan_cpu_init(cpu, ucpu, CHAN_OVNI_NTHREADS, CHAN_TRACK_NONE,  row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_OVNI_NRTHREADS, CHAN_TRACK_NONE, row, prv_cpu, clock);
 
 		/* FIXME: Use extended initialization for CPUs too */
 		chan_enable(&cpu->chan[CHAN_OVNI_TID], 1);
@@ -56,8 +56,8 @@ hook_init_ovni(struct ovni_emu *emu)
 		chan_enable(&cpu->chan[CHAN_OVNI_PID], 1);
 		chan_set(&cpu->chan[CHAN_OVNI_PID], 0);
 
-		chan_enable(&cpu->chan[CHAN_OVNI_NTHREADS], 1);
-		chan_set(&cpu->chan[CHAN_OVNI_NTHREADS], 0);
+		chan_enable(&cpu->chan[CHAN_OVNI_NRTHREADS], 1);
+		chan_set(&cpu->chan[CHAN_OVNI_NRTHREADS], 0);
 	}
 }
 
@@ -166,8 +166,8 @@ update_cpu(struct ovni_cpu *cpu)
 
 	/* From the CPU channels we only need to manually update the number of
 	 * threads running in the CPU */
-	if(chan_get_st(&cpu->chan[CHAN_OVNI_NTHREADS]) != (int) cpu->nrunning_threads)
-		chan_set(&cpu->chan[CHAN_OVNI_NTHREADS], (int) cpu->nrunning_threads);
+	if(chan_get_st(&cpu->chan[CHAN_OVNI_NRTHREADS]) != (int) cpu->nrunning_threads)
+		chan_set(&cpu->chan[CHAN_OVNI_NRTHREADS], (int) cpu->nrunning_threads);
 
 	/* Update all tracking channels */
 	for(i=0; i<CHAN_MAX; i++)

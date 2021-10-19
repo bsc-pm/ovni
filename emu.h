@@ -111,7 +111,7 @@ enum chan_track {
 enum chan {
 	CHAN_OVNI_PID,
 	CHAN_OVNI_TID,
-	CHAN_OVNI_NTHREADS,
+	CHAN_OVNI_NRTHREADS,
 	CHAN_OVNI_STATE,
 	CHAN_OVNI_APPID,
 	CHAN_OVNI_CPU,
@@ -138,7 +138,7 @@ static const int chan_to_prvtype[CHAN_MAX][3] = {
 	/* Channel		TH  CPU */
 	{ CHAN_OVNI_PID,	10, 60 },
 	{ CHAN_OVNI_TID,	11, 61 },
-	{ CHAN_OVNI_NTHREADS,	-1, 62 },
+	{ CHAN_OVNI_NRTHREADS,	-1, 62 },
 	{ CHAN_OVNI_STATE,	13, -1 },
 	{ CHAN_OVNI_APPID,	14, 64 }, /* Not used */
 	{ CHAN_OVNI_CPU,	15, -1 },

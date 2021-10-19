@@ -132,14 +132,14 @@ struct event_type cpu_ovni_tid = {
 	ovni_tid_values
 };
 
-/* ---------------- CHAN_OVNI_NTHREADS ---------------- */
+/* ---------------- CHAN_OVNI_NRTHREADS ---------------- */
 
 struct event_value ovni_nthreads_values[] = {
 	{ -1, NULL },
 };
 
 struct event_type cpu_ovni_nthreads = {
-	0, chan_to_prvtype[CHAN_OVNI_NTHREADS][CHAN_CPU],
+	0, chan_to_prvtype[CHAN_OVNI_NRTHREADS][CHAN_CPU],
 	"CPU: Number of RUNNING threads",
 	ovni_nthreads_values
 };

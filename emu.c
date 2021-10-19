@@ -918,51 +918,6 @@ write_row_thread(struct ovni_emu *emu)
 }
 
 static void
-emu_virtual_init(struct ovni_emu *emu)
-{
-	struct ovni_trace *trace;
-
-	trace = &emu->trace;
-
-	trace->ivirtual = 0;
-	trace->nvirtual = 0;
-
-	trace->virtual_events = calloc(MAX_VIRTUAL_EVENTS,
-			sizeof(struct ovni_ev));
-
-	if(trace->virtual_events == NULL)
-	{
-		perror("calloc");
-		exit(EXIT_FAILURE);
-	}
-}
-
-void
-emu_virtual_ev(struct ovni_emu *emu, char *mcv)
-{
-	struct ovni_trace *trace;
-	struct ovni_ev *ev;
-
-	trace = &emu->trace;
-
-	if(trace->nvirtual >= MAX_VIRTUAL_EVENTS)
-	{
-		err("too many virtual events\n");
-		exit(EXIT_FAILURE);
-	}
-
-	ev = &trace->virtual_events[trace->nvirtual];
-
-	ev->header.flags = 0;
-	ev->header.model = mcv[0];
-	ev->header.category = mcv[1];
-	ev->header.value = mcv[2];
-	ev->header.clock = emu->cur_ev->header.clock;
-
-	trace->nvirtual++;
-}
-
-static void
 init_threads(struct ovni_emu *emu)
 {
 	struct ovni_trace *trace;
@@ -1072,8 +1027,6 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 		err("error loading ovni trace\n");
 		exit(EXIT_FAILURE);
 	}
-
-	emu_virtual_init(emu);
 
 	if(ovni_load_streams(&emu->trace))
 	{

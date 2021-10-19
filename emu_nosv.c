@@ -362,38 +362,17 @@ pre_api(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.value)
 	{
-		case 's':
-			chan_push(chan_th, ST_NOSV_API_SUBMIT);
-			break;
-		case 'S':
-			chan_pop(chan_th, ST_NOSV_API_SUBMIT);
-			break;
-		case 'p':
-			chan_push(chan_th, ST_NOSV_API_PAUSE);
-			break;
-		case 'P':
-			chan_pop(chan_th, ST_NOSV_API_PAUSE);
-			break;
-		case 'y':
-			chan_push(chan_th, ST_NOSV_API_YIELD);
-			break;
-		case 'Y':
-			chan_pop(chan_th, ST_NOSV_API_YIELD);
-			break;
-		case 'w':
-			chan_push(chan_th, ST_NOSV_API_WAITFOR);
-			break;
-		case 'W':
-			chan_pop(chan_th, ST_NOSV_API_WAITFOR);
-			break;
-		case 'c':
-			chan_push(chan_th, ST_NOSV_API_SCHEDPOINT);
-			break;
-		case 'C':
-			chan_pop(chan_th, ST_NOSV_API_SCHEDPOINT);
-			break;
-		default:
-			break;
+		case 's': chan_push(chan_th, ST_NOSV_API_SUBMIT); break;
+		case 'S': chan_pop (chan_th, ST_NOSV_API_SUBMIT); break;
+		case 'p': chan_push(chan_th, ST_NOSV_API_PAUSE); break;
+		case 'P': chan_pop (chan_th, ST_NOSV_API_PAUSE); break;
+		case 'y': chan_push(chan_th, ST_NOSV_API_YIELD); break;
+		case 'Y': chan_pop (chan_th, ST_NOSV_API_YIELD); break;
+		case 'w': chan_push(chan_th, ST_NOSV_API_WAITFOR); break;
+		case 'W': chan_pop (chan_th, ST_NOSV_API_WAITFOR); break;
+		case 'c': chan_push(chan_th, ST_NOSV_API_SCHEDPOINT); break;
+		case 'C': chan_pop (chan_th, ST_NOSV_API_SCHEDPOINT); break;
+		default: break;
 	}
 }
 

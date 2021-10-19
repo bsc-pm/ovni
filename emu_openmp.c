@@ -47,44 +47,27 @@ hook_init_openmp(struct ovni_emu *emu)
 
 /* --------------------------- pre ------------------------------- */
 
-
 static void
-pre_task(struct ovni_emu *emu)
+pre_mode(struct ovni_emu *emu, int st)
 {
 	struct ovni_ethread *th;
+	struct ovni_chan *chan;
 
 	th = emu->cur_thread;
+	chan = &th->chan[CHAN_OPENMP_MODE];
 
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_OPENMP_MODE], ST_OPENMP_TASK);
+			chan_push(chan, st);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_OPENMP_MODE], ST_OPENMP_TASK);
+			chan_pop(chan, st);
 			break;
 		default:
-			  abort();
-	}
-}
-
-static void
-pre_barrier(struct ovni_emu *emu)
-{
-	struct ovni_ethread *th;
-
-	th = emu->cur_thread;
-
-	switch(emu->cur_ev->header.value)
-	{
-		case '[':
-			chan_push(&th->chan[CHAN_OPENMP_MODE], ST_OPENMP_PARALLEL);
-			break;
-		case ']':
-			chan_pop(&th->chan[CHAN_OPENMP_MODE], ST_OPENMP_PARALLEL);
-			break;
-		default:
-			  abort();
+			err("unexpected value '%c' (expecting '[' or ']')\n",
+					emu->cur_ev->header.value);
+			abort();
 	}
 }
 
@@ -95,8 +78,8 @@ hook_pre_openmp(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.category)
 	{
-		case 'T': pre_task(emu); break;
-		case 'P': pre_barrier(emu); break;
+		case 'T': pre_mode(emu, ST_OPENMP_TASK); break;
+		case 'P': pre_mode(emu, ST_OPENMP_PARALLEL); break;
 		default:
 			break;
 	}

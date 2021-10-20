@@ -176,6 +176,27 @@ struct event_type thread_cpu_affinity = {
 	/* Ignored */ NULL
 };
 
+/* ---------------- CHAN_OVNI_FLUSH ---------------- */
+
+struct event_value ovni_flush_values[] = {
+	{ 0, "None" },
+	{ ST_OVNI_FLUSHING, "Flushing" },
+	{ ST_TOO_MANY_TH, "Unknown flushing state: Multiple threads running" },
+	{ -1, NULL },
+};
+
+struct event_type thread_ovni_flush = {
+	0, chan_to_prvtype[CHAN_OVNI_FLUSH][CHAN_TH],
+	"Thread: Flushing state of the CURRENT thread",
+	ovni_flush_values
+};
+
+struct event_type cpu_ovni_flush = {
+	0, chan_to_prvtype[CHAN_OVNI_FLUSH][CHAN_CPU],
+	"CPU: Flusing state of the RUNNING thread",
+	ovni_flush_values
+};
+
 /* ---------------- CHAN_NOSV_TASKID  ---------------- */
 
 struct event_value nosv_taskid_values[] = {
@@ -402,6 +423,7 @@ write_events(FILE *f, struct ovni_emu *emu)
 	/* thread_ovni_nthreads not needed */
 	write_event_type(f, &thread_ovni_state);
 	/* thread_ovni_appid not needed */
+	write_event_type(f, &thread_ovni_flush);
 	write_event_type(f, &thread_nosv_taskid);
 	write_event_type(f, &thread_nosv_typeid);
 	write_event_type(f, &thread_nosv_appid);
@@ -416,6 +438,7 @@ write_events(FILE *f, struct ovni_emu *emu)
 	/* cpu_ovni_state not needed */
 	/* cpu_ovni_appid not needed */
 	/* cpu_ovni_cpu not needed */
+	write_event_type(f, &cpu_ovni_flush);
 	write_event_type(f, &cpu_nosv_taskid);
 	write_event_type(f, &cpu_nosv_typeid);
 	write_event_type(f, &cpu_nosv_appid);

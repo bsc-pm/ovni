@@ -38,6 +38,10 @@ enum nosv_task_state {
 	TASK_ST_DEAD,
 };
 
+enum ovni_state {
+	ST_OVNI_FLUSHING = 1,
+};
+
 enum error_values {
 	ST_BAD = 666,
 	ST_TOO_MANY_TH = 777,
@@ -115,6 +119,7 @@ enum chan {
 	CHAN_OVNI_STATE,
 	CHAN_OVNI_APPID,
 	CHAN_OVNI_CPU,
+	CHAN_OVNI_FLUSH,
 
 	CHAN_NOSV_TASKID,
 	CHAN_NOSV_TYPEID,
@@ -142,6 +147,7 @@ static const int chan_to_prvtype[CHAN_MAX][3] = {
 	{ CHAN_OVNI_STATE,	13, -1 },
 	{ CHAN_OVNI_APPID,	14, 64 }, /* Not used */
 	{ CHAN_OVNI_CPU,	15, -1 },
+	{ CHAN_OVNI_FLUSH,	16, 66 },
 
 	{ CHAN_NOSV_TASKID,	20, 70 },
 	{ CHAN_NOSV_TYPEID,	21, 71 },

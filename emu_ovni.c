@@ -36,6 +36,7 @@ hook_init_ovni(struct ovni_emu *emu)
 		chan_th_init(th, uth, CHAN_OVNI_PID,   CHAN_TRACK_TH_RUNNING, th->proc->pid, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_OVNI_CPU,   CHAN_TRACK_NONE,       -1,            0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_OVNI_STATE, CHAN_TRACK_NONE,       TH_ST_UNKNOWN, 1, 1, row, prv_th, clock);
+		chan_th_init(th, uth, CHAN_OVNI_FLUSH, CHAN_TRACK_NONE,       ST_NULL,       1, 1, row, prv_th, clock);
 	}
 
 	/* Init the ovni channels in all cpus */
@@ -48,6 +49,7 @@ hook_init_ovni(struct ovni_emu *emu)
 		chan_cpu_init(cpu, ucpu, CHAN_OVNI_TID, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_OVNI_PID, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_OVNI_NRTHREADS, CHAN_TRACK_NONE, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_OVNI_FLUSH, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
 
 		/* FIXME: Use extended initialization for CPUs too */
 		chan_enable(&cpu->chan[CHAN_OVNI_TID], 1);
@@ -536,6 +538,30 @@ pre_burst(struct ovni_emu *emu)
 	th->nbursts++;
 }
 
+static void
+pre_flush(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_OVNI_FLUSH];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case '[':
+			chan_push(chan_th, ST_OVNI_FLUSHING);
+			break;
+		case ']':
+			chan_pop(chan_th, ST_OVNI_FLUSHING);
+			break;
+		default:
+			err("unexpected value '%c' (expecting '[' or ']')\n",
+					emu->cur_ev->header.value);
+			abort();
+	}
+}
+
 void
 hook_pre_ovni(struct ovni_emu *emu)
 {
@@ -549,6 +575,7 @@ hook_pre_ovni(struct ovni_emu *emu)
 		case 'H': pre_thread(emu); break;
 		case 'A': pre_affinity(emu); break;
 		case 'B': pre_burst(emu); break;
+		case 'F': pre_flush(emu); break;
 		default:
 			dbg("unknown ovni event category %c\n",
 					emu->cur_ev->header.category);

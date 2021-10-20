@@ -41,9 +41,6 @@ create_trace_dirs(char *tracedir, char *loom, int proc)
 {
 	char path[PATH_MAX];
 
-	fprintf(stderr, "create trace dirs for loom=%s, proc=%d\n",
-			loom, proc);
-
 	snprintf(path, PATH_MAX, "%s", tracedir);
 
 	/* May fail if another loom created the directory already */
@@ -70,9 +67,6 @@ static int
 create_trace_stream(void)
 {
 	char path[PATH_MAX];
-
-	fprintf(stderr, "create thread stream tid=%d gettid=%d rproc.proc=%d rproc.ready=%d\n",
-			rthread.tid, gettid(), rproc.proc, rproc.ready);
 
 	if(snprintf(path, PATH_MAX, "%s/thread.%d", rproc.dir, rthread.tid)
 			>= PATH_MAX)
@@ -247,8 +241,6 @@ ovni_thread_init(pid_t tid)
 	assert(rthread.tid == 0);
 	assert(rthread.cpu == 0);
 	assert(rproc.ready == 1);
-
-	fprintf(stderr, "ovni thread init tid=%d\n", tid);
 
 	memset(&rthread, 0, sizeof(rthread));
 

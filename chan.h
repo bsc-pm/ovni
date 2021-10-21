@@ -4,7 +4,13 @@
 #include "emu.h"
 
 void
-chan_init(struct ovni_chan *chan, int row, int type, FILE *prv, int64_t *clock);
+chan_init(struct ovni_chan *chan, int track, int row, int type, FILE *prv, int64_t *clock);
+
+void
+chan_th_init(struct ovni_ethread *th, int chan_index, int track, int row, FILE *prv, int64_t *clock);
+
+void
+chan_cpu_init(struct ovni_cpu *cpu, int chan_index, int track, int row, FILE *prv, int64_t *clock);
 
 void
 chan_enable(struct ovni_chan *chan, int enabled);

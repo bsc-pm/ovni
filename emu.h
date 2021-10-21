@@ -66,6 +66,11 @@ struct nosv_task_type {
 
 #define MAX_CHAN_STACK 128
 
+enum chan_track {
+	CHAN_TRACK_NONE = 0,
+	CHAN_TRACK_TH_RUNNING,
+};
+
 struct ovni_chan {
 	/* Number of states in the stack */
 	int n;

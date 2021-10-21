@@ -67,8 +67,9 @@ chan_cpu_init(struct ovni_cpu *cpu,
 		struct ovni_chan **update_list,
 		enum chan id,
 		int track,
-//		int init_st,
-//		int enabled,
+		int init_st,
+		int enabled,
+		int dirty,
 		int row,
 		FILE *prv,
 		int64_t *clock)
@@ -79,11 +80,16 @@ chan_cpu_init(struct ovni_cpu *cpu,
 	chan = &cpu->chan[id];
 	assert(chan_to_prvtype[id][0] == (int) id);
 	prvcpu = chan_to_prvtype[id][2];
+
+	chan_init(chan, track, row, prvcpu, prv, clock);
+
 	chan->id = id;
 	chan->cpu = cpu;
 	chan->update_list = update_list;
-
-	chan_init(chan, track, row, prvcpu, prv, clock);
+	chan->enabled = enabled;
+	chan->stack[chan->n++] = init_st;
+	if(dirty)
+		mark_dirty(chan);
 }
 
 static void

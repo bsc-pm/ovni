@@ -41,7 +41,7 @@ hook_init_openmp(struct ovni_emu *emu)
 		row = cpu->gindex + 1;
 		ucpu = &emu->cpu_chan;
 
-		chan_cpu_init(cpu, ucpu, CHAN_OPENMP_MODE, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_OPENMP_MODE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 	}
 }
 

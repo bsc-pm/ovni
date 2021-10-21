@@ -16,7 +16,16 @@ chan_th_init(struct ovni_ethread *th,
 		int64_t *clock);
 
 void
-chan_cpu_init(struct ovni_cpu *cpu, struct ovni_chan **update_list, enum chan id, int track, int row, FILE *prv, int64_t *clock);
+chan_cpu_init(struct ovni_cpu *cpu,
+		struct ovni_chan **update_list,
+		enum chan id,
+		int track,
+		int row,
+		int init_st,
+		int enabled,
+		int dirty,
+		FILE *prv,
+		int64_t *clock);
 
 void
 chan_enable(struct ovni_chan *chan, int enabled);

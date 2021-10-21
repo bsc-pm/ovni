@@ -75,7 +75,11 @@ create_trace_stream()
 	fprintf(stderr, "create thread stream tid=%d gettid=%d rproc.proc=%d rproc.ready=%d\n",
 			rthread.tid, gettid(), rproc.proc, rproc.ready);
 
-	snprintf(path, PATH_MAX, "%s/thread.%d", rproc.dir, rthread.tid);
+	if(snprintf(path, PATH_MAX, "%s/thread.%d", rproc.dir, rthread.tid)
+			>= PATH_MAX)
+	{
+		abort();
+	}
 
 	//rthread.streamfd = open(path, O_WRONLY | O_CREAT | O_DSYNC, 0644);
 	rthread.streamfd = open(path, O_WRONLY | O_CREAT, 0644);
@@ -110,7 +114,8 @@ proc_metadata_store(struct ovni_rproc *proc)
 {
 	char path[PATH_MAX];
        
-	snprintf(path, PATH_MAX, "%s/metadata.json", proc->dir);
+	if(snprintf(path, PATH_MAX, "%s/metadata.json", proc->dir) >= PATH_MAX)
+		abort();
 
 	assert(proc->meta != NULL);
 

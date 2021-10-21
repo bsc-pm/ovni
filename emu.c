@@ -79,13 +79,74 @@ find_thread(struct ovni_eproc *proc, pid_t tid)
 static void
 emit_channels(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	int i;
+	struct ovni_cpu *cpu;
+	struct ovni_chan *chan_cpu, *chan_th;
+	struct ovni_ethread *th, *last_th;
+	int i, j, k, nrunning, st;
 
-	th = emu->cur_thread;
-
+	/* Compute the CPU derived channels from the threads */
 	for(i=0; i<CHAN_MAX; i++)
-		chan_emit(&th->chan[i]);
+	{
+		for(j=0; j<emu->total_ncpus; j++)
+		{
+			cpu = emu->global_cpu[j];
+			chan_cpu = &cpu->chan[i];
+
+			if(chan_cpu->track != CHAN_TRACK_TH_RUNNING)
+			{
+				//dbg("cpu chan %d not tracking threads\n", i);
+				break;
+			}
+
+			/* Count running threads */
+			for(k=0, nrunning=0; k<cpu->nthreads; k++)
+			{
+				th = cpu->thread[k];
+				if(th->state == TH_ST_RUNNING)
+				{
+					last_th = th;
+					nrunning++;
+				}
+			}
+
+			if(nrunning == 0)
+			{
+				//dbg("cpu chan %d disabled: no running threads\n", i);
+				if(chan_is_enabled(chan_cpu))
+					chan_enable(chan_cpu, 0);
+			}
+			else if(nrunning > 1)
+			{
+				//dbg("cpu chan %d bad: multiple threads\n", i);
+				if(!chan_is_enabled(chan_cpu))
+					chan_enable(chan_cpu, 1);
+				chan_set(chan_cpu, -1);
+			}
+			else
+			{
+				chan_th = &th->chan[i];
+
+				//dbg("cpu chan %d good: one thread\n", i);
+				if(!chan_is_enabled(chan_cpu))
+					chan_enable(chan_cpu, 1);
+				if(chan_is_enabled(chan_th))
+					chan_set(chan_cpu, chan_get_st(&last_th->chan[i]));
+				else
+					chan_set(chan_cpu, ST_BAD);
+			}
+		}
+	}
+
+	/* Emit only the channels that have been updated. We need a list
+	 * of updated channels */
+	for(i=0; i<emu->total_nthreads; i++)
+		for(j=0; j<CHAN_MAX; j++)
+			chan_emit(&emu->global_thread[i]->chan[j]);
+
+	for(i=0; i<emu->total_ncpus; i++)
+		for(j=0; j<CHAN_MAX; j++)
+			chan_emit(&emu->global_cpu[i]->chan[j]);
+
 }
 
 static void

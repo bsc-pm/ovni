@@ -649,6 +649,39 @@ write_row_cpu(struct ovni_emu *emu)
 	fclose(f);
 }
 
+static void
+write_row_thread(struct ovni_emu *emu)
+{
+	FILE *f;
+	int i, j;
+	char path[PATH_MAX];
+	struct ovni_ethread *th;
+
+	sprintf(path, "%s/%s", emu->tracedir, "thread.row");
+
+	f = fopen(path, "w");
+
+	if(f == NULL)
+	{
+		perror("cannot open row file");
+		exit(EXIT_FAILURE);
+	}
+
+	fprintf(f, "LEVEL NODE SIZE 1\n");
+	fprintf(f, "hostname\n");
+	fprintf(f, "\n");
+
+	fprintf(f, "LEVEL THREAD SIZE %d\n", emu->total_nthreads);
+
+	for(i=0; i<emu->total_nthreads; i++)
+	{
+		th = emu->global_thread[i];
+		fprintf(f, "THREAD %d.%d\n", th->proc->appid, th->tid);
+	}
+
+	fclose(f);
+}
+
 static int
 emu_virtual_init(struct ovni_emu *emu)
 {
@@ -822,6 +855,7 @@ emu_post(struct ovni_emu *emu)
 	pcf_write(emu->pcf_cpu);
 
 	write_row_cpu(emu);
+	write_row_thread(emu);
 }
 
 static void

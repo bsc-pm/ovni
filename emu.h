@@ -242,6 +242,9 @@ struct ovni_cpu {
 
 	enum ovni_cpu_state state;
 
+	/* CPU channels */
+	struct ovni_chan chan[CHAN_MAX];
+
 	size_t last_nthreads;
 
 	/* 1 if the cpu has updated is threads, 0 if not */

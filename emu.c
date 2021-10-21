@@ -40,7 +40,7 @@ emit_ev(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	delta = clock - stream->lastclock;
 
-	dbg("%d.%d.%d %c %c %c % 20ld % 15ld ",
+	dbg(">>> %d.%d.%d %c %c %c % 20ld % 15ld ",
 			stream->loom, stream->proc, stream->tid,
 			ev->header.model, ev->header.class, ev->header.value, clock, delta);
 

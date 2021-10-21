@@ -150,6 +150,13 @@ emit_channels(struct ovni_emu *emu)
 }
 
 static void
+hook_init(struct ovni_emu *emu)
+{
+	hook_init_ovni(emu);
+	hook_init_nosv(emu);
+}
+
+static void
 hook_pre(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
@@ -159,9 +166,6 @@ hook_pre(struct ovni_emu *emu)
 		case 'O': hook_pre_ovni(emu);
 			  break;
 		case 'V': hook_pre_nosv(emu);
-			  break;
-		case '*': hook_pre_nosv(emu);
-			  hook_pre_ovni(emu);
 			  break;
 		default:
 			break;
@@ -177,13 +181,6 @@ hook_emit(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.model)
 	{
-		case 'O': hook_emit_ovni(emu);
-			  break;
-		case 'V': hook_emit_nosv(emu);
-			  break;
-		case '*': hook_emit_nosv(emu);
-			  hook_emit_ovni(emu);
-			  break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;
@@ -197,13 +194,6 @@ hook_post(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.model)
 	{
-		case 'O': hook_post_ovni(emu);
-			  break;
-		case 'V': hook_post_nosv(emu);
-			  break;
-		case '*': hook_post_nosv(emu);
-			  hook_post_ovni(emu);
-			  break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
 			  break;
@@ -314,6 +304,8 @@ emulate(struct ovni_emu *emu)
 
 
 	emu->lastclock = 0;
+
+	hook_init(emu);
 
 	/* Then process all events */
 	while(next_event(emu) == 0)

@@ -13,6 +13,30 @@
  * execution. Events such as task received by a thread are emitted as
  * fake events with very short period. */
 
+/* --------------------------- init ------------------------------- */
+
+void
+hook_init_nosv_ss(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	int i, row, type, track;
+	FILE *prv;
+	int64_t *clock;
+
+	clock = &emu->delta_time;
+	prv = emu->prv_thread;
+	track = CHAN_TRACK_TH_RUNNING;
+
+	/* Init the channels in all threads */
+	for(i=0; i<emu->total_nthreads; i++)
+	{
+		th = emu->global_thread[i];
+		row = th->gindex + 1;
+
+		chan_th_init(th, CHAN_NOSV_SUBSYSTEM, track, row, prv, clock);
+	}
+}
+
 /* --------------------------- pre ------------------------------- */
 
 static void
@@ -22,7 +46,7 @@ pre_sched(struct ovni_emu *emu)
 	struct ovni_chan *chan;
 
 	th = emu->cur_thread;
-	chan = &th->chan[CHAN_NOSV_SS];
+	chan = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	switch(emu->cur_ev->header.value)
 	{
@@ -53,7 +77,7 @@ pre_submit(struct ovni_emu *emu)
 	struct ovni_chan *chan;
 
 	th = emu->cur_thread;
-	chan = &th->chan[CHAN_NOSV_SS];
+	chan = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	switch(emu->cur_ev->header.value)
 	{
@@ -71,7 +95,7 @@ pre_memory(struct ovni_emu *emu)
 	struct ovni_chan *chan;
 
 	th = emu->cur_thread;
-	chan = &th->chan[CHAN_NOSV_SS];
+	chan = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	switch(emu->cur_ev->header.value)
 	{
@@ -107,7 +131,7 @@ hook_emit_nosv_ss(struct ovni_emu *emu)
 
 	th = emu->cur_thread;
 
-	chan_emit(&th->chan[CHAN_NOSV_SS]);
+	chan_emit(&th->chan[CHAN_NOSV_SUBSYSTEM]);
 }
 
 /* --------------------------- post ------------------------------- */

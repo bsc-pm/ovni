@@ -353,14 +353,17 @@ struct ovni_emu {
 
 void emu_emit(struct ovni_emu *emu);
 
+void hook_init_ovni(struct ovni_emu *emu);
 void hook_pre_ovni(struct ovni_emu *emu);
 void hook_emit_ovni(struct ovni_emu *emu);
 void hook_post_ovni(struct ovni_emu *emu);
 
+void hook_init_nosv(struct ovni_emu *emu);
 void hook_pre_nosv(struct ovni_emu *emu);
 void hook_emit_nosv(struct ovni_emu *emu);
 void hook_post_nosv(struct ovni_emu *emu);
 
+void hook_init_nosv_ss(struct ovni_emu *emu);
 void hook_pre_nosv_ss(struct ovni_emu *emu);
 void hook_emit_nosv_ss(struct ovni_emu *emu);
 void hook_post_nosv_ss(struct ovni_emu *emu);

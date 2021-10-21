@@ -7,34 +7,53 @@
 #include "prv.h"
 #include "chan.h"
 
-enum nosv_prv_type {
-	PRV_TYPE_PROCID
-};
-
-struct hook_entry {
-	char id[4];
-	void (*hook)(struct ovni_emu *);
-};
-
 /* --------------------------- init ------------------------------- */
 
 void
-hook_nosv_init(struct ovni_emu *emu)
+hook_init_nosv(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
+	struct ovni_cpu *cpu;
+	struct ovni_trace *trace;
 	int i, row, type;
-	FILE *prv;
+	FILE *prv_th, *prv_cpu;
 	int64_t *clock;
 
+	clock = &emu->delta_time;
+	prv_th = emu->prv_thread;
+	prv_cpu = emu->prv_cpu;
+	trace = &emu->trace;
+
+	/* Init the channels in all threads */
 	for(i=0; i<emu->total_nthreads; i++)
 	{
 		th = emu->global_thread[i];
 		row = th->gindex + 1;
 
-		//chan_init(struct ovni_chan *chan, int row, int type, FILE *prv, int64_t *clock)
+		chan_th_init(th, CHAN_NOSV_TASKID, CHAN_TRACK_TH_RUNNING, row, prv_th, clock);
+		chan_enable(&th->chan[CHAN_NOSV_TASKID], 1);
+		chan_set(&th->chan[CHAN_NOSV_TASKID], 0);
+		chan_enable(&th->chan[CHAN_NOSV_TASKID], 0);
 
-		chan_init(th->chan[CHAN_NOSV_TASK_ID], row, PTT_TASK_ID, prv,
-				clock);
+		chan_th_init(th, CHAN_NOSV_TYPEID, CHAN_TRACK_TH_RUNNING, row, prv_th, clock);
+		chan_th_init(th, CHAN_NOSV_APPID, CHAN_TRACK_TH_RUNNING, row, prv_th, clock);
+		chan_th_init(th, CHAN_NOSV_SUBSYSTEM, CHAN_TRACK_TH_RUNNING, row, prv_th, clock);
+	}
+
+	/* Init the nosv channels in all cpus */
+	for(i=0; i<emu->total_ncpus; i++)
+	{
+		cpu = emu->global_cpu[i];
+		row = cpu->gindex + 1;
+
+		chan_cpu_init(cpu, CHAN_NOSV_TASKID, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
+		chan_enable(&cpu->chan[CHAN_NOSV_TASKID], 1);
+		chan_set(&cpu->chan[CHAN_NOSV_TASKID], 0);
+		chan_enable(&cpu->chan[CHAN_NOSV_TASKID], 0);
+
+		chan_cpu_init(cpu, CHAN_NOSV_TYPEID, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
+		chan_cpu_init(cpu, CHAN_NOSV_APPID, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
+		chan_cpu_init(cpu, CHAN_NOSV_SUBSYSTEM, CHAN_TRACK_TH_RUNNING, row, prv_cpu, clock);
 	}
 }
 
@@ -170,9 +189,38 @@ pre_task_end(struct ovni_emu *emu)
 }
 
 static void
+pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
+{
+	struct ovni_ethread *th;
+	struct ovni_eproc *proc;
+
+	th = emu->cur_thread;
+	proc = emu->cur_proc;
+
+	chan_set(&th->chan[CHAN_NOSV_TASKID], task->id + 1);
+	chan_set(&th->chan[CHAN_NOSV_TYPEID], task->type_id + 1);
+	chan_set(&th->chan[CHAN_NOSV_APPID], proc->appid + 1);
+}
+
+static void
+pre_task_not_running(struct ovni_emu *emu, struct nosv_task *task)
+{
+	struct ovni_ethread *th;
+
+	th = emu->cur_thread;
+
+	chan_set(&th->chan[CHAN_NOSV_TASKID], 0);
+	chan_set(&th->chan[CHAN_NOSV_TYPEID], 0);
+	chan_set(&th->chan[CHAN_NOSV_APPID], 0);
+}
+
+static void
 pre_task(struct ovni_emu *emu)
 {
-	emu_emit(emu);
+	struct nosv_task *task;
+
+	task = emu->cur_task;
+
 	switch(emu->cur_ev->header.value)
 	{
 		case 'c': pre_task_create(emu); break;
@@ -181,8 +229,22 @@ pre_task(struct ovni_emu *emu)
 		case 'p': pre_task_pause(emu); break;
 		case 'r': pre_task_resume(emu); break;
 		default:
-			  emu->cur_task = NULL;
-			  break;
+			  abort();
+	}
+
+	switch(emu->cur_ev->header.value)
+	{
+		case 'x':
+		case 'r':
+			pre_task_running(emu, task);
+			break;
+		case 'p':
+		case 'e':
+			pre_task_not_running(emu, task);
+			break;
+		case 'c':
+		default:
+			break;
 	}
 }
 
@@ -243,89 +305,100 @@ pre_type(struct ovni_emu *emu)
 	}
 }
 
-void
-hook_pre_nosv(struct ovni_emu *emu)
-{
-	switch(emu->cur_ev->header.model)
-	{
-		/* Only listen for nosv events */
-		case 'V':
-			switch(emu->cur_ev->header.class)
-			{
-				case 'T': pre_task(emu); break;
-				case 'Y': pre_type(emu); break;
-				default:
-					break;
-			}
-			break;
-		default:
-			break;
-	}
-
-	hook_pre_nosv_ss(emu);
-}
-
-/* --------------------------- emit ------------------------------- */
-
 static void
-emit_task_running(struct ovni_emu *emu, struct nosv_task *task)
+pre_sched(struct ovni_emu *emu)
 {
-	prv_ev_autocpu(emu, PTC_TASK_ID, task->id + 1);
-	prv_ev_autocpu(emu, PTC_TASK_TYPE_ID, task->type_id + 1);
-	prv_ev_autocpu(emu, PTC_APP_ID, emu->cur_proc->appid + 1);
-}
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
 
-static void
-emit_task_not_running(struct ovni_emu *emu, struct nosv_task *task)
-{
-	prv_ev_autocpu(emu, PTC_TASK_ID, 0);
-	prv_ev_autocpu(emu, PTC_TASK_TYPE_ID, 0);
-	prv_ev_autocpu(emu, PTC_APP_ID, 0);
-}
-
-static void
-emit_task(struct ovni_emu *emu)
-{
-	struct nosv_task *task;
-
-	task = emu->cur_task;
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	switch(emu->cur_ev->header.value)
 	{
-		case 'x':
+		case 'h':
+			chan_push(chan_th, ST_SCHED_HUNGRY);
+			break;
+		case 'f': /* Fill: no longer hungry */
+			chan_pop(chan_th, ST_SCHED_HUNGRY);
+			break;
+		case '[': /* Server enter */
+			chan_push(chan_th, ST_SCHED_SERVING);
+			break;
+		case ']': /* Server exit */
+			chan_pop(chan_th, ST_SCHED_SERVING);
+			break;
+		case '@':
+			chan_ev(chan_th, EV_SCHED_SELF);
+			break;
 		case 'r':
-			emit_task_running(emu, task);
+			chan_ev(chan_th, EV_SCHED_RECV);
 			break;
-		case 'p':
-		case 'e':
-			emit_task_not_running(emu, task);
+		case 's':
+			chan_ev(chan_th, EV_SCHED_SEND);
 			break;
-		case 'c':
 		default:
 			break;
 	}
 }
 
-void
-hook_emit_nosv(struct ovni_emu *emu)
+static void
+pre_submit(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
-	int i;
+	struct ovni_chan *chan_th;
 
 	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case '[':
+			chan_push(chan_th, ST_SCHED_SUBMITTING);
+			break;
+		case ']':
+			chan_pop(chan_th, ST_SCHED_SUBMITTING);
+			break;
+		default:
+			  break;
+	}
+}
+
+static void
+pre_memory(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case '[': 
+			chan_push(chan_th, ST_MEM_ALLOCATING);
+			break;
+		case ']':
+			chan_pop(chan_th, ST_MEM_ALLOCATING);
+			break;
+		default:
+			  break;
+	}
+}
+
+void
+hook_pre_nosv(struct ovni_emu *emu)
+{
+	assert(emu->cur_ev->header.model == 'V');
 
 	switch(emu->cur_ev->header.class)
 	{
-		case 'T': emit_task(emu); break;
+		case 'T': pre_task(emu); break;
+		case 'Y': pre_type(emu); break;
+		case 'S': pre_sched(emu); break;
+		case 'U': pre_submit(emu); break;
+		case 'M': pre_memory(emu); break;
 		default:
 			break;
 	}
-
-	hook_emit_nosv_ss(emu);
-}
-
-void
-hook_post_nosv(struct ovni_emu *emu)
-{
-	hook_post_nosv_ss(emu);
 }

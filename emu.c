@@ -288,17 +288,21 @@ emu_get_thread(struct ovni_eproc *proc, int tid)
 static void
 add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
 {
+	struct ovni_cpu *cpu;
+
 	/* The logical id must match our index */
 	assert(i == loom->ncpus);
 
-	assert(loom->cpu[i].state == CPU_ST_UNKNOWN);
+	cpu = &loom->cpu[i];
 
-	loom->cpu[loom->ncpus].state = CPU_ST_READY;
-	loom->cpu[loom->ncpus].i = i;
-	loom->cpu[loom->ncpus].phyid = phyid;
-	loom->cpu[loom->ncpus].gindex = emu->total_cpus++;
+	assert(cpu->state == CPU_ST_UNKNOWN);
 
-	dbg("new cpu %d at phyid=%d\n", i, phyid);
+	cpu->state = CPU_ST_READY;
+	cpu->i = i;
+	cpu->phyid = phyid;
+	cpu->gindex = emu->total_ncpus++;
+
+	dbg("new cpu %d at phyid=%d\n", cpu->gindex, phyid);
 
 	loom->ncpus++;
 }
@@ -310,6 +314,7 @@ proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *
 	JSON_Object *cpu;
 	JSON_Object *meta;
 	int i, index, phyid;
+	struct ovni_cpu *vcpu;
 
 	meta = json_value_get_object(proc->meta);
 
@@ -332,6 +337,17 @@ proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *
 
 		add_new_cpu(emu, loom, index, phyid);
 	}
+
+	/* Init the vcpu as well */
+	vcpu = &loom->vcpu;
+	assert(vcpu->state == CPU_ST_UNKNOWN);
+
+	vcpu->state = CPU_ST_READY;
+	vcpu->i = -1;
+	vcpu->phyid = -1;
+	vcpu->gindex = emu->total_ncpus++;
+
+	dbg("new vcpu %d\n", vcpu->gindex);
 }
 
 /* Obtain CPUs in the metadata files and other data */
@@ -350,7 +366,7 @@ load_metadata(struct ovni_emu *emu)
 	for(i=0; i<trace->nlooms; i++)
 	{
 		loom = &trace->loom[i];
-		loom->offset_ncpus = emu->total_cpus;
+		loom->offset_ncpus = emu->total_ncpus;
 
 		for(j=0; j<loom->nprocs; j++)
 		{
@@ -413,8 +429,8 @@ open_prvs(struct ovni_emu *emu, char *tracedir)
 	if(emu->prv_cpu == NULL)
 		abort();
 
-	prv_header(emu->prv_thread, emu->trace.nstreams);
-	prv_header(emu->prv_cpu, emu->total_cpus + 1);
+	prv_header(emu->prv_thread, emu->total_nthreads);
+	prv_header(emu->prv_cpu, emu->total_ncpus);
 }
 
 static void
@@ -615,9 +631,9 @@ write_row_cpu(struct ovni_emu *emu)
 	fprintf(f, "hostname\n");
 	fprintf(f, "\n");
 
-	/* Add an extra row for the virtual CPU */
-	fprintf(f, "LEVEL THREAD SIZE %d\n", emu->total_cpus + 1);
+	fprintf(f, "LEVEL THREAD SIZE %d\n", emu->total_ncpus);
 
+	/* TODO: Use a cpu name per CPU */
 	for(i=0; i<emu->trace.nlooms; i++)
 	{
 		loom = &emu->trace.loom[i];
@@ -681,26 +697,17 @@ emu_virtual_ev(struct ovni_emu *emu, char *mcv)
 }
 
 static void
-init_thread(struct ovni_emu *emu, struct ovni_ethread *th)
-{
-	int i, row;
-
-	row = th->gindex + 1;
-
-	for(i=0; i<CHAN_MAX; i++)
-	{
-		chan_init(&th->chan[i], row, type, emu->prv_thread,
-				&emu->delta_clock);
-	}
-}
-
-static void
 init_threads(struct ovni_emu *emu)
 {
+	struct ovni_trace *trace;
 	struct ovni_loom *loom;
 	struct ovni_eproc *proc;
 	struct ovni_ethread *thread;
-	int i, j, k;
+	int i, j, k, gi;
+
+	emu->total_nthreads = 0;
+
+	trace = &emu->trace;
 
 	for(i=0; i<trace->nlooms; i++)
 	{
@@ -712,9 +719,65 @@ init_threads(struct ovni_emu *emu)
 			{
 				thread = &proc->thread[k];
 
-				init_thread(emu, thread);
+				emu->total_nthreads++;
 			}
 		}
+	}
+
+	emu->global_thread = calloc(emu->total_nthreads,
+			sizeof(*emu->global_thread));
+
+	if(emu->global_thread == NULL)
+	{
+		perror("calloc");
+		abort();
+	}
+
+	for(gi=0, i=0; i<trace->nlooms; i++)
+	{
+		loom = &trace->loom[i];
+		for(j=0; j<loom->nprocs; j++)
+		{
+			proc = &loom->proc[j];
+			for(k=0; k<proc->nthreads; k++)
+			{
+				thread = &proc->thread[k];
+
+				emu->global_thread[gi++] = thread;
+			}
+		}
+	}
+}
+
+static void
+init_cpus(struct ovni_emu *emu)
+{
+	struct ovni_trace *trace;
+	struct ovni_loom *loom;
+	struct ovni_cpu *cpu;
+	int i, j, gi;
+
+	trace = &emu->trace;
+
+	emu->global_cpu = calloc(emu->total_ncpus,
+			sizeof(*emu->global_cpu));
+
+	if(emu->global_cpu == NULL)
+	{
+		perror("calloc");
+		abort();
+	}
+
+	for(gi=0, i=0; i<trace->nlooms; i++)
+	{
+		loom = &trace->loom[i];
+		for(j=0; j<loom->ncpus; j++)
+		{
+			cpu = &loom->cpu[j];
+			emu->global_cpu[cpu->gindex] = cpu;
+		}
+
+		emu->global_cpu[loom->vcpu.gindex] = &loom->vcpu;
 	}
 }
 
@@ -740,10 +803,15 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 	if(emu->clock_offset_file != NULL)
 		load_clock_offsets(emu);
 
+	init_threads(emu);
+	init_cpus(emu);
+
 	open_prvs(emu, emu->tracedir);
 	open_pcfs(emu, emu->tracedir);
 
-	init_threads(emu);
+	err("loaded %d cpus and %d threads\n",
+			emu->total_ncpus,
+			emu->total_nthreads);
 }
 
 static void

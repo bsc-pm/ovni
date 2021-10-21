@@ -291,6 +291,10 @@ struct ovni_emu {
 	struct ovni_eproc *cur_proc;
 	struct ovni_ethread *cur_thread;
 
+	/* Indexed by gindex */
+	struct ovni_ethread **global_thread;
+	struct ovni_cpu **global_cpu;
+
 	struct nosv_task *cur_task;
 
 	int64_t firstclock;
@@ -306,9 +310,9 @@ struct ovni_emu {
 	char *tracedir;
 
 	/* Total counters */
-	int total_thread;
+	int total_nthreads;
 	int total_proc;
-	int total_cpus;
+	int total_ncpus;
 };
 
 /* Emulator function declaration */

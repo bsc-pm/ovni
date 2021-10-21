@@ -38,6 +38,9 @@ void
 prv_ev_autocpu(struct ovni_emu *emu, int type, int val);
 
 void
+prv_ev_autocpu_raw(struct ovni_emu *emu, int64_t time, int type, int val);
+
+void
 prv_header(FILE *f, int nrows);
 
 #endif /* OVNI_PRV_H */

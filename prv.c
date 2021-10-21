@@ -24,13 +24,19 @@ prv_ev_thread(struct ovni_emu *emu, int row, int type, int val)
 }
 
 void
-prv_ev_cpu(struct ovni_emu *emu, int row, int type, int val)
+prv_ev_cpu_raw(struct ovni_emu *emu, int row, int64_t time, int type, int val)
 {
-	prv_ev(emu->prv_cpu, row, emu->delta_time, type, val);
+	prv_ev(emu->prv_cpu, row, time, type, val);
 }
 
 void
-prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
+prv_ev_cpu(struct ovni_emu *emu, int row, int type, int val)
+{
+	prv_ev_cpu_raw(emu, row, emu->delta_time, type, val);
+}
+
+void
+prv_ev_autocpu_raw(struct ovni_emu *emu, int64_t time, int type, int val)
 {
 	int row;
 	struct ovni_cpu *cpu;
@@ -45,7 +51,13 @@ prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
 	/* Begin at 1 */
 	row = emu->cur_loom->offset_ncpus + cpu->i + 1;
 
-	prv_ev_cpu(emu, row, type, val);
+	prv_ev_cpu_raw(emu, row, time, type, val);
+}
+
+void
+prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
+{
+	prv_ev_autocpu_raw(emu, emu->delta_time, type, val);
 }
 
 void

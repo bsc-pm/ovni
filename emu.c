@@ -39,7 +39,7 @@ emit_ev(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	delta = clock - stream->lastclock;
 
-	dbg("%d.%d.%d %c %c %c % 20lu % 15ld ",
+	dbg("%d.%d.%d %c %c %c % 20ld % 15ld ",
 			stream->loom, stream->proc, stream->tid,
 			ev->header.model, ev->header.class, ev->header.value, clock, delta);
 
@@ -87,6 +87,7 @@ hook_pre(struct ovni_emu *emu)
 		case 'V': hook_pre_nosv(emu);
 			  break;
 		case '*': hook_pre_nosv(emu);
+			  hook_pre_ovni(emu);
 			  break;
 		default:
 			break;
@@ -105,6 +106,7 @@ hook_emit(struct ovni_emu *emu)
 		case 'V': hook_emit_nosv(emu);
 			  break;
 		case '*': hook_emit_nosv(emu);
+			  hook_emit_ovni(emu);
 			  break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
@@ -124,6 +126,7 @@ hook_post(struct ovni_emu *emu)
 		case 'V': hook_post_nosv(emu);
 			  break;
 		case '*': hook_post_nosv(emu);
+			  hook_post_ovni(emu);
 			  break;
 		default:
 			  //dbg("unknown model %c\n", emu->cur_ev->model);
@@ -240,6 +243,7 @@ emulate(struct ovni_emu *emu)
 	while(next_event(emu) == 0)
 	{
 		//fprintf(stdout, "step %i\n", i);
+		emu_emit(emu);
 		hook_pre(emu);
 		hook_emit(emu);
 		hook_post(emu);

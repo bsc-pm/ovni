@@ -114,8 +114,9 @@ struct event_type thread_tid = {
 	thread_tid_values
 };
 
-struct event_value thread_ss_values[] = {
+struct event_value ss_values[] = {
 	{ ST_NULL, "NULL" },
+	{ ST_BAD,		"Unknown subsystem: multiple threads" },
 	{ ST_SCHED_HUNGRY,	"Scheduler: Hungry" },
 	{ ST_SCHED_SERVING,	"Scheduler: Serving" },
 	{ ST_SCHED_SUBMITTING,	"Scheduler: Submitting" },
@@ -128,7 +129,12 @@ struct event_value thread_ss_values[] = {
 
 struct event_type thread_ss = {
 	0, PTT_SUBSYSTEM, "Thread: Subsystem",
-	thread_ss_values
+	ss_values
+};
+
+struct event_type cpu_ss = {
+	0, PTC_SUBSYSTEM, "CPU: Current thread subsystem",
+	ss_values
 };
 
 static void
@@ -194,6 +200,7 @@ write_events(FILE *f)
 	write_event_type(f, &thread_state);
 	write_event_type(f, &thread_tid);
 	write_event_type(f, &thread_ss);
+	write_event_type(f, &cpu_ss);
 }
 
 int

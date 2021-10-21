@@ -14,6 +14,7 @@ enum prv_type {
 	PTC_TASK_ID       = 20,
 	PTC_TASK_TYPE_ID  = 21,
 	PTC_APP_ID        = 30,
+	PTC_SUBSYSTEM     = 31,
 
 	/* Rows are threads */
 	PTT_THREAD_STATE  = 60,

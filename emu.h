@@ -14,7 +14,7 @@
 # define dbg(...)
 #endif
 
-#define err(...) fprintf(stderr, "error: " __VA_ARGS__);
+#define err(...) fprintf(stderr, __VA_ARGS__);
 
 /* Emulated thread runtime status */
 enum ethread_state {
@@ -33,6 +33,7 @@ enum nosv_task_state {
 
 enum nosv_thread_ss_state {
 	ST_NULL = 0,
+	ST_BAD = 3,
 	ST_SCHED_HUNGRY = 6,
 	ST_SCHED_SERVING = 7,
 	ST_SCHED_SUBMITTING = 8,
@@ -156,9 +157,16 @@ struct ovni_cpu {
 
 	size_t last_nthreads;
 
+	/* 1 if the cpu has updated is threads, 0 if not */
+	int updated;
+
 	/* The threads the cpu is currently running */
 	size_t nthreads;
 	struct ovni_ethread *thread[OVNI_MAX_THR];
+
+	///* Each channel emits events in the PRV file */
+	//int nchannels;
+	//struct ovni_channel *channel;
 };
 
 /* ----------------------- trace ------------------------ */
@@ -180,6 +188,10 @@ struct ovni_loom {
 	struct ovni_cpu vcpu;
 
 	struct ovni_eproc proc[OVNI_MAX_PROC];
+
+	/* Keep a list of updated cpus */
+	int nupdated_cpus;
+	struct ovni_cpu *updated_cpu[OVNI_MAX_CPU];
 };
 
 #define MAX_VIRTUAL_EVENTS 16

@@ -4,6 +4,26 @@
 
 #include <assert.h>
 
+/* The emulator ovni module provides the execution model by tracking the thread
+ * state and which threads run in each CPU */
+
+void
+update_cpu(struct ovni_emu *emu, struct ovni_cpu *cpu)
+{
+	struct ovni_loom *loom;
+
+	loom = emu->cur_loom;
+
+	if(loom->nupdated_cpus >= OVNI_MAX_CPU)
+		abort();
+
+	if(cpu->updated)
+		return;
+
+	cpu->updated = 1;
+	loom->updated_cpu[loom->nupdated_cpus++] = cpu;
+}
+
 struct ovni_cpu *
 emu_get_cpu(struct ovni_loom *loom, int cpuid)
 {
@@ -34,7 +54,7 @@ emu_cpu_find_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 }
 
 void
-emu_cpu_add_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
+emu_cpu_add_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_ethread *thread)
 {
 	/* Found, abort */
 	if(emu_cpu_find_thread(cpu, thread) >= 0)
@@ -43,10 +63,12 @@ emu_cpu_add_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 	assert(cpu->nthreads < OVNI_MAX_THR);
 
 	cpu->thread[cpu->nthreads++] = thread;
+
+	update_cpu(emu, cpu);
 }
 
 void
-emu_cpu_remove_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
+emu_cpu_remove_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_ethread *thread)
 {
 	int i, j;
 
@@ -62,6 +84,8 @@ emu_cpu_remove_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 	}
 
 	cpu->nthreads--;
+
+	update_cpu(emu, cpu);
 }
 
 
@@ -75,7 +99,7 @@ print_threads_state(struct ovni_loom *loom)
 	{
 		cpu = &loom->cpu[i];
 
-		dbg("-- cpu %d runs %d threads:", i, cpu->nthreads);
+		dbg("-- cpu %d runs %lu threads:", i, cpu->nthreads);
 		for(j=0; j<cpu->nthreads; j++)
 		{
 			dbg(" %d", cpu->thread[j]->tid);
@@ -83,7 +107,7 @@ print_threads_state(struct ovni_loom *loom)
 		dbg("\n");
 	}
 
-	dbg("-- vcpu runs %d threads:", loom->vcpu.nthreads);
+	dbg("-- vcpu runs %lu threads:", loom->vcpu.nthreads);
 	for(j=0; j<loom->vcpu.nthreads; j++)
 	{
 		dbg(" %d", loom->vcpu.thread[j]->tid);
@@ -108,7 +132,7 @@ ev_thread_execute(struct ovni_emu *emu)
 	emu->cur_thread->state = TH_ST_RUNNING;
 	emu->cur_thread->cpu = cpu;
 
-	emu_cpu_add_thread(cpu, emu->cur_thread);
+	emu_cpu_add_thread(emu, cpu, emu->cur_thread);
 }
 
 static void
@@ -117,7 +141,7 @@ ev_thread_end(struct ovni_emu *emu)
 	assert(emu->cur_thread->state == TH_ST_RUNNING);
 	assert(emu->cur_thread->cpu);
 
-	emu_cpu_remove_thread(emu->cur_thread->cpu, emu->cur_thread);
+	emu_cpu_remove_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
 
 	emu->cur_thread->state = TH_ST_DEAD;
 	emu->cur_thread->cpu = NULL;
@@ -129,7 +153,7 @@ ev_thread_pause(struct ovni_emu *emu)
 	assert(emu->cur_thread->state == TH_ST_RUNNING);
 	assert(emu->cur_thread->cpu);
 
-	emu_cpu_remove_thread(emu->cur_thread->cpu, emu->cur_thread);
+	emu_cpu_remove_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
 
 	emu->cur_thread->state = TH_ST_PAUSED;
 }
@@ -140,7 +164,7 @@ ev_thread_resume(struct ovni_emu *emu)
 	assert(emu->cur_thread->state == TH_ST_PAUSED);
 	assert(emu->cur_thread->cpu);
 
-	emu_cpu_add_thread(emu->cur_thread->cpu, emu->cur_thread);
+	emu_cpu_add_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
 
 	emu->cur_thread->state = TH_ST_RUNNING;
 }
@@ -179,9 +203,13 @@ ev_thread(struct ovni_emu *emu)
 			  exit(EXIT_FAILURE);
 	}
 
-	/* All events change the thread state: inject a virtual event to
-	 * notify other modules */
-	emu_virtual_ev(emu, "*Hc");
+	/* All but create events change the thread and CPU state: inject two
+	 * virtual events to notify other modules. The order is important. */
+	if(ev->header.value != 'c')
+	{
+		emu_virtual_ev(emu, "*Hc");
+		emu_virtual_ev(emu, "*Cc");
+	}
 }
 
 static void
@@ -198,8 +226,8 @@ ev_affinity_set(struct ovni_emu *emu)
 	/* Migrate current cpu to the one at cpuid */
 	newcpu = emu_get_cpu(emu->cur_loom, cpuid);
 
-	emu_cpu_remove_thread(emu->cur_thread->cpu, emu->cur_thread);
-	emu_cpu_add_thread(newcpu, emu->cur_thread);
+	emu_cpu_remove_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
+	emu_cpu_add_thread(emu, newcpu, emu->cur_thread);
 
 	emu->cur_thread->cpu = newcpu;
 
@@ -233,8 +261,8 @@ ev_affinity_remote(struct ovni_emu *emu)
 	/* If running, update the CPU thread lists */
 	if(thread->state == TH_ST_RUNNING)
 	{
-		emu_cpu_remove_thread(thread->cpu, thread);
-		emu_cpu_add_thread(newcpu, thread);
+		emu_cpu_remove_thread(emu, thread->cpu, thread);
+		emu_cpu_add_thread(emu, newcpu, thread);
 	}
 	else
 	{
@@ -269,6 +297,9 @@ void
 hook_pre_ovni(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
+
+	if(emu->cur_ev->header.model != 'O')
+		return;
 
 	switch(emu->cur_ev->header.class)
 	{
@@ -359,6 +390,9 @@ emit_current_pid(struct ovni_emu *emu)
 void
 hook_emit_ovni(struct ovni_emu *emu)
 {
+	if(emu->cur_ev->header.model != 'O')
+		return;
+
 	switch(emu->cur_ev->header.class)
 	{
 		case 'H':
@@ -373,18 +407,74 @@ hook_emit_ovni(struct ovni_emu *emu)
 	}
 }
 
-void
-hook_post_ovni(struct ovni_emu *emu)
+/* Reset thread state */
+static void
+post_virtual_thread(struct ovni_emu *emu)
 {
 	int i;
 	struct ovni_loom *loom;
 
 	loom = emu->cur_loom;
 
-	/* Update last_nthreads in the CPUs */
+	/* Should be executed *before* we reset the CPUs updated flags */
+	assert(loom->nupdated_cpus > 0);
 
+	/* Update last_nthreads in the CPUs */
 	for(i=0; i<loom->ncpus; i++)
 		loom->cpu[i].last_nthreads = loom->cpu[i].nthreads;
 
+	/* Fix the virtual CPU as well */
 	loom->vcpu.last_nthreads = loom->vcpu.nthreads;
+}
+
+/* Reset CPU state */
+static void
+post_virtual_cpu(struct ovni_emu *emu)
+{
+	int i;
+	struct ovni_loom *loom;
+
+	loom = emu->cur_loom;
+
+	for(i=0; i<loom->nupdated_cpus; i++)
+	{
+		/* Remove the update flags */
+		assert(loom->updated_cpu[i]->updated == 1);
+		loom->updated_cpu[i]->updated = 0;
+	}
+
+	/* Fix the virtual CPU as well */
+	loom->vcpu.last_nthreads = loom->vcpu.nthreads;
+
+	/* Restore 0 updated CPUs */
+	loom->nupdated_cpus = 0;
+}
+
+static void
+post_virtual(struct ovni_emu *emu)
+{
+	switch(emu->cur_ev->header.class)
+	{
+		case 'H':
+			post_virtual_thread(emu);
+			break;
+		case 'C':
+			post_virtual_cpu(emu);
+			break;
+		default:
+			break;
+	}
+}
+
+void
+hook_post_ovni(struct ovni_emu *emu)
+{
+	switch(emu->cur_ev->header.model)
+	{
+		case '*':
+			post_virtual(emu);
+			break;
+		default:
+			break;
+	}
 }

@@ -161,6 +161,32 @@ pre_thread(struct ovni_emu *emu)
 	}
 }
 
+/* Hook for the virtual "cpu changed" event */
+static void
+pre_cpu_change(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+
+	th = emu->cur_thread;
+
+	/* Only print the subsystem if the thread is running */
+	if(th->state == TH_ST_RUNNING)
+		th->show_ss = 1;
+	else
+		th->show_ss = 0;
+}
+
+static void
+pre_cpu(struct ovni_emu *emu)
+{
+	switch(emu->cur_ev->header.value)
+	{
+		case 'c': pre_thread_change(emu); break;
+		default:
+			break;
+	}
+}
+
 void
 hook_pre_nosv_ss(struct ovni_emu *emu)
 {
@@ -171,6 +197,7 @@ hook_pre_nosv_ss(struct ovni_emu *emu)
 			switch(emu->cur_ev->header.class)
 			{
 				case 'H': pre_thread(emu); break;
+				case 'C': pre_cpu(emu); break;
 				default:
 					break;
 			}
@@ -204,6 +231,17 @@ emit_thread_state(struct ovni_emu *emu, struct ovni_ethread *th,
 }
 
 static void
+emit_cpu_state(struct ovni_emu *emu, struct ovni_ethread *th,
+		int type, int st)
+{
+	/* Detect multiple threads */
+	if(th->cpu && th->cpu->nthreads > 1)
+		st = ST_BAD;
+	
+	prv_ev_autocpu(emu, type, st);
+}
+
+static void
 emit_thread_event(struct ovni_emu *emu, struct ovni_ethread *th,
 		int type, int st)
 {
@@ -223,9 +261,108 @@ emit_thread_event(struct ovni_emu *emu, struct ovni_ethread *th,
 	prv_ev_thread_raw(emu, row, t1, type, prev_st);
 }
 
+static void
+emit_cpu_event(struct ovni_emu *emu, struct ovni_ethread *th,
+		int type, int st)
+{
+	int64_t t0, t1;
+	int row;
+	int prev_st;
+
+	row = th->gindex + 1;
+
+	t0 = emu->delta_time - 1;
+	t1 = emu->delta_time;
+
+	prev_st = ss_last_st(th);
+
+	/* Detect multiple threads */
+	if(th->cpu && th->cpu->nthreads > 1)
+	{
+		st = ST_BAD;
+		prev_st = ST_BAD;
+	}
+
+	/* Fake event using 1 nanosecond in the past */
+	prv_ev_autocpu_raw(emu, t0, type, st);
+	prv_ev_autocpu_raw(emu, t1, type, prev_st);
+}
+
+static void
+emit_thread_changed(struct ovni_emu *emu)
+{
+	dbg("emit_thread_changed\n")
+}
+
+static void
+emit_cpu_changed(struct ovni_emu *emu)
+{
+	dbg("emit_cpu_changed\n")
+	//int i;
+	//struct ovni_loom *loom;
+	//struct ovni_cpu *cpu;
+
+	///* Detect multiple threads */
+	//loom = emu->cur_loom;
+
+	//assert(loom->nupdated_cpus > 0);
+
+	//for(i=0; i<loom->nupdated_cpus; i++)
+	//{
+	//	cpu = loom->updated_cpu[i];
+
+	//	if(cpu->nthreads > 1)
+	//	{
+	//		prv_stream_disable(cpu->ss_stream);
+	//	}
+	//}
+}
+
 void
 hook_emit_nosv_ss(struct ovni_emu *emu)
 {
+	/* We need to emit events when a thread notifies us that the subsystem
+	 * has changed, but also when the thread is paused, or scheduled to
+	 * another CPU, as the CPU view must be updated as well. */
+
+	switch(emu->cur_ev->header.model)
+	{
+	/* Listen for virtual events as well */
+	case '*':
+		switch(emu->cur_ev->header.class)
+		{
+		case 'H':
+			switch(emu->cur_ev->header.value)
+			{
+			case 'c': emit_thread_changed(emu); break;
+			default: break;
+			}
+			break;
+		case 'C':
+			switch(emu->cur_ev->header.value)
+			{
+			case 'c': emit_cpu_changed(emu); break;
+			default: break;
+			}
+			break;
+		default: break;
+		}
+		break;
+	case 'V':
+		switch(emu->cur_ev->header.class)
+		{
+		case 'S': pre_sched(emu); break;
+		case 'U': pre_submit(emu); break;
+		case 'M': pre_memory(emu); break;
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+
+
 	struct ovni_ethread *th;
 
 	th = emu->cur_thread;
@@ -241,11 +378,14 @@ hook_emit_nosv_ss(struct ovni_emu *emu)
 	{
 		emit_thread_event(emu, th, PTT_SUBSYSTEM,
 				th->ss_event);
+		emit_cpu_event(emu, th, PTC_SUBSYSTEM,
+				th->ss_event);
 
 		return;
 	}
 
 	emit_thread_state(emu, th, PTT_SUBSYSTEM, ss_last_st(th));
+	emit_cpu_state(emu, th, PTC_SUBSYSTEM, ss_last_st(th));
 }
 
 /* --------------------------- post ------------------------------- */

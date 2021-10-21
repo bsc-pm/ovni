@@ -99,36 +99,62 @@ struct ovni_chan {
 
 	/* Where should the events be written to? */
 	FILE *prv;
+
+	/* What should cause the channel to become disabled? */
+	enum chan_track track;
 };
 
 enum chan {
-	/* Ovni */
-	CHAN_OVNI_STATE = 0,
-	CHAN_OVNI_TID,
 	CHAN_OVNI_PID,
+	CHAN_OVNI_TID,
+	CHAN_OVNI_NTHREADS,
+	CHAN_OVNI_STATE,
+	CHAN_OVNI_APPID,
+	CHAN_OVNI_CPU,
 
-	/* nOS-V */
-	CHAN_NOSV_TASK_ID,
-	CHAN_NOSV_SS, /* Subsystem */
+	CHAN_NOSV_TASKID,
+	CHAN_NOSV_TYPEID,
+	CHAN_NOSV_APPID,
+	CHAN_NOSV_SUBSYSTEM,
 	CHAN_MAX
 };
 
-/* All PRV event types */
-enum prv_type {
-	/* Rows are CPUs */
-	PTC_PROC_PID      = 10,
-	PTC_THREAD_TID    = 11,
-	PTC_NTHREADS      = 12,
-	PTC_TASK_ID       = 20,
-	PTC_TASK_TYPE_ID  = 21,
-	PTC_APP_ID        = 30,
-	PTC_SUBSYSTEM     = 31,
+/* Same order as `enum chan` */
+static int chan_to_prvtype[CHAN_MAX][3] = {
+	/* Channel		TH  CPU */
+	{ CHAN_OVNI_PID,	10, 60 },
+	{ CHAN_OVNI_TID,	11, 61 },
+	{ CHAN_OVNI_NTHREADS,	-1, 62 },
+	{ CHAN_OVNI_STATE,	13, 63 },
+	{ CHAN_OVNI_APPID,	14, 64 },
+	{ CHAN_OVNI_CPU,	15, -1 },
 
-	/* Rows are threads */
-	PTT_THREAD_STATE  = 60,
-	PTT_THREAD_TID    = 61,
-	PTT_SUBSYSTEM     = 62,
+	{ CHAN_NOSV_TASKID,	20, 70 },
+	{ CHAN_NOSV_TYPEID,	21, 71 },
+	{ CHAN_NOSV_APPID,	22, 72 },
+	{ CHAN_NOSV_SUBSYSTEM,	23, 73 },
 };
+
+///* All PRV event types */
+//enum prv_type {
+//	/* Rows are CPUs */
+//	PTC_PROC_PID      = 10,
+//	PTC_THREAD_TID    = 11,
+//	PTC_NTHREADS      = 12,
+//	PTC_TASK_ID       = 20,
+//	PTC_TASK_TYPE_ID  = 21,
+//	PTC_APP_ID        = 30,
+//	PTC_SUBSYSTEM     = 31,
+//
+//	/* Rows are threads */
+//	PTT_THREAD_STATE  = 60,
+//	PTT_THREAD_TID    = 61,
+//	PTT_SUBSYSTEM     = 62,
+//
+//	PTT_TASK_ID       = 63,
+//	PTT_TASK_TYPE_ID  = 64,
+//	PTT_TASK_APP_ID   = 65,
+//};
 
 /* State of each emulated thread */
 struct ovni_ethread {

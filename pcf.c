@@ -98,8 +98,9 @@ struct event_value thread_state_values[] = {
 	{ -1, NULL },
 };
 
+/* FIXME: Use enum */
 struct event_type thread_state = {
-	0, PTT_THREAD_STATE, "Thread: State",
+	0, 13, "Thread: State",
 	thread_state_values
 };
 
@@ -110,7 +111,7 @@ struct event_value thread_tid_values[] = {
 };
 
 struct event_type thread_tid = {
-	0, PTC_THREAD_TID, "CPU: Thread TID",
+	0, 61, "CPU: Thread TID",
 	thread_tid_values
 };
 
@@ -128,12 +129,12 @@ struct event_value ss_values[] = {
 };
 
 struct event_type thread_ss = {
-	0, PTT_SUBSYSTEM, "Thread: Subsystem",
+	0, 23, "Thread: Subsystem",
 	ss_values
 };
 
 struct event_type cpu_ss = {
-	0, PTC_SUBSYSTEM, "CPU: Current thread subsystem",
+	0, 73, "CPU: Current thread subsystem",
 	ss_values
 };
 

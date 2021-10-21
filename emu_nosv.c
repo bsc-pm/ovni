@@ -5,6 +5,7 @@
 #include "ovni_trace.h"
 #include "emu.h"
 #include "prv.h"
+#include "chan.h"
 
 enum nosv_prv_type {
 	PRV_TYPE_PROCID
@@ -14,6 +15,28 @@ struct hook_entry {
 	char id[4];
 	void (*hook)(struct ovni_emu *);
 };
+
+/* --------------------------- init ------------------------------- */
+
+void
+hook_nosv_init(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	int i, row, type;
+	FILE *prv;
+	int64_t *clock;
+
+	for(i=0; i<emu->total_nthreads; i++)
+	{
+		th = emu->global_thread[i];
+		row = th->gindex + 1;
+
+		//chan_init(struct ovni_chan *chan, int row, int type, FILE *prv, int64_t *clock)
+
+		chan_init(th->chan[CHAN_NOSV_TASK_ID], row, PTT_TASK_ID, prv,
+				clock);
+	}
+}
 
 /* --------------------------- pre ------------------------------- */
 
@@ -286,6 +309,11 @@ emit_task(struct ovni_emu *emu)
 void
 hook_emit_nosv(struct ovni_emu *emu)
 {
+	struct ovni_ethread *th;
+	int i;
+
+	th = emu->cur_thread;
+
 	switch(emu->cur_ev->header.class)
 	{
 		case 'T': emit_task(emu); break;

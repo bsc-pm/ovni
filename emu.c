@@ -17,6 +17,7 @@
 #include "emu.h"
 #include "prv.h"
 #include "pcf.h"
+#include "chan.h"
 
 /* Obtains the corrected clock of the given event */
 int64_t
@@ -76,6 +77,18 @@ find_thread(struct ovni_eproc *proc, pid_t tid)
 }
 
 static void
+emit_channels(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	int i;
+
+	th = emu->cur_thread;
+
+	for(i=0; i<CHAN_MAX; i++)
+		chan_emit(&th->chan[i]);
+}
+
+static void
 hook_pre(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
@@ -98,6 +111,8 @@ static void
 hook_emit(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
+
+	emit_channels(emu);
 
 	switch(emu->cur_ev->header.model)
 	{
@@ -666,6 +681,44 @@ emu_virtual_ev(struct ovni_emu *emu, char *mcv)
 }
 
 static void
+init_thread(struct ovni_emu *emu, struct ovni_ethread *th)
+{
+	int i, row;
+
+	row = th->gindex + 1;
+
+	for(i=0; i<CHAN_MAX; i++)
+	{
+		chan_init(&th->chan[i], row, type, emu->prv_thread,
+				&emu->delta_clock);
+	}
+}
+
+static void
+init_threads(struct ovni_emu *emu)
+{
+	struct ovni_loom *loom;
+	struct ovni_eproc *proc;
+	struct ovni_ethread *thread;
+	int i, j, k;
+
+	for(i=0; i<trace->nlooms; i++)
+	{
+		loom = &trace->loom[i];
+		for(j=0; j<loom->nprocs; j++)
+		{
+			proc = &loom->proc[j];
+			for(k=0; k<proc->nthreads; k++)
+			{
+				thread = &proc->thread[k];
+
+				init_thread(emu, thread);
+			}
+		}
+	}
+}
+
+static void
 emu_init(struct ovni_emu *emu, int argc, char *argv[])
 {
 	memset(emu, 0, sizeof(*emu));
@@ -689,6 +742,8 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 
 	open_prvs(emu, emu->tracedir);
 	open_pcfs(emu, emu->tracedir);
+
+	init_threads(emu);
 }
 
 static void

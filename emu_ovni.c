@@ -1,11 +1,34 @@
 #include "ovni.h"
 #include "emu.h"
 #include "prv.h"
+#include "chan.h"
 
 #include <assert.h>
 
 /* The emulator ovni module provides the execution model by tracking the thread
  * state and which threads run in each CPU */
+
+/* --------------------------- pre ------------------------------- */
+
+static void
+thread_set_channel_enabled(struct ovni_ethread *th, int enabled)
+{
+	int i;
+	for(i=0; i<CHAN_MAX; i++)
+		chan_enable(&th->chan[i], enabled);
+}
+
+static void
+thread_set_state(struct ovni_ethread *th, int state)
+{
+	int enabled;
+
+	th->state = state;
+
+	enabled = (state == TH_ST_RUNNING ? 1 : 0);
+
+	thread_set_channel_enabled(th, enabled);
+}
 
 void
 update_cpu(struct ovni_emu *emu, struct ovni_cpu *cpu)
@@ -88,7 +111,6 @@ emu_cpu_remove_thread(struct ovni_emu *emu, struct ovni_cpu *cpu, struct ovni_et
 	update_cpu(emu, cpu);
 }
 
-
 static void
 print_threads_state(struct ovni_loom *loom)
 {
@@ -116,61 +138,64 @@ print_threads_state(struct ovni_loom *loom)
 }
 
 static void
-ev_thread_execute(struct ovni_emu *emu)
+pre_thread_execute(struct ovni_emu *emu)
 {
 	struct ovni_cpu *cpu;
+	struct ovni_ethread *th;
 	int cpuid;
 
+	th = emu->cur_thread;
+
 	/* The thread cannot be already running */
-	assert(emu->cur_thread->state != TH_ST_RUNNING);
+	assert(th->state != TH_ST_RUNNING);
 
 	cpuid = emu->cur_ev->payload.i32[0];
-	//dbg("thread %d runs in cpuid %d\n", emu->cur_thread->tid,
+	//dbg("thread %d runs in cpuid %d\n", th->tid,
 	//		cpuid);
 	cpu = emu_get_cpu(emu->cur_loom, cpuid);
 
-	emu->cur_thread->state = TH_ST_RUNNING;
-	emu->cur_thread->cpu = cpu;
+	thread_set_state(th, TH_ST_RUNNING);
+	th->cpu = cpu;
 
-	emu_cpu_add_thread(emu, cpu, emu->cur_thread);
+	emu_cpu_add_thread(emu, cpu, th);
 }
 
 static void
-ev_thread_end(struct ovni_emu *emu)
+pre_thread_end(struct ovni_emu *emu)
 {
 	assert(emu->cur_thread->state == TH_ST_RUNNING);
 	assert(emu->cur_thread->cpu);
 
 	emu_cpu_remove_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
 
-	emu->cur_thread->state = TH_ST_DEAD;
+	thread_set_state(emu->cur_thread, TH_ST_DEAD);
 	emu->cur_thread->cpu = NULL;
 }
 
 static void
-ev_thread_pause(struct ovni_emu *emu)
+pre_thread_pause(struct ovni_emu *emu)
 {
 	assert(emu->cur_thread->state == TH_ST_RUNNING);
 	assert(emu->cur_thread->cpu);
 
 	emu_cpu_remove_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
 
-	emu->cur_thread->state = TH_ST_PAUSED;
+	thread_set_state(emu->cur_thread, TH_ST_PAUSED);
 }
 
 static void
-ev_thread_resume(struct ovni_emu *emu)
+pre_thread_resume(struct ovni_emu *emu)
 {
 	assert(emu->cur_thread->state == TH_ST_PAUSED);
 	assert(emu->cur_thread->cpu);
 
 	emu_cpu_add_thread(emu, emu->cur_thread->cpu, emu->cur_thread);
 
-	emu->cur_thread->state = TH_ST_RUNNING;
+	thread_set_state(emu->cur_thread, TH_ST_RUNNING);
 }
 
 static void
-ev_thread(struct ovni_emu *emu)
+pre_thread(struct ovni_emu *emu)
 {
 	struct ovni_ev *ev;
 	struct ovni_cpu *cpu;
@@ -193,27 +218,19 @@ ev_thread(struct ovni_emu *emu)
 					ev->payload.u32[2]);
 
 			break;
-		case 'x': ev_thread_execute(emu); break;
-		case 'e': ev_thread_end(emu); break;
-		case 'p': ev_thread_pause(emu); break;
-		case 'r': ev_thread_resume(emu); break;
+		case 'x': pre_thread_execute(emu); break;
+		case 'e': pre_thread_end(emu); break;
+		case 'p': pre_thread_pause(emu); break;
+		case 'r': pre_thread_resume(emu); break;
 		default:
 			  err("unknown thread event value %c\n",
 					  ev->header.value);
 			  exit(EXIT_FAILURE);
 	}
-
-	/* All but create events change the thread and CPU state: inject two
-	 * virtual events to notify other modules. The order is important. */
-	if(ev->header.value != 'c')
-	{
-		emu_virtual_ev(emu, "*Hc");
-		emu_virtual_ev(emu, "*Cc");
-	}
 }
 
 static void
-ev_affinity_set(struct ovni_emu *emu)
+pre_affinity_set(struct ovni_emu *emu)
 {
 	int cpuid;
 	struct ovni_cpu *newcpu;
@@ -235,7 +252,7 @@ ev_affinity_set(struct ovni_emu *emu)
 }
 
 static void
-ev_affinity_remote(struct ovni_emu *emu)
+pre_affinity_remote(struct ovni_emu *emu)
 {
 	int cpuid, tid;
 	struct ovni_cpu *newcpu;
@@ -279,13 +296,13 @@ ev_affinity_remote(struct ovni_emu *emu)
 }
 
 static void
-ev_affinity(struct ovni_emu *emu)
+pre_affinity(struct ovni_emu *emu)
 {
 	//emu_emit(emu);
 	switch(emu->cur_ev->header.value)
 	{
-		case 's': ev_affinity_set(emu); break;
-		case 'r': ev_affinity_remote(emu); break;
+		case 's': pre_affinity_set(emu); break;
+		case 'r': pre_affinity_remote(emu); break;
 		default:
 			dbg("unknown affinity event value %c\n",
 					emu->cur_ev->header.value);
@@ -303,8 +320,8 @@ hook_pre_ovni(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.class)
 	{
-		case 'H': ev_thread(emu); break;
-		case 'A': ev_affinity(emu); break;
+		case 'H': pre_thread(emu); break;
+		case 'A': pre_affinity(emu); break;
 		case 'B':
 			  //dbg("burst %c\n", emu->cur_ev->header.value);
 			  break;
@@ -317,21 +334,26 @@ hook_pre_ovni(struct ovni_emu *emu)
 	//print_threads_state(emu);
 }
 
+/* --------------------------- emit ------------------------------- */
+
 static void
 emit_thread_state(struct ovni_emu *emu)
 {
-	int row, st, tid;
-	
-	st = emu->cur_thread->state;
-	row = emu->cur_thread->gindex + 1;
-	tid = emu->cur_thread->tid;
+	int i, row;
+	struct ovni_ethread *th;
 
-	prv_ev_thread(emu, row, PTT_THREAD_STATE, st);
+	th = emu->cur_thread;
+	row = th->gindex + 1;
 
-	if(st == TH_ST_RUNNING)
-		prv_ev_thread(emu, row, PTT_THREAD_TID, tid);
+	prv_ev_thread(emu, row, PTT_THREAD_STATE, th->state);
+
+	if(th->state == TH_ST_RUNNING)
+		prv_ev_thread(emu, row, PTT_THREAD_TID, th->tid);
 	else
 		prv_ev_thread(emu, row, PTT_THREAD_TID, 0);
+
+	chan_set(&th->chan[CHAN_OVNI_TID], th->tid);
+
 }
 
 static void
@@ -390,6 +412,8 @@ emit_current_pid(struct ovni_emu *emu)
 void
 hook_emit_ovni(struct ovni_emu *emu)
 {
+	int i;
+
 	if(emu->cur_ev->header.model != 'O')
 		return;
 
@@ -405,7 +429,13 @@ hook_emit_ovni(struct ovni_emu *emu)
 		default:
 			break;
 	}
+
+	/* Emit all enabled channels */
+	for(i=0; i<CHAN_MAX; i++)
+		chan_emit(&emu->cur_thread->chan[i]);
 }
+
+/* --------------------------- post ------------------------------- */
 
 /* Reset thread state */
 static void

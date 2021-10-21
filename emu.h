@@ -64,7 +64,54 @@ struct nosv_task_type {
 	UT_hash_handle hh;
 };
 
-#define MAX_SS_STACK 128
+#define MAX_CHAN_STACK 128
+
+struct ovni_chan {
+	/* Number of states in the stack */
+	int n;
+
+	/* Stack of states */
+	int stack[MAX_CHAN_STACK];
+
+	/* 1 if enabled, 0 if not. */
+	int enabled;
+
+	/* What state should be shown in errors */
+	int badst;
+
+	/* Punctual event: -1 if not used */
+	int ev;
+
+	/* Emit events of this type */
+	int type;
+
+	/* A pointer to a clock to sample the time */
+	int64_t *clock;
+
+	/* The time of the last state or event */
+	int64_t t;
+
+	/* Paraver row */
+	int row;
+
+	/* 1 if channel needs flush to PRV */
+	int dirty;
+
+	/* Where should the events be written to? */
+	FILE *prv;
+};
+
+enum chan {
+	/* Ovni */
+	CHAN_OVNI_STATE = 0,
+	CHAN_OVNI_TID,
+	CHAN_OVNI_PID,
+
+	/* nOS-V */
+	CHAN_NOSV_TASK_ID,
+	CHAN_NOSV_SS, /* Subsystem */
+	CHAN_MAX
+};
 
 /* All PRV event types */
 enum prv_type {
@@ -105,22 +152,14 @@ struct ovni_ethread {
 	/* Current cpu */
 	struct ovni_cpu *cpu;
 
-	/* Number of subsystem states in the stack */
-	int nss;
-
-	/* Stack of subsystem states */
-	int ss[MAX_SS_STACK];
-
-	int ss_event;
-
 	/* FIXME: Use a table with registrable pointers to custom data
 	 * structures */
 
 	/* nosv task */
 	struct nosv_task *task;
 
-	/* Should we print the subsystem? */
-	int show_ss;
+	/* Channels are used to output the emulator state in PRV */
+	struct ovni_chan chan[CHAN_MAX];
 };
 
 /* State of each emulated process */
@@ -180,10 +219,6 @@ struct ovni_cpu {
 	/* The threads the cpu is currently running */
 	size_t nthreads;
 	struct ovni_ethread *thread[OVNI_MAX_THR];
-
-	///* Each channel emits events in the PRV file */
-	//int nchannels;
-	//struct ovni_channel *channel;
 };
 
 /* ----------------------- trace ------------------------ */

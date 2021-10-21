@@ -66,6 +66,23 @@ struct nosv_task_type {
 
 #define MAX_SS_STACK 128
 
+/* All PRV event types */
+enum prv_type {
+	/* Rows are CPUs */
+	PTC_PROC_PID      = 10,
+	PTC_THREAD_TID    = 11,
+	PTC_NTHREADS      = 12,
+	PTC_TASK_ID       = 20,
+	PTC_TASK_TYPE_ID  = 21,
+	PTC_APP_ID        = 30,
+	PTC_SUBSYSTEM     = 31,
+
+	/* Rows are threads */
+	PTT_THREAD_STATE  = 60,
+	PTT_THREAD_TID    = 61,
+	PTT_SUBSYSTEM     = 62,
+};
+
 /* State of each emulated thread */
 struct ovni_ethread {
 	/* Emulated thread tid */

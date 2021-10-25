@@ -270,6 +270,8 @@ struct event_value nosv_ss_values[] = {
 	{ ST_NOSV_SCHED_SUBMITTING,     "Scheduler: Submitting" },
 	{ ST_NOSV_TASK_RUNNING,         "Task: Running" },
 	{ ST_NOSV_CODE,                 "nOS-V code" },
+	{ ST_NOSV_MEM_ALLOCATING,       "Memory: Allocating" },
+	{ ST_NOSV_MEM_FREEING,          "Memory: Freeing" },
 	{ ST_NOSV_API_SUBMIT,           "API: Submit" },
 	{ ST_NOSV_API_PAUSE,            "API: Pause" },
 	{ ST_NOSV_API_YIELD,            "API: Yield" },
@@ -278,7 +280,6 @@ struct event_value nosv_ss_values[] = {
 	{ EV_NOSV_SCHED_SEND,           "EV Scheduler: Send task" },
 	{ EV_NOSV_SCHED_RECV,           "EV Scheduler: Recv task" },
 	{ EV_NOSV_SCHED_SELF,           "EV Scheduler: Self-assign task" },
-	{ ST_NOSV_MEM_ALLOCATING,	"Memory: Allocating" },
 	{ -1, NULL },
 };
 

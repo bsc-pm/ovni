@@ -47,8 +47,10 @@ VS]	Ends the scheduler server mode
 VU[	Starts to submit a task
 VU]	Ends the submission of a task
 
-VM[	Starts allocating memory
-VM]	Ends allocating memory
+VMa	Starts allocating memory
+VMA	Ends allocating memory
+VMf	Starts freeing memory
+VMF	Ends freeing memory
 
 VAs	Enters nosv_submit()
 VAS	Exits nosv_submit()

@@ -100,6 +100,17 @@ enum nosv_openmp_state {
 	ST_OPENMP_PARALLEL = 2,
 };
 
+enum nosv_nanos6lite_state {
+	ST_NANOS6LITE_REGISTER = 1,
+	ST_NANOS6LITE_UNREGISTER = 2,
+	ST_NANOS6LITE_IF0_WAIT = 3,
+	ST_NANOS6LITE_IF0_INLINE = 4,
+	ST_NANOS6LITE_TASKWAIT = 5,
+	ST_NANOS6LITE_CREATE = 6,
+	ST_NANOS6LITE_SUBMIT = 7,
+	ST_NANOS6LITE_SPAWN = 8,
+};
+
 struct ovni_ethread;
 struct ovni_eproc;
 
@@ -148,6 +159,7 @@ enum chan {
 
 	CHAN_TAMPI_MODE,
 	CHAN_OPENMP_MODE,
+	CHAN_NANOS6LITE_MODE,
 
 	CHAN_MAX
 };
@@ -177,6 +189,8 @@ static const int chan_to_prvtype[CHAN_MAX][3] = {
 	{ CHAN_TAMPI_MODE,	30, 80 },
 
 	{ CHAN_OPENMP_MODE,	40, 90 },
+
+	{ CHAN_NANOS6LITE_MODE,	50, 100 },
 };
 
 struct ovni_chan {
@@ -465,6 +479,9 @@ void hook_pre_tampi(struct ovni_emu *emu);
 
 void hook_init_openmp(struct ovni_emu *emu);
 void hook_pre_openmp(struct ovni_emu *emu);
+
+void hook_init_nanos6lite(struct ovni_emu *emu);
+void hook_pre_nanos6lite(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_loom *loom, int cpuid);
 

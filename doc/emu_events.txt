@@ -97,3 +97,30 @@ MT]	Task ends
 
 MP]	Parallel region begins
 MP[	Parallel region ends
+
+-------------------- Nanos6-Lite (model=L) ----------------------
+
+LR[	Enters the registering of a task's accesses
+LR]	Exits the registering of a task's accesses
+
+LU[	Enters the unregistering of a task's accesses
+LU]	Exits the unregistering of a task's accesses
+
+LW[	Enters the blocking condition waiting for an If0 task
+LW]	Exits the blocking condition waiting for an If0 task
+
+LI[	Enters the inline execution of an If0 task
+LI]	Exits the inline execution of an If0 task
+
+LT[	Enters a taskwait
+LT]	Exits a taskwait
+
+LC[	Enters the creation of a task
+LC]	Exits the creation of a task
+
+LS[	Enters the submit of a task
+LS]	Exits the submit of a task
+
+LP[	Enters the spawning of a function
+LP]	Exits the spawning of a function
+

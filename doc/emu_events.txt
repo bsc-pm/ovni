@@ -63,8 +63,12 @@ VAW	Exits nosv_waitfor()
 VAc	Enters nosv_schedpoint()
 VAC	Exits nosv_schedpoint()
 
-VC[	Begins executing nosv code
-VC]	Ends executing nosv code
+VHa	Enters nosv_attach()
+VHA	Exits nosv_detach()
+VHw	Begins the execution as a worker
+VHW	Ends the execution as a worker
+VHd	Begins the execution as the delegate
+VHD	Ends the execution as the delegate
 
 -------------------- TAMPI (model=T) ----------------------
 

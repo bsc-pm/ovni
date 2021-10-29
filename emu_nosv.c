@@ -412,6 +412,27 @@ pre_mem(struct ovni_emu *emu)
 }
 
 static void
+pre_thread_type(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case 'a': chan_push(chan_th, ST_NOSV_ATTACH); break;
+		case 'A': chan_pop (chan_th, ST_NOSV_ATTACH); break;
+		case 'w': chan_push(chan_th, ST_NOSV_WORKER); break;
+		case 'W': chan_pop (chan_th, ST_NOSV_WORKER); break;
+		case 'd': chan_push(chan_th, ST_NOSV_DELEGATE); break;
+		case 'D': chan_pop (chan_th, ST_NOSV_DELEGATE); break;
+		default: break;
+	}
+}
+
+static void
 pre_ss(struct ovni_emu *emu, int st)
 {
 	struct ovni_ethread *th;
@@ -453,7 +474,7 @@ hook_pre_nosv(struct ovni_emu *emu)
 		case 'S': pre_sched(emu); break;
 		case 'U': pre_ss(emu, ST_NOSV_SCHED_SUBMITTING); break;
 		case 'M': pre_mem(emu); break;
-		case 'C': pre_ss(emu, ST_NOSV_CODE); break;
+		case 'H': pre_thread_type(emu); break;
 		case 'A': pre_api(emu); break;
 		default:
 			break;

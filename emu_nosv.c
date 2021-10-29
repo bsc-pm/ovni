@@ -214,9 +214,13 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 	th = emu->cur_thread;
 	proc = emu->cur_proc;
 
-	chan_set(&th->chan[CHAN_NOSV_TASKID], task->id + 1);
-	chan_set(&th->chan[CHAN_NOSV_TYPEID], task->type_id + 1);
-	chan_set(&th->chan[CHAN_NOSV_APPID], proc->appid + 1);
+	assert(task->id > 0);
+	assert(task->type_id > 0);
+	assert(proc->appid > 0);
+
+	chan_set(&th->chan[CHAN_NOSV_TASKID], task->id);
+	chan_set(&th->chan[CHAN_NOSV_TYPEID], task->type_id);
+	chan_set(&th->chan[CHAN_NOSV_APPID], proc->appid);
 
 	chan_push(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_NOSV_TASK_RUNNING);
 }

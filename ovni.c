@@ -543,14 +543,14 @@ ovni_ev_add(struct ovni_ev *ev)
 }
 
 void
-ovni_ev_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
+ovni_ev_jumbo_emit(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
 {
 	ovni_ev_set_clock(ev);
 	ovni_ev_add_jumbo(ev, buf, bufsize);
 }
 
 void
-ovni_ev(struct ovni_ev *ev)
+ovni_ev_emit(struct ovni_ev *ev)
 {
 	ovni_ev_set_clock(ev);
 	ovni_ev_add(ev);

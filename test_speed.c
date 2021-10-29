@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	for(i=0; i<n; i++)
 	{
 		ovni_clock_update();
-		ovni_ev(&ev);
+		ovni_ev_emit(&ev);
 	}
 
 	ovni_flush();

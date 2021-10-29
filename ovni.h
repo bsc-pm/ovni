@@ -163,8 +163,8 @@ int ovni_payload_size(struct ovni_ev *ev);
 void ovni_add_cpu(int index, int phyid);
 
 /* Set the current clock in the event and queue it */
-void ovni_ev(struct ovni_ev *ev);
-void ovni_ev_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize);
+void ovni_ev_emit(struct ovni_ev *ev);
+void ovni_ev_jumbo_emit(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize);
 
 int ovni_flush(void);
 

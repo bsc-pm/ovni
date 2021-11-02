@@ -81,5 +81,13 @@ prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
 void
 prv_header(FILE *f, int nrows)
 {
-	fprintf(f, "#Paraver (19/01/38 at 03:14):00000000000000000000_ns:0:1:1(%d:1)\n", nrows);
+	fprintf(f, "#Paraver (19/01/38 at 03:14):%020ld_ns:0:1:1(%d:1)\n", 0LU, nrows);
+}
+
+void
+prv_fix_header(FILE *f, uint64_t duration, int nrows)
+{
+	/* Go to the first byte */
+	fseek(f, 0, SEEK_SET);
+	fprintf(f, "#Paraver (19/01/38 at 03:14):%020ld_ns:0:1:1(%d:1)\n", duration, nrows);
 }

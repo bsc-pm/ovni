@@ -707,6 +707,14 @@ open_pcfs(struct ovni_emu *emu, char *tracedir)
 	}
 }
 
+/* Fix the trace duration at the end */
+static void
+fix_prv_headers(struct ovni_emu *emu)
+{
+	prv_fix_header(emu->prv_thread, emu->delta_time, emu->total_nthreads);
+	prv_fix_header(emu->prv_cpu, emu->delta_time, emu->total_ncpus);
+}
+
 static void
 close_prvs(struct ovni_emu *emu)
 {
@@ -1084,6 +1092,7 @@ emu_post(struct ovni_emu *emu)
 static void
 emu_destroy(struct ovni_emu *emu)
 {
+	fix_prv_headers(emu);
 	close_prvs(emu);
 	close_pcfs(emu);
 	destroy_metadata(emu);

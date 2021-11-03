@@ -499,9 +499,27 @@ ovni_flush(void)
 }
 
 static void
+add_flush_events(uint64_t t0, uint64_t t1)
+{
+	struct ovni_ev pre={0}, post={0};
+
+	pre.header.clock = t0;
+	ovni_ev_set_mcv(&pre, "OF[");
+
+	post.header.clock = t1;
+	ovni_ev_set_mcv(&post, "OF]");
+
+	/* Add the two flush events */
+	ovni_ev_add(&pre);
+	ovni_ev_add(&post);
+}
+
+static void
 ovni_ev_add_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
 {
 	size_t evsize, totalsize;
+	int flushed = 0;
+	uint64_t t0, t1;
 
 	assert(ovni_payload_size(ev) == 0);
 
@@ -512,7 +530,13 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
 
 	/* Check if the event fits or flush first otherwise */
 	if(rthread.evlen + totalsize >= OVNI_MAX_EV_BUF)
-		ovni_flush();
+	{
+		/* Measure the flush times */
+		t0 = ovni_get_clock();
+		flush_evbuf();
+		t1 = ovni_get_clock();
+		flushed = 1;
+	}
 
 	/* Se the jumbo flag here, so we capture the previous evsize
 	 * properly, ignoring the jumbo buffer */
@@ -524,22 +548,46 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
 	rthread.evlen += bufsize;
 
 	assert(rthread.evlen < OVNI_MAX_EV_BUF);
-}
 
+	if(flushed)
+	{
+		/* Emit the flush events *after* the user event */
+		add_flush_events(t0, t1);
+
+		/* Set the current clock to the last event */
+		rthread.clockvalue = t1;
+	}
+}
 
 static void
 ovni_ev_add(struct ovni_ev *ev)
 {
-	int size;	
+	int size, flushed = 0;
+	uint64_t t0, t1;
 
 	size = ovni_ev_size(ev);
 
 	/* Check if the event fits or flush first otherwise */
 	if(rthread.evlen + size >= OVNI_MAX_EV_BUF)
-		ovni_flush();
+	{
+		/* Measure the flush times */
+		t0 = ovni_get_clock();
+		flush_evbuf();
+		t1 = ovni_get_clock();
+		flushed = 1;
+	}
 
 	memcpy(&rthread.evbuf[rthread.evlen], ev, size);
 	rthread.evlen += size;
+
+	if(flushed)
+	{
+		/* Emit the flush events *after* the user event */
+		add_flush_events(t0, t1);
+
+		/* Set the current clock to the last event */
+		rthread.clockvalue = t1;
+	}
 }
 
 void

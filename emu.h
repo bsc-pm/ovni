@@ -449,6 +449,9 @@ struct ovni_emu {
 	/* Counters for statistics */
 	int64_t nev_processed;
 
+	/* Be strict */
+	int enable_linter;
+
 	FILE *prv_thread;
 	FILE *prv_cpu;
 	FILE *pcf_thread;

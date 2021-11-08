@@ -426,6 +426,9 @@ next_event(struct ovni_emu *emu)
 	{
 		err("warning: backwards jump in time %lu -> %lu for tid %d\n",
 				emu->lastclock, stream->lastclock, stream->tid);
+
+		if(emu->enable_linter)
+			exit(EXIT_FAILURE);
 	}
 
 	emu->lastclock = stream->lastclock;
@@ -756,12 +759,15 @@ parse_args(struct ovni_emu *emu, int argc, char *argv[])
 {
 	int opt;
 
-	while((opt = getopt(argc, argv, "c:")) != -1)
+	while((opt = getopt(argc, argv, "c:l")) != -1)
 	{
 		switch(opt)
 		{
 			case 'c':
 				emu->clock_offset_file = optarg;
+				break;
+			case 'l':
+				emu->enable_linter = 1;
 				break;
 			default: /* '?' */
 				usage(argc, argv);

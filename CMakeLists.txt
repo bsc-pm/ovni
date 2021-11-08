@@ -38,6 +38,14 @@ else()
   message(WARNING "IPO is not supported, expect performance penalty\n${error}")
 endif()
 
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  include(CTest)
+
+  if(BUILD_TESTING)
+    add_subdirectory(test)
+  endif()
+endif()
+
 add_library(ovni SHARED
   ovni.c
   parson.c

@@ -48,7 +48,7 @@ evclock(struct ovni_stream *stream, struct ovni_ev *ev)
 static void
 print_ev(struct ovni_stream *stream, struct ovni_ev *ev)
 {
-	int64_t clock, delta;
+	int64_t clock, delta = 0;
 	int i, payloadsize;
 
 	UNUSED(delta);

@@ -106,7 +106,7 @@ chan_tracking_update(struct ovni_chan *chan, struct ovni_ethread *th)
 
 /* Sets the state of the thread and updates the thread tracking channels */
 static void
-thread_set_state(struct ovni_ethread *th, int state)
+thread_set_state(struct ovni_ethread *th, enum ethread_state state)
 {
 	int i;
 
@@ -521,7 +521,7 @@ static void
 pre_burst(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
-	int64_t dt;
+	int64_t dt = 0;
 
 	UNUSED(dt);
 

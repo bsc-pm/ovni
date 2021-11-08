@@ -300,6 +300,7 @@ ovni_thread_isready(void)
 	return rthread.ready;
 }
 
+#ifdef USE_RDTSC
 static inline
 uint64_t rdtsc(void)
 {
@@ -309,6 +310,7 @@ uint64_t rdtsc(void)
     __asm__ volatile("rdtsc" : "=a" (lo), "=d" (hi));
     return (uint64_t) hi << 32 | lo;
 }
+#endif
 
 uint64_t
 ovni_get_clock(void)

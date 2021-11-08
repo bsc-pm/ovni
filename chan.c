@@ -24,7 +24,7 @@
 #include "utlist.h"
 
 static void
-chan_init(struct ovni_chan *chan, int track, int row, int type, FILE *prv, int64_t *clock)
+chan_init(struct ovni_chan *chan, enum chan_track track, int row, int type, FILE *prv, int64_t *clock)
 {
 	chan->n = 0;
 	chan->type = type;
@@ -53,7 +53,7 @@ void
 chan_th_init(struct ovni_ethread *th,
 		struct ovni_chan **update_list,
 		enum chan id,
-		int track,
+		enum chan_track track,
 		int init_st,
 		int enabled,
 		int dirty,
@@ -82,7 +82,7 @@ void
 chan_cpu_init(struct ovni_cpu *cpu,
 		struct ovni_chan **update_list,
 		enum chan id,
-		int track,
+		enum chan_track track,
 		int init_st,
 		int enabled,
 		int dirty,

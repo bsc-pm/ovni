@@ -193,6 +193,9 @@ static const int chan_to_prvtype[CHAN_MAX][3] = {
 	{ CHAN_NANOS6_SUBSYSTEM,	50, 100 },
 };
 
+#define CHAN_PRV_TH(id) chan_to_prvtype[id][CHAN_TH]
+#define CHAN_PRV_CPU(id) chan_to_prvtype[id][CHAN_CPU]
+
 struct ovni_chan {
 	/* Channel id */
 	enum chan id;

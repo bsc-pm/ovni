@@ -102,68 +102,61 @@ struct event_value {
 
 struct event_type {
 	int index;
-	int type;
+	int chan_id;
+	int chan_type;
 	const char *label;
-	struct event_value *values;
+	const struct event_value *values;
 };
 
 /* ---------------- CHAN_OVNI_PID ---------------- */
 
-struct event_value ovni_pid_values[] = {
+static const struct event_value ovni_pid_values[] = {
 	{ 0, "None" },
 	{ ST_TOO_MANY_TH, "Unknown PID: Multiple threads running" },
 	/* FIXME: PID values may collide with error code values */
 	{ -1, NULL },
 };
 
-struct event_type thread_ovni_pid = {
-	0, chan_to_prvtype[CHAN_OVNI_PID][CHAN_TH],
+static const struct event_type thread_ovni_pid = {
+	0, CHAN_OVNI_PID, CHAN_TH,
 	"Thread: PID of the RUNNING thread",
 	ovni_pid_values
 };
 
-struct event_type cpu_ovni_pid = {
-	0, chan_to_prvtype[CHAN_OVNI_PID][CHAN_CPU],
+static const struct event_type cpu_ovni_pid = {
+	0, CHAN_OVNI_PID, CHAN_CPU,
 	"CPU: PID of the RUNNING thread",
 	ovni_pid_values
 };
 
 /* ---------------- CHAN_OVNI_TID ---------------- */
 
-struct event_value ovni_tid_values[] = {
+static const struct event_value ovni_tid_values[] = {
 	{ 0, "None" },
 	{ ST_TOO_MANY_TH, "Unknown TID: Multiple threads running" },
 	/* FIXME: TID values may collide with error code values */
 	{ -1, NULL },
 };
 
-struct event_type thread_ovni_tid = {
-	0, chan_to_prvtype[CHAN_OVNI_TID][CHAN_TH],
+static const struct event_type thread_ovni_tid = {
+	0, CHAN_OVNI_TID, CHAN_TH,
 	"Thread: TID of the RUNNING thread",
 	ovni_tid_values
 };
 
-struct event_type cpu_ovni_tid = {
-	0, chan_to_prvtype[CHAN_OVNI_TID][CHAN_CPU],
+static const struct event_type cpu_ovni_tid = {
+	0, CHAN_OVNI_TID, CHAN_CPU,
 	"CPU: TID of the RUNNING thread",
 	ovni_tid_values
 };
 
 /* ---------------- CHAN_OVNI_NRTHREADS ---------------- */
 
-struct event_value ovni_nthreads_values[] = {
-	{ -1, NULL },
-};
-
-struct event_type cpu_ovni_nthreads = {
-	0, chan_to_prvtype[CHAN_OVNI_NRTHREADS][CHAN_CPU],
-	"CPU: Number of RUNNING threads",
-	ovni_nthreads_values
-};
+/* Not used */
 
 /* ---------------- CHAN_OVNI_STATE ---------------- */
 
-struct event_value ovni_state_values[] = {
+static const struct event_value ovni_state_values[] = {
 	{ TH_ST_UNKNOWN, "Unknown" },
 	{ TH_ST_RUNNING, "Running" },
 	{ TH_ST_PAUSED,  "Paused"  },
@@ -173,8 +166,8 @@ struct event_value ovni_state_values[] = {
 	{ -1, NULL },
 };
 
-struct event_type thread_ovni_state = {
-	0, chan_to_prvtype[CHAN_OVNI_STATE][CHAN_TH],
+static const struct event_type thread_ovni_state = {
+	0, CHAN_OVNI_STATE, CHAN_TH,
 	"Thread: State of the CURRENT thread",
 	ovni_state_values
 };
@@ -187,96 +180,96 @@ struct event_type thread_ovni_state = {
 
 /* ---------------- CHAN_OVNI_CPU ---------------- */
 
-struct event_type thread_cpu_affinity = {
-	0, chan_to_prvtype[CHAN_OVNI_CPU][CHAN_TH],
+static const struct event_type thread_cpu_affinity = {
+	0, CHAN_OVNI_CPU, CHAN_TH,
 	"Thread: CPU affinity of the CURRENT thread",
 	/* Ignored */ NULL
 };
 
 /* ---------------- CHAN_OVNI_FLUSH ---------------- */
 
-struct event_value ovni_flush_values[] = {
+static const struct event_value ovni_flush_values[] = {
 	{ 0, "None" },
 	{ ST_OVNI_FLUSHING, "Flushing" },
 	{ ST_TOO_MANY_TH, "Unknown flushing state: Multiple threads running" },
 	{ -1, NULL },
 };
 
-struct event_type thread_ovni_flush = {
-	0, chan_to_prvtype[CHAN_OVNI_FLUSH][CHAN_TH],
+static const struct event_type thread_ovni_flush = {
+	0, CHAN_OVNI_FLUSH, CHAN_TH,
 	"Thread: Flushing state of the CURRENT thread",
 	ovni_flush_values
 };
 
-struct event_type cpu_ovni_flush = {
-	0, chan_to_prvtype[CHAN_OVNI_FLUSH][CHAN_CPU],
+static const struct event_type cpu_ovni_flush = {
+	0, CHAN_OVNI_FLUSH, CHAN_CPU,
 	"CPU: Flusing state of the RUNNING thread",
 	ovni_flush_values
 };
 
 /* ---------------- CHAN_NOSV_TASKID  ---------------- */
 
-struct event_value nosv_taskid_values[] = {
+static const struct event_value nosv_taskid_values[] = {
 	{ ST_TOO_MANY_TH, "Unknown TaskID: Multiple threads running" },
 	/* FIXME: Task ID values may collide with error code values */
 	{ -1, NULL },
 };
 
-struct event_type thread_nosv_taskid = {
-	0, chan_to_prvtype[CHAN_NOSV_TASKID][CHAN_TH],
+static const struct event_type thread_nosv_taskid = {
+	0, CHAN_NOSV_TASKID, CHAN_TH,
 	"Thread: nOS-V TaskID of the RUNNING thread",
 	nosv_taskid_values
 };
 
-struct event_type cpu_nosv_taskid = {
-	0, chan_to_prvtype[CHAN_NOSV_TASKID][CHAN_CPU],
+static const struct event_type cpu_nosv_taskid = {
+	0, CHAN_NOSV_TASKID, CHAN_CPU,
 	"CPU: nOS-V TaskID of the RUNNING thread",
 	nosv_taskid_values
 };
 
 /* ---------------- CHAN_NOSV_TYPEID  ---------------- */
 
-struct event_value nosv_typeid_values[] = {
+static const struct event_value nosv_typeid_values[] = {
 	{ ST_TOO_MANY_TH, "Unknown Task TypeID: Multiple threads running" },
 	/* FIXME: Task ID values may collide with error code values */
 	{ -1, NULL },
 };
 
-struct event_type thread_nosv_typeid = {
-	0, chan_to_prvtype[CHAN_NOSV_TYPEID][CHAN_TH],
+static const struct event_type thread_nosv_typeid = {
+	0, CHAN_NOSV_TYPEID, CHAN_TH,
 	"Thread: nOS-V task TypeID of the RUNNING thread",
 	nosv_typeid_values
 };
 
-struct event_type cpu_nosv_typeid = {
-	0, chan_to_prvtype[CHAN_NOSV_TYPEID][CHAN_CPU],
+static const struct event_type cpu_nosv_typeid = {
+	0, CHAN_NOSV_TYPEID, CHAN_CPU,
 	"CPU: nOS-V task TypeID of the RUNNING thread",
 	nosv_typeid_values
 };
 
 /* ---------------- CHAN_NOSV_APPID  ---------------- */
 
-struct event_value nosv_appid_values[] = {
+static const struct event_value nosv_appid_values[] = {
 	{ ST_TOO_MANY_TH, "Unknown Task AppID: Multiple threads running" },
 	/* FIXME: Task ID values may collide with error code values */
 	{ -1, NULL },
 };
 
-struct event_type thread_nosv_appid = {
-	0, chan_to_prvtype[CHAN_NOSV_APPID][CHAN_TH],
+static const struct event_type thread_nosv_appid = {
+	0, CHAN_NOSV_APPID, CHAN_TH,
 	"Thread: nOS-V task AppID of the RUNNING thread",
 	nosv_appid_values
 };
 
-struct event_type cpu_nosv_appid = {
-	0, chan_to_prvtype[CHAN_NOSV_APPID][CHAN_CPU],
+static const struct event_type cpu_nosv_appid = {
+	0, CHAN_NOSV_APPID, CHAN_CPU,
 	"CPU: nOS-V task AppID of the RUNNING thread",
 	nosv_appid_values
 };
 
 /* ---------------- CHAN_NOSV_SUBSYSTEM ---------------- */
 
-struct event_value nosv_ss_values[] = {
+static const struct event_value nosv_ss_values[] = {
 	/* Errors */
 	{ ST_BAD,                       "Unknown subsystem: Bad happened (report bug)" },
 	{ ST_TOO_MANY_TH,		"Unknown subsystem: Multiple threads running" },
@@ -302,21 +295,21 @@ struct event_value nosv_ss_values[] = {
 	{ -1, NULL },
 };
 
-struct event_type thread_nosv_ss = {
-	0, chan_to_prvtype[CHAN_NOSV_SUBSYSTEM][CHAN_TH],
+static const struct event_type thread_nosv_ss = {
+	0, CHAN_NOSV_SUBSYSTEM, CHAN_TH,
 	"Thread: nOS-V subsystem of the ACTIVE thread",
 	nosv_ss_values
 };
 
-struct event_type cpu_nosv_ss = {
-	0, chan_to_prvtype[CHAN_NOSV_SUBSYSTEM][CHAN_CPU],
+static const struct event_type cpu_nosv_ss = {
+	0, CHAN_NOSV_SUBSYSTEM, CHAN_CPU,
 	"CPU: nOS-V subsystem of the RUNNING thread",
 	nosv_ss_values
 };
 
 /* ---------------- CHAN_TAMPI_MODE ---------------- */
 
-struct event_value tampi_mode_values[] = {
+static const struct event_value tampi_mode_values[] = {
 	{ ST_NULL,		"NULL" },
 	{ ST_TOO_MANY_TH,	"TAMPI: Unknown, multiple threads running" },
 	{ ST_TAMPI_SEND,	"TAMPI: Send" },
@@ -328,21 +321,21 @@ struct event_value tampi_mode_values[] = {
 	{ -1, NULL },
 };
 
-struct event_type cpu_tampi_mode = {
-	0, chan_to_prvtype[CHAN_TAMPI_MODE][CHAN_CPU],
-	"CPU: TAMPI mode of the RUNNING thread",
+static const struct event_type thread_tampi_mode = {
+	0, CHAN_TAMPI_MODE, CHAN_TH,
+	"Thread: TAMPI mode of the RUNNING thread",
 	tampi_mode_values
 };
 
-struct event_type thread_tampi_mode = {
-	0, chan_to_prvtype[CHAN_TAMPI_MODE][CHAN_TH],
-	"Thread: TAMPI mode of the RUNNING thread",
+static const struct event_type cpu_tampi_mode = {
+	0, CHAN_TAMPI_MODE, CHAN_CPU,
+	"CPU: TAMPI mode of the RUNNING thread",
 	tampi_mode_values
 };
 
 /* ---------------- CHAN_OPENMP_MODE ---------------- */
 
-struct event_value openmp_mode_values[] = {
+static const struct event_value openmp_mode_values[] = {
 	{ ST_NULL,		"NULL" },
 	{ ST_TOO_MANY_TH,	"OpenMP: Unknown, multiple threads running" },
 	{ ST_OPENMP_TASK,	"OpenMP: Task" },
@@ -350,21 +343,21 @@ struct event_value openmp_mode_values[] = {
 	{ -1, NULL },
 };
 
-struct event_type cpu_openmp_mode = {
-	0, chan_to_prvtype[CHAN_OPENMP_MODE][CHAN_CPU],
-	"CPU: OpenMP mode of the RUNNING thread",
+static const struct event_type thread_openmp_mode = {
+	0, CHAN_OPENMP_MODE, CHAN_TH,
+	"Thread: OpenMP mode of the RUNNING thread",
 	openmp_mode_values
 };
 
-struct event_type thread_openmp_mode = {
-	0, chan_to_prvtype[CHAN_OPENMP_MODE][CHAN_TH],
-	"Thread: OpenMP mode of the RUNNING thread",
+static const struct event_type cpu_openmp_mode = {
+	0, CHAN_OPENMP_MODE, CHAN_CPU,
+	"CPU: OpenMP mode of the RUNNING thread",
 	openmp_mode_values
 };
 
 /* ---------------- CHAN_NANOS6_SUBSYSTEM ---------------- */
 
-struct event_value nanos6_mode_values[] = {
+static const struct event_value nanos6_mode_values[] = {
 	{ ST_NULL,              "NULL" },
 	{ ST_TOO_MANY_TH,       "Nanos6: Multiple threads running" },
 	{ ST_NANOS6_REGISTER,   "Dependencies: Registering task accesses" },
@@ -378,14 +371,14 @@ struct event_value nanos6_mode_values[] = {
 	{ -1, NULL },
 };
 
-struct event_type cpu_nanos6_mode = {
-	0, chan_to_prvtype[CHAN_NANOS6_SUBSYSTEM][CHAN_CPU],
+static const struct event_type cpu_nanos6_mode = {
+	0, CHAN_NANOS6_SUBSYSTEM, CHAN_CPU,
 	"CPU: Nanos6 subsystem of the RUNNING thread",
 	nanos6_mode_values
 };
 
-struct event_type thread_nanos6_mode = {
-	0, chan_to_prvtype[CHAN_NANOS6_SUBSYSTEM][CHAN_TH],
+static const struct event_type thread_nanos6_mode = {
+	0, CHAN_NANOS6_SUBSYSTEM, CHAN_TH,
 	"Thread: Nanos6 subsystem of the RUNNING thread",
 	nanos6_mode_values
 };
@@ -431,11 +424,12 @@ write_event_type_header(FILE *f, int index, int type, const char *label)
 }
 
 static void
-write_event_type(FILE *f, struct event_type *ev)
+write_event_type(FILE *f, const struct event_type *ev)
 {
-	int i;
+	int i, type;
 
-	write_event_type_header(f, ev->index, ev->type, ev->label);
+	type = chan_to_prvtype[ev->chan_id][ev->chan_type];
+	write_event_type_header(f, ev->index, type, ev->label);
 
 	fprintf(f, "VALUES\n");
 
@@ -448,11 +442,13 @@ write_event_type(FILE *f, struct event_type *ev)
 }
 
 static void
-write_cpu_type(FILE *f, struct event_type *ev, struct ovni_emu *emu)
+write_cpu_type(FILE *f, const struct event_type *ev, struct ovni_emu *emu)
 {
 	size_t i;
+	int type;
 
-	write_event_type_header(f, ev->index, ev->type, ev->label);
+	type = chan_to_prvtype[ev->chan_id][ev->chan_type];
+	write_event_type_header(f, ev->index, type, ev->label);
 
 	fprintf(f, "VALUES\n");
 

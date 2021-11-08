@@ -65,8 +65,7 @@ chan_th_init(struct ovni_ethread *th,
 	int prvth;
 
 	chan = &th->chan[id];
-	assert(chan_to_prvtype[id][0] == (int) id);
-	prvth = chan_to_prvtype[id][1];
+	prvth = CHAN_PRV_TH(id);
 
 	chan_init(chan, track, row, prvth, prv, clock);
 
@@ -95,8 +94,7 @@ chan_cpu_init(struct ovni_cpu *cpu,
 	int prvcpu;
 
 	chan = &cpu->chan[id];
-	assert(chan_to_prvtype[id][0] == (int) id);
-	prvcpu = chan_to_prvtype[id][2];
+	prvcpu = CHAN_PRV_CPU(id);
 
 	chan_init(chan, track, row, prvcpu, prv, clock);
 

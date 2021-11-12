@@ -98,7 +98,7 @@ MT]	Task ends
 MP]	Parallel region begins
 MP[	Parallel region ends
 
--------------------- Nanos6-Lite (model=L) ----------------------
+-------------------- Nanos6 (model=L) ----------------------
 
 LR[	Enters the registering of a task's accesses
 LR]	Exits the registering of a task's accesses

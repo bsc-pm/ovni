@@ -362,32 +362,32 @@ struct event_type thread_openmp_mode = {
 	openmp_mode_values
 };
 
-/* ---------------- CHAN_NANOS6LITE_MODE ---------------- */
+/* ---------------- CHAN_NANOS6_MODE ---------------- */
 
-struct event_value nanos6lite_mode_values[] = {
-	{ ST_NULL,						"NULL" },
-	{ ST_TOO_MANY_TH,				"Nanos6-Lite: Multiple threads running" },
-	{ ST_NANOS6LITE_REGISTER,		"Dependencies: Register task accesses" },
-	{ ST_NANOS6LITE_UNREGISTER,		"Dependencies: Unregister task accesses" },
-	{ ST_NANOS6LITE_IF0_WAIT,		"If0: Wait for If0 task" },
-	{ ST_NANOS6LITE_IF0_INLINE,		"If0: Execute If0 task inline" },
-	{ ST_NANOS6LITE_TASKWAIT,		"Taskwait: Taskwait" },
-	{ ST_NANOS6LITE_CREATE,			"Add Task: Create a task" },
-	{ ST_NANOS6LITE_SUBMIT,			"Add Task: Submit a task" },
-	{ ST_NANOS6LITE_SPAWN,			"Spawn Function: Spawn a function" },
+struct event_value nanos6_mode_values[] = {
+	{ ST_NULL,              "NULL" },
+	{ ST_TOO_MANY_TH,       "Nanos6: Multiple threads running" },
+	{ ST_NANOS6_REGISTER,   "Dependencies: Register task accesses" },
+	{ ST_NANOS6_UNREGISTER, "Dependencies: Unregister task accesses" },
+	{ ST_NANOS6_IF0_WAIT,   "If0: Wait for If0 task" },
+	{ ST_NANOS6_IF0_INLINE, "If0: Execute If0 task inline" },
+	{ ST_NANOS6_TASKWAIT,   "Taskwait: Taskwait" },
+	{ ST_NANOS6_CREATE,     "Add Task: Create a task" },
+	{ ST_NANOS6_SUBMIT,     "Add Task: Submit a task" },
+	{ ST_NANOS6_SPAWN,      "Spawn Function: Spawn a function" },
 	{ -1, NULL },
 };
 
-struct event_type cpu_nanos6lite_mode = {
-	0, chan_to_prvtype[CHAN_NANOS6LITE_MODE][CHAN_CPU],
-	"CPU: Nanos6-Lite mode of the RUNNING thread",
-	nanos6lite_mode_values
+struct event_type cpu_nanos6_mode = {
+	0, chan_to_prvtype[CHAN_NANOS6_MODE][CHAN_CPU],
+	"CPU: Nanos6 mode of the RUNNING thread",
+	nanos6_mode_values
 };
 
-struct event_type thread_nanos6lite_mode = {
-	0, chan_to_prvtype[CHAN_NANOS6LITE_MODE][CHAN_TH],
-	"Thread: Nanos6-Lite mode of the RUNNING thread",
-	nanos6lite_mode_values
+struct event_type thread_nanos6_mode = {
+	0, chan_to_prvtype[CHAN_NANOS6_MODE][CHAN_TH],
+	"Thread: Nanos6 mode of the RUNNING thread",
+	nanos6_mode_values
 };
 
 /* ----------------------------------------------- */
@@ -478,7 +478,7 @@ write_events(FILE *f, struct ovni_emu *emu)
 	write_event_type(f, &thread_nosv_ss);
 	write_event_type(f, &thread_tampi_mode);
 	write_event_type(f, &thread_openmp_mode);
-	write_event_type(f, &thread_nanos6lite_mode);
+	write_event_type(f, &thread_nanos6_mode);
 
 	/* CPU */
 	write_event_type(f, &cpu_ovni_pid);
@@ -494,7 +494,7 @@ write_events(FILE *f, struct ovni_emu *emu)
 	write_event_type(f, &cpu_nosv_ss);
 	write_event_type(f, &cpu_tampi_mode);
 	write_event_type(f, &cpu_openmp_mode);
-	write_event_type(f, &cpu_nanos6lite_mode);
+	write_event_type(f, &cpu_nanos6_mode);
 
 	/* Custom */
 	write_cpu_type(f, &thread_cpu_affinity, emu);

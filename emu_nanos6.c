@@ -10,7 +10,7 @@
 /* --------------------------- init ------------------------------- */
 
 void
-hook_init_nanos6lite(struct ovni_emu *emu)
+hook_init_nanos6(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
 	struct ovni_cpu *cpu;
@@ -31,7 +31,7 @@ hook_init_nanos6lite(struct ovni_emu *emu)
 		row = th->gindex + 1;
 		uth = &emu->th_chan;
 
-		chan_th_init(th, uth, CHAN_NANOS6LITE_MODE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
+		chan_th_init(th, uth, CHAN_NANOS6_MODE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 	}
 
 	/* Init the channels in all cpus */
@@ -41,7 +41,7 @@ hook_init_nanos6lite(struct ovni_emu *emu)
 		row = cpu->gindex + 1;
 		ucpu = &emu->cpu_chan;
 
-		chan_cpu_init(cpu, ucpu, CHAN_NANOS6LITE_MODE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_NANOS6_MODE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 	}
 }
 
@@ -56,10 +56,10 @@ pre_register(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_REGISTER);
+			chan_push(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_REGISTER);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_REGISTER);
+			chan_pop(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_REGISTER);
 			break;
 		default:
 			abort();
@@ -75,10 +75,10 @@ pre_unregister(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_UNREGISTER);
+			chan_push(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_UNREGISTER);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_UNREGISTER);
+			chan_pop(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_UNREGISTER);
 			break;
 		default:
 			abort();
@@ -94,10 +94,10 @@ pre_wait(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_IF0_WAIT);
+			chan_push(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_IF0_WAIT);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_IF0_WAIT);
+			chan_pop(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_IF0_WAIT);
 			break;
 		default:
 			abort();
@@ -113,10 +113,10 @@ pre_inline(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_IF0_INLINE);
+			chan_push(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_IF0_INLINE);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_IF0_INLINE);
+			chan_pop(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_IF0_INLINE);
 			break;
 		default:
 			abort();
@@ -132,10 +132,10 @@ pre_taskwait(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_TASKWAIT);
+			chan_push(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_TASKWAIT);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_TASKWAIT);
+			chan_pop(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_TASKWAIT);
 			break;
 		default:
 			abort();
@@ -151,10 +151,10 @@ pre_create(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_CREATE);
+			chan_push(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_CREATE);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_CREATE);
+			chan_pop(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_CREATE);
 			break;
 		default:
 			abort();
@@ -170,10 +170,10 @@ pre_submit(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_SUBMIT);
+			chan_push(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_SUBMIT);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_SUBMIT);
+			chan_pop(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_SUBMIT);
 			break;
 		default:
 			abort();
@@ -189,10 +189,10 @@ pre_spawn(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_SPAWN);
+			chan_push(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_SPAWN);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_NANOS6LITE_MODE], ST_NANOS6LITE_SPAWN);
+			chan_pop(&th->chan[CHAN_NANOS6_MODE], ST_NANOS6_SPAWN);
 			break;
 		default:
 			abort();
@@ -200,7 +200,7 @@ pre_spawn(struct ovni_emu *emu)
 }
 
 void
-hook_pre_nanos6lite(struct ovni_emu *emu)
+hook_pre_nanos6(struct ovni_emu *emu)
 {
 	assert(emu->cur_ev->header.model == 'L');
 

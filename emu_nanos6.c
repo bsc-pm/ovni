@@ -96,13 +96,13 @@ hook_pre_nanos6(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.category)
 	{
-		case 'R': pre_subsystem(emu, ST_NANOS6_REGISTERING); break;
-		case 'U': pre_subsystem(emu, ST_NANOS6_UNREGISTERING); break;
+		case 'R': pre_subsystem(emu, ST_NANOS6_REGISTER); break;
+		case 'U': pre_subsystem(emu, ST_NANOS6_UNREGISTER); break;
 		case 'W': pre_subsystem(emu, ST_NANOS6_IF0_WAIT); break;
 		case 'I': pre_subsystem(emu, ST_NANOS6_IF0_INLINE); break;
 		case 'T': pre_subsystem(emu, ST_NANOS6_TASKWAIT); break;
-		case 'C': pre_subsystem(emu, ST_NANOS6_CREATING); break;
-		case 'S': pre_subsystem(emu, ST_NANOS6_SUBMITTING); break;
+		case 'C': pre_subsystem(emu, ST_NANOS6_CREATE); break;
+		case 'S': pre_subsystem(emu, ST_NANOS6_SUBMIT); break;
 		case 'P': pre_subsystem(emu, ST_NANOS6_SPAWN); break;
 		default:
 			break;

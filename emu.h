@@ -86,7 +86,7 @@ enum nosv_ss_values {
 	EV_NOSV_SCHED_SELF,
 };
 
-enum nosv_tampi_state {
+enum tampi_state {
 	ST_TAMPI_SEND = 1,
 	ST_TAMPI_RECV = 2,
 	ST_TAMPI_ISEND = 3,
@@ -95,19 +95,19 @@ enum nosv_tampi_state {
 	ST_TAMPI_WAITALL = 6,
 };
 
-enum nosv_openmp_state {
+enum openmp_state {
 	ST_OPENMP_TASK = 1,
 	ST_OPENMP_PARALLEL = 2,
 };
 
-enum nosv_nanos6_state {
-	ST_NANOS6_REGISTER = 1,
-	ST_NANOS6_UNREGISTER = 2,
+enum nanos6_state {
+	ST_NANOS6_REGISTERING = 1,
+	ST_NANOS6_UNREGISTERING = 2,
 	ST_NANOS6_IF0_WAIT = 3,
 	ST_NANOS6_IF0_INLINE = 4,
 	ST_NANOS6_TASKWAIT = 5,
-	ST_NANOS6_CREATE = 6,
-	ST_NANOS6_SUBMIT = 7,
+	ST_NANOS6_CREATING = 6,
+	ST_NANOS6_SUBMITTING = 7,
 	ST_NANOS6_SPAWN = 8,
 };
 
@@ -159,7 +159,7 @@ enum chan {
 
 	CHAN_TAMPI_MODE,
 	CHAN_OPENMP_MODE,
-	CHAN_NANOS6_MODE,
+	CHAN_NANOS6_SUBSYSTEM,
 
 	CHAN_MAX
 };
@@ -190,7 +190,7 @@ static const int chan_to_prvtype[CHAN_MAX][3] = {
 
 	{ CHAN_OPENMP_MODE,	40, 90 },
 
-	{ CHAN_NANOS6_MODE,	50, 100 },
+	{ CHAN_NANOS6_SUBSYSTEM,	50, 100 },
 };
 
 struct ovni_chan {

@@ -362,30 +362,30 @@ struct event_type thread_openmp_mode = {
 	openmp_mode_values
 };
 
-/* ---------------- CHAN_NANOS6_MODE ---------------- */
+/* ---------------- CHAN_NANOS6_SUBSYSTEM ---------------- */
 
 struct event_value nanos6_mode_values[] = {
-	{ ST_NULL,              "NULL" },
-	{ ST_TOO_MANY_TH,       "Nanos6: Multiple threads running" },
-	{ ST_NANOS6_REGISTER,   "Dependencies: Register task accesses" },
-	{ ST_NANOS6_UNREGISTER, "Dependencies: Unregister task accesses" },
-	{ ST_NANOS6_IF0_WAIT,   "If0: Wait for If0 task" },
-	{ ST_NANOS6_IF0_INLINE, "If0: Execute If0 task inline" },
-	{ ST_NANOS6_TASKWAIT,   "Taskwait: Taskwait" },
-	{ ST_NANOS6_CREATE,     "Add Task: Create a task" },
-	{ ST_NANOS6_SUBMIT,     "Add Task: Submit a task" },
-	{ ST_NANOS6_SPAWN,      "Spawn Function: Spawn a function" },
+	{ ST_NULL,                 "NULL" },
+	{ ST_TOO_MANY_TH,          "Nanos6: Multiple threads running" },
+	{ ST_NANOS6_REGISTERING,   "Dependencies: Register task accesses" },
+	{ ST_NANOS6_UNREGISTERING, "Dependencies: Unregister task accesses" },
+	{ ST_NANOS6_IF0_WAIT,      "If0: Wait for If0 task" },
+	{ ST_NANOS6_IF0_INLINE,    "If0: Execute If0 task inline" },
+	{ ST_NANOS6_TASKWAIT,      "Taskwait: Taskwait" },
+	{ ST_NANOS6_CREATING,      "Add Task: Create a task" },
+	{ ST_NANOS6_SUBMITTING,    "Add Task: Submit a task" },
+	{ ST_NANOS6_SPAWN,         "Spawn Function: Spawn a function" },
 	{ -1, NULL },
 };
 
 struct event_type cpu_nanos6_mode = {
-	0, chan_to_prvtype[CHAN_NANOS6_MODE][CHAN_CPU],
+	0, chan_to_prvtype[CHAN_NANOS6_SUBSYSTEM][CHAN_CPU],
 	"CPU: Nanos6 mode of the RUNNING thread",
 	nanos6_mode_values
 };
 
 struct event_type thread_nanos6_mode = {
-	0, chan_to_prvtype[CHAN_NANOS6_MODE][CHAN_TH],
+	0, chan_to_prvtype[CHAN_NANOS6_SUBSYSTEM][CHAN_TH],
 	"Thread: Nanos6 mode of the RUNNING thread",
 	nanos6_mode_values
 };

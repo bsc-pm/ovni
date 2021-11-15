@@ -87,9 +87,7 @@ endif()
 
 find_package(MPI REQUIRED)
 add_executable(ovnisync ovnisync.c)
-target_include_directories(ovnisync PRIVATE ${MPI_C_INCLUDE_PATH})
-target_compile_options(ovnisync PRIVATE ${MPI_C_COMPILE_FLAGS})
-target_link_libraries(ovnisync m ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+target_link_libraries(ovnisync m MPI::MPI_C)
 
 install(TARGETS ovni LIBRARY)
 install(TARGETS emu dump ovni2prv ovnisync RUNTIME)

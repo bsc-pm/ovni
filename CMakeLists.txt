@@ -53,7 +53,7 @@ add_library(ovni SHARED
 
 target_include_directories(ovni PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(emu
+add_executable(ovniemu
   chan.c
   emu.c
   emu_nosv.c
@@ -67,7 +67,7 @@ add_executable(emu
   prv.c
 )
 
-add_executable(dump
+add_executable(ovnidump
   dump.c
   ovni.c
   parson.c
@@ -90,5 +90,5 @@ add_executable(ovnisync ovnisync.c)
 target_link_libraries(ovnisync m MPI::MPI_C)
 
 install(TARGETS ovni LIBRARY)
-install(TARGETS emu dump ovni2prv ovnisync RUNTIME)
+install(TARGETS ovniemu ovnidump ovni2prv ovnisync RUNTIME)
 install(FILES ovni.h DESTINATION include)

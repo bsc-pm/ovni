@@ -79,6 +79,12 @@ add_executable(ovni2prv
   parson.c
 )
 
+# Use <PackageName>_ROOT variables if available, commonly used by MPI
+# installations
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 find_package(MPI REQUIRED)
 add_executable(ovnisync ovnisync.c)
 target_include_directories(ovnisync PRIVATE ${MPI_C_INCLUDE_PATH})

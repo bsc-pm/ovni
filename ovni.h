@@ -101,9 +101,6 @@ struct ovni_rthread {
 	/* Current thread id */
 	pid_t tid;
 
-	/* Clock value of the events being emitted */
-	uint64_t clockvalue;
-
 	/* Stream trace file descriptor */
 	int streamfd;
 
@@ -143,13 +140,16 @@ void ovni_thread_free(void);
 
 int ovni_thread_isready(void);
 
-void ovni_clock_update(void);
-
 void ovni_ev_set_mcv(struct ovni_ev *ev, const char *mcv);
 
+/* Gets the event clock in ns */
 uint64_t ovni_ev_get_clock(const struct ovni_ev *ev);
 
-uint64_t ovni_get_clock(void);
+/* Sets the event clock in ns */
+void ovni_ev_set_clock(struct ovni_ev *ev, uint64_t clock);
+
+/* Returns the current value of the ovni clock in ns */
+uint64_t ovni_clock_now(void);
 
 void ovni_payload_add(struct ovni_ev *ev, const uint8_t *buf, int size);
 
@@ -159,7 +159,8 @@ int ovni_payload_size(const struct ovni_ev *ev);
 
 void ovni_add_cpu(int index, int phyid);
 
-/* Set the current clock in the event and queue it */
+/* Adds the event to the events buffer. The buffer is flushed first if the event
+ * doesn't fit in the buffer. */
 void ovni_ev_emit(struct ovni_ev *ev);
 void ovni_ev_jumbo_emit(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize);
 

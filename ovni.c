@@ -313,7 +313,7 @@ uint64_t rdtsc(void)
 #endif
 
 uint64_t
-ovni_get_clock(void)
+ovni_clock_now(void)
 {
 	struct timespec tp;
 	uint64_t ns = 1000LL * 1000LL * 1000LL;
@@ -331,19 +331,10 @@ ovni_get_clock(void)
 #endif /* ENABLE_SLOW_CHECKS */
 
 	raw = tp.tv_sec * ns + tp.tv_nsec;
-	rthread.clockvalue = (uint64_t) raw;
 
 #endif /* USE_RDTSC */
 
 	return raw;
-}
-
-/* Sets the current time so that all subsequent events have the new
- * timestamp */
-void
-ovni_clock_update(void)
-{
-	rthread.clockvalue = ovni_get_clock();
 }
 
 //static void
@@ -400,10 +391,10 @@ flush_evbuf(void)
 	return ret;
 }
 
-static void
-ovni_ev_set_clock(struct ovni_ev *ev)
+void
+ovni_ev_set_clock(struct ovni_ev *ev, uint64_t clock)
 {
-	ev->header.clock = rthread.clockvalue;
+	ev->header.clock = clock;
 }
 
 uint64_t
@@ -483,14 +474,12 @@ ovni_flush(void)
 	assert(rthread.ready);
 	assert(rproc.ready);
 
-	ovni_clock_update();
-	ovni_ev_set_clock(&pre);
+	ovni_ev_set_clock(&pre, ovni_clock_now());
 	ovni_ev_set_mcv(&pre, "OF[");
 
 	ret = flush_evbuf();
 
-	ovni_clock_update();
-	ovni_ev_set_clock(&post);
+	ovni_ev_set_clock(&post, ovni_clock_now());
 	ovni_ev_set_mcv(&post, "OF]");
 
 	/* Add the two flush events */
@@ -534,9 +523,9 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 	if(rthread.evlen + totalsize >= OVNI_MAX_EV_BUF)
 	{
 		/* Measure the flush times */
-		t0 = ovni_get_clock();
+		t0 = ovni_clock_now();
 		flush_evbuf();
-		t1 = ovni_get_clock();
+		t1 = ovni_clock_now();
 		flushed = 1;
 	}
 
@@ -555,9 +544,6 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 	{
 		/* Emit the flush events *after* the user event */
 		add_flush_events(t0, t1);
-
-		/* Set the current clock to the last event */
-		rthread.clockvalue = t1;
 	}
 }
 
@@ -573,9 +559,9 @@ ovni_ev_add(struct ovni_ev *ev)
 	if(rthread.evlen + size >= OVNI_MAX_EV_BUF)
 	{
 		/* Measure the flush times */
-		t0 = ovni_get_clock();
+		t0 = ovni_clock_now();
 		flush_evbuf();
-		t1 = ovni_get_clock();
+		t1 = ovni_clock_now();
 		flushed = 1;
 	}
 
@@ -586,22 +572,17 @@ ovni_ev_add(struct ovni_ev *ev)
 	{
 		/* Emit the flush events *after* the user event */
 		add_flush_events(t0, t1);
-
-		/* Set the current clock to the last event */
-		rthread.clockvalue = t1;
 	}
 }
 
 void
 ovni_ev_jumbo_emit(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 {
-	ovni_ev_set_clock(ev);
 	ovni_ev_add_jumbo(ev, buf, bufsize);
 }
 
 void
 ovni_ev_emit(struct ovni_ev *ev)
 {
-	ovni_ev_set_clock(ev);
 	ovni_ev_add(ev);
 }

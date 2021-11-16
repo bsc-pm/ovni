@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
 	for(i=0; i<n; i++)
 	{
-		ovni_clock_update();
+		ovni_ev_set_clock(&ev, ovni_clock_now());
 		ovni_ev_emit(&ev);
 	}
 

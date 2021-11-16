@@ -19,14 +19,14 @@ set -e
 
 testname="$1"
 tracedir="ovni"
-emubin=../emu
+emubin=../ovniemu
 
-rm -rf $tracedir
+rm -rf "$tracedir"
 
 # Run the test
-./$testname
+"./$testname"
 
 # Then launch the emulator in lint mode
-$emubin $tracedir
+"$emubin" -l "$tracedir"
 
 #rm -rf $tracedir

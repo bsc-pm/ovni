@@ -14,7 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+set(OVNI_TEST_DIR "${CMAKE_SOURCE_DIR}/test")
+
 add_executable(flush flush.c)
 target_link_libraries(flush ovni)
 
-add_test(NAME flush COMMAND ./driver.sh flush)
+add_test(NAME flush COMMAND "${OVNI_TEST_DIR}/driver.sh" flush)

@@ -85,7 +85,7 @@ load_thread(struct ovni_ethread *thread, struct ovni_eproc *proc, int index, int
 	thread->gindex = total_threads++;
 	thread->state = TH_ST_UNKNOWN;
 	thread->proc = proc;
-	thread->stream_fd = open(filepath, O_RDONLY);
+	thread->stream_fd = open(filepath, O_RDWR);
 
 	if(thread->stream_fd == -1)
 	{
@@ -406,8 +406,8 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 	}
 
 	stream->size = st.st_size;
-	stream->buf = mmap(NULL, stream->size, PROT_READ, MAP_SHARED,
-			thread->stream_fd, 0);
+	stream->buf = mmap(NULL, stream->size, PROT_READ | PROT_WRITE,
+			MAP_SHARED, thread->stream_fd, 0);
 
 	if(stream->buf == MAP_FAILED)
 	{

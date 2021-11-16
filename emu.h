@@ -99,6 +99,10 @@ enum nanos6_state {
 	ST_NANOS6_SPAWN = 8,
 };
 
+enum kernel_cs_state {
+	ST_KERNEL_CSOUT = 3,
+};
+
 struct ovni_ethread;
 struct ovni_eproc;
 
@@ -149,6 +153,8 @@ enum chan {
 	CHAN_OPENMP_MODE,
 	CHAN_NANOS6_SUBSYSTEM,
 
+	CHAN_KERNEL_CS,
+
 	CHAN_MAX
 };
 
@@ -170,25 +176,23 @@ enum chan_dirty {
 
 /* Same order as `enum chan` */
 static const int chan_to_prvtype[CHAN_MAX][3] = {
-	/* Channel		TH  CPU */
-	{ CHAN_OVNI_PID,	10, 60 },
-	{ CHAN_OVNI_TID,	11, 61 },
-	{ CHAN_OVNI_NRTHREADS,	-1, 62 },
-	{ CHAN_OVNI_STATE,	13, -1 },
-	{ CHAN_OVNI_APPID,	14, 64 }, /* Not used */
-	{ CHAN_OVNI_CPU,	15, -1 },
-	{ CHAN_OVNI_FLUSH,	16, 66 },
-
-	{ CHAN_NOSV_TASKID,	20, 70 },
-	{ CHAN_NOSV_TYPEID,	21, 71 },
-	{ CHAN_NOSV_APPID,	22, 72 },
-	{ CHAN_NOSV_SUBSYSTEM,	23, 73 },
-
-	{ CHAN_TAMPI_MODE,	30, 80 },
-
-	{ CHAN_OPENMP_MODE,	40, 90 },
-
-	{ CHAN_NANOS6_SUBSYSTEM,	50, 100 },
+	/* FIXME: Use odd/even identifiers for thread and cpu */
+	/* Channel                TH   CPU */
+	{ CHAN_OVNI_PID,          10,  60  },
+	{ CHAN_OVNI_TID,          11,  61  },
+	{ CHAN_OVNI_NRTHREADS,    -1,  62  },
+	{ CHAN_OVNI_STATE,        13,  -1  },
+	{ CHAN_OVNI_APPID,        14,  64  }, /* Not used */
+	{ CHAN_OVNI_CPU,          15,  -1  },
+	{ CHAN_OVNI_FLUSH,        16,  66  },
+	{ CHAN_NOSV_TASKID,       20,  70  },
+	{ CHAN_NOSV_TYPEID,       21,  71  },
+	{ CHAN_NOSV_APPID,        22,  72  },
+	{ CHAN_NOSV_SUBSYSTEM,    23,  73  },
+	{ CHAN_TAMPI_MODE,        30,  80  },
+	{ CHAN_OPENMP_MODE,       40,  90  },
+	{ CHAN_NANOS6_SUBSYSTEM,  50, 100  },
+	{ CHAN_KERNEL_CS,         55, 105  },
 };
 
 #define CHAN_PRV_TH(id) chan_to_prvtype[id][CHAN_TH]
@@ -492,6 +496,9 @@ void hook_pre_openmp(struct ovni_emu *emu);
 
 void hook_init_nanos6(struct ovni_emu *emu);
 void hook_pre_nanos6(struct ovni_emu *emu);
+
+void hook_init_kernel(struct ovni_emu *emu);
+void hook_pre_kernel(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_loom *loom, int cpuid);
 

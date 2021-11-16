@@ -383,6 +383,27 @@ static const struct event_type thread_nanos6_mode = {
 	nanos6_mode_values
 };
 
+/* ---------------- CHAN_KERNEL_CS ---------------- */
+
+struct event_value kernel_cs_values[] = {
+	{ ST_NULL,		"NULL" },
+	{ ST_TOO_MANY_TH,	"Kernel CS: Unknown, multiple threads running" },
+	{ ST_KERNEL_CSOUT,	"Context switch: Out of the CPU" },
+	{ -1, NULL },
+};
+
+struct event_type cpu_kernel_cs = {
+	0, CHAN_KERNEL_CS, CHAN_CPU,
+	"CPU: Context switches of the ACTIVE thread",
+	kernel_cs_values
+};
+
+struct event_type thread_kernel_cs = {
+	0, CHAN_KERNEL_CS, CHAN_TH,
+	"Thread: Context switches of the CURRENT thread",
+	kernel_cs_values
+};
+
 /* ----------------------------------------------- */
 
 static void
@@ -475,6 +496,7 @@ write_events(FILE *f, struct ovni_emu *emu)
 	write_event_type(f, &thread_tampi_mode);
 	write_event_type(f, &thread_openmp_mode);
 	write_event_type(f, &thread_nanos6_mode);
+	write_event_type(f, &thread_kernel_cs);
 
 	/* CPU */
 	write_event_type(f, &cpu_ovni_pid);
@@ -491,6 +513,7 @@ write_events(FILE *f, struct ovni_emu *emu)
 	write_event_type(f, &cpu_tampi_mode);
 	write_event_type(f, &cpu_openmp_mode);
 	write_event_type(f, &cpu_nanos6_mode);
+	write_event_type(f, &cpu_kernel_cs);
 
 	/* Custom */
 	write_cpu_type(f, &thread_cpu_affinity, emu);

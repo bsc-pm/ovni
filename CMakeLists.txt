@@ -80,6 +80,7 @@ add_executable(ovniemu
   emu_ovni.c
   emu_tampi.c
   emu_nanos6.c
+  emu_kernel.c
   trace.c
   ovni.c
   parson.c

@@ -127,3 +127,7 @@ LS]	Ends the submit of a task
 LP[	Begins the spawn of a function
 LP]	Ends the spawn of a function
 
+-------------------- Kernel (model=K) ----------------------
+
+KCO	Is out of the CPU due to a context switch
+KCI	Is back in the CPU due to a context switch

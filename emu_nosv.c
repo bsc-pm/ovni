@@ -68,9 +68,9 @@ hook_init_nosv(struct ovni_emu *emu)
 		ucpu = &emu->cpu_chan;
 
 		chan_cpu_init(cpu, ucpu, CHAN_NOSV_TASKID,    CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
-		chan_cpu_init(cpu, ucpu, CHAN_NOSV_TYPEID,    CHAN_TRACK_TH_RUNNING, 0, 0, 0, row, prv_cpu, clock);
-		chan_cpu_init(cpu, ucpu, CHAN_NOSV_APPID,     CHAN_TRACK_TH_RUNNING, 0, 0, 0, row, prv_cpu, clock);
-		chan_cpu_init(cpu, ucpu, CHAN_NOSV_SUBSYSTEM, CHAN_TRACK_TH_RUNNING, 0, 0, 0, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_NOSV_TYPEID,    CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_NOSV_APPID,     CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_NOSV_SUBSYSTEM, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 	}
 }
 

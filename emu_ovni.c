@@ -66,7 +66,7 @@ hook_init_ovni(struct ovni_emu *emu)
 		chan_cpu_init(cpu, ucpu, CHAN_OVNI_TID,       CHAN_TRACK_TH_RUNNING,   0, 1, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_OVNI_PID,       CHAN_TRACK_TH_RUNNING,   0, 1, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_OVNI_NRTHREADS, CHAN_TRACK_NONE,         0, 1, 1, row, prv_cpu, clock);
-		chan_cpu_init(cpu, ucpu, CHAN_OVNI_FLUSH,     CHAN_TRACK_TH_RUNNING,   0, 0, 0, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_OVNI_FLUSH,     CHAN_TRACK_TH_RUNNING,   0, 0, 1, row, prv_cpu, clock);
 	}
 }
 

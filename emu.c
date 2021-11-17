@@ -82,7 +82,7 @@ print_cur_ev(struct ovni_emu *emu)
 static void
 cpu_update_tracking_chan(struct ovni_chan *cpu_chan, struct ovni_ethread *th)
 {
-	int th_enabled, cpu_enabled;
+	int th_enabled, cpu_enabled, st;
 	struct ovni_chan *th_chan;
 
 	assert(th);
@@ -112,7 +112,9 @@ cpu_update_tracking_chan(struct ovni_chan *cpu_chan, struct ovni_ethread *th)
 	if(th_enabled && cpu_enabled)
 	{
 		/* Both enabled: simply follow the same value */
-		chan_set(cpu_chan, chan_get_st(th_chan));
+		st = chan_get_st(th_chan);
+		if(chan_get_st(cpu_chan) != st)
+			chan_set(cpu_chan, st);
 	}
 	else if(th_enabled && !cpu_enabled)
 	{
@@ -192,7 +194,8 @@ emu_cpu_update_chan(struct ovni_cpu *cpu, struct ovni_chan *cpu_chan)
 		if(!chan_is_enabled(cpu_chan))
 			chan_enable(cpu_chan, 1);
 
-		chan_set(cpu_chan, ST_TOO_MANY_TH);
+		if(chan_get_st(cpu_chan) != ST_TOO_MANY_TH)
+			chan_set(cpu_chan, ST_TOO_MANY_TH);
 	}
 }
 

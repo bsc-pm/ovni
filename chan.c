@@ -37,15 +37,17 @@ chan_init(struct ovni_chan *chan, enum chan_track track, int row, int type, FILE
 	chan->row = row;
 	chan->dirty = 0;
 	chan->track = track;
+	chan->lastst = -1;
 }
 
 static void
-mark_dirty(struct ovni_chan *chan)
+mark_dirty(struct ovni_chan *chan, enum chan_dirty dirty)
 {
-	assert(chan->dirty == 0);
+	assert(chan->dirty == CHAN_CLEAN);
+	assert(dirty != CHAN_CLEAN);
 
 	dbg("adding dirty chan %d to list\n", chan->id);
-	chan->dirty = 1;
+	chan->dirty = dirty;
 	DL_APPEND(*chan->update_list, chan);
 }
 
@@ -75,7 +77,7 @@ chan_th_init(struct ovni_ethread *th,
 	chan->enabled = enabled;
 	chan->stack[chan->n++] = init_st;
 	if(dirty)
-		mark_dirty(chan);
+		mark_dirty(chan, CHAN_DIRTY_ACTIVE);
 }
 
 void
@@ -104,7 +106,7 @@ chan_cpu_init(struct ovni_cpu *cpu,
 	chan->enabled = enabled;
 	chan->stack[chan->n++] = init_st;
 	if(dirty)
-		mark_dirty(chan);
+		mark_dirty(chan, CHAN_DIRTY_ACTIVE);
 }
 
 static void
@@ -139,7 +141,7 @@ chan_enable(struct ovni_chan *chan, int enabled)
 	/* Only append if not dirty */
 	if(!chan->dirty)
 	{
-		mark_dirty(chan);
+		mark_dirty(chan, CHAN_DIRTY_ACTIVE);
 	}
 	else
 	{
@@ -179,7 +181,7 @@ chan_set(struct ovni_chan *chan, int st)
 	/* Only append if not dirty */
 	if(!chan->dirty)
 	{
-		mark_dirty(chan);
+		mark_dirty(chan, CHAN_DIRTY_VALUE);
 	}
 	else
 	{
@@ -215,7 +217,7 @@ chan_push(struct ovni_chan *chan, int st)
 	chan->stack[chan->n++] = st;
 	chan->t = *chan->clock;
 
-	mark_dirty(chan);
+	mark_dirty(chan, CHAN_DIRTY_VALUE);
 }
 
 int
@@ -248,7 +250,7 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 	chan->n--;
 	chan->t = *chan->clock;
 
-	mark_dirty(chan);
+	mark_dirty(chan, CHAN_DIRTY_VALUE);
 
 	return st;
 }
@@ -267,7 +269,7 @@ chan_ev(struct ovni_chan *chan, int ev)
 	chan->ev = ev;
 	chan->t = *chan->clock;
 
-	mark_dirty(chan);
+	mark_dirty(chan, CHAN_DIRTY_VALUE);
 }
 
 int
@@ -284,6 +286,32 @@ chan_get_st(struct ovni_chan *chan)
 }
 
 static void
+emit(struct ovni_chan *chan, int64_t t, int state)
+{
+	assert(chan->dirty != CHAN_CLEAN);
+
+	/* A channel can only emit the same state as lastst if is dirty because
+	 * it has been enabled or disabled. Otherwise is a bug (ie. you have two
+	 * consecutive ovni events?) */
+	if(chan->lastst != -1
+			&& chan->dirty == CHAN_DIRTY_VALUE
+			&& chan->lastst == state)
+	{
+		/* TODO: Print the raw clock of the offending event */
+		err("chan: id=%d cannot emit the same state %d twice\n",
+				chan->id, state);
+		abort();
+	}
+
+	if(chan->lastst != state)
+	{
+		prv_ev(chan->prv, chan->row, t, chan->type, state);
+
+		chan->lastst = state;
+	}
+}
+
+static void
 emit_ev(struct ovni_chan *chan)
 {
 	int new, last;
@@ -294,8 +322,8 @@ emit_ev(struct ovni_chan *chan)
 	new = chan->ev;
 	last = chan_get_st(chan);
 
-	prv_ev(chan->prv, chan->row, chan->t-1, chan->type, new);
-	prv_ev(chan->prv, chan->row, chan->t, chan->type, last);
+	emit(chan, chan->t-1, new);
+	emit(chan, chan->t, last);
 
 	chan->ev = -1;
 }
@@ -307,7 +335,7 @@ emit_st(struct ovni_chan *chan)
 
 	st = chan_get_st(chan);
 
-	prv_ev(chan->prv, chan->row, chan->t, chan->type, st);
+	emit(chan, chan->t, st);
 }
 
 /* Emits either the current state or punctual event in the PRV file */

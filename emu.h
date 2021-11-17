@@ -170,6 +170,16 @@ enum chan_to_prv_type {
 	CHAN_CPU = 2,
 };
 
+enum chan_dirty {
+	CHAN_CLEAN = 0,
+
+	/* The channel is dirty because it has been enabled or disabled */
+	CHAN_DIRTY_ACTIVE = 1,
+
+	/* The channel is dirty because it changed the state */
+	CHAN_DIRTY_VALUE = 2,
+};
+
 /* Same order as `enum chan` */
 static const int chan_to_prvtype[CHAN_MAX][3] = {
 	/* Channel		TH  CPU */
@@ -212,6 +222,9 @@ struct ovni_chan {
 	/* What state should be shown in errors */
 	int badst;
 
+	/* Last state emitted (-1 otherwise) */
+	int lastst;
+
 	/* Punctual event: -1 if not used */
 	int ev;
 
@@ -227,8 +240,8 @@ struct ovni_chan {
 	/* Paraver row */
 	int row;
 
-	/* 1 if channel needs flush to PRV */
-	int dirty;
+	/* Type of dirty */
+	enum chan_dirty dirty;
 
 	/* Where should the events be written to? */
 	FILE *prv;

@@ -19,7 +19,6 @@
 #include "uthash.h"
 
 #include "ovni.h"
-#include "ovni_trace.h"
 #include "emu.h"
 #include "prv.h"
 #include "chan.h"

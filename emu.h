@@ -18,25 +18,13 @@
 #ifndef OVNI_EMU_H
 #define OVNI_EMU_H
 
+#include <stdio.h>
+
 #include "ovni.h"
 #include "uthash.h"
 #include "parson.h"
 #include "heap.h"
-#include <stdio.h>
-
-/* Debug macros */
-
-#ifdef ENABLE_DEBUG
-# define dbg(...) fprintf(stderr, __VA_ARGS__);
-#else
-# define dbg(...)
-#endif
-
-#define err(...) fprintf(stderr, __VA_ARGS__);
-
-#define likely(x) __builtin_expect(!!(x), 1)
-#define unlikely(x) __builtin_expect(!!(x), 0)
-#define UNUSED(x) (void)(x)
+#include "common.h"
 
 /* Emulated thread runtime status */
 enum ethread_state {

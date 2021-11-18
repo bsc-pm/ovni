@@ -26,7 +26,7 @@
 #include <dirent.h> 
 
 #include "ovni.h"
-#include "ovni_trace.h"
+#include "trace.h"
 
 static void
 emit(struct ovni_ev *ev, int row)

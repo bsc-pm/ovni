@@ -67,6 +67,7 @@ add_executable(ovniemu
   emu_ovni.c
   emu_tampi.c
   emu_nanos6.c
+  trace.c
   ovni.c
   parson.c
   pcf.c
@@ -76,12 +77,14 @@ add_executable(ovniemu
 add_executable(ovnidump
   dump.c
   ovni.c
+  trace.c
   parson.c
 )
 
 add_executable(ovni2prv
   ovni2prv.c
   ovni.c
+  trace.c
   parson.c
 )
 

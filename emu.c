@@ -31,7 +31,7 @@
 #include <time.h>
 
 #include "ovni.h"
-#include "ovni_trace.h"
+#include "trace.h"
 #include "emu.h"
 #include "prv.h"
 #include "pcf.h"

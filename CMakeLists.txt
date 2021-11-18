@@ -34,6 +34,11 @@ if(ENABLE_DEBUG_LOG)
 	add_definitions(-DENABLE_DEBUG)
 endif()
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+    "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel or Asan." FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_available OUTPUT error LANGUAGES C)
 
@@ -51,6 +56,14 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     add_subdirectory(test)
   endif()
 endif()
+
+# Extra build type for AddressSanitizer (Asan)
+set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_DEBUG} \
+  -fsanitize=address \
+  -fno-optimize-sibling-calls \
+  -fsanitize-address-use-after-scope \
+  -fno-omit-frame-pointer"
+  CACHE STRING "Flags used by the C compiler during AddressSanitizer builds." FORCE)
 
 add_library(ovni SHARED
   ovni.c

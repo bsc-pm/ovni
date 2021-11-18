@@ -206,16 +206,16 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 }
 
 static int
-compare_alph(const void* a, const void* b)
+compare_alph(const void *a, const void *b)
 {
-	return strcmp(*(const char**)a, *(const char**)b);
+	return strcmp((const char *)a, (const char *)b);
 }
 
 int
 ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 {
-	char *looms[OVNI_MAX_LOOM];
-	char *hosts[OVNI_MAX_LOOM];
+	char (*looms)[PATH_MAX];
+	char (*hosts)[PATH_MAX];
 	const char *loom_name;
 	DIR *dir;
 	struct dirent *dirent;
@@ -225,16 +225,59 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 
 	if((dir = opendir(tracedir)) == NULL)
 	{
-		fprintf(stderr, "opendir %s failed: %s\n",
-				tracedir, strerror(errno));
+		err("opendir %s failed: %s\n", tracedir, strerror(errno));
 		return -1;
 	}
 
-	for(l=0; l<OVNI_MAX_LOOM; l++)
+	/* Find how many looms we have */
+	while((dirent = readdir(dir)) != NULL)
 	{
-		looms[l] = malloc(PATH_MAX);
-		hosts[l] = malloc(PATH_MAX);
+		if(find_dir_prefix_str(dirent, "loom", &loom_name) != 0)
+		{
+			/* Ignore other files in tracedir */
+			continue;
+		}
+
+		trace->nlooms++;
 	}
+
+	closedir(dir);
+
+	if(trace->nlooms == 0)
+	{
+		err("cannot find any loom in %s\n", tracedir);
+		return -1;
+	}
+
+	/* Then allocate the loom array */
+	trace->loom = calloc(trace->nlooms, sizeof(struct ovni_loom));
+
+	if(trace->loom == NULL)
+	{
+		perror("calloc failed\n");
+		return -1;
+	}
+
+	if((looms = calloc(trace->nlooms, PATH_MAX)) == NULL)
+	{
+		perror("calloc failed\n");
+		return -1;
+	}
+
+	if((hosts = calloc(trace->nlooms, PATH_MAX)) == NULL)
+	{
+		perror("calloc failed\n");
+		return -1;
+	}
+
+	/* Read again the directory */
+	if((dir = opendir(tracedir)) == NULL)
+	{
+		err("opendir %s failed: %s\n", tracedir, strerror(errno));
+		return -1;
+	}
+
+	l = 0;
 
 	while((dirent = readdir(dir)) != NULL)
 	{
@@ -244,29 +287,40 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 			continue;
 		}
 
-		if(trace->nlooms >= OVNI_MAX_LOOM)
+		if(l >= trace->nlooms)
 		{
-			err("too many looms for trace %s\n",
-					tracedir);
-			abort();
+			err("extra loom detected\n");
+			return -1;
 		}
 
-		sprintf(hosts[trace->nlooms], "%s", loom_name);
+		if(snprintf(hosts[l], PATH_MAX, "%s",
+					loom_name) >= PATH_MAX)
+		{
+			err("error: hostname %s too long\n", loom_name);
+			return -1;
+		}
 
-		sprintf(looms[trace->nlooms], "%s/%s", tracedir, dirent->d_name);
+		if(snprintf(looms[l], PATH_MAX, "%s/%s",
+					tracedir, dirent->d_name) >= PATH_MAX)
+		{
+			err("error: loom name %s too long\n", loom_name);
+			return -1;
+		}
 
-		trace->nlooms++;
+		l++;
 	}
 
-	qsort((const char **) hosts, trace->nlooms, sizeof(const char*), compare_alph);
-	qsort((const char **) looms, trace->nlooms, sizeof(const char*), compare_alph);
+	closedir(dir);
+
+	qsort(hosts, trace->nlooms, PATH_MAX, compare_alph);
+	qsort(looms, trace->nlooms, PATH_MAX, compare_alph);
 
 	for(l=0; l<trace->nlooms; l++)
 	{
 		if(strlen(hosts[l]) >= PATH_MAX)
 		{
 			err("error hostname too long: %s\n", hosts[l]);
-			exit(EXIT_FAILURE);
+			return -1;
 		}
 
 		/* Safe */
@@ -276,13 +330,8 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 			return -1;
 	}
 
-	closedir(dir);
-
-	for(l=0; l<OVNI_MAX_LOOM; l++)
-	{
-		free(looms[l]);
-		free(hosts[l]);
-	}
+	free(looms);
+	free(hosts);
 
 	return 0;
 }

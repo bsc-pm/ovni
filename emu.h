@@ -395,7 +395,7 @@ struct ovni_loom {
 
 struct ovni_trace {
 	size_t nlooms;
-	struct ovni_loom loom[OVNI_MAX_LOOM];
+	struct ovni_loom *loom;
 
 	size_t nstreams;
 	struct ovni_stream *stream;

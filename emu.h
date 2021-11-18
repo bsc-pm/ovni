@@ -288,6 +288,10 @@ struct ovni_ethread {
 	/* Burst times */
 	int nbursts;
 	int64_t burst_time[MAX_BURSTS];
+
+	/* These pointers keep a linked list of threads in each CPU */
+	struct ovni_ethread *prev;
+	struct ovni_ethread *next;
 };
 
 /* State of each emulated process */
@@ -352,7 +356,7 @@ struct ovni_cpu {
 
 	/* The threads assigned to this CPU */
 	size_t nthreads;
-	struct ovni_ethread *thread[OVNI_MAX_THR];
+	struct ovni_ethread *thread;
 
 	/* Running threads */
 	size_t nrunning_threads;

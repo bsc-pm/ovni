@@ -19,6 +19,7 @@
 #include "emu.h"
 #include "prv.h"
 #include "chan.h"
+#include "utlist.h"
 
 #include <assert.h>
 
@@ -137,12 +138,10 @@ static void
 cpu_update_th_stats(struct ovni_cpu *cpu)
 {
 	struct ovni_ethread *th, *th_running = NULL, *th_active = NULL;
-	size_t i;
 	int active = 0, running = 0;
 
-	for(i=0; i<cpu->nthreads; i++)
+	DL_FOREACH(cpu->thread, th)
 	{
-		th = cpu->thread[i];
 		if(th->state == TH_ST_RUNNING)
 		{
 			th_running = th;
@@ -198,20 +197,18 @@ emu_get_cpu(struct ovni_loom *loom, int cpuid)
 	return &loom->cpu[cpuid];
 }
 
-static int
+static struct ovni_ethread *
 emu_cpu_find_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 {
-	size_t i;
+	struct ovni_ethread *p = NULL;
 
-	for(i=0; i<cpu->nthreads; i++)
-		if(cpu->thread[i] == thread)
-			break;
+	DL_FOREACH(cpu->thread, p)
+	{
+		if(p == thread)
+			return p;
+	}
 
-	/* Not found */
-	if(i >= cpu->nthreads)
-		return -1;
-
-	return i;
+	return NULL;
 }
 
 /* Add the given thread to the list of threads assigned to the CPU */
@@ -219,17 +216,15 @@ static void
 cpu_add_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 {
 	/* Found, abort */
-	if(emu_cpu_find_thread(cpu, thread) >= 0)
+	if(emu_cpu_find_thread(cpu, thread) != NULL)
 	{
 		err("The thread %d is already assigned to %s\n",
 				thread->tid, cpu->name);
 		abort();
 	}
 
-	/* Ensure that we have room for another thread */
-	assert(cpu->nthreads < OVNI_MAX_THR);
-
-	cpu->thread[cpu->nthreads++] = thread;
+	DL_APPEND(cpu->thread, thread);
+	cpu->nthreads++;
 
 	update_cpu(cpu);
 }
@@ -237,17 +232,19 @@ cpu_add_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 static void
 cpu_remove_thread(struct ovni_cpu *cpu, struct ovni_ethread *thread)
 {
-	int i, j;
+	struct ovni_ethread *p;
 
-	i = emu_cpu_find_thread(cpu, thread);
+	p = emu_cpu_find_thread(cpu, thread);
 
 	/* Not found, abort */
-	if(i < 0)
+	if(p == NULL)
+	{
+		err("cannot remove missing thread %d from cpu %s\n",
+				thread->tid, cpu->name);
 		abort();
+	}
 
-	for(j=i; j+1 < (int)cpu->nthreads; j++)
-		cpu->thread[i] = cpu->thread[j+1];
-
+	DL_DELETE(cpu->thread, thread);
 	cpu->nthreads--;
 
 	update_cpu(cpu);

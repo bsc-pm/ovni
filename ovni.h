@@ -41,7 +41,6 @@ extern "C" {
 typedef struct json_value_t  JSON_Value;
 
 #define OVNI_MAX_CPU 256
-#define OVNI_MAX_THR 256
 #define OVNI_TRACEDIR "ovni"
 #define OVNI_MAX_HOSTNAME 512
 

@@ -385,10 +385,6 @@ struct ovni_loom {
 	struct ovni_cpu vcpu;
 
 	struct ovni_eproc *proc;
-
-	/* Keep a list of updated cpus */
-	int nupdated_cpus;
-	struct ovni_cpu *updated_cpu[OVNI_MAX_CPU];
 };
 
 #define MAX_VIRTUAL_EVENTS 16

@@ -187,7 +187,7 @@ update_cpu(struct ovni_cpu *cpu)
 struct ovni_cpu *
 emu_get_cpu(struct ovni_loom *loom, int cpuid)
 {
-	assert(cpuid < OVNI_MAX_CPU);
+	assert(cpuid < (int) loom->ncpus);
 
 	if(cpuid < 0)
 	{

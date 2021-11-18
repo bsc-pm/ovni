@@ -540,10 +540,14 @@ add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
 {
 	struct ovni_cpu *cpu;
 
-	/* The logical id must match our index */
-	assert((size_t) i == loom->ncpus);
-
 	cpu = &loom->cpu[i];
+
+	if(i < 0 || i >= (int) loom->ncpus)
+	{
+		err("CPU with index %d in loom %s is out of bounds\n", i,
+				loom->hostname);
+		abort();
+	}
 
 	assert(cpu->state == CPU_ST_UNKNOWN);
 
@@ -554,8 +558,6 @@ add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
 	cpu->loom = loom;
 
 	dbg("new cpu %d at phyid=%d\n", cpu->gindex, phyid);
-
-	loom->ncpus++;
 }
 
 static void
@@ -579,15 +581,40 @@ proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *
 
 	assert(loom->ncpus == 0);
 
-	for(i = 0; i < json_array_get_count(cpuarray); i++)
+	loom->ncpus = json_array_get_count(cpuarray);
+
+	if(loom->ncpus <= 0)
+	{
+		err("loom %s proc %d has read %ld cpus, but required > 0\n",
+				loom->hostname, proc->pid, loom->ncpus);
+		abort();
+	}
+
+	loom->cpu = calloc(loom->ncpus, sizeof(struct ovni_cpu));
+
+	if(loom->cpu == NULL)
+	{
+		perror("calloc failed");
+		abort();
+	}
+
+	for(i = 0; i < loom->ncpus; i++)
 	{
 		cpu = json_array_get_object(cpuarray, i);
+
+		if(cpu == NULL)
+		{
+			err("json_array_get_object returned NULL\n");
+			abort();
+		}
 
 		index = (int) json_object_get_number(cpu, "index");
 		phyid = (int) json_object_get_number(cpu, "phyid");
 
 		add_new_cpu(emu, loom, index, phyid);
 	}
+
+	/* If we reach this point, all CPUs are in the ready state */
 
 	/* Init the vcpu as well */
 	vcpu = &loom->vcpu;
@@ -651,6 +678,8 @@ destroy_metadata(struct ovni_emu *emu)
 			assert(proc->meta);
 			json_value_free(proc->meta);
 		}
+
+		free(loom->cpu);
 	}
 
 	return 0;

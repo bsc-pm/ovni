@@ -40,7 +40,6 @@ extern "C" {
 /* Hardcode the JSON_Value to avoid a dependency with janson */
 typedef struct json_value_t  JSON_Value;
 
-#define OVNI_MAX_CPU 256
 #define OVNI_TRACEDIR "ovni"
 #define OVNI_MAX_HOSTNAME 512
 

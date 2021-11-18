@@ -384,7 +384,7 @@ struct ovni_loom {
 	/* Virtual CPU */
 	struct ovni_cpu vcpu;
 
-	struct ovni_eproc proc[OVNI_MAX_PROC];
+	struct ovni_eproc *proc;
 
 	/* Keep a list of updated cpus */
 	int nupdated_cpus;

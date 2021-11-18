@@ -38,7 +38,8 @@ find_dir_prefix_str(struct dirent *dirent, const char *prefix, const char **str)
 
 	p++;
 
-	*str = p;
+	if(str)
+		*str = p;
 
 	return 0;
 }
@@ -55,6 +56,23 @@ find_dir_prefix_int(struct dirent *dirent, const char *prefix, int *num)
 	*num = atoi(p);
 
 	return 0;
+}
+
+static int
+count_dir_prefix(DIR *dir, const char *prefix)
+{
+	struct dirent *dirent;
+	int n = 0;
+
+	while((dirent = readdir(dir)) != NULL)
+	{
+		if(find_dir_prefix_str(dirent, prefix, NULL) != 0)
+			continue;
+
+		n++;
+	}
+
+	return n;
 }
 
 static int
@@ -163,13 +181,12 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 }
 
 static int
-load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
+load_loom(struct ovni_loom *loom, char *loomdir)
 {
-	int pid;
+	int pid, i;
 	char path[PATH_MAX];
 	DIR *dir;
 	struct dirent *dirent;
-	struct ovni_eproc *proc;
 
 	if((dir = opendir(loomdir)) == NULL)
 	{
@@ -178,6 +195,26 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 		return -1;
 	}
 
+	loom->nprocs = count_dir_prefix(dir, "proc");
+
+	if(loom->nprocs <= 0)
+	{
+		err("cannot find any process directory in loom %s\n",
+				loom->hostname);
+		return -1;
+	}
+
+	loom->proc = calloc(loom->nprocs, sizeof(struct ovni_eproc));
+
+	if(loom->proc == NULL)
+	{
+		perror("calloc failed");
+		return -1;
+	}
+
+	rewinddir(dir);
+
+	i = 0;
 	while((dirent = readdir(dir)) != NULL)
 	{
 		if(find_dir_prefix_int(dirent, "proc", &pid) != 0)
@@ -185,19 +222,11 @@ load_loom(struct ovni_loom *loom, int loomid, char *loomdir)
 
 		sprintf(path, "%s/%s", loomdir, dirent->d_name);
 
-		if(loom->nprocs >= OVNI_MAX_PROC)
-		{
-			err("too many process streams for loom %d\n",
-					loomid);
-			abort();
-		}
-
-		proc = &loom->proc[loom->nprocs];
-
-		if(load_proc(proc, loom, loom->nprocs, pid, path) != 0)
+		if(load_proc(&loom->proc[i], loom, i, pid, path) != 0)
 			return -1;
 
-		loom->nprocs++;
+		i++;
+
 	}
 
 	closedir(dir);
@@ -241,8 +270,6 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		trace->nlooms++;
 	}
 
-	closedir(dir);
-
 	if(trace->nlooms == 0)
 	{
 		err("cannot find any loom in %s\n", tracedir);
@@ -270,12 +297,7 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		return -1;
 	}
 
-	/* Read again the directory */
-	if((dir = opendir(tracedir)) == NULL)
-	{
-		err("opendir %s failed: %s\n", tracedir, strerror(errno));
-		return -1;
-	}
+	rewinddir(dir);
 
 	l = 0;
 
@@ -326,7 +348,7 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		/* Safe */
 		strcpy(trace->loom[l].hostname, hosts[l]);
 
-		if(load_loom(&trace->loom[l], l, looms[l]) != 0)
+		if(load_loom(&trace->loom[l], looms[l]) != 0)
 			return -1;
 	}
 
@@ -448,6 +470,11 @@ ovni_free_streams(struct ovni_trace *trace)
 void
 ovni_free_trace(struct ovni_trace *trace)
 {
+	size_t i;
+
+	for(i=0; i<trace->nlooms; i++)
+		free(trace->loom[i].proc);
+
 	free(trace->loom);
 }
 

@@ -1108,6 +1108,10 @@ emu_destroy(struct ovni_emu *emu)
 	close_pcfs(emu);
 	destroy_metadata(emu);
 	ovni_free_streams(&emu->trace);
+	ovni_free_trace(&emu->trace);
+
+	free(emu->global_cpu);
+	free(emu->global_thread);
 }
 
 int

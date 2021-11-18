@@ -90,5 +90,7 @@ int main(void)
 	ovni_flush();
 	ovni_proc_fini();
 
+	free(payload_buf);
+
 	return 0;
 }

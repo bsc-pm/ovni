@@ -445,6 +445,12 @@ ovni_free_streams(struct ovni_trace *trace)
 	free(trace->stream);
 }
 
+void
+ovni_free_trace(struct ovni_trace *trace)
+{
+	free(trace->loom);
+}
+
 int
 ovni_load_next_event(struct ovni_stream *stream)
 {

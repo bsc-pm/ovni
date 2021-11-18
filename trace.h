@@ -29,4 +29,6 @@ int ovni_load_streams(struct ovni_trace *trace);
 
 void ovni_free_streams(struct ovni_trace *trace);
 
+void ovni_free_trace(struct ovni_trace *trace);
+
 #endif /* OVNI_TRACE_H */

@@ -305,7 +305,7 @@ struct ovni_eproc {
 
 	/* Threads */
 	size_t nthreads;
-	struct ovni_ethread thread[OVNI_MAX_THR];
+	struct ovni_ethread *thread;
 
 	JSON_Value *meta;
 

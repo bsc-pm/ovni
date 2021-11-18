@@ -117,6 +117,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 	char path[PATH_MAX];
 	struct ovni_ethread *thread;
 	int tid;
+	size_t i;
 
 	proc->pid = pid;
 	proc->index = index;
@@ -147,6 +148,26 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 		return -1;
 	}
 
+	proc->nthreads = count_dir_prefix(dir, "thread");
+
+	if(proc->nthreads <= 0)
+	{
+		err("cannot find any thread for process %d\n",
+				proc->pid);
+		return -1;
+	}
+
+	proc->thread = calloc(proc->nthreads, sizeof(struct ovni_ethread));
+
+	if(proc->thread == NULL)
+	{
+		perror("calloc failed");
+		return -1;
+	}
+
+	rewinddir(dir);
+
+	i = 0;
 	while((dirent = readdir(dir)) != NULL)
 	{
 		if(find_dir_prefix_int(dirent, "thread", &tid) != 0)
@@ -159,23 +180,15 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 			abort();
 		}
 
-		if(proc->nthreads >= OVNI_MAX_THR)
-		{
-			err("too many thread streams for process %d\n", pid);
-			abort();
-		}
+		thread = &proc->thread[i];
 
-		thread = &proc->thread[proc->nthreads];
-
-		if(load_thread(thread, proc, proc->nthreads, tid, path) != 0)
+		if(load_thread(thread, proc, i, tid, path) != 0)
 			return -1;
 
-		proc->nthreads++;
+		i++;
 	}
 
 	closedir(dir);
-
-
 
 	return 0;
 }
@@ -183,7 +196,8 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 static int
 load_loom(struct ovni_loom *loom, char *loomdir)
 {
-	int pid, i;
+	int pid;
+	size_t i;
 	char path[PATH_MAX];
 	DIR *dir;
 	struct dirent *dirent;
@@ -222,11 +236,23 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 
 		sprintf(path, "%s/%s", loomdir, dirent->d_name);
 
+		if(i >= loom->nprocs)
+		{
+			err("more process than expected\n");
+			abort();
+		}
+
 		if(load_proc(&loom->proc[i], loom, i, pid, path) != 0)
 			return -1;
 
 		i++;
 
+	}
+
+	if(i != loom->nprocs)
+	{
+		err("unexpected number of processes\n");
+		abort();
 	}
 
 	closedir(dir);
@@ -470,10 +496,17 @@ ovni_free_streams(struct ovni_trace *trace)
 void
 ovni_free_trace(struct ovni_trace *trace)
 {
-	size_t i;
+	size_t i, j;
 
 	for(i=0; i<trace->nlooms; i++)
+	{
+		for(j=0; j<trace->loom[i].nprocs; j++)
+		{
+			free(trace->loom[i].proc[j].thread);
+		}
+
 		free(trace->loom[i].proc);
+	}
 
 	free(trace->loom);
 }

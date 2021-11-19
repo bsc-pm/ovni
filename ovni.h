@@ -133,7 +133,7 @@ struct ovni_rproc {
 	JSON_Value *meta;
 };
 
-int ovni_proc_init(int app, char *loom, int proc);
+int ovni_proc_init(int app, const char *loom, int proc);
 
 int ovni_proc_fini(void);
 
@@ -145,23 +145,23 @@ int ovni_thread_isready(void);
 
 void ovni_clock_update(void);
 
-void ovni_ev_set_mcv(struct ovni_ev *ev, char *mcv);
+void ovni_ev_set_mcv(struct ovni_ev *ev, const char *mcv);
 
-uint64_t ovni_ev_get_clock(struct ovni_ev *ev);
+uint64_t ovni_ev_get_clock(const struct ovni_ev *ev);
 
 uint64_t ovni_get_clock(void);
 
-void ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size);
+void ovni_payload_add(struct ovni_ev *ev, const uint8_t *buf, int size);
 
-int ovni_ev_size(struct ovni_ev *ev);
+int ovni_ev_size(const struct ovni_ev *ev);
 
-int ovni_payload_size(struct ovni_ev *ev);
+int ovni_payload_size(const struct ovni_ev *ev);
 
 void ovni_add_cpu(int index, int phyid);
 
 /* Set the current clock in the event and queue it */
 void ovni_ev_emit(struct ovni_ev *ev);
-void ovni_ev_jumbo_emit(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize);
+void ovni_ev_jumbo_emit(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize);
 
 int ovni_flush(void);
 

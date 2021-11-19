@@ -61,7 +61,7 @@ struct ovni_rproc rproc = {0};
 _Thread_local struct ovni_rthread rthread = {0};
 
 static int
-create_trace_dirs(char *tracedir, char *loom, int proc)
+create_trace_dirs(char *tracedir, const char *loom, int proc)
 {
 	char path[PATH_MAX];
 
@@ -213,7 +213,7 @@ proc_set_app(int appid)
 }
 
 int
-ovni_proc_init(int app, char *loom, int proc)
+ovni_proc_init(int app, const char *loom, int proc)
 {
 	assert(rproc.ready == 0);
 
@@ -407,13 +407,13 @@ ovni_ev_set_clock(struct ovni_ev *ev)
 }
 
 uint64_t
-ovni_ev_get_clock(struct ovni_ev *ev)
+ovni_ev_get_clock(const struct ovni_ev *ev)
 {
 	return ev->header.clock;
 }
 
 void
-ovni_ev_set_mcv(struct ovni_ev *ev, char *mcv)
+ovni_ev_set_mcv(struct ovni_ev *ev, const char *mcv)
 {
 	ev->header.model = mcv[0];
 	ev->header.category = mcv[1];
@@ -421,13 +421,13 @@ ovni_ev_set_mcv(struct ovni_ev *ev, char *mcv)
 }
 
 static size_t
-get_jumbo_payload_size(struct ovni_ev *ev)
+get_jumbo_payload_size(const struct ovni_ev *ev)
 {
 	return sizeof(ev->payload.jumbo.size) + ev->payload.jumbo.size;
 }
 
 int
-ovni_payload_size(struct ovni_ev *ev)
+ovni_payload_size(const struct ovni_ev *ev)
 {
 	int size;
 
@@ -447,7 +447,7 @@ ovni_payload_size(struct ovni_ev *ev)
 }
 
 void
-ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size)
+ovni_payload_add(struct ovni_ev *ev, const uint8_t *buf, int size)
 {
 	size_t payload_size;
 
@@ -466,7 +466,7 @@ ovni_payload_add(struct ovni_ev *ev, uint8_t *buf, int size)
 }
 
 int
-ovni_ev_size(struct ovni_ev *ev)
+ovni_ev_size(const struct ovni_ev *ev)
 {
 	return sizeof(ev->header) + ovni_payload_size(ev);
 }
@@ -517,7 +517,7 @@ add_flush_events(uint64_t t0, uint64_t t1)
 }
 
 static void
-ovni_ev_add_jumbo(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
+ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 {
 	size_t evsize, totalsize;
 	int flushed = 0;
@@ -593,7 +593,7 @@ ovni_ev_add(struct ovni_ev *ev)
 }
 
 void
-ovni_ev_jumbo_emit(struct ovni_ev *ev, uint8_t *buf, uint32_t bufsize)
+ovni_ev_jumbo_emit(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 {
 	ovni_ev_set_clock(ev);
 	ovni_ev_add_jumbo(ev, buf, bufsize);

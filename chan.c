@@ -131,7 +131,7 @@ chan_enable(struct ovni_chan *chan, int enabled)
 
 	if(chan->enabled == enabled)
 	{
-		err("chan already in enabled=%d\n", enabled);
+		err("chan_enable: chan already in enabled=%d\n", enabled);
 		abort();
 	}
 
@@ -242,8 +242,8 @@ chan_push(struct ovni_chan *chan, int st)
 
 	if(chan->n >= MAX_CHAN_STACK)
 	{
-		err("channel stack full\n");
-		exit(EXIT_FAILURE);
+		err("chan_push: channel stack full\n");
+		abort();
 	}
 
 	chan->stack[chan->n++] = st;
@@ -266,17 +266,17 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 
 	if(chan->n <= 0)
 	{
-		err("channel empty\n");
-		exit(EXIT_FAILURE);
+		err("chan_pop: channel empty\n");
+		abort();
 	}
 
 	st = chan->stack[chan->n - 1];
 
 	if(expected_st >= 0 && st != expected_st)
 	{
-		err("unexpected channel state %d (expected %d)\n",
+		err("chan_pop: unexpected channel state %d (expected %d)\n",
 				st, expected_st);
-		exit(EXIT_FAILURE);
+		abort();
 	}
 
 	chan->n--;

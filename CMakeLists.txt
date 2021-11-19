@@ -36,7 +36,7 @@ endif()
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
-    "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel or Asan." FORCE)
+    "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel Asan UBsan." FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 include(CheckIPOSupported)
@@ -64,6 +64,9 @@ set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_DEBUG} \
   -fsanitize-address-use-after-scope \
   -fno-omit-frame-pointer"
   CACHE STRING "Flags used by the C compiler during AddressSanitizer builds." FORCE)
+
+set(CMAKE_C_FLAGS_UBSAN "${CMAKE_C_FLAGS_DEBUG} -fsanitize=undefined"
+  CACHE STRING "Flags used by the C compiler during UndefinedBehaviorSanitizer builds." FORCE)
 
 add_library(ovni SHARED
   ovni.c

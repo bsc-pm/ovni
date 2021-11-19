@@ -172,6 +172,25 @@ chan_set(struct ovni_chan *chan, int st)
 
 	assert(chan->enabled);
 
+	/* Only chan_set can set the 0 state */
+	if(st < 0)
+	{
+		err("chan_set: cannot set a negative state %d\n", st);
+		abort();
+	}
+
+	/* Don't enforce this check if we are dirty because the channel was
+	 * just enabled; it may collide with a new state 0 set via chan_set()
+	 * used by the tracking channels */
+	if(chan->dirty != CHAN_DIRTY_ACTIVE
+			&& chan->lastst >= 0
+			&& chan->lastst == st)
+	{
+		err("chan_set id=%d cannot emit the state %d twice\n",
+				chan->id, st);
+		abort();
+	}
+
 	if(chan->n == 0)
 		chan->n = 1;
 
@@ -205,8 +224,21 @@ chan_push(struct ovni_chan *chan, int st)
 
 	assert(chan->enabled);
 
+	if(st <= 0)
+	{
+		err("chan_push: cannot push a non-positive state %d\n", st);
+		abort();
+	}
+
 	/* Cannot be dirty */
 	assert(chan->dirty == 0);
+
+	if(chan->lastst >= 0 && chan->lastst == st)
+	{
+		err("chan_push id=%d cannot emit the state %d twice\n",
+				chan->id, st);
+		abort();
+	}
 
 	if(chan->n >= MAX_CHAN_STACK)
 	{
@@ -248,6 +280,24 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 	}
 
 	chan->n--;
+
+	/* Take the current stack value */
+	st = chan_get_st(chan);
+
+	/* A st == 0 can be obtained when returning to the initial state */
+	if(st < 0)
+	{
+		err("chan_pop: obtained negative state %d from the stack\n", st);
+		abort();
+	}
+
+	if(chan->lastst >= 0 && chan->lastst == st)
+	{
+		err("chan_pop id=%d cannot emit the state %d twice\n",
+				chan->id, st);
+		abort();
+	}
+
 	chan->t = *chan->clock;
 
 	mark_dirty(chan, CHAN_DIRTY_VALUE);
@@ -264,7 +314,19 @@ chan_ev(struct ovni_chan *chan, int ev)
 
 	/* Cannot be dirty */
 	assert(chan->dirty == 0);
-	assert(ev >= 0);
+
+	if(ev <= 0)
+	{
+		err("chan_ev: cannot emit non-positive state %d\n", ev);
+		abort();
+	}
+
+	if(chan->lastst >= 0 && chan->lastst == ev)
+	{
+		err("chan_ev id=%d cannot emit the state %d twice\n",
+				chan->id, ev);
+		abort();
+	}
 
 	chan->ev = ev;
 	chan->t = *chan->clock;

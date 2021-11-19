@@ -28,6 +28,12 @@ add_compile_options(-Wall -Wextra -Wformat
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS FALSE)
 
+option(ENABLE_DEBUG_LOG "Enable debug messages (very verbose)")
+
+if(ENABLE_DEBUG_LOG)
+	add_definitions(-DENABLE_DEBUG)
+endif()
+
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_available OUTPUT error LANGUAGES C)
 

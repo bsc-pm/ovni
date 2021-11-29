@@ -63,9 +63,8 @@ hook_init_tampi(struct ovni_emu *emu)
 
 /* --------------------------- pre ------------------------------- */
 
-
 static void
-pre_send(struct ovni_emu *emu)
+pre_tampi_mode(struct ovni_emu *emu, int state)
 {
 	struct ovni_ethread *th;
 
@@ -74,110 +73,10 @@ pre_send(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case '[':
-			chan_push(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_SEND);
+			chan_push(&th->chan[CHAN_TAMPI_MODE], state);
 			break;
 		case ']':
-			chan_pop(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_SEND);
-			break;
-		default:
-			  abort();
-	}
-}
-
-static void
-pre_recv(struct ovni_emu *emu)
-{
-	struct ovni_ethread *th;
-
-	th = emu->cur_thread;
-
-	switch(emu->cur_ev->header.value)
-	{
-		case '[':
-			chan_push(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_RECV);
-			break;
-		case ']':
-			chan_pop(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_RECV);
-			break;
-		default:
-			  abort();
-	}
-}
-
-static void
-pre_isend(struct ovni_emu *emu)
-{
-	struct ovni_ethread *th;
-
-	th = emu->cur_thread;
-
-	switch(emu->cur_ev->header.value)
-	{
-		case '[':
-			chan_push(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_ISEND);
-			break;
-		case ']':
-			chan_pop(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_ISEND);
-			break;
-		default:
-			  abort();
-	}
-}
-
-static void
-pre_irecv(struct ovni_emu *emu)
-{
-	struct ovni_ethread *th;
-
-	th = emu->cur_thread;
-
-	switch(emu->cur_ev->header.value)
-	{
-		case '[':
-			chan_push(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_IRECV);
-			break;
-		case ']':
-			chan_pop(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_IRECV);
-			break;
-		default:
-			  abort();
-	}
-}
-
-static void
-pre_wait(struct ovni_emu *emu)
-{
-	struct ovni_ethread *th;
-
-	th = emu->cur_thread;
-
-	switch(emu->cur_ev->header.value)
-	{
-		case '[':
-			chan_push(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_WAIT);
-			break;
-		case ']':
-			chan_pop(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_WAIT);
-			break;
-		default:
-			  abort();
-	}
-}
-
-static void
-pre_waitall(struct ovni_emu *emu)
-{
-	struct ovni_ethread *th;
-
-	th = emu->cur_thread;
-
-	switch(emu->cur_ev->header.value)
-	{
-		case '[':
-			chan_push(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_WAITALL);
-			break;
-		case ']':
-			chan_pop(&th->chan[CHAN_TAMPI_MODE], ST_TAMPI_WAITALL);
+			chan_pop(&th->chan[CHAN_TAMPI_MODE], state);
 			break;
 		default:
 			  abort();
@@ -191,12 +90,12 @@ hook_pre_tampi(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.category)
 	{
-		case 'S': pre_send(emu); break;
-		case 'R': pre_recv(emu); break;
-		case 's': pre_isend(emu); break;
-		case 'r': pre_irecv(emu); break;
-		case 'V': pre_wait(emu); break;
-		case 'W': pre_waitall(emu); break;
+		case 'S': pre_tampi_mode(emu, ST_TAMPI_SEND); break;
+		case 'R': pre_tampi_mode(emu, ST_TAMPI_RECV); break;
+		case 's': pre_tampi_mode(emu, ST_TAMPI_ISEND); break;
+		case 'r': pre_tampi_mode(emu, ST_TAMPI_IRECV); break;
+		case 'V': pre_tampi_mode(emu, ST_TAMPI_WAIT); break;
+		case 'W': pre_tampi_mode(emu, ST_TAMPI_WAITALL); break;
 		default:
 			break;
 	}

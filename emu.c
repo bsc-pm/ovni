@@ -1068,6 +1068,7 @@ init_cpus(struct ovni_emu *emu)
 				err("error cpu %ld.%ld name too long\n", i, j);
 				exit(EXIT_FAILURE);
 			}
+			cpu->virtual = 0;
 		}
 
 		emu->global_cpu[loom->vcpu.gindex] = &loom->vcpu;
@@ -1077,6 +1078,7 @@ init_cpus(struct ovni_emu *emu)
 			err("error cpu %ld.* name too long\n", i);
 			exit(EXIT_FAILURE);
 		}
+		loom->vcpu.virtual = 1;
 	}
 }
 

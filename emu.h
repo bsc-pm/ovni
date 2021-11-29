@@ -368,6 +368,9 @@ struct ovni_cpu {
 
 	/* Cpu name as shown in paraver row */
 	char name[MAX_CPU_NAME];
+
+	/* Is this a virtual CPU? */
+	int virtual;
 };
 
 /* ----------------------- trace ------------------------ */

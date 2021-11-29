@@ -26,6 +26,9 @@ OAr	Remotely switches the affinity of the given thread
 
 OB.	Emits a burst event to measure latency
 
+OU[	Enters a region which contain past events (HACK)
+OU]	Exits the region of past events (HACK)
+
 -------------------- nOS-V (model=V) ----------------------
 
 VTc	Creates a new task (punctual event)

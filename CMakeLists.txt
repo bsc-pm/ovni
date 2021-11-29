@@ -101,6 +101,13 @@ add_executable(ovni2prv
   parson.c
 )
 
+add_executable(ovnisort
+  sort.c
+  ovni.c
+  trace.c
+  parson.c
+)
+
 # Use <PackageName>_ROOT variables if available, commonly used by MPI
 # installations
 if(POLICY CMP0074)
@@ -112,6 +119,6 @@ add_executable(ovnisync ovnisync.c)
 target_link_libraries(ovnisync m MPI::MPI_C)
 
 install(TARGETS ovni LIBRARY DESTINATION lib)
-install(TARGETS ovniemu ovnidump ovni2prv ovnisync RUNTIME DESTINATION bin)
+install(TARGETS ovniemu ovnidump ovni2prv ovnisync ovnisort RUNTIME DESTINATION bin)
 install(FILES ovni.h DESTINATION include)
 install(DIRECTORY cfg/ DESTINATION share/ovni)

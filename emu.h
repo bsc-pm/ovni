@@ -267,9 +267,6 @@ struct ovni_ethread {
 	/* The process associated with this thread */
 	struct ovni_eproc *proc;
 
-	/* Stream fd */
-	int stream_fd;
-
 	enum ethread_state state;
 	int is_running;
 	int is_active;
@@ -296,6 +293,9 @@ struct ovni_ethread {
 	/* These pointers keep a linked list of threads in each CPU */
 	struct ovni_ethread *prev;
 	struct ovni_ethread *next;
+
+	/* Trace file path */
+	char tracefile[PATH_MAX];
 };
 
 /* State of each emulated process */

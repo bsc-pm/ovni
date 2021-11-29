@@ -85,13 +85,15 @@ load_thread(struct ovni_ethread *thread, struct ovni_eproc *proc, int index, int
 	thread->gindex = total_threads++;
 	thread->state = TH_ST_UNKNOWN;
 	thread->proc = proc;
-	thread->stream_fd = open(filepath, O_RDWR);
 
-	if(thread->stream_fd == -1)
+	if(strlen(filepath) >= PATH_MAX)
 	{
-		perror("open");
+		err("filepath too large: %s\n", filepath);
 		return -1;
 	}
+
+	strcpy(thread->tracefile, filepath);
+
 	return 0;
 }
 
@@ -388,8 +390,15 @@ static int
 load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 {
 	struct stat st;
+	int fd;
 
-	if(fstat(thread->stream_fd, &st) < 0)
+	if((fd = open(thread->tracefile, O_RDWR)) == -1)
+	{
+		perror("open");
+		return -1;
+	}
+
+	if(fstat(fd, &st) < 0)
 	{
 		perror("fstat");
 		return -1;
@@ -402,12 +411,13 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 		stream->buf = NULL;
 		stream->active = 0;
 
+		/* No need to do anything else */
 		return 0;
 	}
 
 	stream->size = st.st_size;
 	stream->buf = mmap(NULL, stream->size, PROT_READ | PROT_WRITE,
-			MAP_SHARED, thread->stream_fd, 0);
+			MAP_SHARED, fd, 0);
 
 	if(stream->buf == MAP_FAILED)
 	{
@@ -416,6 +426,13 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 	}
 
 	stream->active = 1;
+
+	/* No need to keep the fd open */
+	if(close(fd))
+	{
+		perror("close");
+		return -1;
+	}
 
 	return 0;
 }

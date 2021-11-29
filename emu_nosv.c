@@ -458,6 +458,26 @@ pre_ss(struct ovni_emu *emu, int st)
 	}
 }
 
+static void
+check_affinity(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_cpu *cpu = th->cpu;
+
+	if(!cpu || cpu->virtual)
+		return;
+
+	if(th->state != TH_ST_RUNNING)
+		return;
+
+	if(cpu->nrunning_threads > 1)
+	{
+		err("cpu %s has more than one thread running\n",
+				cpu->name);
+		abort();
+	}
+}
+
 void
 hook_pre_nosv(struct ovni_emu *emu)
 {
@@ -478,4 +498,7 @@ hook_pre_nosv(struct ovni_emu *emu)
 		default:
 			break;
 	}
+
+	if(emu->enable_linter)
+		check_affinity(emu);
 }

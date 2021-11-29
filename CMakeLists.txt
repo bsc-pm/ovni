@@ -49,14 +49,6 @@ else()
   message(WARNING "IPO is not supported, expect performance penalty\n${error}")
 endif()
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-  include(CTest)
-
-  if(BUILD_TESTING)
-    add_subdirectory(test)
-  endif()
-endif()
-
 # Extra build type for AddressSanitizer (Asan)
 set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_DEBUG} \
   -fsanitize=address \
@@ -121,6 +113,14 @@ endif()
 find_package(MPI REQUIRED)
 add_executable(ovnisync ovnisync.c)
 target_link_libraries(ovnisync m MPI::MPI_C)
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  include(CTest)
+
+  if(BUILD_TESTING)
+    add_subdirectory(test)
+  endif()
+endif()
 
 install(TARGETS ovni LIBRARY DESTINATION lib)
 install(TARGETS ovniemu ovnidump ovni2prv ovnisync ovnisort RUNTIME DESTINATION bin)

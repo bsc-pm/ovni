@@ -25,6 +25,8 @@
  * that we will look back is limited by N.
  */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -34,6 +36,7 @@
 #include <sys/stat.h>
 #include <stdatomic.h>
 #include <dirent.h>
+#include <unistd.h>
 
 #include "ovni.h"
 #include "trace.h"
@@ -49,7 +52,6 @@ struct ring {
 struct sortplan {
 	/* The first and last events which need sorting */
 	struct ovni_ev *bad0;
-	struct ovni_ev *bad1;
 
 	/* The first event in the stream that may be affected */
 	struct ovni_ev *first;
@@ -59,6 +61,12 @@ struct sortplan {
 
 	struct ring *r;
 };
+
+enum operation_mode { SORT, CHECK };
+
+static char *tracedir = NULL;
+static enum operation_mode operation_mode = SORT;
+static const size_t max_look_back = 10000;
 
 static void
 ring_reset(struct ring *r)
@@ -85,7 +93,7 @@ ring_add(struct ring *r, struct ovni_ev *ev)
 static ssize_t
 find_destination(struct ring *r, uint64_t clock)
 {
-	ssize_t i, start, end;
+	ssize_t i, start, end, nback = 0;
 
 	start = r->tail - 1 >= 0 ? r->tail - 1 : r->size - 1;
 	end = r->head - 1 >= 0 ? r->head - 1 : r->size - 1;
@@ -93,8 +101,15 @@ find_destination(struct ring *r, uint64_t clock)
 	for(i=start; i != end; i = i-1 < 0 ? r->size : i-1)
 	{
 		if(r->ev[i]->header.clock < clock)
+		{
+			err("found suitable position %ld events backwards\n",
+					nback);
 			return i;
+		}
+		nback++;
 	}
+
+	err("cannot find a event previous to clock %lu\n", clock);
 
 	return -1;
 }
@@ -120,7 +135,7 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 		uint8_t *srcbad, uint8_t *srcnext)
 {
 	uint8_t *p, *q;
-	int64_t evsize;
+	int64_t evsize, injected = 0;
 	struct ovni_ev *ep, *eq, *ev;
 
 	p = src;
@@ -149,14 +164,14 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 
 		assert((uint8_t *) ev < srcnext);
 
-		printf("copying %ld bytes from %p to %p (srcnext=%p bufsize=%ld)\n",
-				evsize, (void *) ev, buf, srcnext, bufsize);
-
 		assert(bufsize >= evsize);
 		memcpy(buf, ev, evsize);
 		buf += evsize;
 		bufsize -= evsize;
+		injected++;
 	}
+
+	err("injected %ld events in the past\n", injected);
 }
 
 static int
@@ -167,7 +182,10 @@ execute_sort_plan(struct sortplan *sp)
 
 	/* Cannot sort in one pass; just fail for now */
 	if((i0 = find_destination(sp->r, sp->bad0->header.clock)) < 0)
+	{
+		err("cannot find a destination for unsorted region\n");
 		return -1;
+	}
 
 	/* Set the pointer to the first event */
 	sp->first = sp->r->ev[i0];
@@ -175,8 +193,14 @@ execute_sort_plan(struct sortplan *sp)
 	/* Allocate a working buffer */
 	bufsize = ((int64_t) sp->next) - ((int64_t) sp->first);
 
+	assert(bufsize > 0);
+
 	buf = malloc(bufsize);
-	assert(buf);
+	if(!buf)
+	{
+		perror("malloc failed");
+		abort();
+	}
 
 	sort_buf((uint8_t *) sp->first, buf, bufsize,
 			(uint8_t *) sp->bad0, (uint8_t *) sp->next);
@@ -211,20 +235,31 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 		}
 		else if(st == 'U')
 		{
-			st = 'X';
-			sp.bad0 = ev;
+			/* Ensure that we have at least one unsorted
+			 * event inside the section */
+			if(ends_unsorted_region(ev))
+			{
+				err("warning: ignoring empty sort section\n");
+				st = 'S';
+			}
+			else
+			{
+				st = 'X';
+				sp.bad0 = ev;
+			}
 		}
 		else if(st == 'X')
 		{
 			if(ends_unsorted_region(ev))
 			{
 				sp.next = ev;
-				execute_sort_plan(&sp);
+				if(execute_sort_plan(&sp) < 0)
+				{
+					err("sort failed for stream tid=%d\n",
+							stream->tid);
+					return -1;
+				}
 				st = 'S';
-			}
-			else
-			{
-				sp.bad1 = ev;
 			}
 		}
 
@@ -234,14 +269,43 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 	return 0;
 }
 
-static void
-sort_streams(struct ovni_trace *trace)
+/* Ensures that each individual stream is sorted */
+static int
+stream_check(struct ovni_stream *stream)
+{
+	ovni_load_next_event(stream);
+	struct ovni_ev *ev = stream->cur_ev;
+	uint64_t last_clock = ev->header.clock;
+	int ret = 0;
+
+	for(ssize_t i=0; stream->active; i++)
+	{
+		ovni_load_next_event(stream);
+		ev = stream->cur_ev;
+		uint64_t cur_clock = ovni_ev_get_clock(ev);
+
+		if(cur_clock < last_clock)
+		{
+			err("backwards jump in time %ld -> %ld for stream tid=%d\n",
+					last_clock, cur_clock, stream->tid);
+			ret = -1;
+		}
+
+		last_clock = cur_clock;
+	}
+
+	return ret;
+}
+
+static int
+process_trace(struct ovni_trace *trace)
 {
 	size_t i;
 	struct ovni_stream *stream;
 	struct ring ring;
+	int ret = 0;
 
-	ring.size = 10000;
+	ring.size = max_look_back;
 	ring.ev = malloc(ring.size * sizeof(struct ovni_ev *));
 
 	assert(ring.ev);
@@ -249,16 +313,90 @@ sort_streams(struct ovni_trace *trace)
 	for(i=0; i<trace->nstreams; i++)
 	{
 		stream = &trace->stream[i];
-		stream_winsort(stream, &ring);
+		if(operation_mode == SORT)
+		{
+			if(stream_winsort(stream, &ring) != 0)
+			{
+				err("sort stream tid=%d failed\n", stream->tid);
+				/* When sorting, return at the first
+				 * attempt */
+				return -1;
+			}
+		}
+		else
+		{
+			if(stream_check(stream) != 0)
+			{
+				err("stream tid=%d is not sorted\n", stream->tid);
+				/* When checking, report all errors and
+				 * then fail */
+				ret = -1;
+			}
+		}
 	}
 
 	free(ring.ev);
+
+	return ret;
+}
+
+static void
+usage(int argc, char *argv[])
+{
+	UNUSED(argc);
+	UNUSED(argv);
+
+	err("Usage: ovnisort [-c] tracedir\n");
+	err("\n");
+	err("Sorts the events in each stream of the trace given in\n");
+	err("tracedir, so they are suitable for the emulator ovniemu.\n");
+	err("Only the events enclosed by OU[ OU] are sorted. At most a\n");
+	err("total of %ld events are looked back to insert the unsorted\n",
+			max_look_back);
+	err("events, so the sort procedure can fail with an error.\n");
+	err("\n");
+	err("Options:\n");
+	err("  -c          Enable check mode: don't sort, ensure the\n");
+	err("              trace is already sorted.\n");
+	err("\n");
+	err("  tracedir    The trace directory generated by ovni.\n");
+	err("\n");
+
+	exit(EXIT_FAILURE);
+}
+
+static void
+parse_args(int argc, char *argv[])
+{
+	int opt;
+
+	while((opt = getopt(argc, argv, "c")) != -1)
+	{
+		switch(opt)
+		{
+			case 'c':
+				operation_mode = CHECK;
+				break;
+			default: /* '?' */
+				usage(argc, argv);
+		}
+	}
+
+	if(optind >= argc)
+	{
+		err("missing tracedir\n");
+		usage(argc, argv);
+	}
+
+	tracedir = argv[optind];
 }
 
 int main(int argc, char *argv[])
 {
-	char *tracedir;
+	int ret = 0;
 	struct ovni_trace *trace;
+
+	parse_args(argc, argv);
 
 	trace = calloc(1, sizeof(struct ovni_trace));
 
@@ -268,25 +406,18 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if(argc != 2)
-	{
-		fprintf(stderr, "missing tracedir\n");
-		exit(EXIT_FAILURE);
-	}
-
-	tracedir = argv[1];
-
 	if(ovni_load_trace(trace, tracedir))
 		return 1;
 
 	if(ovni_load_streams(trace))
 		return 1;
 
-	sort_streams(trace);
+	if(process_trace(trace))
+		ret = -1;
 
 	ovni_free_streams(trace);
 
 	free(trace);
 
-	return 0;
+	return ret;
 }

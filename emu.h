@@ -88,15 +88,15 @@ enum openmp_state {
 	ST_OPENMP_PARALLEL = 2,
 };
 
-enum nanos6_state {
-	ST_NANOS6_REGISTER = 1,
-	ST_NANOS6_UNREGISTER = 2,
-	ST_NANOS6_IF0_WAIT = 3,
-	ST_NANOS6_IF0_INLINE = 4,
-	ST_NANOS6_TASKWAIT = 5,
-	ST_NANOS6_CREATE = 6,
-	ST_NANOS6_SUBMIT = 7,
-	ST_NANOS6_SPAWN = 8,
+enum nodes_state {
+	ST_NODES_REGISTER = 1,
+	ST_NODES_UNREGISTER = 2,
+	ST_NODES_IF0_WAIT = 3,
+	ST_NODES_IF0_INLINE = 4,
+	ST_NODES_TASKWAIT = 5,
+	ST_NODES_CREATE = 6,
+	ST_NODES_SUBMIT = 7,
+	ST_NODES_SPAWN = 8,
 };
 
 enum kernel_cs_state {
@@ -151,7 +151,7 @@ enum chan {
 
 	CHAN_TAMPI_MODE,
 	CHAN_OPENMP_MODE,
-	CHAN_NANOS6_SUBSYSTEM,
+	CHAN_NODES_SUBSYSTEM,
 
 	CHAN_KERNEL_CS,
 
@@ -191,7 +191,7 @@ static const int chan_to_prvtype[CHAN_MAX][3] = {
 	{ CHAN_NOSV_SUBSYSTEM,    23,  73  },
 	{ CHAN_TAMPI_MODE,        30,  80  },
 	{ CHAN_OPENMP_MODE,       40,  90  },
-	{ CHAN_NANOS6_SUBSYSTEM,  50, 100  },
+	{ CHAN_NODES_SUBSYSTEM,	  50, 100  },
 	{ CHAN_KERNEL_CS,         55, 105  },
 };
 
@@ -494,8 +494,8 @@ void hook_pre_tampi(struct ovni_emu *emu);
 void hook_init_openmp(struct ovni_emu *emu);
 void hook_pre_openmp(struct ovni_emu *emu);
 
-void hook_init_nanos6(struct ovni_emu *emu);
-void hook_pre_nanos6(struct ovni_emu *emu);
+void hook_init_nodes(struct ovni_emu *emu);
+void hook_pre_nodes(struct ovni_emu *emu);
 
 void hook_init_kernel(struct ovni_emu *emu);
 void hook_pre_kernel(struct ovni_emu *emu);

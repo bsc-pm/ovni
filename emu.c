@@ -262,7 +262,7 @@ hook_init(struct ovni_emu *emu)
 	hook_init_nosv(emu);
 	hook_init_tampi(emu);
 	hook_init_openmp(emu);
-	hook_init_nanos6(emu);
+	hook_init_nodes(emu);
 	hook_init_kernel(emu);
 }
 
@@ -275,7 +275,7 @@ hook_pre(struct ovni_emu *emu)
 		case 'V': hook_pre_nosv(emu); break;
 		case 'T': hook_pre_tampi(emu); break;
 		case 'M': hook_pre_openmp(emu); break;
-		case 'L': hook_pre_nanos6(emu); break;
+		case 'D': hook_pre_nodes(emu); break;
 		case 'K': hook_pre_kernel(emu); break;
 		default:
 			break;

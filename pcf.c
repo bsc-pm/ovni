@@ -355,32 +355,32 @@ static const struct event_type cpu_openmp_mode = {
 	openmp_mode_values
 };
 
-/* ---------------- CHAN_NANOS6_SUBSYSTEM ---------------- */
+/* ---------------- CHAN_NODES_SUBSYSTEM ---------------- */
 
-static const struct event_value nanos6_mode_values[] = {
-	{ ST_NULL,              "NULL" },
-	{ ST_TOO_MANY_TH,       "Nanos6: Multiple threads running" },
-	{ ST_NANOS6_REGISTER,   "Dependencies: Registering task accesses" },
-	{ ST_NANOS6_UNREGISTER, "Dependencies: Unregistering task accesses" },
-	{ ST_NANOS6_IF0_WAIT,   "If0: Waiting for an If0 task" },
-	{ ST_NANOS6_IF0_INLINE, "If0: Executing an If0 task inline" },
-	{ ST_NANOS6_TASKWAIT,   "Taskwait: Taskwait" },
-	{ ST_NANOS6_CREATE,     "Add Task: Creating a task" },
-	{ ST_NANOS6_SUBMIT,     "Add Task: Submitting a task" },
-	{ ST_NANOS6_SPAWN,      "Spawn Function: Spawning a function" },
+static const struct event_value nodes_mode_values[] = {
+	{ ST_NULL,             "NULL" },
+	{ ST_TOO_MANY_TH,      "NODES: Multiple threads running" },
+	{ ST_NODES_REGISTER,   "Dependencies: Registering task accesses" },
+	{ ST_NODES_UNREGISTER, "Dependencies: Unregistering task accesses" },
+	{ ST_NODES_IF0_WAIT,   "If0: Waiting for an If0 task" },
+	{ ST_NODES_IF0_INLINE, "If0: Executing an If0 task inline" },
+	{ ST_NODES_TASKWAIT,   "Taskwait: Taskwait" },
+	{ ST_NODES_CREATE,     "Add Task: Creating a task" },
+	{ ST_NODES_SUBMIT,     "Add Task: Submitting a task" },
+	{ ST_NODES_SPAWN,      "Spawn Function: Spawning a function" },
 	{ -1, NULL },
 };
 
-static const struct event_type cpu_nanos6_mode = {
-	0, CHAN_NANOS6_SUBSYSTEM, CHAN_CPU,
-	"CPU: Nanos6 subsystem of the RUNNING thread",
-	nanos6_mode_values
+static const struct event_type cpu_nodes_mode = {
+	0, CHAN_NODES_SUBSYSTEM, CHAN_CPU,
+	"CPU: NODES subsystem of the RUNNING thread",
+	nodes_mode_values
 };
 
-static const struct event_type thread_nanos6_mode = {
-	0, CHAN_NANOS6_SUBSYSTEM, CHAN_TH,
-	"Thread: Nanos6 subsystem of the RUNNING thread",
-	nanos6_mode_values
+static const struct event_type thread_nodes_mode = {
+	0, CHAN_NODES_SUBSYSTEM, CHAN_TH,
+	"Thread: NODES subsystem of the RUNNING thread",
+	nodes_mode_values
 };
 
 /* ---------------- CHAN_KERNEL_CS ---------------- */
@@ -495,7 +495,7 @@ write_events(FILE *f, struct ovni_emu *emu)
 	write_event_type(f, &thread_nosv_ss);
 	write_event_type(f, &thread_tampi_mode);
 	write_event_type(f, &thread_openmp_mode);
-	write_event_type(f, &thread_nanos6_mode);
+	write_event_type(f, &thread_nodes_mode);
 	write_event_type(f, &thread_kernel_cs);
 
 	/* CPU */
@@ -512,7 +512,7 @@ write_events(FILE *f, struct ovni_emu *emu)
 	write_event_type(f, &cpu_nosv_ss);
 	write_event_type(f, &cpu_tampi_mode);
 	write_event_type(f, &cpu_openmp_mode);
-	write_event_type(f, &cpu_nanos6_mode);
+	write_event_type(f, &cpu_nodes_mode);
 	write_event_type(f, &cpu_kernel_cs);
 
 	/* Custom */

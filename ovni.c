@@ -43,7 +43,6 @@
 # define gettid() ((pid_t)syscall(SYS_gettid))
 #endif
 
-/* Prevent usage of assert() */
 #pragma GCC poison assert
 
 /* Data per process */

@@ -15,7 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include "uthash.h"
 
 #include "ovni.h"
@@ -90,8 +89,13 @@ pre_mode(struct ovni_emu *emu, int st)
 void
 hook_pre_openmp(struct ovni_emu *emu)
 {
-	assert(emu->cur_ev->header.model == 'M');
-	assert(emu->cur_thread->is_active);
+	if(emu->cur_ev->header.model != 'M')
+		die("hook_pre_openmp: unexpected event with model %c\n",
+				emu->cur_ev->header.model);
+
+	if(!emu->cur_thread->is_active)
+		die("hook_pre_openmp: current thread %d not active\n",
+				emu->cur_thread->tid);
 
 	switch(emu->cur_ev->header.category)
 	{

@@ -13,7 +13,6 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <stdatomic.h>
-#include <assert.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -103,7 +102,8 @@ load_proc_metadata(struct ovni_eproc *proc)
 	JSON_Object *meta;
 
 	meta = json_value_get_object(proc->meta);
-	assert(meta);
+	if(meta == NULL)
+		die("load_proc_metadata: json_value_get_object() failed\n");
 
 	proc->appid = (int) json_object_get_number(meta, "app_id");
 }
@@ -551,6 +551,10 @@ ovni_load_next_event(struct ovni_stream *stream)
 	size = ovni_ev_size(stream->cur_ev);
 	stream->offset += size;
 
+	/* It cannot overflow, otherwise we are reading garbage */
+	if(stream->offset > stream->size)
+		die("ovni_load_next_event: stream offset exceeds size\n");
+
 	/* We have reached the end */
 	if(stream->offset == stream->size)
 	{
@@ -558,9 +562,6 @@ ovni_load_next_event(struct ovni_stream *stream)
 		dbg("stream %d runs out of events\n", stream->tid);
 		return -1;
 	}
-
-	/* It cannot overflow, otherwise we are reading garbage */
-	assert(stream->offset < stream->size);
 
 	stream->cur_ev = (struct ovni_ev *) &stream->buf[stream->offset];
 

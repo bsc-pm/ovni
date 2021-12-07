@@ -17,8 +17,6 @@
 
 #include "chan.h"
 
-#include <assert.h>
-
 #include "emu.h"
 #include "prv.h"
 #include "utlist.h"
@@ -43,8 +41,11 @@ chan_init(struct ovni_chan *chan, enum chan_track track, int row, int type, FILE
 static void
 mark_dirty(struct ovni_chan *chan, enum chan_dirty dirty)
 {
-	assert(chan->dirty == CHAN_CLEAN);
-	assert(dirty != CHAN_CLEAN);
+	if(chan->dirty != CHAN_CLEAN)
+		die("mark_dirty: chan %d already dirty\n", chan->id);
+
+	if(dirty == CHAN_CLEAN)
+		die("mark_dirty: cannot use CHAN_CLEAN\n");
 
 	dbg("adding dirty chan %d to list\n", chan->id);
 	chan->dirty = dirty;
@@ -170,14 +171,12 @@ chan_set(struct ovni_chan *chan, int st)
 
 	dbg("chan_set chan %d st=%d\n", chan->id, st);
 
-	assert(chan->enabled);
+	if(!chan->enabled)
+		die("chan_set: chan %d not enabled\n", chan->id);
 
 	/* Only chan_set can set the 0 state */
 	if(st < 0)
-	{
-		err("chan_set: cannot set a negative state %d\n", st);
-		abort();
-	}
+		die("chan_set: cannot set a negative state %d\n", st);
 
 	/* Don't enforce this check if we are dirty because the channel was
 	 * just enabled; it may collide with a new state 0 set via chan_set()
@@ -222,7 +221,8 @@ chan_push(struct ovni_chan *chan, int st)
 {
 	dbg("chan_push chan %d st=%d\n", chan->id, st);
 
-	assert(chan->enabled);
+	if(!chan->enabled)
+		die("chan_push: chan %d not enabled\n", chan->id);
 
 	if(st <= 0)
 	{
@@ -231,7 +231,8 @@ chan_push(struct ovni_chan *chan, int st)
 	}
 
 	/* Cannot be dirty */
-	assert(chan->dirty == 0);
+	if(chan->dirty != CHAN_CLEAN)
+		die("chan_push: chan %d not clean", chan->id);
 
 	if(chan->lastst >= 0 && chan->lastst == st)
 	{
@@ -259,10 +260,12 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 
 	dbg("chan_pop chan %d expected_st=%d\n", chan->id, expected_st);
 
-	assert(chan->enabled);
+	if(!chan->enabled)
+		die("chan_pop: chan %d not enabled\n", chan->id);
 
 	/* Cannot be dirty */
-	assert(chan->dirty == 0);
+	if(chan->dirty != CHAN_CLEAN)
+		die("chan_pop: chan %d not clean", chan->id);
 
 	if(chan->n <= 0)
 	{
@@ -310,23 +313,19 @@ chan_ev(struct ovni_chan *chan, int ev)
 {
 	dbg("chan_ev chan %d ev=%d\n", chan->id, ev);
 
-	assert(chan->enabled);
+	if(!chan->enabled)
+		die("chan_ev: chan %d not enabled\n", chan->id);
 
 	/* Cannot be dirty */
-	assert(chan->dirty == 0);
+	if(chan->dirty != CHAN_CLEAN)
+		die("chan_ev: chan %d is dirty\n", chan->id);
 
 	if(ev <= 0)
-	{
-		err("chan_ev: cannot emit non-positive state %d\n", ev);
-		abort();
-	}
+		die("chan_ev: cannot emit non-positive state %d\n", ev);
 
 	if(chan->lastst >= 0 && chan->lastst == ev)
-	{
-		err("chan_ev id=%d cannot emit the state %d twice\n",
+		die("chan_ev id=%d cannot emit the state %d twice\n",
 				chan->id, ev);
-		abort();
-	}
 
 	chan->ev = ev;
 	chan->t = *chan->clock;
@@ -343,14 +342,17 @@ chan_get_st(struct ovni_chan *chan)
 	if(chan->n == 0)
 		return 0;
 
-	assert(chan->n > 0);
+	if(chan->n < 0)
+		die("chan_get_st: chan %d has negative n\n", chan->id);
+
 	return chan->stack[chan->n-1];
 }
 
 static void
 emit(struct ovni_chan *chan, int64_t t, int state)
 {
-	assert(chan->dirty != CHAN_CLEAN);
+	if(chan->dirty == CHAN_CLEAN)
+		die("emit: chan %d is not dirty\n", chan->id);
 
 	/* A channel can only emit the same state as lastst if is dirty because
 	 * it has been enabled or disabled. Otherwise is a bug (ie. you have two
@@ -360,9 +362,8 @@ emit(struct ovni_chan *chan, int64_t t, int state)
 			&& chan->lastst == state)
 	{
 		/* TODO: Print the raw clock of the offending event */
-		err("chan: id=%d cannot emit the same state %d twice\n",
+		die("emit: chan %d cannot emit the same state %d twice\n",
 				chan->id, state);
-		abort();
 	}
 
 	if(chan->lastst != state)
@@ -378,8 +379,11 @@ emit_ev(struct ovni_chan *chan)
 {
 	int new, last;
 
-	assert(chan->enabled);
-	assert(chan->ev != -1);
+	if(!chan->enabled)
+		die("emit_ev: chan %d is not enabled\n", chan->id);
+
+	if(chan->ev == -1)
+		die("emit_ev: chan %d cannot emit -1 ev\n", chan->id);
 
 	new = chan->ev;
 	last = chan_get_st(chan);
@@ -413,7 +417,8 @@ chan_emit(struct ovni_chan *chan)
 	if(chan->enabled == 0)
 	{
 		/* No punctual events allowed when disabled */
-		assert(chan->ev == -1);
+		if(chan->ev != -1)
+			die("chan_emit: no punctual event allowed when disabled\n");
 
 		emit_st(chan);
 		goto shower;

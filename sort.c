@@ -162,16 +162,19 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 		if((uint8_t *) ev == srcnext)
 			break;
 
-		assert((uint8_t *) ev < srcnext);
+		if((uint8_t *) ev > srcnext)
+			die("exceeded srcnext while sorting\n");
 
-		assert(bufsize >= evsize);
+		if(bufsize < evsize)
+			die("no space left in the sort buffer\n");
+
 		memcpy(buf, ev, evsize);
 		buf += evsize;
 		bufsize -= evsize;
 		injected++;
 	}
 
-	err("injected %ld events in the past\n", injected);
+	dbg("injected %ld events in the past\n", injected);
 }
 
 static int
@@ -193,14 +196,12 @@ execute_sort_plan(struct sortplan *sp)
 	/* Allocate a working buffer */
 	bufsize = ((int64_t) sp->next) - ((int64_t) sp->first);
 
-	assert(bufsize > 0);
+	if(bufsize <= 0)
+		die("bufsize is non-positive\n");
 
 	buf = malloc(bufsize);
 	if(!buf)
-	{
-		perror("malloc failed");
-		abort();
-	}
+		die("malloc failed: %s\n", strerror(errno));
 
 	sort_buf((uint8_t *) sp->first, buf, bufsize,
 			(uint8_t *) sp->bad0, (uint8_t *) sp->next);
@@ -308,7 +309,8 @@ process_trace(struct ovni_trace *trace)
 	ring.size = max_look_back;
 	ring.ev = malloc(ring.size * sizeof(struct ovni_ev *));
 
-	assert(ring.ev);
+	if(ring.ev == NULL)
+		die("malloc failed: %s\n", strerror(errno));
 
 	for(i=0; i<trace->nstreams; i++)
 	{

@@ -26,7 +26,6 @@
 #include <sys/stat.h>
 #include <stdatomic.h>
 #include <dirent.h>
-#include <assert.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -84,8 +83,6 @@ cpu_update_tracking_chan(struct ovni_chan *cpu_chan, struct ovni_ethread *th)
 {
 	int th_enabled, cpu_enabled, st;
 	struct ovni_chan *th_chan;
-
-	assert(th);
 
 	switch (cpu_chan->track)
 	{
@@ -179,7 +176,8 @@ emu_cpu_update_chan(struct ovni_cpu *cpu, struct ovni_chan *cpu_chan)
 	}
 	else if(count == 1)
 	{
-		assert(th);
+		if(th == NULL)
+			die("emu_cpu_update_chan: tracking thread is NULL\n");
 
 		/* A unique thread found: copy the state */
 		dbg("cpu_update_chan: unique thread %d found, updating chan %d\n",
@@ -210,7 +208,8 @@ propagate_channels(struct ovni_emu *emu)
 
 	DL_FOREACH_SAFE(emu->th_chan, th_chan, tmp)
 	{
-		assert(th_chan->thread);
+		if(th_chan->thread == NULL)
+			die("propagate_channels: channel thread is NULL\n");
 
 		thread = th_chan->thread;
 
@@ -241,14 +240,12 @@ emit_channels(struct ovni_emu *emu)
 	DL_FOREACH(emu->th_chan, th_chan)
 	{
 		dbg("emu emits th chan %d\n", th_chan->id);
-		//assert(th_chan->dirty);
 		chan_emit(th_chan);
 	}
 
 	DL_FOREACH(emu->cpu_chan, cpu_chan)
 	{
 		dbg("emu emits cpu chan %d\n", cpu_chan->id);
-		//assert(cpu_chan->dirty);
 		chan_emit(cpu_chan);
 	}
 
@@ -406,7 +403,8 @@ next_event(struct ovni_emu *emu)
 
 	stream = heap_elem(node, struct ovni_stream, hh);
 
-	assert(stream);
+	if(stream == NULL)
+		die("next_event: heap_elem returned NULL\n");
 
 	set_current(emu, stream);
 
@@ -433,7 +431,7 @@ next_event(struct ovni_emu *emu)
 				emu->lastclock, stream->lastclock, stream->tid);
 
 		if(emu->enable_linter)
-			exit(EXIT_FAILURE);
+			abort();
 	}
 
 	emu->lastclock = stream->lastclock;
@@ -470,11 +468,13 @@ emu_load_first_events(struct ovni_emu *emu)
 
 		if(emu_step_stream(emu, stream) < 0)
 		{
-			dbg("warning: empty stream for tid %d\n", stream->tid);
+			err("warning: empty stream for tid %d\n", stream->tid);
+
+			if(emu->enable_linter)
+				abort();
+
 			continue;
 		}
-
-		assert(stream->active);
 	}
 }
 
@@ -545,13 +545,12 @@ add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
 	cpu = &loom->cpu[i];
 
 	if(i < 0 || i >= (int) loom->ncpus)
-	{
-		err("CPU with index %d in loom %s is out of bounds\n", i,
-				loom->hostname);
-		abort();
-	}
+		die("CPU with index %d in loom %s is out of bounds\n",
+				i, loom->hostname);
 
-	assert(cpu->state == CPU_ST_UNKNOWN);
+	if(cpu->state != CPU_ST_UNKNOWN)
+		die("new cpu %d in unexpected state in loom %s\n",
+				i, loom->hostname);
 
 	cpu->state = CPU_ST_READY;
 	cpu->i = i;
@@ -562,56 +561,49 @@ add_new_cpu(struct ovni_emu *emu, struct ovni_loom *loom, int i, int phyid)
 	dbg("new cpu %d at phyid=%d\n", cpu->gindex, phyid);
 }
 
-static void
-proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *proc)
+static int
+proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom,
+		struct ovni_eproc *proc,
+		struct ovni_eproc *metadata_proc)
 {
-	JSON_Array *cpuarray;
-	JSON_Object *cpu;
-	JSON_Object *meta;
-	size_t i, index, phyid;
-	struct ovni_cpu *vcpu;
+	JSON_Object *meta = json_value_get_object(proc->meta);
+	if(meta == NULL)
+		die("json_value_get_object() failed\n");
 
-	meta = json_value_get_object(proc->meta);
-
-	assert(meta);
-
-	cpuarray = json_object_get_array(meta, "cpus");
+	JSON_Array *cpuarray = json_object_get_array(meta, "cpus");
 
 	/* This process doesn't have the cpu list */
 	if(cpuarray == NULL)
-		return;
+		return -1;
 
-	assert(loom->ncpus == 0);
+	if(metadata_proc)
+		die("duplicated metadata for proc %d and %d in loom %s\n",
+				metadata_proc->pid, proc->pid,
+				loom->hostname);
+
+	if(loom->ncpus != 0)
+		die("loom %s already has CPUs\n", loom->hostname);
 
 	loom->ncpus = json_array_get_count(cpuarray);
 
-	if(loom->ncpus <= 0)
-	{
-		err("loom %s proc %d has read %ld cpus, but required > 0\n",
-				loom->hostname, proc->pid, loom->ncpus);
-		abort();
-	}
+	if(loom->ncpus == 0)
+		die("loom %s proc %d has metadata but no CPUs\n",
+				loom->hostname, proc->pid);
 
 	loom->cpu = calloc(loom->ncpus, sizeof(struct ovni_cpu));
 
 	if(loom->cpu == NULL)
-	{
-		perror("calloc failed");
-		abort();
-	}
+		die("calloc failed: %s\n", strerror(errno));
 
-	for(i = 0; i < loom->ncpus; i++)
+	for(size_t i = 0; i < loom->ncpus; i++)
 	{
-		cpu = json_array_get_object(cpuarray, i);
+		JSON_Object *cpu = json_array_get_object(cpuarray, i);
 
 		if(cpu == NULL)
-		{
-			err("json_array_get_object returned NULL\n");
-			abort();
-		}
+			die("proc_load_cpus: json_array_get_object() failed\n");
 
-		index = (int) json_object_get_number(cpu, "index");
-		phyid = (int) json_object_get_number(cpu, "phyid");
+		size_t index = (int) json_object_get_number(cpu, "index");
+		size_t phyid = (int) json_object_get_number(cpu, "phyid");
 
 		add_new_cpu(emu, loom, index, phyid);
 	}
@@ -619,8 +611,10 @@ proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *
 	/* If we reach this point, all CPUs are in the ready state */
 
 	/* Init the vcpu as well */
-	vcpu = &loom->vcpu;
-	assert(vcpu->state == CPU_ST_UNKNOWN);
+	struct ovni_cpu *vcpu = &loom->vcpu;
+	if(vcpu->state != CPU_ST_UNKNOWN)
+		die("unexpected virtual CPU state in loom %s\n",
+				loom->hostname);
 
 	vcpu->state = CPU_ST_READY;
 	vcpu->i = -1;
@@ -629,6 +623,8 @@ proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom, struct ovni_eproc *
 	vcpu->loom = loom;
 
 	dbg("new vcpu %d\n", vcpu->gindex);
+
+	return 0;
 }
 
 /* Obtain CPUs in the metadata files and other data */
@@ -647,16 +643,29 @@ load_metadata(struct ovni_emu *emu)
 		loom = &trace->loom[i];
 		loom->offset_ncpus = emu->total_ncpus;
 
+		struct ovni_eproc *metadata_proc = NULL;
+
 		for(j=0; j<loom->nprocs; j++)
 		{
 			proc = &loom->proc[j];
 
-			proc_load_cpus(emu, loom, proc);
+			if(proc_load_cpus(emu, loom, proc, metadata_proc) < 0)
+				continue;
+
+			if(metadata_proc)
+				die("duplicated metadata found in pid %d and %d\n",
+						metadata_proc->pid,
+						proc->pid);
+
+			metadata_proc = proc;
 		}
 
 		/* One of the process must have the list of CPUs */
-		/* FIXME: The CPU list should be at the loom dir */
-		assert(loom->ncpus > 0);
+		if(metadata_proc == NULL)
+			die("no metadata found in loom %s\n", loom->hostname);
+
+		if(loom->ncpus == 0)
+			die("no CPUs found in loom %s\n", loom->hostname);
 	}
 }
 
@@ -677,7 +686,9 @@ destroy_metadata(struct ovni_emu *emu)
 		{
 			proc = &loom->proc[j];
 
-			assert(proc->meta);
+			if(proc->meta == NULL)
+				die("cannot destroy metadata: is NULL\n");
+
 			json_value_free(proc->meta);
 		}
 

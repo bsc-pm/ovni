@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
-#include <assert.h>
 #include <time.h>
 
 #include "ovni.h"

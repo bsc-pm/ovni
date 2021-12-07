@@ -15,7 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include "uthash.h"
 
 #include "ovni.h"
@@ -91,7 +90,9 @@ context_switch(struct ovni_emu *emu)
 void
 hook_pre_kernel(struct ovni_emu *emu)
 {
-	assert(emu->cur_ev->header.model == 'K');
+	if(emu->cur_ev->header.model != 'K')
+		die("hook_pre_kernel: unexpected event with model %c\n",
+				emu->cur_ev->header.model);
 
 	switch(emu->cur_ev->header.category)
 	{

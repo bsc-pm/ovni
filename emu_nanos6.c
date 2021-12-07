@@ -15,7 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include "uthash.h"
 
 #include "ovni.h"
@@ -89,9 +88,13 @@ pre_subsystem(struct ovni_emu *emu, int st)
 void
 hook_pre_nanos6(struct ovni_emu *emu)
 {
-	// Ensure that the thread is running
-	assert(emu->cur_thread->is_running != 0);
-	assert(emu->cur_ev->header.model == 'L');
+	if(emu->cur_ev->header.model != 'L')
+		die("hook_pre_nanos6: unexpected event with model %c\n",
+				emu->cur_ev->header.model);
+
+	if(!emu->cur_thread->is_running)
+		die("hook_pre_nanos6: current thread %d not running\n",
+				emu->cur_thread->tid);
 
 	switch(emu->cur_ev->header.category)
 	{

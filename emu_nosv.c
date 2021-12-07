@@ -15,7 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include "uthash.h"
 
 #include "ovni.h"
@@ -119,9 +118,14 @@ pre_task_execute(struct ovni_emu *emu)
 
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
-	assert(task != NULL);
-	assert(emu->cur_thread->state == TH_ST_RUNNING);
-	assert(emu->cur_thread->task == NULL);
+	if(task == NULL)
+		die("cannot find task with id %d\n", taskid);
+
+	if(emu->cur_thread->state != TH_ST_RUNNING)
+		die("thread state is not running\n");
+
+	if(emu->cur_thread->task != NULL)
+		die("thread already has a task\n");
 
 	task->state = TASK_ST_RUNNING;
 	task->thread = emu->cur_thread;
@@ -142,11 +146,20 @@ pre_task_pause(struct ovni_emu *emu)
 
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
-	assert(task != NULL);
-	assert(task->state == TASK_ST_RUNNING);
-	assert(emu->cur_thread->state == TH_ST_RUNNING);
-	assert(emu->cur_thread->task == task);
-	assert(emu->cur_thread == task->thread);
+	if(task == NULL)
+		die("cannot find task with id %d\n", taskid);
+
+	if(task->state != TASK_ST_RUNNING)
+		die("task state is not running\n");
+
+	if(emu->cur_thread->state != TH_ST_RUNNING)
+		die("thread state is not running\n");
+
+	if(emu->cur_thread->task != task)
+		die("thread has assigned a different task\n");
+
+	if(emu->cur_thread != task->thread)
+		die("task is assigned to a different thread\n");
 
 	task->state = TASK_ST_PAUSED;
 
@@ -165,11 +178,20 @@ pre_task_resume(struct ovni_emu *emu)
 
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
-	assert(task != NULL);
-	assert(task->state == TASK_ST_PAUSED);
-	assert(emu->cur_thread->state == TH_ST_RUNNING);
-	assert(emu->cur_thread->task == task);
-	assert(emu->cur_thread == task->thread);
+	if(task == NULL)
+		die("cannot find task with id %d\n", taskid);
+
+	if(task->state != TASK_ST_PAUSED)
+		die("task state is not paused\n");
+
+	if(emu->cur_thread->state != TH_ST_RUNNING)
+		die("thread is not running\n");
+
+	if(emu->cur_thread->task != task)
+		die("thread has assigned a different task\n");
+
+	if(emu->cur_thread != task->thread)
+		die("task is assigned to a different thread\n");
 
 	task->state = TASK_ST_RUNNING;
 
@@ -189,11 +211,20 @@ pre_task_end(struct ovni_emu *emu)
 
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
-	assert(task != NULL);
-	assert(task->state == TASK_ST_RUNNING);
-	assert(emu->cur_thread->state == TH_ST_RUNNING);
-	assert(emu->cur_thread->task == task);
-	assert(emu->cur_thread == task->thread);
+	if(task == NULL)
+		die("cannot find task with id %d\n", taskid);
+
+	if(task->state != TASK_ST_RUNNING)
+		die("task state is not running\n");
+
+	if(emu->cur_thread->state != TH_ST_RUNNING)
+		die("thread is not running\n");
+
+	if(emu->cur_thread->task != task)
+		die("thread has assigned a different task\n");
+
+	if(emu->cur_thread != task->thread)
+		die("task is assigned to a different thread\n");
 
 	task->state = TASK_ST_DEAD;
 	task->thread = NULL;
@@ -213,9 +244,14 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 	th = emu->cur_thread;
 	proc = emu->cur_proc;
 
-	assert(task->id > 0);
-	assert(task->type_id > 0);
-	assert(proc->appid > 0);
+	if(task->id <= 0)
+		die("task id must be positive\n");
+
+	if(task->type_id <= 0)
+		die("task type id must be positive\n");
+
+	if(proc->appid <= 0)
+		die("app id must be positive\n");
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], task->id);
 	chan_set(&th->chan[CHAN_NOSV_TYPEID], task->type_id);
@@ -440,7 +476,6 @@ pre_ss(struct ovni_emu *emu, int st)
 	th = emu->cur_thread;
 	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
-	assert(chan_th->id == CHAN_NOSV_SUBSYSTEM);
 	dbg("pre_ss chan id %d st=%d\n", chan_th->id, st);
 
 	switch(emu->cur_ev->header.value)
@@ -481,10 +516,13 @@ check_affinity(struct ovni_emu *emu)
 void
 hook_pre_nosv(struct ovni_emu *emu)
 {
-	assert(emu->cur_ev->header.model == 'V');
+	if(emu->cur_ev->header.model != 'V')
+		die("hook_pre_nosv: unexpected event with model %c\n",
+				emu->cur_ev->header.model);
 
-	/* Ensure the thread is active */
-	assert(emu->cur_thread->is_active);
+	if(!emu->cur_thread->is_active)
+		die("hook_pre_nosv: current thread %d not active\n",
+				emu->cur_thread->tid);
 
 	switch(emu->cur_ev->header.category)
 	{

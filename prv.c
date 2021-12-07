@@ -16,7 +16,6 @@
  */
 
 #include <stdio.h>
-#include <assert.h> 
 
 #include "ovni.h"
 #include "emu.h"
@@ -56,18 +55,20 @@ prv_ev_cpu(struct ovni_emu *emu, int row, int type, int val)
 void
 prv_ev_autocpu_raw(struct ovni_emu *emu, int64_t time, int type, int val)
 {
-	int row;
-	struct ovni_cpu *cpu;
+	if(emu->cur_thread == NULL)
+		die("prv_ev_autocpu_raw: current thread is NULL\n");
 
-	assert(emu->cur_thread);
+	struct ovni_cpu *cpu = emu->cur_thread->cpu;
 
-	cpu = emu->cur_thread->cpu;
+	if(cpu == NULL)
+		die("prv_ev_autocpu_raw: current thread CPU is NULL\n");
 
-	assert(cpu);
-	assert(cpu->i >= 0);
+	/* FIXME: Use the global index of the CPUs */
+	if(cpu->i < 0)
+		die("prv_ev_autocpu_raw: CPU index is negative\n");
 
 	/* Begin at 1 */
-	row = emu->cur_loom->offset_ncpus + cpu->i + 1;
+	int row = emu->cur_loom->offset_ncpus + cpu->i + 1;
 
 	prv_ev_cpu_raw(emu, row, time, type, val);
 }

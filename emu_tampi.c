@@ -15,7 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include "uthash.h"
 
 #include "ovni.h"
@@ -86,7 +85,9 @@ pre_tampi_mode(struct ovni_emu *emu, int state)
 void
 hook_pre_tampi(struct ovni_emu *emu)
 {
-	assert(emu->cur_ev->header.model == 'T');
+	if(emu->cur_ev->header.model != 'T')
+		die("hook_pre_tampi: unexpected event with model %c\n",
+				emu->cur_ev->header.model);
 
 	switch(emu->cur_ev->header.category)
 	{

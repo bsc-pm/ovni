@@ -210,13 +210,6 @@ chan_set(struct ovni_chan *chan, int st)
 }
 
 void
-chan_enable_and_set(struct ovni_chan *chan, int st)
-{
-	chan_enable(chan, 1);
-	chan_set(chan, st);
-}
-
-void
 chan_push(struct ovni_chan *chan, int st)
 {
 	dbg("chan_push chan %d st=%d\n", chan->id, st);

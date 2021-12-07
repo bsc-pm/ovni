@@ -112,6 +112,10 @@ struct nosv_task {
 	struct ovni_ethread *thread;
 	enum nosv_task_state state;
 	UT_hash_handle hh;
+
+	/* List handle for nested task support */
+	struct nosv_task *next;
+	struct nosv_task *prev;
 };
 
 struct nosv_task_type {
@@ -284,6 +288,8 @@ struct ovni_ethread {
 
 	/* nosv task */
 	struct nosv_task *task;
+	/* nosv effective task, which is what is currently executing */
+	struct nosv_task *running_task;
 
 	/* Channels are used to output the emulator state in PRV */
 	struct ovni_chan chan[CHAN_MAX];

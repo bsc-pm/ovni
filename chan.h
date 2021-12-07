@@ -57,9 +57,6 @@ void
 chan_set(struct ovni_chan *chan, int st);
 
 void
-chan_enable_and_set(struct ovni_chan *chan, int st);
-
-void
 chan_push(struct ovni_chan *chan, int st);
 
 int

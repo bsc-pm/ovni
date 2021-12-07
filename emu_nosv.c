@@ -16,6 +16,7 @@
  */
 
 #include "uthash.h"
+#include "utlist.h"
 
 #include "ovni.h"
 #include "emu.h"
@@ -80,7 +81,7 @@ static void
 pre_task_create(struct ovni_emu *emu)
 {
 	struct nosv_task *task, *p = NULL;
-	
+
 	task = calloc(1, sizeof(*task));
 
 	if(task == NULL)
@@ -105,8 +106,6 @@ pre_task_create(struct ovni_emu *emu)
 
 	/* Add the new task to the hash table */
 	HASH_ADD_INT(emu->cur_proc->tasks, id, task);
-
-	emu->cur_task = task;
 
 	dbg("new task created id=%d\n", task->id);
 }
@@ -138,9 +137,8 @@ pre_task_execute(struct ovni_emu *emu)
 
 	task->state = TASK_ST_RUNNING;
 	task->thread = emu->cur_thread;
-	emu->cur_thread->task = task;
-
-	emu->cur_task = task;
+	DL_PREPEND(emu->cur_thread->task, task);
+	emu->cur_thread->running_task = task;
 
 	dbg("task id=%d runs now\n", task->id);
 }
@@ -170,9 +168,9 @@ pre_task_pause(struct ovni_emu *emu)
 	if(emu->cur_thread != task->thread)
 		die("task is assigned to a different thread\n");
 
-	task->state = TASK_ST_PAUSED;
+	emu->cur_thread->running_task = NULL;
 
-	emu->cur_task = task;
+	task->state = TASK_ST_PAUSED;
 
 	dbg("task id=%d pauses\n", task->id);
 }
@@ -202,9 +200,9 @@ pre_task_resume(struct ovni_emu *emu)
 	if(emu->cur_thread != task->thread)
 		die("task is assigned to a different thread\n");
 
-	task->state = TASK_ST_RUNNING;
+	emu->cur_thread->running_task = task;
 
-	emu->cur_task = task;
+	task->state = TASK_ST_RUNNING;
 
 	dbg("task id=%d resumes\n", task->id);
 }
@@ -237,11 +235,23 @@ pre_task_end(struct ovni_emu *emu)
 
 	task->state = TASK_ST_DEAD;
 	task->thread = NULL;
-	emu->cur_thread->task = NULL;
-
-	emu->cur_task = task;
+	DL_DELETE(emu->cur_thread->task, task);
+	emu->cur_thread->running_task = emu->cur_thread->task;
 
 	dbg("task id=%d ends\n", task->id);
+}
+
+static void
+pre_task_not_running(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	th = emu->cur_thread;
+
+	chan_set(&th->chan[CHAN_NOSV_TASKID], 0);
+	chan_set(&th->chan[CHAN_NOSV_TYPEID], 0);
+	chan_set(&th->chan[CHAN_NOSV_APPID], 0);
+
+	chan_pop(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_NOSV_TASK_RUNNING);
 }
 
 static void
@@ -273,28 +283,35 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 }
 
 static void
-pre_task_not_running(struct ovni_emu *emu)
+pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task, struct nosv_task *next_task)
 {
 	struct ovni_ethread *th;
+	struct ovni_eproc *proc;
+
+	assert(prev_task);
+	assert(next_task);
+	assert(prev_task != next_task);
 
 	th = emu->cur_thread;
+	proc = emu->cur_proc;
 
-	chan_set(&th->chan[CHAN_NOSV_TASKID], 0);
-	chan_set(&th->chan[CHAN_NOSV_TYPEID], 0);
-	chan_set(&th->chan[CHAN_NOSV_APPID], 0);
+	assert(next_task->id > 0);
+	assert(next_task->type_id > 0);
+	assert(proc->appid > 0);
 
-	if(emu->cur_loom->rank_enabled)
-		chan_set(&th->chan[CHAN_NOSV_RANK], 0);
+	chan_set(&th->chan[CHAN_NOSV_TASKID], next_task->id);
 
-	chan_pop(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_NOSV_TASK_RUNNING);
+	if (prev_task->type_id != next_task->type_id)
+		chan_set(&th->chan[CHAN_NOSV_TYPEID], next_task->type_id);
 }
 
 static void
 pre_task(struct ovni_emu *emu)
 {
-	struct nosv_task *task;
+	struct nosv_task *prev_task, *next_task;
 
-	task = emu->cur_task;
+	assert(emu->cur_thread);
+	prev_task = emu->cur_thread->running_task;
 
 	switch(emu->cur_ev->header.value)
 	{
@@ -307,19 +324,16 @@ pre_task(struct ovni_emu *emu)
 			  abort();
 	}
 
-	switch(emu->cur_ev->header.value)
-	{
-		case 'x':
-		case 'r':
-			pre_task_running(emu, task);
-			break;
-		case 'p':
-		case 'e':
+	next_task = emu->cur_thread->running_task;
+
+	// Unless we're creating a task, register the switch
+	if (emu->cur_ev->header.value != 'c') {
+		if(!next_task)
 			pre_task_not_running(emu);
-			break;
-		case 'c':
-		default:
-			break;
+		else if(!prev_task)
+			pre_task_running(emu, next_task);
+		else
+			pre_task_switch(emu, prev_task, next_task);
 	}
 }
 
@@ -350,7 +364,7 @@ pre_type_create(struct ovni_emu *emu)
 		err("A task type with id %d already exists\n", *typeid);
 		abort();
 	}
-	
+
 	type = calloc(1, sizeof(*type));
 
 	if(type == NULL)

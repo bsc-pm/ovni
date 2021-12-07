@@ -23,23 +23,16 @@
  */
 
 #define _GNU_SOURCE
-#include <unistd.h>
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <linux/limits.h>
 #include <errno.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <stdatomic.h>
-#include <assert.h>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <dirent.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "ovni.h"
 #include "common.h"
@@ -50,9 +43,8 @@
 # define gettid() ((pid_t)syscall(SYS_gettid))
 #endif
 
-//#define ENABLE_SLOW_CHECKS
-
-//#define USE_RDTSC
+/* Prevent usage of assert() */
+#pragma GCC poison assert
 
 /* Data per process */
 struct ovni_rproc rproc = {0};
@@ -60,8 +52,8 @@ struct ovni_rproc rproc = {0};
 /* Data per thread */
 _Thread_local struct ovni_rthread rthread = {0};
 
-static int
-create_trace_dirs(char *tracedir, const char *loom, int proc)
+static void
+create_trace_dirs(char *tracedir, const char *loom, int pid)
 {
 	char path[PATH_MAX];
 
@@ -75,222 +67,202 @@ create_trace_dirs(char *tracedir, const char *loom, int proc)
 	/* Also may fail */
 	mkdir(path, 0755);
 
-	snprintf(rproc.dir, PATH_MAX, "%s/loom.%s/proc.%d", tracedir, loom, proc);
+	snprintf(rproc.dir, PATH_MAX, "%s/loom.%s/proc.%d", tracedir, loom, pid);
 
 	/* But this one shall not fail */
 	if(mkdir(rproc.dir, 0755))
-	{
-		fprintf(stderr, "mkdir %s: %s\n", rproc.dir, strerror(errno));
-		return -1;
-	}
-
-	return 0;
+		die("mkdir %s failed: %s\n", rproc.dir, strerror(errno));
 }
 
-static int
+static void
 create_trace_stream(void)
 {
 	char path[PATH_MAX];
 
-	if(snprintf(path, PATH_MAX, "%s/thread.%d", rproc.dir, rthread.tid)
-			>= PATH_MAX)
-	{
-		abort();
-	}
+	int written = snprintf(path, PATH_MAX, "%s/thread.%d",
+			rproc.dir, rthread.tid);
 
-	//rthread.streamfd = open(path, O_WRONLY | O_CREAT | O_DSYNC, 0644);
+       	if(written >= PATH_MAX)
+		die("thread trace path too long: %s/thread.%d\n",
+				rproc.dir, rthread.tid);
+
 	rthread.streamfd = open(path, O_WRONLY | O_CREAT, 0644);
 
 	if(rthread.streamfd == -1)
-	{
-		fprintf(stderr, "open %s failed: %s\n", path, strerror(errno));
-		return -1;
-	}
-
-	return 0;
+		die("open %s failed: %s\n", path, strerror(errno));
 }
 
-static int
+static void
 proc_metadata_init(struct ovni_rproc *proc)
 {
 	proc->meta = json_value_init_object();
 
 	if(proc->meta == NULL)
-	{
-		err("failed to create json object\n");
-		abort();
-	}
-
-	return 0;
+		die("failed to create metadata JSON object\n");
 }
 
-static int
+static void
 proc_metadata_store(struct ovni_rproc *proc)
 {
 	char path[PATH_MAX];
+
+	if(proc->meta == NULL)
+		die("process metadata not initialized\n");
        
 	if(snprintf(path, PATH_MAX, "%s/metadata.json", proc->dir) >= PATH_MAX)
-		abort();
-
-	assert(proc->meta != NULL);
+		die("metadata path too long: %s/metadata.json\n", proc->dir);
 
 	if(json_serialize_to_file_pretty(proc->meta, path) != JSONSuccess)
-	{
-		err("failed to write proc metadata\n");
-		abort();
-	}
-
-	return 0;
+		die("failed to write process metadata\n");
 }
 
 void
 ovni_add_cpu(int index, int phyid)
 {
-	JSON_Array *cpuarray;
-	JSON_Object *cpu;
-	JSON_Object *meta;
-	JSON_Value *valcpu, *valcpuarray;
-	int append = 0;
+	if(index < 0)
+		die("ovni_add_cpu: cannot use negative index %d\n", index);
 
-	assert(rproc.ready == 1);
-	assert(rproc.meta != NULL);
+	if(phyid < 0)
+		die("ovni_add_cpu: cannot use negative CPU id %d\n", phyid);
 
-	meta = json_value_get_object(rproc.meta);
+	if(!rproc.ready)
+		die("ovni_add_cpu: process not yet initialized\n");
 
-	assert(meta);
+	if(rproc.meta == NULL)
+		die("ovni_add_cpu: metadata not initialized\n");
+
+	JSON_Object *meta = json_value_get_object(rproc.meta);
+
+	if(meta == NULL)
+		die("ovni_add_cpu: json_value_get_object() failed\n");
+
+	int first_time = 0;
 
 	/* Find the CPU array and create it if needed  */
-	cpuarray = json_object_dotget_array(meta, "cpus");
+	JSON_Array *cpuarray = json_object_dotget_array(meta, "cpus");
 
 	if(cpuarray == NULL)
 	{
-		valcpuarray = json_value_init_array();
-		assert(valcpuarray);
+		JSON_Value *value = json_value_init_array();
+		if(value == NULL)
+			die("ovni_add_cpu: json_value_init_array() failed\n");
 
-		cpuarray = json_array(valcpuarray);
-		assert(cpuarray);
-		append = 1;
+		cpuarray = json_array(value);
+		if(cpuarray == NULL)
+			die("ovni_add_cpu: json_array() failed\n");
+
+		first_time = 1;
 	}
 
-	valcpuarray = json_array_get_wrapping_value(cpuarray);
-	assert(valcpuarray);
+	JSON_Value *valcpu = json_value_init_object();
+	if(valcpu == NULL)
+		die("ovni_add_cpu: json_value_init_object() failed\n");
 
-	valcpu = json_value_init_object();
-	assert(valcpu);
-
-	cpu = json_object(valcpu);
-	assert(cpu);
+	JSON_Object *cpu = json_object(valcpu);
+	if(cpu == NULL)
+		die("ovni_add_cpu: json_object() failed\n");
 
 	if(json_object_set_number(cpu, "index", index) != 0)
-		abort();
+		die("ovni_add_cpu: json_object_set_number() failed\n");
 
 	if(json_object_set_number(cpu, "phyid", phyid) != 0)
-		abort();
+		die("ovni_add_cpu: json_object_set_number() failed\n");
 
 	if(json_array_append_value(cpuarray, valcpu) != 0)
-		abort();
+		die("ovni_add_cpu: json_array_append_value() failed\n");
 
-	if(append && json_object_set_value(meta, "cpus", valcpuarray) != 0)
-		abort();
+	if(first_time)
+	{
+		JSON_Value *value = json_array_get_wrapping_value(cpuarray);
+		if(value == NULL)
+			die("ovni_add_cpu: json_array_get_wrapping_value() failed\n");
 
-	//puts(json_serialize_to_string_pretty(rproc.meta));
+		if(json_object_set_value(meta, "cpus", value) != 0)
+			die("ovni_add_cpu: json_object_set_value failed\n");
+	}
 }
 
 static void
 proc_set_app(int appid)
 {
-	JSON_Object *meta;
+	JSON_Object *meta = json_value_get_object(rproc.meta);
 
-	assert(rproc.ready == 1);
-	assert(rproc.meta != NULL);
-
-	meta = json_value_get_object(rproc.meta);
-
-	assert(meta);
+	if(meta == NULL)
+		die("json_value_get_object failed\n");
 
 	if(json_object_set_number(meta, "app_id", appid) != 0)
-		abort();
+		die("json_object_set_number for app_id failed\n");
 }
 
-int
-ovni_proc_init(int app, const char *loom, int proc)
+void
+ovni_proc_init(int app, const char *loom, int pid)
 {
-	assert(rproc.ready == 0);
+	if(rproc.ready)
+		die("ovni_proc_init: pid %d already initialized\n", pid);
 
 	memset(&rproc, 0, sizeof(rproc));
 
-	/* FIXME: strcpy is insecure */
-	strcpy(rproc.loom, loom);
-	rproc.proc = proc;
-	rproc.app = app;
+	if(strlen(loom) >= OVNI_MAX_HOSTNAME)
+		die("ovni_proc_init: loom name too long: %s\n", loom);
 
-	/* By default we use the monotonic clock */
+	strcpy(rproc.loom, loom);
+	rproc.pid = pid;
+	rproc.app = app;
 	rproc.clockid = CLOCK_MONOTONIC;
 
-	if(create_trace_dirs(OVNI_TRACEDIR, loom, proc))
-		abort();
+	create_trace_dirs(OVNI_TRACEDIR, loom, pid);
 
-	if(proc_metadata_init(&rproc) != 0)
-		abort();
+	proc_metadata_init(&rproc);
 
 	rproc.ready = 1;
 
 	proc_set_app(app);
-
-	return 0;
 }
 
-int
+void
 ovni_proc_fini(void)
 {
-	if(proc_metadata_store(&rproc) != 0)
-		abort();
+	if(!rproc.ready)
+		die("ovni_proc_fini: process not initialized\n");
 
-	return 0;
+	proc_metadata_store(&rproc);
 }
 
-int
+void
 ovni_thread_init(pid_t tid)
 {
-	assert(tid != 0);
-
 	if(rthread.ready)
 	{
-		fprintf(stderr, "warning: thread tid=%d already initialized\n",
-				tid);
-		return 0;
+		err("warning: thread %d already initialized, ignored\n", tid);
+		return;
 	}
 
-	assert(rthread.ready == 0);
-	assert(rthread.tid == 0);
-	assert(rthread.cpu == 0);
-	assert(rproc.ready == 1);
+	if(tid == 0)
+		die("ovni_thread_init: cannot use tid=%d\n", tid);
+
+	if(!rproc.ready)
+		die("ovni_thread_init: process not yet initialized\n");
 
 	memset(&rthread, 0, sizeof(rthread));
 
 	rthread.tid = tid;
-	rthread.cpu = -666;
 	rthread.evlen = 0;
-
 	rthread.evbuf = malloc(OVNI_MAX_EV_BUF);
-	if(rthread.evbuf == NULL)
-	{
-		perror("malloc");
-		abort();
-	}
 
-	if(create_trace_stream())
-		abort();
+	if(rthread.evbuf == NULL)
+		die("ovni_thread_init: malloc failed: %s", strerror(errno));
+
+	create_trace_stream();
 
 	rthread.ready = 1;
-
-	return 0;
 }
 
 void
 ovni_thread_free(void)
 {
-	assert(rthread.ready);
+	if(!rthread.ready)
+		die("ovni_thread_free: thread not initialized\n");
+
 	free(rthread.evbuf);
 }
 
@@ -300,95 +272,61 @@ ovni_thread_isready(void)
 	return rthread.ready;
 }
 
-#ifdef USE_RDTSC
+#ifdef USE_TSC
 static inline
-uint64_t rdtsc(void)
+uint64_t clock_tsc_now(void)
 {
     uint32_t lo, hi;
 
-    // RDTSC copies contents of 64-bit TSC into EDX:EAX
+    /* RDTSC copies contents of 64-bit TSC into EDX:EAX */
     __asm__ volatile("rdtsc" : "=a" (lo), "=d" (hi));
     return (uint64_t) hi << 32 | lo;
 }
 #endif
 
+static uint64_t
+clock_monotonic_now(void)
+{
+	uint64_t ns = 1000ULL * 1000ULL * 1000ULL;
+	struct timespec tp;
+
+	if(clock_gettime(rproc.clockid, &tp))
+		die("clock_gettime() failed: %s\n", strerror(errno));
+
+	return tp.tv_sec * ns + tp.tv_nsec;
+}
+
 uint64_t
 ovni_clock_now(void)
 {
-	struct timespec tp;
-	uint64_t ns = 1000LL * 1000LL * 1000LL;
-	uint64_t raw;
-
-#ifdef USE_RDTSC
-	raw = rdtsc();
+#ifdef USE_TSC
+	return clock_tsc_now();
 #else
-
-#ifdef ENABLE_SLOW_CHECKS
-	int ret = clock_gettime(rproc.clockid, &tp);
-	if(ret) abort();
-#else
-	clock_gettime(rproc.clockid, &tp);
-#endif /* ENABLE_SLOW_CHECKS */
-
-	raw = tp.tv_sec * ns + tp.tv_nsec;
-
-#endif /* USE_RDTSC */
-
-	return raw;
+	return clock_monotonic_now();
+#endif
 }
 
-//static void
-//hexdump(uint8_t *buf, size_t size)
-//{
-//	size_t i, j;
-//
-//	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
-//
-//	for(i=0; i<size; i+=16)
-//	{
-//		for(j=0; j<16 && i+j < size; j++)
-//		{
-//			err("%02x ", buf[i+j]);
-//		}
-//		err("\n");
-//	}
-//}
-
-static int
-ovni_write(uint8_t *buf, size_t size)
+static void
+write_evbuf(uint8_t *buf, size_t size)
 {
-	ssize_t written;
-
 	do
 	{
-		written = write(rthread.streamfd, buf, size);
+		ssize_t written = write(rthread.streamfd, buf, size);
 
 		if(written < 0)
-		{
-			perror("write");
-			return -1;
-		}
+			die("failed to write buffer to disk: %s\n", strerror(errno));
 
 		size -= written;
 		buf += written;
 	} while(size > 0);
-
-	return 0;
 }
 
-static int
+static void
 flush_evbuf(void)
 {
-	int ret;
-
-	assert(rthread.ready);
-	assert(rproc.ready);
-
-	ret = ovni_write(rthread.evbuf, rthread.evlen);
+	write_evbuf(rthread.evbuf, rthread.evlen);
 
 	rthread.evlen = 0;
-
-	return ret;
 }
 
 void
@@ -440,15 +378,17 @@ ovni_payload_size(const struct ovni_ev *ev)
 void
 ovni_payload_add(struct ovni_ev *ev, const uint8_t *buf, int size)
 {
-	size_t payload_size;
+	if(ev->header.flags & OVNI_EV_JUMBO)
+		die("ovni_payload_add: event is marked as jumbo\n");
 
-	assert((ev->header.flags & OVNI_EV_JUMBO) == 0);
-	assert(size >= 2);
+	if(size < 2)
+		die("ovni_payload_add: payload size %d too small\n", size);
 
-	payload_size = ovni_payload_size(ev);
+	size_t payload_size = ovni_payload_size(ev);
 
 	/* Ensure we have room */
-	assert(payload_size + size <= sizeof(ev->payload));
+	if(payload_size + size > sizeof(ev->payload))
+		die("ovni_payload_add: no space left for %d bytes\n", size);
 
 	memcpy(&ev->payload.u8[payload_size], buf, size);
 	payload_size += size;
@@ -465,19 +405,21 @@ ovni_ev_size(const struct ovni_ev *ev)
 static void
 ovni_ev_add(struct ovni_ev *ev);
 
-int
+void
 ovni_flush(void)
 {
-	int ret = 0;
 	struct ovni_ev pre={0}, post={0};
 
-	assert(rthread.ready);
-	assert(rproc.ready);
+	if(!rthread.ready)
+		die("ovni_flush: thread is not initialized\n");
+
+	if(!rproc.ready)
+		die("ovni_flush: process is not initialized\n");
 
 	ovni_ev_set_clock(&pre, ovni_clock_now());
 	ovni_ev_set_mcv(&pre, "OF[");
 
-	ret = flush_evbuf();
+	flush_evbuf();
 
 	ovni_ev_set_clock(&post, ovni_clock_now());
 	ovni_ev_set_mcv(&post, "OF]");
@@ -485,8 +427,6 @@ ovni_flush(void)
 	/* Add the two flush events */
 	ovni_ev_add(&pre);
 	ovni_ev_add(&post);
-
-	return ret;
 }
 
 static void
@@ -508,16 +448,19 @@ add_flush_events(uint64_t t0, uint64_t t1)
 static void
 ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 {
-	size_t evsize, totalsize;
 	int flushed = 0;
 	uint64_t t0, t1;
 
-	assert(ovni_payload_size(ev) == 0);
+	if(ovni_payload_size(ev) != 0)
+		die("ovni_ev_add_jumbo: the event payload must be empty\n");
 
 	ovni_payload_add(ev, (uint8_t *) &bufsize, sizeof(bufsize));
-	evsize = ovni_ev_size(ev);
+	size_t evsize = ovni_ev_size(ev);
 
-	totalsize = evsize + bufsize;
+	size_t totalsize = evsize + bufsize;
+
+	if(totalsize >= OVNI_MAX_EV_BUF)
+		die("ovni_ev_add_jumbo: event too large\n");
 
 	/* Check if the event fits or flush first otherwise */
 	if(rthread.evlen + totalsize >= OVNI_MAX_EV_BUF)
@@ -538,8 +481,6 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 	memcpy(&rthread.evbuf[rthread.evlen], buf, bufsize);
 	rthread.evlen += bufsize;
 
-	assert(rthread.evlen < OVNI_MAX_EV_BUF);
-
 	if(flushed)
 	{
 		/* Emit the flush events *after* the user event */
@@ -550,10 +491,10 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 static void
 ovni_ev_add(struct ovni_ev *ev)
 {
-	int size, flushed = 0;
+	int flushed = 0;
 	uint64_t t0, t1;
 
-	size = ovni_ev_size(ev);
+	int size = ovni_ev_size(ev);
 
 	/* Check if the event fits or flush first otherwise */
 	if(rthread.evlen + size >= OVNI_MAX_EV_BUF)

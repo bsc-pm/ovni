@@ -94,10 +94,6 @@ struct __attribute__((__packed__)) ovni_ev {
 
 /* State of each thread on runtime */
 struct ovni_rthread {
-	/* Current cpu the thread is running on. Set to -1 if unbounded or
-	 * unknown */
-	int cpu;
-
 	/* Current thread id */
 	pid_t tid;
 
@@ -119,7 +115,7 @@ struct ovni_rproc {
 	char dir[PATH_MAX];
 
 	int app;
-	int proc;
+	int pid;
 	char loom[OVNI_MAX_HOSTNAME];
 	int ncpus;
 	clockid_t clockid;
@@ -130,11 +126,11 @@ struct ovni_rproc {
 	JSON_Value *meta;
 };
 
-int ovni_proc_init(int app, const char *loom, int proc);
+void ovni_proc_init(int app, const char *loom, int pid);
 
-int ovni_proc_fini(void);
+void ovni_proc_fini(void);
 
-int ovni_thread_init(pid_t tid);
+void ovni_thread_init(pid_t tid);
 
 void ovni_thread_free(void);
 
@@ -164,7 +160,7 @@ void ovni_add_cpu(int index, int phyid);
 void ovni_ev_emit(struct ovni_ev *ev);
 void ovni_ev_jumbo_emit(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize);
 
-int ovni_flush(void);
+void ovni_flush(void);
 
 #ifdef __cplusplus
 }

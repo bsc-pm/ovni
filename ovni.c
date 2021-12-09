@@ -471,7 +471,7 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 		flushed = 1;
 	}
 
-	/* Se the jumbo flag here, so we capture the previous evsize
+	/* Set the jumbo flag here, so we capture the previous evsize
 	 * properly, ignoring the jumbo buffer */
 	ev->header.flags |= OVNI_EV_JUMBO;
 

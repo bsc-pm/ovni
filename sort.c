@@ -102,7 +102,7 @@ find_destination(struct ring *r, uint64_t clock)
 	{
 		if(r->ev[i]->header.clock < clock)
 		{
-			err("found suitable position %ld events backwards\n",
+			dbg("found suitable position %ld events backwards\n",
 					nback);
 			return i;
 		}
@@ -415,7 +415,7 @@ int main(int argc, char *argv[])
 		return 1;
 
 	if(process_trace(trace))
-		ret = -1;
+		ret = 1;
 
 	ovni_free_streams(trace);
 

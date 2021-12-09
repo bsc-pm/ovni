@@ -602,8 +602,8 @@ proc_load_cpus(struct ovni_emu *emu, struct ovni_loom *loom,
 		if(cpu == NULL)
 			die("proc_load_cpus: json_array_get_object() failed\n");
 
-		size_t index = (int) json_object_get_number(cpu, "index");
-		size_t phyid = (int) json_object_get_number(cpu, "phyid");
+		int index = (int) json_object_get_number(cpu, "index");
+		int phyid = (int) json_object_get_number(cpu, "phyid");
 
 		add_new_cpu(emu, loom, index, phyid);
 	}

@@ -20,8 +20,8 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-#include <assert.h>
 #include <stddef.h>
+#include "common.h"
 
 typedef struct heap_node {
 	struct heap_node *parent;
@@ -170,7 +170,8 @@ heap_pop_max(heap_head_t *head, heap_node_compare_t cmp)
 
 	size_t size = head->size;
 	heap_node_t *change = heap_get(head, size);
-	assert(change);
+	if(change == NULL)
+		die("heap_pop_max: heap_get() failed\n");
 
 	head->size--;
 
@@ -201,8 +202,11 @@ heap_pop_max(heap_head_t *head, heap_node_compare_t cmp)
 		else
 			change->parent->left = NULL;
 
-		assert(!change->left);
-		assert(!change->right);
+		if(change->left)
+			die("heap_pop_max: change->left not NULL\n");
+
+		if(change->right)
+			die("heap_pop_max: change->right not NULL\n");
 
 		change->left = max->left;
 		if (change->left)
@@ -239,10 +243,12 @@ heap_insert(heap_head_t *head, heap_node_t *node, heap_node_compare_t cmp)
 
 	// Right child
 	if (head->size % 2) {
-		assert(!parent->right);
+		if(parent->right)
+			die("heap_insert: parent->right already set\n");
 		parent->right = node;
 	} else {
-		assert(!parent->left);
+		if(parent->left)
+			die("heap_insert: parent->left already set\n");
 		parent->left = node;
 	}
 

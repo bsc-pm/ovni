@@ -20,11 +20,11 @@
 
 #include <stdio.h>
 
+#include "common.h"
 #include "ovni.h"
 #include "uthash.h"
 #include "parson.h"
 #include "heap.h"
-#include "common.h"
 
 /* Emulated thread runtime status */
 enum ethread_state {

@@ -43,8 +43,6 @@
 # define gettid() ((pid_t)syscall(SYS_gettid))
 #endif
 
-#pragma GCC poison assert
-
 /* Data per process */
 struct ovni_rproc rproc = {0};
 

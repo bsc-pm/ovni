@@ -16,4 +16,7 @@
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define UNUSED(x) (void)(x)
 
+/* Poison assert */
+#pragma GCC poison assert
+
 #endif /* COMMON_H */

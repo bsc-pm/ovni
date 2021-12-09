@@ -394,13 +394,13 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 
 	if((fd = open(thread->tracefile, O_RDWR)) == -1)
 	{
-		perror("open");
+		perror("open failed");
 		return -1;
 	}
 
 	if(fstat(fd, &st) < 0)
 	{
-		perror("fstat");
+		perror("fstat failed");
 		return -1;
 	}
 
@@ -421,7 +421,7 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 
 	if(stream->buf == MAP_FAILED)
 	{
-		perror("mmap");
+		perror("mmap failed");
 		return -1;
 	}
 
@@ -430,7 +430,7 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 	/* No need to keep the fd open */
 	if(close(fd))
 	{
-		perror("close");
+		perror("close failed");
 		return -1;
 	}
 
@@ -466,7 +466,7 @@ ovni_load_streams(struct ovni_trace *trace)
 
 	if(trace->stream == NULL)
 	{
-		perror("calloc");
+		perror("calloc failed");
 		return -1;
 	}
 

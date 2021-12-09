@@ -90,6 +90,7 @@ pre_task_create(struct ovni_emu *emu)
 	task->id = emu->cur_ev->payload.i32[0];
 	task->type_id = emu->cur_ev->payload.i32[1];
 	task->state = TASK_ST_CREATED;
+	task->thread = NULL;
 
 	/* Ensure the task id is new */
 	HASH_FIND_INT(emu->cur_proc->tasks, &task->id, p);
@@ -120,6 +121,12 @@ pre_task_execute(struct ovni_emu *emu)
 
 	if(task == NULL)
 		die("cannot find task with id %d\n", taskid);
+
+	if(task->state != TASK_ST_CREATED)
+		die("task state is not created\n");
+
+	if(task->thread != NULL)
+		die("task already has a thread assigned\n");
 
 	if(emu->cur_thread->state != TH_ST_RUNNING)
 		die("thread state is not running\n");

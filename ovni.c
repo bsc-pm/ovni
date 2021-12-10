@@ -192,6 +192,24 @@ proc_set_app(int appid)
 }
 
 void
+ovni_proc_set_rank(int rank, int nranks)
+{
+	if(!rproc.ready)
+		die("ovni_proc_set_rank: process not yet initialized\n");
+
+	JSON_Object *meta = json_value_get_object(rproc.meta);
+
+	if(meta == NULL)
+		die("json_value_get_object failed\n");
+
+	if(json_object_set_number(meta, "rank", rank) != 0)
+		die("json_object_set_number for rank failed\n");
+
+	if(json_object_set_number(meta, "nranks", nranks) != 0)
+		die("json_object_set_number for nranks failed\n");
+}
+
+void
 ovni_proc_init(int app, const char *loom, int pid)
 {
 	if(rproc.ready)

@@ -97,7 +97,7 @@ load_thread(struct ovni_ethread *thread, struct ovni_eproc *proc, int index, int
 }
 
 static void
-load_proc_metadata(struct ovni_eproc *proc)
+load_proc_metadata(struct ovni_eproc *proc, int *rank_enabled)
 {
 	JSON_Object *meta;
 
@@ -105,7 +105,23 @@ load_proc_metadata(struct ovni_eproc *proc)
 	if(meta == NULL)
 		die("load_proc_metadata: json_value_get_object() failed\n");
 
-	proc->appid = (int) json_object_get_number(meta, "app_id");
+	JSON_Value *appid_val = json_object_get_value(meta, "app_id");
+	if(appid_val == NULL)
+		die("process %d is missing app_id in metadata\n", proc->pid);
+
+	proc->appid = (int) json_number(appid_val);
+
+	JSON_Value *rank_val = json_object_get_value(meta, "rank");
+
+	if(rank_val != NULL)
+	{
+		proc->rank = (int) json_number(rank_val);
+		*rank_enabled = 1;
+	}
+	else
+	{
+		proc->rank = -1;
+	}
 }
 
 
@@ -141,7 +157,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 	}
 
 	/* The appid is populated from the metadata */
-	load_proc_metadata(proc);
+	load_proc_metadata(proc, &loom->rank_enabled);
 
 	if((dir = opendir(procdir)) == NULL)
 	{
@@ -211,6 +227,7 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 		return -1;
 	}
 
+	loom->rank_enabled = 0;
 	loom->nprocs = count_dir_prefix(dir, "proc");
 
 	if(loom->nprocs <= 0)
@@ -258,6 +275,20 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 	}
 
 	closedir(dir);
+
+	/* Ensure all process have the rank, if enabled in any */
+	if(loom->rank_enabled)
+	{
+		for(i = 0; i < loom->nprocs; i++)
+		{
+			struct ovni_eproc *proc = &loom->proc[i];
+			if(proc->rank < 0)
+			{
+				die("process %d is missing the rank\n",
+						proc->pid);
+			}
+		}
+	}
 
 	return 0;
 }

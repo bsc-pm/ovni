@@ -148,6 +148,7 @@ enum chan {
 	CHAN_NOSV_TYPEID,
 	CHAN_NOSV_APPID,
 	CHAN_NOSV_SUBSYSTEM,
+	CHAN_NOSV_RANK,
 
 	CHAN_TAMPI_MODE,
 	CHAN_OPENMP_MODE,
@@ -189,6 +190,7 @@ static const int chan_to_prvtype[CHAN_MAX][3] = {
 	{ CHAN_NOSV_TYPEID,       21,  71  },
 	{ CHAN_NOSV_APPID,        22,  72  },
 	{ CHAN_NOSV_SUBSYSTEM,    23,  73  },
+	{ CHAN_NOSV_RANK,         24,  74  },
 	{ CHAN_TAMPI_MODE,        30,  80  },
 	{ CHAN_OPENMP_MODE,       40,  90  },
 	{ CHAN_NODES_SUBSYSTEM,	  50, 100  },
@@ -304,6 +306,7 @@ struct ovni_eproc {
 	int index;
 	int gindex;
 	int appid;
+	int rank;
 
 	/* The loom of the current process */
 	struct ovni_loom *loom;
@@ -389,6 +392,7 @@ struct ovni_loom {
 	size_t ncpus;
 	size_t offset_ncpus;
 	struct ovni_cpu *cpu;
+	int rank_enabled;
 
 	int64_t clock_offset;
 

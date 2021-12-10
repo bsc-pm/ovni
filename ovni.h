@@ -128,6 +128,9 @@ struct ovni_rproc {
 
 void ovni_proc_init(int app, const char *loom, int pid);
 
+/* Sets the MPI rank of the current process and the number of total nranks */
+void ovni_proc_set_rank(int rank, int nranks);
+
 void ovni_proc_fini(void);
 
 void ovni_thread_init(pid_t tid);

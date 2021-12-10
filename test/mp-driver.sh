@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 # Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
 #
@@ -14,14 +15,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set(OVNI_TEST_DIR "${CMAKE_SOURCE_DIR}/test")
+set -e
 
-add_executable(flush flush.c)
-target_link_libraries(flush ovni)
+testname="$1"
 
-add_test(NAME flush COMMAND "${OVNI_TEST_DIR}/driver.sh" flush)
+if [ -z "$2" ]; then
+  NPROCS=4
+else
+  NPROCS="$2"
+fi
 
-add_executable(mp-simple mp-simple.c)
-target_link_libraries(mp-simple ovni)
+tracedir="ovni"
+emubin=../ovniemu
 
-add_test(NAME mp-simple COMMAND "${OVNI_TEST_DIR}/mp-driver.sh" mp-simple)
+rm -rf "$tracedir"
+
+for i in $(seq 1 $NPROCS); do
+  # Run the test in the background
+  OVNI_RANK=$(($i-1)) OVNI_NRANKS=$NPROCS "./$testname" &
+done
+
+wait
+
+# Then launch the emulator in lint mode
+"$emubin" -l "$tracedir"
+
+#rm -rf $tracedir

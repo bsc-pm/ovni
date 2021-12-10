@@ -1,0 +1,14 @@
+image: debian:latest
+
+build:
+  stage: build
+  before_script:
+    - apt update && apt -y install make autoconf gfortran libopenmpi-dev cmake
+  script:
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install -S . -B build
+    - cmake --build build
+    - cmake --build build --target test
+    - cmake --build build --target install
+  artifacts:
+    paths:
+      - install/

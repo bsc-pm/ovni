@@ -18,10 +18,12 @@ set(OVNI_TEST_DIR "${CMAKE_SOURCE_DIR}/test")
 
 add_executable(flush flush.c)
 target_link_libraries(flush ovni)
-
 add_test(NAME flush COMMAND "${OVNI_TEST_DIR}/driver.sh" flush)
 
 add_executable(mp-simple mp-simple.c)
 target_link_libraries(mp-simple ovni)
-
 add_test(NAME mp-simple COMMAND "${OVNI_TEST_DIR}/mp-driver.sh" mp-simple)
+
+add_executable(mp-rank mp-rank.c)
+target_link_libraries(mp-rank ovni)
+add_test(NAME mp-rank COMMAND "${OVNI_TEST_DIR}/mp-driver.sh" mp-rank)

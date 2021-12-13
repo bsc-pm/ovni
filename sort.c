@@ -98,7 +98,7 @@ find_destination(struct ring *r, uint64_t clock)
 	start = r->tail - 1 >= 0 ? r->tail - 1 : r->size - 1;
 	end = r->head - 1 >= 0 ? r->head - 1 : r->size - 1;
 
-	for(i=start; i != end; i = i-1 < 0 ? r->size : i-1)
+	for(i=start; i != end; i = i-1 < 0 ? r->size - 1: i-1)
 	{
 		if(r->ev[i]->header.clock < clock)
 		{

@@ -135,8 +135,6 @@ hexdump(uint8_t *buf, size_t size)
 	UNUSED(buf);
 	UNUSED(size);
 
-#ifdef ENABLE_DEBUG
-
 	size_t i, j;
 
 	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
@@ -162,23 +160,18 @@ hexdump(uint8_t *buf, size_t size)
 		}
 		fprintf(stderr, "\n");
 	}
-
-#endif
 }
 
 static void
 sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 		uint8_t *srcbad, uint8_t *srcnext)
 {
-	uint8_t *p, *q, *obuf=buf;
-	int64_t evsize, injected = 0, obufsize=bufsize;
+	uint8_t *p, *q;
+	int64_t evsize, injected = 0;
 	struct ovni_ev *ep, *eq, *ev;
 
 	p = src;
 	q = srcbad;
-
-	dbg("src before:\n");
-	hexdump(src, obufsize);
 
 	while(1)
 	{
@@ -213,14 +206,11 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 		injected++;
 	}
 
-	dbg("buf after:\n");
-	hexdump(obuf, obufsize);
-
 	dbg("injected %ld events in the past\n", injected);
 }
 
 static int
-execute_sort_plan(struct sortplan *sp)
+execute_sort_plan(struct sortplan *sp, size_t region)
 {
 	int64_t i0, bufsize;
 	uint8_t *buf;
@@ -250,12 +240,24 @@ execute_sort_plan(struct sortplan *sp)
 	if(!buf)
 		die("malloc failed: %s\n", strerror(errno));
 
+	if(region == 0)
+	{
+		err("stream window region %ld BEFORE sort:\n", region);
+		hexdump((uint8_t *) first, bufsize);
+	}
+
 	sort_buf((uint8_t *) first, buf, bufsize,
 			(uint8_t *) sp->bad0, (uint8_t *) sp->next);
 
 	/* Copy the sorted events back into the stream buffer */
 	memcpy(first, buf, bufsize);
 	free(buf);
+
+	if(region == 0)
+	{
+		err("stream window region %ld AFTER sort:\n", region);
+		hexdump((uint8_t *) first, bufsize);
+	}
 
 	return 0;
 }
@@ -272,6 +274,8 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 
 	ring_reset(r);
 	sp.r = r;
+
+	size_t region = 0;
 
 	for(i=0; stream->active; i++)
 	{
@@ -303,7 +307,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 			{
 				sp.next = ev;
 				dbg("executing sort plan for stream tid=%d\n", stream->tid);
-				if(execute_sort_plan(&sp) < 0)
+				if(execute_sort_plan(&sp, region) < 0)
 				{
 					err("sort failed for stream tid=%d\n",
 							stream->tid);
@@ -313,6 +317,8 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 				/* Clear markers */
 				sp.next = NULL;
 				sp.bad0 = NULL;
+
+				region++;
 
 				st = 'S';
 			}

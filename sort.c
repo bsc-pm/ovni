@@ -53,9 +53,6 @@ struct sortplan {
 	/* The first and last events which need sorting */
 	struct ovni_ev *bad0;
 
-	/* The first event in the stream that may be affected */
-	struct ovni_ev *first;
-
 	/* The next event which must be not affected */
 	struct ovni_ev *next;
 
@@ -182,6 +179,11 @@ execute_sort_plan(struct sortplan *sp)
 {
 	int64_t i0, bufsize;
 	uint8_t *buf;
+	/* The first event in the stream that may be affected */
+	struct ovni_ev *first;
+
+
+	dbg("attempt to sort: start clock %ld\n", sp->bad0->header.clock);
 
 	/* Cannot sort in one pass; just fail for now */
 	if((i0 = find_destination(sp->r, sp->bad0->header.clock)) < 0)
@@ -191,10 +193,10 @@ execute_sort_plan(struct sortplan *sp)
 	}
 
 	/* Set the pointer to the first event */
-	sp->first = sp->r->ev[i0];
+	first = sp->r->ev[i0];
 
 	/* Allocate a working buffer */
-	bufsize = ((int64_t) sp->next) - ((int64_t) sp->first);
+	bufsize = ((int64_t) sp->next) - ((int64_t) first);
 
 	if(bufsize <= 0)
 		die("bufsize is non-positive\n");
@@ -203,11 +205,12 @@ execute_sort_plan(struct sortplan *sp)
 	if(!buf)
 		die("malloc failed: %s\n", strerror(errno));
 
-	sort_buf((uint8_t *) sp->first, buf, bufsize,
+	sort_buf((uint8_t *) first, buf, bufsize,
 			(uint8_t *) sp->bad0, (uint8_t *) sp->next);
 
 	/* Copy the sorted events back into the stream buffer */
-	memcpy(sp->first, buf, bufsize);
+	memcpy(first, buf, bufsize);
+	free(buf);
 
 	return 0;
 }
@@ -260,6 +263,11 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 							stream->tid);
 					return -1;
 				}
+
+				/* Clear markers */
+				sp.next = NULL;
+				sp.bad0 = NULL;
+
 				st = 'S';
 			}
 		}

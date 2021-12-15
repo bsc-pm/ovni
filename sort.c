@@ -490,6 +490,8 @@ int main(int argc, char *argv[])
 
 	ovni_free_streams(trace);
 
+	ovni_free_trace(trace);
+
 	free(trace);
 
 	return ret;

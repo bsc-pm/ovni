@@ -538,6 +538,13 @@ ovni_load_streams(struct ovni_trace *trace)
 void
 ovni_free_streams(struct ovni_trace *trace)
 {
+	for(size_t i = 0; i < trace->nstreams; i++)
+	{
+		struct ovni_stream *stream = &trace->stream[i];
+		if(munmap(stream->buf, stream->size) != 0)
+			die("munmap stream failed: %s\n", strerror(errno));
+	}
+
 	free(trace->stream);
 }
 

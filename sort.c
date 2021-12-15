@@ -34,6 +34,7 @@
 #include <linux/limits.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <stdatomic.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -378,6 +379,9 @@ process_trace(struct ovni_trace *trace)
 				 * attempt */
 				return -1;
 			}
+
+			if(msync(stream->buf, stream->size, MS_ASYNC))
+				die("msync failed: %s\n", strerror(errno));
 		}
 		else
 		{

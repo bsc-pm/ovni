@@ -153,10 +153,17 @@ hexdump(uint8_t *buf, size_t size)
 
 		for(j=0; j<16; j++)
 		{
-			if(i+j < size && isprint(buf[i+j]))
-				fprintf(stderr, "%c", buf[i+j]);
+			if(i+j < size)
+			{
+				if(isprint(buf[i+j]))
+					fprintf(stderr, "%c", buf[i+j]);
+				else
+					fprintf(stderr, ".");
+			}
 			else
+			{
 				fprintf(stderr, " ");
+			}
 		}
 		fprintf(stderr, "\n");
 	}

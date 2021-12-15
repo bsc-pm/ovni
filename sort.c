@@ -37,6 +37,7 @@
 #include <stdatomic.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "ovni.h"
 #include "trace.h"
@@ -128,15 +129,55 @@ ends_unsorted_region(struct ovni_ev *ev)
 }
 
 static void
+hexdump(uint8_t *buf, size_t size)
+{
+	UNUSED(buf);
+	UNUSED(size);
+
+#ifdef ENABLE_DEBUG
+
+	size_t i, j;
+
+	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
+
+	for(i=0; i<size; i+=16)
+	{
+		for(j=0; j<16; j++)
+		{
+			if(i+j < size)
+				fprintf(stderr, "%02x ", buf[i+j]);
+			else
+				fprintf(stderr, "   ");
+		}
+
+		fprintf(stderr, " | ");
+
+		for(j=0; j<16; j++)
+		{
+			if(i+j < size && isprint(buf[i+j]))
+				fprintf(stderr, "%c", buf[i+j]);
+			else
+				fprintf(stderr, " ");
+		}
+		fprintf(stderr, "\n");
+	}
+
+#endif
+}
+
+static void
 sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 		uint8_t *srcbad, uint8_t *srcnext)
 {
-	uint8_t *p, *q;
-	int64_t evsize, injected = 0;
+	uint8_t *p, *q, *obuf=buf;
+	int64_t evsize, injected = 0, obufsize=bufsize;
 	struct ovni_ev *ep, *eq, *ev;
 
 	p = src;
 	q = srcbad;
+
+	dbg("src before:\n");
+	hexdump(src, obufsize);
 
 	while(1)
 	{
@@ -170,6 +211,9 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 		bufsize -= evsize;
 		injected++;
 	}
+
+	dbg("buf after:\n");
+	hexdump(obuf, obufsize);
 
 	dbg("injected %ld events in the past\n", injected);
 }
@@ -257,6 +301,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 			if(ends_unsorted_region(ev))
 			{
 				sp.next = ev;
+				dbg("executing sort plan for stream tid=%d\n", stream->tid);
 				if(execute_sort_plan(&sp) < 0)
 				{
 					err("sort failed for stream tid=%d\n",
@@ -325,6 +370,7 @@ process_trace(struct ovni_trace *trace)
 		stream = &trace->stream[i];
 		if(operation_mode == SORT)
 		{
+			dbg("sorting stream tid=%d\n", stream->tid);
 			if(stream_winsort(stream, &ring) != 0)
 			{
 				err("sort stream tid=%d failed\n", stream->tid);

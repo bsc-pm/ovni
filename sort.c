@@ -136,6 +136,7 @@ ends_unsorted_region(struct ovni_ev *ev)
 		ev->header.value == ']';
 }
 
+#if 0
 static void
 hexdump(uint8_t *buf, size_t size)
 {
@@ -175,6 +176,7 @@ hexdump(uint8_t *buf, size_t size)
 		fprintf(stderr, "\n");
 	}
 }
+#endif
 
 static void
 sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
@@ -240,7 +242,7 @@ write_stream(int fd, void *base, void *dst, const void *src, size_t size)
 }
 
 static int
-execute_sort_plan(struct sortplan *sp, size_t region)
+execute_sort_plan(struct sortplan *sp)
 {
 	int64_t i0, bufsize;
 	uint8_t *buf;
@@ -253,7 +255,9 @@ execute_sort_plan(struct sortplan *sp, size_t region)
 	/* Cannot sort in one pass; just fail for now */
 	if((i0 = find_destination(sp->r, sp->bad0->header.clock)) < 0)
 	{
-		err("cannot find a destination for unsorted region\n");
+		err("cannot find destination for region starting at clock %ld\n",
+				sp->bad0->header.clock);
+
 		return -1;
 	}
 
@@ -270,12 +274,6 @@ execute_sort_plan(struct sortplan *sp, size_t region)
 	if(!buf)
 		die("malloc failed: %s\n", strerror(errno));
 
-	if(region == 0)
-	{
-		err("stream window region %ld BEFORE sort:\n", region);
-		hexdump((uint8_t *) first, bufsize);
-	}
-
 	sort_buf((uint8_t *) first, buf, bufsize,
 			(uint8_t *) sp->bad0, (uint8_t *) sp->next);
 
@@ -284,12 +282,6 @@ execute_sort_plan(struct sortplan *sp, size_t region)
 	write_stream(sp->fd, sp->base, first, buf, bufsize);
 
 	free(buf);
-
-	if(region == 0)
-	{
-		err("stream window region %ld AFTER sort:\n", region);
-		hexdump((uint8_t *) first, bufsize);
-	}
 
 	return 0;
 }
@@ -315,7 +307,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 	sp.fd = fd;
 	sp.base = stream->buf;
 
-	size_t region = 0;
+	size_t empty_regions = 0;
 
 	for(i=0; stream->active; i++)
 	{
@@ -332,7 +324,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 			 * event inside the section */
 			if(ends_unsorted_region(ev))
 			{
-				err("warning: ignoring empty sort section\n");
+				empty_regions++;
 				st = 'S';
 			}
 			else
@@ -347,7 +339,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 			{
 				sp.next = ev;
 				dbg("executing sort plan for stream tid=%d\n", stream->tid);
-				if(execute_sort_plan(&sp, region) < 0)
+				if(execute_sort_plan(&sp) < 0)
 				{
 					err("sort failed for stream tid=%d\n",
 							stream->tid);
@@ -358,14 +350,16 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 				sp.next = NULL;
 				sp.bad0 = NULL;
 
-				region++;
-
 				st = 'S';
 			}
 		}
 
 		ring_add(r, ev);
 	}
+
+	if(empty_regions > 0)
+		err("warning: stream %d contains %ld empty sort regions\n",
+				stream->tid, empty_regions);
 
 	if(close(fd) < 0)
 		die("close %s failed: %s\n", fn, strerror(errno));

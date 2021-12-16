@@ -55,7 +55,6 @@ char *tracedir;
 static void
 emit(struct ovni_stream *stream, struct ovni_ev *ev)
 {
-	int64_t delta;
 	uint64_t clock;
 	int i, payloadsize;
 
@@ -64,21 +63,21 @@ emit(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	clock = ovni_ev_get_clock(ev);
 
-	delta = clock - stream->lastclock;
-
-	printf("%s.%d.%d %c %c %c % 20ld % 15ld ",
+	printf("%s.%d.%d  %ld  %c%c%c",
 			stream->loom->hostname,
 			stream->proc->pid,
 			stream->thread->tid,
+			clock,
 			ev->header.model,
 			ev->header.category,
-			ev->header.value,
-			clock, delta);
+			ev->header.value);
 
 	payloadsize = ovni_payload_size(ev);
-	for(i=0; i<payloadsize; i++)
+	if(payloadsize > 0)
 	{
-		printf("%02x ", ev->payload.u8[i]);
+		printf(" ");
+		for(i=0; i<payloadsize; i++)
+			printf(":%02x", ev->payload.u8[i]);
 	}
 	printf("\n");
 

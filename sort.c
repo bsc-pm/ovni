@@ -443,6 +443,18 @@ process_trace(struct ovni_trace *trace)
 
 	free(ring.ev);
 
+	if(operation_mode == CHECK)
+	{
+		if(ret == 0)
+		{
+			err("all streams sorted\n");
+		}
+		else
+		{
+			err("streams NOT sorted\n");
+		}
+	}
+
 	return ret;
 }
 

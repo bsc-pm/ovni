@@ -308,6 +308,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 	sp.base = stream->buf;
 
 	size_t empty_regions = 0;
+	size_t updated = 0;
 
 	for(i=0; stream->active; i++)
 	{
@@ -337,6 +338,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 		{
 			if(ends_unsorted_region(ev))
 			{
+				updated = 1;
 				sp.next = ev;
 				dbg("executing sort plan for stream tid=%d\n", stream->tid);
 				if(execute_sort_plan(&sp) < 0)
@@ -360,6 +362,9 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 	if(empty_regions > 0)
 		err("warning: stream %d contains %ld empty sort regions\n",
 				stream->tid, empty_regions);
+
+	if(updated && fdatasync(fd) < 0)
+		die("fdatasync %s failed: %s\n", fn, strerror(errno));
 
 	if(close(fd) < 0)
 		die("close %s failed: %s\n", fn, strerror(errno));

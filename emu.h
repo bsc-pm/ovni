@@ -418,9 +418,9 @@ struct ovni_stream {
 	size_t offset;
 
 	int tid;
-	int thread;
-	int proc;
-	int loom;
+	struct ovni_loom *loom;
+	struct ovni_eproc *proc;
+	struct ovni_ethread *thread;
 	int loaded;
 	int active;
 

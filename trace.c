@@ -515,9 +515,9 @@ ovni_load_streams(struct ovni_trace *trace)
 				stream = &trace->stream[s++];
 
 				stream->tid = thread->tid;
-				stream->thread = k;
-				stream->proc = j;
-				stream->loom = i;
+				stream->thread = thread;
+				stream->proc = proc;
+				stream->loom = loom;
 				stream->lastclock = 0;
 				stream->offset = 0;
 				stream->cur_ev = NULL;

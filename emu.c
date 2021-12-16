@@ -59,8 +59,10 @@ print_ev(struct ovni_stream *stream, struct ovni_ev *ev)
 
 	delta = clock - stream->lastclock;
 
-	dbg(">>> %d.%d.%d %c %c %c % 20ld % 15ld ",
-			stream->loom, stream->proc, stream->tid,
+	dbg(">>> %s.%d.%d %c %c %c % 20ld % 15ld ",
+			stream->loom->hostname,
+			stream->proc->pid,
+			stream->thread->tid,
 			ev->header.model, ev->header.category, ev->header.value, clock, delta);
 
 	payloadsize = ovni_payload_size(ev);
@@ -298,9 +300,9 @@ set_current(struct ovni_emu *emu, struct ovni_stream *stream)
 {
 	emu->cur_stream = stream;
 	emu->cur_ev = stream->cur_ev;
-	emu->cur_loom = &emu->trace.loom[stream->loom];
-	emu->cur_proc = &emu->cur_loom->proc[stream->proc];
-	emu->cur_thread = &emu->cur_proc->thread[stream->thread];
+	emu->cur_loom = stream->loom;
+	emu->cur_proc = stream->proc;
+	emu->cur_thread = stream->thread;
 }
 
 /*
@@ -922,7 +924,7 @@ load_clock_offsets(struct ovni_emu *emu)
 	for(i=0; i<trace->nstreams; i++)
 	{
 		stream = &trace->stream[i];
-		loom = &trace->loom[stream->loom];
+		loom = stream->loom;
 		stream->clock_offset = loom->clock_offset;
 	}
 

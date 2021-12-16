@@ -448,7 +448,7 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 
 	stream->size = st.st_size;
 	stream->buf = mmap(NULL, stream->size, PROT_READ | PROT_WRITE,
-			MAP_SHARED, fd, 0);
+			MAP_PRIVATE, fd, 0);
 
 	if(stream->buf == MAP_FAILED)
 	{

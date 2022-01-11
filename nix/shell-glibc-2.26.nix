@@ -19,6 +19,9 @@ with pkgs;
     buildInputs = [ cmake openmpi ];
 
     cmakeBuildType = if (enableDebug) then "Debug" else "Release";
+    cmakeFlags = [ "-DCMAKE_SKIP_BUILD_RPATH=OFF" ];
+    buildFlags = [ "VERBOSE=1" ];
+    checkFlags = [ "CTEST_OUTPUT_ON_FAILURE=1" ];
     dontStrip = true;
     doCheck = true;
     checkTarget = "test";
@@ -39,7 +42,7 @@ with pkgs;
         -DENABLE_DEBUG_LOG=ON \
         -DCMAKE_INSTALL_PREFIX="$curdir/install" ..
       make VERBOSE=1
-      make test
+      make test CTEST_OUTPUT_ON_FAILURE=1
       make install
       exit 0
     '';

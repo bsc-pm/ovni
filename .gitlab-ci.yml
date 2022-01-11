@@ -1,6 +1,5 @@
-image: debian:latest
-
-build:
+build:debian-latest:
+  image: debian:latest
   stage: build
   before_script:
     - apt update && apt -y install make autoconf gfortran libopenmpi-dev cmake
@@ -12,3 +11,9 @@ build:
   artifacts:
     paths:
       - install/
+
+build:nixpkgs-glibc-2.26:
+  image: nixos/nix:latest
+  stage: build
+  script: 
+    - nix-build nix/shell-glibc-2.26.nix -A ovni

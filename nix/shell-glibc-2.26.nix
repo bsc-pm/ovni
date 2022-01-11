@@ -20,6 +20,8 @@ with pkgs;
 
     cmakeBuildType = if (enableDebug) then "Debug" else "Release";
     dontStrip = true;
+    doCheck = true;
+    checkTarget = "test";
 
     src = ../.;
   };

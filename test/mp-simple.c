@@ -18,6 +18,7 @@
 #define _GNU_SOURCE
 
 #include "ovni.h"
+#include "compat.h"
 
 #include <assert.h>
 #include <inttypes.h>

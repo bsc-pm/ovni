@@ -27,11 +27,7 @@
 #include <limits.h>
 
 #include "ovni.h"
-
-#ifndef gettid
-# include <sys/syscall.h>
-# define gettid() ((pid_t)syscall(SYS_gettid))
-#endif
+#include "compat.h"
 
 static inline void
 init(void)

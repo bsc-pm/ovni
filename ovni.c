@@ -37,11 +37,7 @@
 #include "ovni.h"
 #include "common.h"
 #include "parson.h"
-
-#ifndef gettid
-# include <sys/syscall.h>
-# define gettid() ((pid_t)syscall(SYS_gettid))
-#endif
+#include "compat.h"
 
 /* Data per process */
 struct ovni_rproc rproc = {0};

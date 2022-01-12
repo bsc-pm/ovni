@@ -111,15 +111,20 @@ struct ovni_rthread {
 
 /* State of each process on runtime */
 struct ovni_rproc {
-	/* Path of the process tracedir */
-	char dir[PATH_MAX];
+	/* Where the process trace is finally copied */
+	char procdir_final[PATH_MAX];
+
+	/* Where the process trace is flushed */
+	char procdir[PATH_MAX];
+
+	/* If needs to be moved at the end */
+	int move_to_final;
 
 	int app;
 	int pid;
 	char loom[OVNI_MAX_HOSTNAME];
 	int ncpus;
 	clockid_t clockid;
-	char procdir[PATH_MAX];
 
 	int ready;
 

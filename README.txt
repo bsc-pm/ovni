@@ -14,8 +14,9 @@ For more information, take a look at the doc/ directory.
 To build ovni you would need a C compiler, MPI and cmake version 3.10 or newer.
 To compile in build/ and install into $prefix use:
 
-  % cmake -DCMAKE_INSTALL_PREFIX=$prefix -S . -B build
+  % mkdir build
   % cd build
+  % cmake -DCMAKE_INSTALL_PREFIX=$prefix ..
   % make
   % make install
 

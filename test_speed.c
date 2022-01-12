@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+ * Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

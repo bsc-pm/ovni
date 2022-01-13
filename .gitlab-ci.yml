@@ -12,8 +12,8 @@ build:debian-latest:
     paths:
       - install/
 
-build:nixpkgs-glibc-2.26:
+build:old-glibc:
   image: nixos/nix:latest
   stage: build
   script: 
-    - nix-build nix/shell-glibc-2.26.nix -A ovni
+    - nix-build nix/old-glibc.nix

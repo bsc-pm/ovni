@@ -21,6 +21,11 @@ target_link_libraries(flush ovni)
 add_test(NAME flush COMMAND "${OVNI_TEST_DIR}/driver.sh" flush)
 set_tests_properties(flush PROPERTIES RUN_SERIAL TRUE)
 
+add_executable(flush-overhead flush-overhead.c)
+target_link_libraries(flush-overhead ovni)
+add_test(NAME flush-overhead COMMAND "${OVNI_TEST_DIR}/driver.sh" flush-overhead)
+set_tests_properties(flush-overhead PROPERTIES RUN_SERIAL TRUE)
+
 add_executable(mp-simple mp-simple.c)
 target_link_libraries(mp-simple ovni)
 add_test(NAME mp-simple COMMAND "${OVNI_TEST_DIR}/mp-driver.sh" mp-simple)

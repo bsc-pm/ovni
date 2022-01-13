@@ -69,7 +69,8 @@ int main(void)
 
 	init();
 
-	payload_size = (size_t) (0.5 * (double) OVNI_MAX_EV_BUF);
+	/* Use 1 MiB of payload */
+	payload_size = 1024 * 1024;
 	payload_buf = calloc(1, payload_size);
 
 	if(!payload_buf)
@@ -102,8 +103,9 @@ int main(void)
 	
 	fprintf(stderr, "mean %f ms\n", mean);
 
+	/* It should be able to write 1 MiB in less than 1 ms */
 	if (mean > 1.0) {
-		fprintf(stderr, "too much time: %f ms\n", mean);
+		fprintf(stderr, "took too much time to flush: %f ms\n", mean);
 		exit(EXIT_FAILURE);
 	}
 

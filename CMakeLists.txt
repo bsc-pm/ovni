@@ -31,7 +31,7 @@ set(CMAKE_C_EXTENSIONS FALSE)
 option(ENABLE_DEBUG_LOG "Enable debug messages (very verbose)")
 
 if(ENABLE_DEBUG_LOG)
-	add_definitions(-DENABLE_DEBUG)
+  add_definitions(-DENABLE_DEBUG)
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)

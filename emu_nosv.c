@@ -283,25 +283,29 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 }
 
 static void
-pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task, struct nosv_task *next_task)
+pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
+		struct nosv_task *next_task)
 {
 	struct ovni_ethread *th;
-	struct ovni_eproc *proc;
-
-	assert(prev_task);
-	assert(next_task);
-	assert(prev_task != next_task);
 
 	th = emu->cur_thread;
-	proc = emu->cur_proc;
 
-	assert(next_task->id > 0);
-	assert(next_task->type_id > 0);
-	assert(proc->appid > 0);
+	if(!prev_task || !next_task)
+		die("cannot switch to or from a NULL task\n");
+
+	if(prev_task == next_task)
+		die("cannot switch to the same task\n");
+
+	if(next_task->id <= 0)
+		die("next task id must be positive\n");
+
+	if(next_task->type_id <= 0)
+		die("next task type id must be positive\n");
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], next_task->id);
 
-	if (prev_task->type_id != next_task->type_id)
+	/* Only emit the new type if necessary */
+	if(prev_task->type_id != next_task->type_id)
 		chan_set(&th->chan[CHAN_NOSV_TYPEID], next_task->type_id);
 }
 
@@ -310,7 +314,6 @@ pre_task(struct ovni_emu *emu)
 {
 	struct nosv_task *prev_task, *next_task;
 
-	assert(emu->cur_thread);
 	prev_task = emu->cur_thread->running_task;
 
 	switch(emu->cur_ev->header.value)
@@ -326,11 +329,12 @@ pre_task(struct ovni_emu *emu)
 
 	next_task = emu->cur_thread->running_task;
 
-	// Unless we're creating a task, register the switch
-	if (emu->cur_ev->header.value != 'c') {
-		if(!next_task)
+	/* Unless we're creating a task, register the switch */
+	if(emu->cur_ev->header.value != 'c')
+	{
+		if(next_task == NULL)
 			pre_task_not_running(emu);
-		else if(!prev_task)
+		else if(prev_task == NULL)
 			pre_task_running(emu, next_task);
 		else
 			pre_task_switch(emu, prev_task, next_task);

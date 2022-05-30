@@ -113,9 +113,10 @@ pre_task_create(struct ovni_emu *emu)
 static void
 pre_task_execute(struct ovni_emu *emu)
 {
-	struct nosv_task *task;
+	struct nosv_task *task, *top;
 	int taskid;
 
+	top = emu->cur_thread->task_stack;
 	taskid = emu->cur_ev->payload.i32[0];
 
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
@@ -132,13 +133,16 @@ pre_task_execute(struct ovni_emu *emu)
 	if(emu->cur_thread->state != TH_ST_RUNNING)
 		die("thread state is not running\n");
 
-	if(emu->cur_thread->task != NULL)
-		die("thread already has a task\n");
+	if(top == task)
+		die("thread already has assigned task %d\n", taskid);
+
+	if(top && top->state != TASK_ST_RUNNING)
+		die("cannot execute a nested task from a non-running task\n");
 
 	task->state = TASK_ST_RUNNING;
 	task->thread = emu->cur_thread;
-	DL_PREPEND(emu->cur_thread->task, task);
-	emu->cur_thread->running_task = task;
+
+	DL_PREPEND(emu->cur_thread->task_stack, task);
 
 	dbg("task id=%d runs now\n", task->id);
 }
@@ -146,9 +150,10 @@ pre_task_execute(struct ovni_emu *emu)
 static void
 pre_task_pause(struct ovni_emu *emu)
 {
-	struct nosv_task *task;
+	struct nosv_task *task, *top;
 	int taskid;
 
+	top = emu->cur_thread->task_stack;
 	taskid = emu->cur_ev->payload.i32[0];
 
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
@@ -162,13 +167,11 @@ pre_task_pause(struct ovni_emu *emu)
 	if(emu->cur_thread->state != TH_ST_RUNNING)
 		die("thread state is not running\n");
 
-	if(emu->cur_thread->task != task)
+	if(top != task)
 		die("thread has assigned a different task\n");
 
 	if(emu->cur_thread != task->thread)
 		die("task is assigned to a different thread\n");
-
-	emu->cur_thread->running_task = NULL;
 
 	task->state = TASK_ST_PAUSED;
 
@@ -178,9 +181,10 @@ pre_task_pause(struct ovni_emu *emu)
 static void
 pre_task_resume(struct ovni_emu *emu)
 {
-	struct nosv_task *task;
+	struct nosv_task *task, *top;
 	int taskid;
 
+	top = emu->cur_thread->task_stack;
 	taskid = emu->cur_ev->payload.i32[0];
 
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
@@ -194,13 +198,11 @@ pre_task_resume(struct ovni_emu *emu)
 	if(emu->cur_thread->state != TH_ST_RUNNING)
 		die("thread is not running\n");
 
-	if(emu->cur_thread->task != task)
+	if(top != task)
 		die("thread has assigned a different task\n");
 
 	if(emu->cur_thread != task->thread)
 		die("task is assigned to a different thread\n");
-
-	emu->cur_thread->running_task = task;
 
 	task->state = TASK_ST_RUNNING;
 
@@ -211,9 +213,10 @@ pre_task_resume(struct ovni_emu *emu)
 static void
 pre_task_end(struct ovni_emu *emu)
 {
-	struct nosv_task *task;
+	struct nosv_task *task, *top;
 	int taskid;
 
+	top = emu->cur_thread->task_stack;
 	taskid = emu->cur_ev->payload.i32[0];
 
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
@@ -227,7 +230,7 @@ pre_task_end(struct ovni_emu *emu)
 	if(emu->cur_thread->state != TH_ST_RUNNING)
 		die("thread is not running\n");
 
-	if(emu->cur_thread->task != task)
+	if(top != task)
 		die("thread has assigned a different task\n");
 
 	if(emu->cur_thread != task->thread)
@@ -235,8 +238,8 @@ pre_task_end(struct ovni_emu *emu)
 
 	task->state = TASK_ST_DEAD;
 	task->thread = NULL;
-	DL_DELETE(emu->cur_thread->task, task);
-	emu->cur_thread->running_task = emu->cur_thread->task;
+
+	DL_DELETE(emu->cur_thread->task_stack, task);
 
 	dbg("task id=%d ends\n", task->id);
 }
@@ -320,7 +323,7 @@ pre_task(struct ovni_emu *emu)
 {
 	struct nosv_task *prev_task, *next_task;
 
-	prev_task = emu->cur_thread->running_task;
+	prev_task = emu->cur_thread->task_stack;
 
 	switch(emu->cur_ev->header.value)
 	{
@@ -333,7 +336,7 @@ pre_task(struct ovni_emu *emu)
 			  abort();
 	}
 
-	next_task = emu->cur_thread->running_task;
+	next_task = emu->cur_thread->task_stack;
 
 	/* Unless we're creating a task, register the switch */
 	if(emu->cur_ev->header.value != 'c')

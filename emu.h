@@ -286,10 +286,8 @@ struct ovni_ethread {
 	/* FIXME: Use a table with registrable pointers to custom data
 	 * structures */
 
-	/* nosv task */
-	struct nosv_task *task;
-	/* nosv effective task, which is what is currently executing */
-	struct nosv_task *running_task;
+	/* nOS-V stack of tasks: points to the runnable task. */
+	struct nosv_task *task_stack;
 
 	/* Channels are used to output the emulator state in PRV */
 	struct ovni_chan chan[CHAN_MAX];

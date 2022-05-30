@@ -251,6 +251,9 @@ pre_task_not_running(struct ovni_emu *emu)
 	chan_set(&th->chan[CHAN_NOSV_TYPEID], 0);
 	chan_set(&th->chan[CHAN_NOSV_APPID], 0);
 
+	if(emu->cur_loom->rank_enabled)
+		chan_set(&th->chan[CHAN_NOSV_RANK], 0);
+
 	chan_pop(&th->chan[CHAN_NOSV_SUBSYSTEM], ST_NOSV_TASK_RUNNING);
 }
 
@@ -303,6 +306,9 @@ pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
 		die("next task type id must be positive\n");
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], next_task->id);
+
+	/* No need to change the rank, as we can only switch to tasks of
+	 * the same loom (with same rank) */
 
 	/* Only emit the new type if necessary */
 	if(prev_task->type_id != next_task->type_id)

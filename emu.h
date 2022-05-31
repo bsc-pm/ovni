@@ -451,8 +451,6 @@ struct ovni_emu {
 	struct ovni_ethread **global_thread;
 	struct ovni_cpu **global_cpu;
 
-	struct nosv_task *cur_task;
-
 	/* Global processed size and offset of all streams */
 	size_t global_size;
 	size_t global_offset;

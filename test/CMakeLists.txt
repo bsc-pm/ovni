@@ -17,22 +17,17 @@
 set(OVNI_TEST_SOURCE_DIR "${CMAKE_SOURCE_DIR}/test")
 set(OVNI_TEST_BUILD_DIR "${CMAKE_BINARY_DIR}/test")
 
-add_executable(flush flush.c)
-target_link_libraries(flush ovni)
-add_test(NAME flush COMMAND "${OVNI_TEST_SOURCE_DIR}/driver.sh" flush)
-set_tests_properties(flush PROPERTIES RUN_SERIAL TRUE)
+macro(ovni_test name driver)
+  add_executable("${name}" "${name}.c")
+  target_link_libraries("${name}" ovni)
+  add_test(NAME "${name}"
+    COMMAND "${OVNI_TEST_SOURCE_DIR}/${driver}" "${name}"
+    WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
+  set_tests_properties("${name}"
+    PROPERTIES RUN_SERIAL TRUE)
+endmacro()
 
-add_executable(flush-overhead flush-overhead.c)
-target_link_libraries(flush-overhead ovni)
-add_test(NAME flush-overhead COMMAND "${OVNI_TEST_SOURCE_DIR}/driver.sh" flush-overhead)
-set_tests_properties(flush-overhead PROPERTIES RUN_SERIAL TRUE)
-
-add_executable(mp-simple mp-simple.c)
-target_link_libraries(mp-simple ovni)
-add_test(NAME mp-simple COMMAND "${OVNI_TEST_SOURCE_DIR}/mp-driver.sh" mp-simple)
-set_tests_properties(mp-simple PROPERTIES RUN_SERIAL TRUE)
-
-add_executable(mp-rank mp-rank.c)
-target_link_libraries(mp-rank ovni)
-add_test(NAME mp-rank COMMAND "${OVNI_TEST_SOURCE_DIR}/mp-driver.sh" mp-rank)
-set_tests_properties(mp-rank PROPERTIES RUN_SERIAL TRUE)
+ovni_test("flush" "driver.sh")
+ovni_test("flush-overhead" "driver.sh")
+ovni_test("mp-simple" "mp-driver.sh")
+ovni_test("mp-rank" "mp-driver.sh")

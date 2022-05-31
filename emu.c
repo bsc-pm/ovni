@@ -737,26 +737,10 @@ open_pcfs(struct ovni_emu *emu, char *tracedir)
 	char path[PATH_MAX];
 
 	sprintf(path, "%s/%s", tracedir, "thread.pcf");
-
-	emu->pcf_thread = fopen(path, "w");
-
-	if(emu->pcf_thread == NULL)
-	{
-		err("error opening thread PCF file %s: %s\n", path,
-				strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+	pcf_open(&emu->pcf[CHAN_TH], path, CHAN_TH);
 
 	sprintf(path, "%s/%s", tracedir, "cpu.pcf");
-
-	emu->pcf_cpu = fopen(path, "w");
-
-	if(emu->pcf_cpu == NULL)
-	{
-		err("error opening cpu PCF file %s: %s\n", path,
-				strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+	pcf_open(&emu->pcf[CHAN_CPU], path, CHAN_CPU);
 }
 
 /* Fix the trace duration at the end */
@@ -777,8 +761,8 @@ close_prvs(struct ovni_emu *emu)
 static void
 close_pcfs(struct ovni_emu *emu)
 {
-	fclose(emu->pcf_thread);
-	fclose(emu->pcf_cpu);
+	pcf_close(&emu->pcf[CHAN_TH]);
+	pcf_close(&emu->pcf[CHAN_CPU]);
 }
 
 static void
@@ -1098,6 +1082,26 @@ init_cpus(struct ovni_emu *emu)
 }
 
 static void
+create_pcf_cpus(struct ovni_emu *emu)
+{
+	/* Only needed for the thread PCF */
+	struct pcf_file *pcf = &emu->pcf[CHAN_TH];
+	int prvtype = CHAN_PRV_TH(CHAN_OVNI_CPU);
+	struct pcf_type *type = pcf_find_type(pcf, prvtype);
+
+	if (type == NULL)
+		die("cannot find PCF type for CHAN_OVNI_CPU\n");
+
+	for(size_t i=0; i<emu->total_ncpus; i++)
+	{
+		int value = i + 1;
+		char *label = emu->global_cpu[i]->name;
+
+		pcf_add_value(type, value, label);
+	}
+}
+
+static void
 emu_init(struct ovni_emu *emu, int argc, char *argv[])
 {
 	memset(emu, 0, sizeof(*emu));
@@ -1127,6 +1131,8 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 	open_prvs(emu, emu->tracedir);
 	open_pcfs(emu, emu->tracedir);
 
+	create_pcf_cpus(emu);
+
 	emu->global_size = 0;
 	emu->global_offset = 0;
 
@@ -1139,8 +1145,8 @@ static void
 emu_post(struct ovni_emu *emu)
 {
 	/* Write the PCF files */
-	pcf_write(emu->pcf_thread, emu);
-	pcf_write(emu->pcf_cpu, emu);
+	pcf_write(&emu->pcf[CHAN_TH]);
+	pcf_write(&emu->pcf[CHAN_CPU]);
 
 	write_row_cpu(emu);
 	write_row_thread(emu);

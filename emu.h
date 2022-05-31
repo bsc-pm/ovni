@@ -25,6 +25,7 @@
 #include "uthash.h"
 #include "parson.h"
 #include "heap.h"
+#include "pcf.h"
 
 /* Emulated thread runtime status */
 enum ethread_state {
@@ -163,10 +164,10 @@ enum chan {
 	CHAN_MAX
 };
 
-enum chan_to_prv_type {
-	CHAN_ID = 0,
-	CHAN_TH = 1,
-	CHAN_CPU = 2,
+enum chan_type {
+	CHAN_TH = 0,
+	CHAN_CPU = 1,
+	CHAN_MAXTYPE = 2,
 };
 
 enum chan_dirty {
@@ -468,8 +469,8 @@ struct ovni_emu {
 
 	FILE *prv_thread;
 	FILE *prv_cpu;
-	FILE *pcf_thread;
-	FILE *pcf_cpu;
+
+	struct pcf_file pcf[CHAN_MAXTYPE];
 
 	char *clock_offset_file;
 	char *tracedir;

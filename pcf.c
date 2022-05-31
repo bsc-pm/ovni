@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
 
 const char *pcf_def_header =
 	"DEFAULT_OPTIONS\n"
@@ -72,91 +73,28 @@ const uint32_t pcf_def_palette[] = {
 	LIGHTGREY,	/* busy wait */
 	RED,		/* task */
 	GREEN,
-	YELLOW,
-	ORANGE,
-	PURPLE,
-	CYAN,
-	MAGENTA,
-	LIME,
-	PINK,
-	TEAL,
-	GREY,
-	LAVENDER,
-	BROWN,
-	BEIGE,
-	MAROON,
-	MINT,
-	OLIVE,
-	APRICOT,
-	NAVY,
-	DEEPBLUE
+	YELLOW, ORANGE, PURPLE, CYAN, MAGENTA, LIME, PINK,
+	TEAL, GREY, LAVENDER, BROWN, BEIGE, MAROON, MINT,
+	OLIVE, APRICOT, NAVY, DEEPBLUE
 };
 
 const uint32_t *pcf_palette = pcf_def_palette;
 const int pcf_palette_len = ARRAY_LEN(pcf_def_palette);
 
-struct event_value {
+/* Only used to generate tables */
+struct pcf_value_label {
 	int value;
-	const char *label;
+	char *label;
 };
 
-struct event_type {
-	int index;
-	int chan_id;
-	int chan_type;
-	const char *label;
-	const struct event_value *values;
-};
+/* ------------------ Value labels --------------------- */
 
-/* ---------------- CHAN_OVNI_PID ---------------- */
-
-static const struct event_value ovni_pid_values[] = {
-	{ 0, "None" },
-	{ ST_TOO_MANY_TH, "Unknown PID: Multiple threads running" },
-	/* FIXME: PID values may collide with error code values */
+struct pcf_value_label default_values[] = {
+	{ ST_TOO_MANY_TH, "Unknown: Multiple threads running" },
 	{ -1, NULL },
 };
 
-static const struct event_type thread_ovni_pid = {
-	0, CHAN_OVNI_PID, CHAN_TH,
-	"Thread: PID of the RUNNING thread",
-	ovni_pid_values
-};
-
-static const struct event_type cpu_ovni_pid = {
-	0, CHAN_OVNI_PID, CHAN_CPU,
-	"CPU: PID of the RUNNING thread",
-	ovni_pid_values
-};
-
-/* ---------------- CHAN_OVNI_TID ---------------- */
-
-static const struct event_value ovni_tid_values[] = {
-	{ 0, "None" },
-	{ ST_TOO_MANY_TH, "Unknown TID: Multiple threads running" },
-	/* FIXME: TID values may collide with error code values */
-	{ -1, NULL },
-};
-
-static const struct event_type thread_ovni_tid = {
-	0, CHAN_OVNI_TID, CHAN_TH,
-	"Thread: TID of the RUNNING thread",
-	ovni_tid_values
-};
-
-static const struct event_type cpu_ovni_tid = {
-	0, CHAN_OVNI_TID, CHAN_CPU,
-	"CPU: TID of the RUNNING thread",
-	ovni_tid_values
-};
-
-/* ---------------- CHAN_OVNI_NRTHREADS ---------------- */
-
-/* Not used */
-
-/* ---------------- CHAN_OVNI_STATE ---------------- */
-
-static const struct event_value ovni_state_values[] = {
+struct pcf_value_label ovni_state_values[] = {
 	{ TH_ST_UNKNOWN, "Unknown" },
 	{ TH_ST_RUNNING, "Running" },
 	{ TH_ST_PAUSED,  "Paused"  },
@@ -166,121 +104,25 @@ static const struct event_value ovni_state_values[] = {
 	{ -1, NULL },
 };
 
-static const struct event_type thread_ovni_state = {
-	0, CHAN_OVNI_STATE, CHAN_TH,
-	"Thread: State of the CURRENT thread",
-	ovni_state_values
-};
-
-/* PRV CPU not used for the state */
-
-/* ---------------- CHAN_OVNI_APPID ---------------- */
-
-/* Not used */
-
-/* ---------------- CHAN_OVNI_CPU ---------------- */
-
-static const struct event_type thread_cpu_affinity = {
-	0, CHAN_OVNI_CPU, CHAN_TH,
-	"Thread: CPU affinity of the CURRENT thread",
-	/* Ignored */ NULL
-};
-
-/* ---------------- CHAN_OVNI_FLUSH ---------------- */
-
-static const struct event_value ovni_flush_values[] = {
+struct pcf_value_label ovni_flush_values[] = {
 	{ 0, "None" },
 	{ ST_OVNI_FLUSHING, "Flushing" },
 	{ ST_TOO_MANY_TH, "Unknown flushing state: Multiple threads running" },
 	{ -1, NULL },
 };
 
-static const struct event_type thread_ovni_flush = {
-	0, CHAN_OVNI_FLUSH, CHAN_TH,
-	"Thread: Flushing state of the CURRENT thread",
-	ovni_flush_values
-};
-
-static const struct event_type cpu_ovni_flush = {
-	0, CHAN_OVNI_FLUSH, CHAN_CPU,
-	"CPU: Flusing state of the RUNNING thread",
-	ovni_flush_values
-};
-
-/* ---------------- CHAN_NOSV_TASKID  ---------------- */
-
-static const struct event_value nosv_taskid_values[] = {
-	{ ST_TOO_MANY_TH, "Unknown TaskID: Multiple threads running" },
-	/* FIXME: Task ID values may collide with error code values */
-	{ -1, NULL },
-};
-
-static const struct event_type thread_nosv_taskid = {
-	0, CHAN_NOSV_TASKID, CHAN_TH,
-	"Thread: nOS-V TaskID of the RUNNING thread",
-	nosv_taskid_values
-};
-
-static const struct event_type cpu_nosv_taskid = {
-	0, CHAN_NOSV_TASKID, CHAN_CPU,
-	"CPU: nOS-V TaskID of the RUNNING thread",
-	nosv_taskid_values
-};
-
-/* ---------------- CHAN_NOSV_TYPEID  ---------------- */
-
-static const struct event_value nosv_typeid_values[] = {
-	{ ST_TOO_MANY_TH, "Unknown Task TypeID: Multiple threads running" },
-	/* FIXME: Task ID values may collide with error code values */
-	{ -1, NULL },
-};
-
-static const struct event_type thread_nosv_typeid = {
-	0, CHAN_NOSV_TYPEID, CHAN_TH,
-	"Thread: nOS-V task TypeID of the RUNNING thread",
-	nosv_typeid_values
-};
-
-static const struct event_type cpu_nosv_typeid = {
-	0, CHAN_NOSV_TYPEID, CHAN_CPU,
-	"CPU: nOS-V task TypeID of the RUNNING thread",
-	nosv_typeid_values
-};
-
-/* ---------------- CHAN_NOSV_APPID  ---------------- */
-
-static const struct event_value nosv_appid_values[] = {
-	{ ST_TOO_MANY_TH, "Unknown Task AppID: Multiple threads running" },
-	/* FIXME: Task ID values may collide with error code values */
-	{ -1, NULL },
-};
-
-static const struct event_type thread_nosv_appid = {
-	0, CHAN_NOSV_APPID, CHAN_TH,
-	"Thread: nOS-V task AppID of the RUNNING thread",
-	nosv_appid_values
-};
-
-static const struct event_type cpu_nosv_appid = {
-	0, CHAN_NOSV_APPID, CHAN_CPU,
-	"CPU: nOS-V task AppID of the RUNNING thread",
-	nosv_appid_values
-};
-
-/* ---------------- CHAN_NOSV_SUBSYSTEM ---------------- */
-
-static const struct event_value nosv_ss_values[] = {
+struct pcf_value_label nosv_ss_values[] = {
 	/* Errors */
-	{ ST_BAD,                       "Unknown subsystem: Bad happened (report bug)" },
-	{ ST_TOO_MANY_TH,		"Unknown subsystem: Multiple threads running" },
+	{ ST_BAD,                       "Unknown: bad happened (report bug)" },
+	{ ST_TOO_MANY_TH,               "Unknown: multiple threads running" },
 	/* Good values */
-	{ ST_NULL,			"No subsystem" },
+	{ ST_NULL,                      "No subsystem" },
 	{ ST_NOSV_SCHED_HUNGRY,         "Scheduler: Hungry" },
 	{ ST_NOSV_SCHED_SERVING,        "Scheduler: Serving" },
 	{ ST_NOSV_SCHED_SUBMITTING,     "Scheduler: Submitting" },
-	{ ST_NOSV_TASK_RUNNING,         "Task: Running" },
 	{ ST_NOSV_MEM_ALLOCATING,       "Memory: Allocating" },
 	{ ST_NOSV_MEM_FREEING,          "Memory: Freeing" },
+	{ ST_NOSV_TASK_RUNNING,         "Task: Running" },
 	{ ST_NOSV_API_SUBMIT,           "API: Submit" },
 	{ ST_NOSV_API_PAUSE,            "API: Pause" },
 	{ ST_NOSV_API_YIELD,            "API: Yield" },
@@ -295,113 +137,123 @@ static const struct event_value nosv_ss_values[] = {
 	{ -1, NULL },
 };
 
-static const struct event_type thread_nosv_ss = {
-	0, CHAN_NOSV_SUBSYSTEM, CHAN_TH,
-	"Thread: nOS-V subsystem of the ACTIVE thread",
-	nosv_ss_values
-};
-
-static const struct event_type cpu_nosv_ss = {
-	0, CHAN_NOSV_SUBSYSTEM, CHAN_CPU,
-	"CPU: nOS-V subsystem of the RUNNING thread",
-	nosv_ss_values
-};
-
-/* ---------------- CHAN_TAMPI_MODE ---------------- */
-
-static const struct event_value tampi_mode_values[] = {
-	{ ST_NULL,		"NULL" },
-	{ ST_TOO_MANY_TH,	"TAMPI: Unknown, multiple threads running" },
-	{ ST_TAMPI_SEND,	"TAMPI: Send" },
-	{ ST_TAMPI_RECV,	"TAMPI: Recv" },
-	{ ST_TAMPI_ISEND,	"TAMPI: Isend" },
-	{ ST_TAMPI_IRECV,	"TAMPI: Irecv" },
-	{ ST_TAMPI_WAIT,	"TAMPI: Wait" },
-	{ ST_TAMPI_WAITALL,	"TAMPI: Waitall" },
+struct pcf_value_label tampi_mode_values[] = {
+	{ ST_NULL,              "NULL" },
+	{ ST_TOO_MANY_TH,       "TAMPI: Unknown, multiple threads running" },
+	{ ST_TAMPI_SEND,        "TAMPI: Send" },
+	{ ST_TAMPI_RECV,        "TAMPI: Recv" },
+	{ ST_TAMPI_ISEND,       "TAMPI: Isend" },
+	{ ST_TAMPI_IRECV,       "TAMPI: Irecv" },
+	{ ST_TAMPI_WAIT,        "TAMPI: Wait" },
+	{ ST_TAMPI_WAITALL,     "TAMPI: Waitall" },
 	{ -1, NULL },
 };
 
-static const struct event_type thread_tampi_mode = {
-	0, CHAN_TAMPI_MODE, CHAN_TH,
-	"Thread: TAMPI mode of the RUNNING thread",
-	tampi_mode_values
-};
-
-static const struct event_type cpu_tampi_mode = {
-	0, CHAN_TAMPI_MODE, CHAN_CPU,
-	"CPU: TAMPI mode of the RUNNING thread",
-	tampi_mode_values
-};
-
-/* ---------------- CHAN_OPENMP_MODE ---------------- */
-
-static const struct event_value openmp_mode_values[] = {
-	{ ST_NULL,		"NULL" },
-	{ ST_TOO_MANY_TH,	"OpenMP: Unknown, multiple threads running" },
-	{ ST_OPENMP_TASK,	"OpenMP: Task" },
-	{ ST_OPENMP_PARALLEL,	"OpenMP: Parallel" },
+struct pcf_value_label openmp_mode_values[] = {
+	{ ST_NULL,              "NULL" },
+	{ ST_TOO_MANY_TH,       "OpenMP: Unknown, multiple threads running" },
+	{ ST_OPENMP_TASK,       "OpenMP: Task" },
+	{ ST_OPENMP_PARALLEL,   "OpenMP: Parallel" },
 	{ -1, NULL },
 };
 
-static const struct event_type thread_openmp_mode = {
-	0, CHAN_OPENMP_MODE, CHAN_TH,
-	"Thread: OpenMP mode of the RUNNING thread",
-	openmp_mode_values
-};
-
-static const struct event_type cpu_openmp_mode = {
-	0, CHAN_OPENMP_MODE, CHAN_CPU,
-	"CPU: OpenMP mode of the RUNNING thread",
-	openmp_mode_values
-};
-
-/* ---------------- CHAN_NODES_SUBSYSTEM ---------------- */
-
-static const struct event_value nodes_mode_values[] = {
-	{ ST_NULL,             "NULL" },
-	{ ST_TOO_MANY_TH,      "NODES: Multiple threads running" },
-	{ ST_NODES_REGISTER,   "Dependencies: Registering task accesses" },
-	{ ST_NODES_UNREGISTER, "Dependencies: Unregistering task accesses" },
-	{ ST_NODES_IF0_WAIT,   "If0: Waiting for an If0 task" },
-	{ ST_NODES_IF0_INLINE, "If0: Executing an If0 task inline" },
-	{ ST_NODES_TASKWAIT,   "Taskwait: Taskwait" },
-	{ ST_NODES_CREATE,     "Add Task: Creating a task" },
-	{ ST_NODES_SUBMIT,     "Add Task: Submitting a task" },
-	{ ST_NODES_SPAWN,      "Spawn Function: Spawning a function" },
+struct pcf_value_label nodes_mode_values[] = {
+	{ ST_NULL,              "NULL" },
+	{ ST_TOO_MANY_TH,       "NODES: Multiple threads running" },
+	{ ST_NODES_REGISTER,    "Dependencies: Registering task accesses" },
+	{ ST_NODES_UNREGISTER,  "Dependencies: Unregistering task accesses" },
+	{ ST_NODES_IF0_WAIT,    "If0: Waiting for an If0 task" },
+	{ ST_NODES_IF0_INLINE,  "If0: Executing an If0 task inline" },
+	{ ST_NODES_TASKWAIT,    "Taskwait: Taskwait" },
+	{ ST_NODES_CREATE,      "Add Task: Creating a task" },
+	{ ST_NODES_SUBMIT,      "Add Task: Submitting a task" },
+	{ ST_NODES_SPAWN,       "Spawn Function: Spawning a function" },
 	{ -1, NULL },
 };
 
-static const struct event_type cpu_nodes_mode = {
-	0, CHAN_NODES_SUBSYSTEM, CHAN_CPU,
-	"CPU: NODES subsystem of the RUNNING thread",
-	nodes_mode_values
-};
-
-static const struct event_type thread_nodes_mode = {
-	0, CHAN_NODES_SUBSYSTEM, CHAN_TH,
-	"Thread: NODES subsystem of the RUNNING thread",
-	nodes_mode_values
-};
-
-/* ---------------- CHAN_KERNEL_CS ---------------- */
-
-struct event_value kernel_cs_values[] = {
-	{ ST_NULL,		"NULL" },
-	{ ST_TOO_MANY_TH,	"Kernel CS: Unknown, multiple threads running" },
-	{ ST_KERNEL_CSOUT,	"Context switch: Out of the CPU" },
+struct pcf_value_label kernel_cs_values[] = {
+	{ ST_NULL,              "NULL" },
+	{ ST_TOO_MANY_TH,       "Unknown: multiple threads running" },
+	{ ST_KERNEL_CSOUT,      "Context switch: Out of the CPU" },
 	{ -1, NULL },
 };
 
-struct event_type cpu_kernel_cs = {
-	0, CHAN_KERNEL_CS, CHAN_CPU,
-	"CPU: Context switches of the ACTIVE thread",
-	kernel_cs_values
+struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
+	[CHAN_OVNI_PID]         = &default_values,
+	[CHAN_OVNI_TID]         = &default_values,
+	[CHAN_OVNI_NRTHREADS]   = &default_values,
+	[CHAN_OVNI_STATE]       = &ovni_state_values,
+	[CHAN_OVNI_APPID]       = &default_values,
+	[CHAN_OVNI_CPU]         = &default_values,
+	[CHAN_OVNI_FLUSH]       = &ovni_flush_values,
+
+	[CHAN_NOSV_TASKID]      = &default_values,
+	[CHAN_NOSV_TYPEID]      = &default_values,
+	[CHAN_NOSV_APPID]       = &default_values,
+	[CHAN_NOSV_SUBSYSTEM]   = &nosv_ss_values,
+	[CHAN_NOSV_RANK]        = &default_values,
+
+	[CHAN_TAMPI_MODE]       = &tampi_mode_values,
+	[CHAN_OPENMP_MODE]      = &openmp_mode_values,
+	[CHAN_NODES_SUBSYSTEM]  = &nodes_mode_values,
+
+	[CHAN_KERNEL_CS]        = &kernel_cs_values, 
 };
 
-struct event_type thread_kernel_cs = {
-	0, CHAN_KERNEL_CS, CHAN_TH,
-	"Thread: Context switches of the CURRENT thread",
-	kernel_cs_values
+/* ------------------ Type labels --------------------- */
+
+char *pcf_chan_name[CHAN_MAX] = {
+	[CHAN_OVNI_PID]         = "PID",
+	[CHAN_OVNI_TID]         = "TID",
+	[CHAN_OVNI_NRTHREADS]   = "Number of RUNNING threads",
+	[CHAN_OVNI_STATE]       = "Execution state",
+	[CHAN_OVNI_APPID]       = "AppID",
+	[CHAN_OVNI_CPU]         = "CPU affinity",
+	[CHAN_OVNI_FLUSH]       = "Flushing state",
+
+	[CHAN_NOSV_TASKID]      = "nOS-V TaskID",
+	[CHAN_NOSV_TYPEID]      = "nOS-V task TypeID",
+	[CHAN_NOSV_APPID]       = "nOS-V task AppID",
+	[CHAN_NOSV_SUBSYSTEM]   = "nOS-V subsystem",
+	[CHAN_NOSV_RANK]        = "MPI rank",
+
+	[CHAN_TAMPI_MODE]       = "TAMPI mode",
+	[CHAN_OPENMP_MODE]      = "OpenMP mode",
+	[CHAN_NODES_SUBSYSTEM]  = "NODES subsystem",
+
+	[CHAN_KERNEL_CS]        = "Context switches",
+};
+
+enum pcf_suffix { NONE = 0, CUR_TH, RUN_TH, ACT_TH, SUFFIX_MAX };
+
+char *pcf_suffix_name[SUFFIX_MAX] = {
+	[NONE] = "",
+	[CUR_TH] = "of the CURRENT thread",
+	[RUN_TH] = "of the RUNNING thread",
+	[ACT_TH] = "of the ACTIVE thread",
+};
+
+int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
+	                        /*  Thread  CPU  */
+	[CHAN_OVNI_PID]         = { CUR_TH, CUR_TH },
+	[CHAN_OVNI_TID]         = { CUR_TH, CUR_TH },
+	[CHAN_OVNI_NRTHREADS]   = { NONE,   NONE   },
+	[CHAN_OVNI_STATE]       = { CUR_TH, NONE   },
+	[CHAN_OVNI_APPID]       = { NONE,   RUN_TH },
+	[CHAN_OVNI_CPU]         = { CUR_TH, NONE   },
+	[CHAN_OVNI_FLUSH]       = { CUR_TH, RUN_TH },
+
+	[CHAN_NOSV_TASKID]      = { RUN_TH, RUN_TH },
+	[CHAN_NOSV_TYPEID]      = { RUN_TH, RUN_TH },
+	[CHAN_NOSV_APPID]       = { RUN_TH, RUN_TH },
+	[CHAN_NOSV_SUBSYSTEM]   = { ACT_TH, RUN_TH },
+	[CHAN_NOSV_RANK]        = { RUN_TH, RUN_TH },
+
+	[CHAN_TAMPI_MODE]       = { RUN_TH, RUN_TH },
+	[CHAN_OPENMP_MODE]      = { RUN_TH, RUN_TH },
+	[CHAN_NODES_SUBSYSTEM]  = { RUN_TH, RUN_TH },
+
+	[CHAN_KERNEL_CS]        = { CUR_TH, ACT_TH }, 
 };
 
 /* ----------------------------------------------- */
@@ -437,94 +289,173 @@ write_colors(FILE *f, const uint32_t *palette, int n)
 }
 
 static void
-write_event_type_header(FILE *f, int index, int type, const char *label)
+write_type(FILE *f, struct pcf_type *type)
 {
 	fprintf(f, "\n\n");
 	fprintf(f, "EVENT_TYPE\n");
-	fprintf(f, "%-4d %-10d %s\n", index, type, label);
-}
-
-static void
-write_event_type(FILE *f, const struct event_type *ev)
-{
-	int i, type;
-
-	type = chan_to_prvtype[ev->chan_id][ev->chan_type];
-	write_event_type_header(f, ev->index, type, ev->label);
-
+	fprintf(f, "0 %-10d %s\n", type->id, type->label);
 	fprintf(f, "VALUES\n");
 
-	for(i=0; ev->values[i].label; i++)
-	{
-		fprintf(f, "%-4d %s\n",
-				ev->values[i].value,
-				ev->values[i].label);
-	}
+	for(struct pcf_value *v = type->values; v != NULL; v = v->hh.next)
+		fprintf(f, "%-4d %s\n", v->value, v->label);
 }
 
 static void
-write_cpu_type(FILE *f, const struct event_type *ev, struct ovni_emu *emu)
+write_types(struct pcf_file *pcf)
 {
-	size_t i;
-	int type;
+	struct pcf_type *t;
 
-	type = chan_to_prvtype[ev->chan_id][ev->chan_type];
-	write_event_type_header(f, ev->index, type, ev->label);
-
-	fprintf(f, "VALUES\n");
-
-	for(i=0; i<emu->total_ncpus; i++)
-	{
-		fprintf(f, "%-4ld %s\n", i+1, emu->global_cpu[i]->name);
-	}
+	for(t = pcf->types; t != NULL; t = t->hh.next)
+		write_type(pcf->f, t);
 }
 
 static void
-write_events(FILE *f, struct ovni_emu *emu)
+create_values(struct pcf_type *t, enum chan c)
 {
-	/* Threads */
-	write_event_type(f, &thread_ovni_pid);
-	write_event_type(f, &thread_ovni_tid);
-	/* thread_ovni_nthreads not needed */
-	write_event_type(f, &thread_ovni_state);
-	/* thread_ovni_appid not needed */
-	write_event_type(f, &thread_ovni_flush);
-	write_event_type(f, &thread_nosv_taskid);
-	write_event_type(f, &thread_nosv_typeid);
-	write_event_type(f, &thread_nosv_appid);
-	write_event_type(f, &thread_nosv_ss);
-	write_event_type(f, &thread_tampi_mode);
-	write_event_type(f, &thread_openmp_mode);
-	write_event_type(f, &thread_nodes_mode);
-	write_event_type(f, &thread_kernel_cs);
+	struct pcf_value_label (*q)[] = pcf_chan_value_labels[c];
 
-	/* CPU */
-	write_event_type(f, &cpu_ovni_pid);
-	write_event_type(f, &cpu_ovni_tid);
-	/* cpu_ovni_nthreads not needed */
-	/* cpu_ovni_state not needed */
-	/* cpu_ovni_appid not needed */
-	/* cpu_ovni_cpu not needed */
-	write_event_type(f, &cpu_ovni_flush);
-	write_event_type(f, &cpu_nosv_taskid);
-	write_event_type(f, &cpu_nosv_typeid);
-	write_event_type(f, &cpu_nosv_appid);
-	write_event_type(f, &cpu_nosv_ss);
-	write_event_type(f, &cpu_tampi_mode);
-	write_event_type(f, &cpu_openmp_mode);
-	write_event_type(f, &cpu_nodes_mode);
-	write_event_type(f, &cpu_kernel_cs);
+	if(q == NULL)
+		return;
 
-	/* Custom */
-	write_cpu_type(f, &thread_cpu_affinity, emu);
+	for(struct pcf_value_label *p = *q; p->label != NULL; p++)
+		pcf_add_value(t, p->value, p->label);
 }
 
-int
-pcf_write(FILE *f, struct ovni_emu *emu)
+static void
+create_type(struct pcf_file *pcf, enum chan c)
 {
-	write_header(f);
-	write_colors(f, pcf_palette, pcf_palette_len);
-	write_events(f, emu);
+	char label[MAX_PCF_LABEL];
+	enum chan_type ct = pcf->chantype;
+	int prv_type = chan_to_prvtype[c][ct];
 
-	return 0;
+	if(prv_type == -1)
+		return;
+
+	/* Compute the label by joining the two parts */
+	char *prefix = pcf_chan_name[c];
+	int isuffix = pcf_chan_suffix[c][ct];
+	char *suffix = pcf_suffix_name[isuffix];
+
+	int ret = snprintf(label, MAX_PCF_LABEL, "%s %s",
+			prefix, suffix);
+
+	if(ret >= MAX_PCF_LABEL)
+		die("computed type label too long\n");
+
+	struct pcf_type *t = pcf_add_type(pcf, prv_type, label);
+
+	create_values(t, c);
+}
+
+/** Open the given PCF file and create the default events. */
+void
+pcf_open(struct pcf_file *pcf, char *path, int chantype)
+{
+	memset(pcf, 0, sizeof(*pcf));
+
+	pcf->f = fopen(path, "w");
+	pcf->chantype = chantype;
+
+	if(pcf->f == NULL)
+	{
+		die("cannot open PCF file '%s': %s\n",
+				path, strerror(errno));
+	}
+
+	/* Create default types and values */
+	for(enum chan c = 0; c < CHAN_MAX; c++)
+		create_type(pcf, c);
+}
+
+struct pcf_type *
+pcf_find_type(struct pcf_file *pcf, int type_id)
+{
+	struct pcf_type *type;
+
+	HASH_FIND_INT(pcf->types, &type_id, type);
+
+	return type;
+}
+
+/** Creates a new pcf_type with the given type_id and label. The label
+ * can be disposed after return.
+ *
+ * @return The pcf_type created.
+ */
+struct pcf_type *
+pcf_add_type(struct pcf_file *pcf, int type_id, const char *label)
+{
+	struct pcf_type *type;
+
+	type = pcf_find_type(pcf, type_id);
+
+	if(type != NULL)
+		die("PCF type %d already defined\n", type_id);
+
+	type = calloc(1, sizeof(struct pcf_type));
+
+	if(type == NULL)
+		die("calloc failed: %s\n", strerror(errno));
+
+	type->id = type_id;
+	type->values = NULL;
+	type->nvalues = 0;
+	if(snprintf(type->label, MAX_PCF_LABEL,
+				"%s", label) >= MAX_PCF_LABEL)
+	{
+		die("PCF label too long\n");
+	}
+
+	HASH_ADD_INT(pcf->types, id, type);
+
+	return type;
+}
+
+/** Adds a new value to the given pcf_type. The label can be disposed
+ * after return.
+ *
+ * @return The new pcf_value created
+ */
+struct pcf_value *
+pcf_add_value(struct pcf_type *type, int value, const char *label)
+{
+	struct pcf_value *pv;
+
+	HASH_FIND_INT(type->values, &value, pv);
+
+	if(pv != NULL)
+		die("PCF value %d already in type %d\n", value, type->id);
+
+	pv = calloc(1, sizeof(struct pcf_value));
+
+	if(pv == NULL)
+		die("calloc failed: %s\n", strerror(errno));
+
+	pv->value = value;
+
+	int len = snprintf(pv->label, MAX_PCF_LABEL, "%s", label);
+
+	if(len >= MAX_PCF_LABEL)
+		die("PCF label too long\n");
+
+	HASH_ADD_INT(type->values, value, pv);
+
+	type->nvalues++;
+
+	return pv;
+}
+
+/** Writes the defined event and values to the PCF file. */
+void
+pcf_write(struct pcf_file *pcf)
+{
+	write_header(pcf->f);
+	write_colors(pcf->f, pcf_palette, pcf_palette_len);
+	write_types(pcf);
+}
+
+void
+pcf_close(struct pcf_file *pcf)
+{
+	fclose(pcf->f);
 }

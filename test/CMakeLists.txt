@@ -20,11 +20,19 @@ set(OVNI_TEST_BUILD_DIR "${CMAKE_BINARY_DIR}/test")
 macro(ovni_test name driver)
   add_executable("${name}" "${name}.c")
   target_link_libraries("${name}" ovni)
+
   add_test(NAME "${name}"
     COMMAND "${OVNI_TEST_SOURCE_DIR}/${driver}" "${name}"
     WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
-  set_tests_properties("${name}"
-    PROPERTIES RUN_SERIAL TRUE)
+
+  if("${name}" MATCHES ".*-bad")
+    set_tests_properties("${name}"
+      PROPERTIES RUN_SERIAL TRUE WILL_FAIL TRUE)
+  else()
+    set_tests_properties("${name}"
+      PROPERTIES RUN_SERIAL TRUE)
+  endif()
+
 endmacro()
 
 ovni_test("flush" "driver.sh")
@@ -32,3 +40,4 @@ ovni_test("flush-overhead" "driver.sh")
 ovni_test("mp-simple" "mp-driver.sh")
 ovni_test("mp-rank" "mp-driver.sh")
 ovni_test("nosv-nested-tasks" "driver.sh")
+ovni_test("nosv-nested-tasks-bad" "driver.sh")

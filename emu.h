@@ -180,26 +180,25 @@ enum chan_dirty {
 	CHAN_DIRTY_VALUE = 2,
 };
 
-/* Same order as `enum chan` */
-static const int chan_to_prvtype[CHAN_MAX][3] = {
+static const int chan_to_prvtype[CHAN_MAX][CHAN_MAXTYPE] = {
 	/* FIXME: Use odd/even identifiers for thread and cpu */
-	/* Channel                TH   CPU */
-	{ CHAN_OVNI_PID,          10,  60  },
-	{ CHAN_OVNI_TID,          11,  61  },
-	{ CHAN_OVNI_NRTHREADS,    -1,  62  },
-	{ CHAN_OVNI_STATE,        13,  -1  },
-	{ CHAN_OVNI_APPID,        14,  64  }, /* Not used */
-	{ CHAN_OVNI_CPU,          15,  -1  },
-	{ CHAN_OVNI_FLUSH,        16,  66  },
-	{ CHAN_NOSV_TASKID,       20,  70  },
-	{ CHAN_NOSV_TYPEID,       21,  71  },
-	{ CHAN_NOSV_APPID,        22,  72  },
-	{ CHAN_NOSV_SUBSYSTEM,    23,  73  },
-	{ CHAN_NOSV_RANK,         24,  74  },
-	{ CHAN_TAMPI_MODE,        30,  80  },
-	{ CHAN_OPENMP_MODE,       40,  90  },
-	{ CHAN_NODES_SUBSYSTEM,	  50, 100  },
-	{ CHAN_KERNEL_CS,         55, 105  },
+	/* Channel                 TH   CPU */
+	[CHAN_OVNI_PID]        = { 10,  60  },
+	[CHAN_OVNI_TID]        = { 11,  61  },
+	[CHAN_OVNI_NRTHREADS]  = { -1,  62  },
+	[CHAN_OVNI_STATE]      = { 13,  -1  },
+	[CHAN_OVNI_APPID]      = { 14,  64  }, /* Not used */
+	[CHAN_OVNI_CPU]        = { 15,  -1  },
+	[CHAN_OVNI_FLUSH]      = { 16,  66  },
+	[CHAN_NOSV_TASKID]     = { 20,  70  },
+	[CHAN_NOSV_TYPEID]     = { 21,  71  },
+	[CHAN_NOSV_APPID]      = { 22,  72  },
+	[CHAN_NOSV_SUBSYSTEM]  = { 23,  73  },
+	[CHAN_NOSV_RANK]       = { 24,  74  },
+	[CHAN_TAMPI_MODE]      = { 30,  80  },
+	[CHAN_OPENMP_MODE]     = { 40,  90  },
+	[CHAN_NODES_SUBSYSTEM] = { 50, 100  },
+	[CHAN_KERNEL_CS]       = { 55, 105  },
 };
 
 #define CHAN_PRV_TH(id) chan_to_prvtype[id][CHAN_TH]

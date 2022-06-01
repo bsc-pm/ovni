@@ -209,7 +209,6 @@ pre_task_resume(struct ovni_emu *emu)
 	dbg("task id=%d resumes\n", task->id);
 }
 
-
 static void
 pre_task_end(struct ovni_emu *emu)
 {
@@ -350,6 +349,18 @@ pre_task(struct ovni_emu *emu)
 	}
 }
 
+static uint32_t
+get_task_type_gid(struct ovni_emu *emu, struct ovni_eproc *proc, uint32_t id)
+{
+	/* Don't use emu->cur_proc, so we can use it at any point */
+	uint32_t gid = id * emu->total_nprocs + proc->gindex;
+
+	if (gid == 0)
+		die("invalid global task type id %d\n", gid);
+
+	return gid;
+}
+
 static void
 pre_type_create(struct ovni_emu *emu)
 {
@@ -387,7 +398,14 @@ pre_type_create(struct ovni_emu *emu)
 	}
 
 	type->id = *typeid;
-	type->label = label;
+
+	if(type->id == 0)
+		die("invalid task type id %d\n", type->id);
+
+	type->gid = get_task_type_gid(emu, emu->cur_proc, type->id);
+	int n = snprintf(type->label, MAX_PCF_LABEL, "%s", label);
+	if(n >= MAX_PCF_LABEL)
+		die("task label too long: %s\n", label);
 
 	/* Add the new task type to the hash table */
 	HASH_ADD_INT(emu->cur_proc->types, id, type);
@@ -581,4 +599,47 @@ hook_pre_nosv(struct ovni_emu *emu)
 
 	if(emu->enable_linter)
 		check_affinity(emu);
+}
+
+static void
+create_pcf_task_types(struct ovni_eproc *proc, struct pcf_type *pcftype)
+{
+	char buf[MAX_PCF_LABEL];
+
+	/* Emit types for all task types */
+	struct nosv_task_type *tt;
+	for(tt = proc->types; tt != NULL; tt=tt->hh.next)
+	{
+		/* Use a unique identifier for the task types */
+		int value = tt->gid;
+		int n = snprintf(buf, MAX_PCF_LABEL, "%s (%d)",
+				tt->label, tt->id);
+
+		if(n >= MAX_PCF_LABEL)
+			die("generated label too long: %s\n", buf);
+
+		pcf_add_value(pcftype, value, buf);
+	}
+}
+
+void
+hook_end_nosv(struct ovni_emu *emu)
+{
+	/* Emit types for all channel types and processes */
+	for(enum chan_type ct = 0; ct < CHAN_MAXTYPE; ct++)
+	{
+		struct pcf_file *pcf = &emu->pcf[ct];
+		int typeid = chan_to_prvtype[CHAN_NOSV_TYPEID][ct];
+		struct pcf_type *pcftype = pcf_find_type(pcf, typeid);
+
+		for(size_t i = 0; i < emu->trace.nlooms; i++)
+		{
+			struct ovni_loom *loom = &emu->trace.loom[i];
+			for(size_t j = 0; j < loom->nprocs; j++)
+			{
+				struct ovni_eproc *proc = &loom->proc[j];
+				create_pcf_task_types(proc, pcftype);
+			}
+		}
+	}
 }

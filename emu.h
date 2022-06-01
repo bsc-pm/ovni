@@ -120,8 +120,9 @@ struct nosv_task {
 };
 
 struct nosv_task_type {
-	int id;
-	const char *label;
+	int gid; /* Global identifier */
+	int id; /* Per-process identifier */
+	char label[MAX_PCF_LABEL];
 	UT_hash_handle hh;
 };
 
@@ -329,7 +330,6 @@ struct ovni_eproc {
 
 	struct nosv_task_type *types;
 	struct nosv_task *tasks;
-
 };
 
 
@@ -476,8 +476,10 @@ struct ovni_emu {
 
 	/* Total counters */
 	size_t total_nthreads;
-	size_t total_proc;
+	size_t total_nprocs;
 	size_t total_ncpus;
+
+	uint32_t nosv_type_counter;
 
 	/* Keep a list of dirty channels for the CPUs and threads */
 	struct ovni_chan *cpu_chan;
@@ -493,6 +495,7 @@ void hook_pre_ovni(struct ovni_emu *emu);
 
 void hook_init_nosv(struct ovni_emu *emu);
 void hook_pre_nosv(struct ovni_emu *emu);
+void hook_end_nosv(struct ovni_emu *emu);
 
 void hook_init_tampi(struct ovni_emu *emu);
 void hook_pre_tampi(struct ovni_emu *emu);

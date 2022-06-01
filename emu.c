@@ -269,6 +269,12 @@ hook_init(struct ovni_emu *emu)
 }
 
 static void
+hook_end(struct ovni_emu *emu)
+{
+	hook_end_nosv(emu);
+}
+
+static void
 hook_pre(struct ovni_emu *emu)
 {
 	switch(emu->cur_ev->header.model)
@@ -519,6 +525,8 @@ emulate(struct ovni_emu *emu)
 
 		emu_step_stream(emu, emu->cur_stream);
 	}
+
+	hook_end(emu);
 
 	print_progress(emu);
 }
@@ -991,6 +999,7 @@ init_threads(struct ovni_emu *emu)
 	size_t i, j, k, gi;
 
 	emu->total_nthreads = 0;
+	emu->total_nprocs = 0;
 
 	trace = &emu->trace;
 
@@ -1000,10 +1009,10 @@ init_threads(struct ovni_emu *emu)
 		for(j=0; j<loom->nprocs; j++)
 		{
 			proc = &loom->proc[j];
+			emu->total_nprocs++;
 			for(k=0; k<proc->nthreads; k++)
 			{
 				thread = &proc->thread[k];
-
 				emu->total_nthreads++;
 			}
 		}

@@ -107,9 +107,29 @@ static inline void instr_end(void)
 }
 
 static void
-task(int32_t id, int us)
+type_create(int32_t typeid)
 {
-	int32_t typeid = 1;
+	struct ovni_ev ev = {0};
+
+	ovni_ev_set_mcv(&ev, "VYc");
+	ovni_ev_set_clock(&ev, ovni_clock_now());
+
+	char buf[256];
+	char *p = buf;
+
+	size_t nbytes = 0;
+	memcpy(buf, &typeid, sizeof(typeid));
+	p += sizeof(typeid);
+	nbytes += sizeof(typeid);
+	sprintf(p, "testtype%d", typeid);
+	nbytes += strlen(p) + 1;
+
+	ovni_ev_jumbo_emit(&ev, (uint8_t *) buf, nbytes);
+}
+
+static void
+task(int32_t id, uint32_t typeid, int us)
+{
 	struct ovni_ev ev = {0};
 
 	ovni_ev_set_mcv(&ev, "VTc");
@@ -139,12 +159,15 @@ int main(void)
 {
 	int rank = atoi(getenv("OVNI_RANK"));
 	int nranks = atoi(getenv("OVNI_NRANKS"));
+	uint32_t typeid = 1;
 
 	instr_start(rank, nranks);
 
+	type_create(typeid);
+
 	/* Create some fake nosv tasks */
 	for(int i=0; i<10; i++)
-		task(i + 1, 50 * 1000);
+		task(i + 1, typeid, 5000);
 
 	instr_end();
 

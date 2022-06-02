@@ -263,11 +263,11 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 	th = emu->cur_thread;
 	proc = emu->cur_proc;
 
-	if(task->id <= 0)
-		die("task id must be positive\n");
+	if(task->id == 0)
+		die("task id cannot be 0\n");
 
-	if(task->type->gid <= 0)
-		die("task type gid must be positive\n");
+	if(task->type->gid == 0)
+		die("task type gid cannot be 0\n");
 
 	if(proc->appid <= 0)
 		die("app id must be positive\n");
@@ -296,11 +296,11 @@ pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
 	if(prev_task == next_task)
 		die("cannot switch to the same task\n");
 
-	if(next_task->id <= 0)
-		die("next task id must be positive\n");
+	if(next_task->id == 0)
+		die("next task id cannot be 0\n");
 
-	if(next_task->type->gid <= 0)
-		die("next task type id must be positive\n");
+	if(next_task->type->gid == 0)
+		die("next task type id cannot be 0\n");
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], next_task->id);
 

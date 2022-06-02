@@ -49,7 +49,7 @@ hook_init_nosv(struct ovni_emu *emu)
 		uth = &emu->th_chan;
 
 		chan_th_init(th, uth, CHAN_NOSV_TASKID, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
-		chan_th_init(th, uth, CHAN_NOSV_TYPEID, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
+		chan_th_init(th, uth, CHAN_NOSV_TYPE,   CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_NOSV_APPID,  CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_NOSV_RANK,   CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 
@@ -68,7 +68,7 @@ hook_init_nosv(struct ovni_emu *emu)
 		ucpu = &emu->cpu_chan;
 
 		chan_cpu_init(cpu, ucpu, CHAN_NOSV_TASKID,    CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
-		chan_cpu_init(cpu, ucpu, CHAN_NOSV_TYPEID,    CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_NOSV_TYPE,      CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_NOSV_APPID,     CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_NOSV_RANK,      CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_NOSV_SUBSYSTEM, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
@@ -80,29 +80,32 @@ hook_init_nosv(struct ovni_emu *emu)
 static void
 pre_task_create(struct ovni_emu *emu)
 {
-	struct nosv_task *task, *p = NULL;
+	uint32_t task_id = emu->cur_ev->payload.u32[0];
+	uint32_t type_id = emu->cur_ev->payload.u32[1];
+
+	/* Ensure the task id is new */
+	struct nosv_task *task = NULL;
+	HASH_FIND_INT(emu->cur_proc->tasks, &task_id, task);
+
+	if(task != NULL)
+		die("a task with id %u already exists\n", task_id);
+
+	/* Ensure the type exists */
+	struct nosv_task_type *type = NULL;
+	HASH_FIND_INT(emu->cur_proc->types, &type_id, type);
+
+	if(type == NULL)
+		die("unknown task type id %u\n", type_id);
 
 	task = calloc(1, sizeof(*task));
 
 	if(task == NULL)
-	{
-		perror("calloc");
-		abort();
-	}
+		die("calloc failed\n");
 
-	task->id = emu->cur_ev->payload.i32[0];
-	task->type_id = emu->cur_ev->payload.i32[1];
+	task->id = task_id;
+	task->type = type;
 	task->state = TASK_ST_CREATED;
 	task->thread = NULL;
-
-	/* Ensure the task id is new */
-	HASH_FIND_INT(emu->cur_proc->tasks, &task->id, p);
-
-	if(p != NULL)
-	{
-		err("A task with id %d already exists\n", p->id);
-		abort();
-	}
 
 	/* Add the new task to the hash table */
 	HASH_ADD_INT(emu->cur_proc->tasks, id, task);
@@ -113,16 +116,14 @@ pre_task_create(struct ovni_emu *emu)
 static void
 pre_task_execute(struct ovni_emu *emu)
 {
-	struct nosv_task *task, *top;
-	int taskid;
+	struct nosv_task *top = emu->cur_thread->task_stack;
+	uint32_t taskid = emu->cur_ev->payload.u32[0];
 
-	top = emu->cur_thread->task_stack;
-	taskid = emu->cur_ev->payload.i32[0];
-
+	struct nosv_task *task = NULL;
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
 	if(task == NULL)
-		die("cannot find task with id %d\n", taskid);
+		die("cannot find task with id %u\n", taskid);
 
 	if(task->state != TASK_ST_CREATED)
 		die("task state is not created\n");
@@ -134,7 +135,7 @@ pre_task_execute(struct ovni_emu *emu)
 		die("thread state is not running\n");
 
 	if(top == task)
-		die("thread already has assigned task %d\n", taskid);
+		die("thread already has assigned task %u\n", taskid);
 
 	if(top && top->state != TASK_ST_RUNNING)
 		die("cannot execute a nested task from a non-running task\n");
@@ -144,22 +145,20 @@ pre_task_execute(struct ovni_emu *emu)
 
 	DL_PREPEND(emu->cur_thread->task_stack, task);
 
-	dbg("task id=%d runs now\n", task->id);
+	dbg("task id=%u runs now\n", task->id);
 }
 
 static void
 pre_task_pause(struct ovni_emu *emu)
 {
-	struct nosv_task *task, *top;
-	int taskid;
+	struct nosv_task *top = emu->cur_thread->task_stack;
+	uint32_t taskid = emu->cur_ev->payload.u32[0];
 
-	top = emu->cur_thread->task_stack;
-	taskid = emu->cur_ev->payload.i32[0];
-
+	struct nosv_task *task = NULL;
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
 	if(task == NULL)
-		die("cannot find task with id %d\n", taskid);
+		die("cannot find task with id %u\n", taskid);
 
 	if(task->state != TASK_ST_RUNNING)
 		die("task state is not running\n");
@@ -181,16 +180,14 @@ pre_task_pause(struct ovni_emu *emu)
 static void
 pre_task_resume(struct ovni_emu *emu)
 {
-	struct nosv_task *task, *top;
-	int taskid;
+	struct nosv_task *top = emu->cur_thread->task_stack;
+	uint32_t taskid = emu->cur_ev->payload.u32[0];
 
-	top = emu->cur_thread->task_stack;
-	taskid = emu->cur_ev->payload.i32[0];
-
+	struct nosv_task *task = NULL;
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
 	if(task == NULL)
-		die("cannot find task with id %d\n", taskid);
+		die("cannot find task with id %u\n", taskid);
 
 	if(task->state != TASK_ST_PAUSED)
 		die("task state is not paused\n");
@@ -212,16 +209,14 @@ pre_task_resume(struct ovni_emu *emu)
 static void
 pre_task_end(struct ovni_emu *emu)
 {
-	struct nosv_task *task, *top;
-	int taskid;
+	struct nosv_task *top = emu->cur_thread->task_stack;
+	uint32_t taskid = emu->cur_ev->payload.u32[0];
 
-	top = emu->cur_thread->task_stack;
-	taskid = emu->cur_ev->payload.i32[0];
-
+	struct nosv_task *task = NULL;
 	HASH_FIND_INT(emu->cur_proc->tasks, &taskid, task);
 
 	if(task == NULL)
-		die("cannot find task with id %d\n", taskid);
+		die("cannot find task with id %u\n", taskid);
 
 	if(task->state != TASK_ST_RUNNING)
 		die("task state is not running\n");
@@ -250,7 +245,7 @@ pre_task_not_running(struct ovni_emu *emu)
 	th = emu->cur_thread;
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], 0);
-	chan_set(&th->chan[CHAN_NOSV_TYPEID], 0);
+	chan_set(&th->chan[CHAN_NOSV_TYPE], 0);
 	chan_set(&th->chan[CHAN_NOSV_APPID], 0);
 
 	if(emu->cur_loom->rank_enabled)
@@ -271,14 +266,14 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 	if(task->id <= 0)
 		die("task id must be positive\n");
 
-	if(task->type_id <= 0)
-		die("task type id must be positive\n");
+	if(task->type->gid <= 0)
+		die("task type gid must be positive\n");
 
 	if(proc->appid <= 0)
 		die("app id must be positive\n");
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], task->id);
-	chan_set(&th->chan[CHAN_NOSV_TYPEID], task->type_id);
+	chan_set(&th->chan[CHAN_NOSV_TYPE], task->type->gid);
 	chan_set(&th->chan[CHAN_NOSV_APPID], proc->appid);
 
 	if(emu->cur_loom->rank_enabled)
@@ -304,7 +299,7 @@ pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
 	if(next_task->id <= 0)
 		die("next task id must be positive\n");
 
-	if(next_task->type_id <= 0)
+	if(next_task->type->gid <= 0)
 		die("next task type id must be positive\n");
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], next_task->id);
@@ -312,9 +307,12 @@ pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
 	/* No need to change the rank, as we can only switch to tasks of
 	 * the same loom (with same rank) */
 
-	/* Only emit the new type if necessary */
-	if(prev_task->type_id != next_task->type_id)
-		chan_set(&th->chan[CHAN_NOSV_TYPEID], next_task->type_id);
+	/* FIXME: We should emit a PRV event even if we are switching to
+	 * the same type event, to mark the end of the current task. For
+	 * now we only emit a new type if we switch to a type with a
+	 * different gid. */
+	if(prev_task->type->gid != next_task->type->gid)
+		chan_set(&th->chan[CHAN_NOSV_TYPE], next_task->type->gid);
 }
 
 static void
@@ -350,13 +348,17 @@ pre_task(struct ovni_emu *emu)
 }
 
 static uint32_t
-get_task_type_gid(struct ovni_emu *emu, struct ovni_eproc *proc, uint32_t id)
+get_task_type_gid(const char *label)
 {
-	/* Don't use emu->cur_proc, so we can use it at any point */
-	uint32_t gid = id * emu->total_nprocs + proc->gindex;
+	uint32_t gid;
+
+	HASH_VALUE(label, strlen(label), gid);
+
+	/* Use non-negative values */
+	gid &= 0x7FFFFFFF;
 
 	if (gid == 0)
-		die("invalid global task type id %d\n", gid);
+		gid++;
 
 	return gid;
 }
@@ -402,7 +404,7 @@ pre_type_create(struct ovni_emu *emu)
 	if(type->id == 0)
 		die("invalid task type id %d\n", type->id);
 
-	type->gid = get_task_type_gid(emu, emu->cur_proc, type->id);
+	type->gid = get_task_type_gid(label);
 	int n = snprintf(type->label, MAX_PCF_LABEL, "%s", label);
 	if(n >= MAX_PCF_LABEL)
 		die("task label too long: %s\n", label);
@@ -604,21 +606,22 @@ hook_pre_nosv(struct ovni_emu *emu)
 static void
 create_pcf_task_types(struct ovni_eproc *proc, struct pcf_type *pcftype)
 {
-	char buf[MAX_PCF_LABEL];
-
 	/* Emit types for all task types */
 	struct nosv_task_type *tt;
 	for(tt = proc->types; tt != NULL; tt=tt->hh.next)
 	{
-		/* Use a unique identifier for the task types */
-		int value = tt->gid;
-		int n = snprintf(buf, MAX_PCF_LABEL, "%s (%d)",
-				tt->label, tt->id);
+		struct pcf_value *pcfvalue = pcf_find_value(pcftype, tt->gid);
+		if(pcfvalue != NULL)
+		{
+			/* Ensure the label is the same, so we know that
+			 * no collision occurred */
+			if(strcmp(pcfvalue->label, tt->label) != 0)
+				die("collision occurred in task type labels\n");
+			else
+				continue;
+		}
 
-		if(n >= MAX_PCF_LABEL)
-			die("generated label too long: %s\n", buf);
-
-		pcf_add_value(pcftype, value, buf);
+		pcf_add_value(pcftype, tt->gid, tt->label);
 	}
 }
 
@@ -629,7 +632,7 @@ hook_end_nosv(struct ovni_emu *emu)
 	for(enum chan_type ct = 0; ct < CHAN_MAXTYPE; ct++)
 	{
 		struct pcf_file *pcf = &emu->pcf[ct];
-		int typeid = chan_to_prvtype[CHAN_NOSV_TYPEID][ct];
+		int typeid = chan_to_prvtype[CHAN_NOSV_TYPE][ct];
 		struct pcf_type *pcftype = pcf_find_type(pcf, typeid);
 
 		for(size_t i = 0; i < emu->trace.nlooms; i++)

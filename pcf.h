@@ -64,4 +64,6 @@ struct pcf_type *pcf_add_type(struct pcf_file *pcf, int type_id,
 struct pcf_value *pcf_add_value(struct pcf_type *type, int value,
 		const char *label);
 
+struct pcf_value *pcf_find_value(struct pcf_type *type, int value);
+
 #endif /* OVNI_PCF_H */

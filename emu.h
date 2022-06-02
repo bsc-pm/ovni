@@ -107,9 +107,16 @@ enum kernel_cs_state {
 struct ovni_ethread;
 struct ovni_eproc;
 
+struct nosv_task_type {
+	uint32_t id;    /* Per-process identifier, same as nOS-V */
+	uint32_t gid;   /* Global identifier computed from the label */
+	char label[MAX_PCF_LABEL];
+	UT_hash_handle hh;
+};
+
 struct nosv_task {
-	int id;
-	int type_id;
+	uint32_t id;
+	struct nosv_task_type *type;
 	struct ovni_ethread *thread;
 	enum nosv_task_state state;
 	UT_hash_handle hh;
@@ -117,13 +124,6 @@ struct nosv_task {
 	/* List handle for nested task support */
 	struct nosv_task *next;
 	struct nosv_task *prev;
-};
-
-struct nosv_task_type {
-	int gid; /* Global identifier */
-	int id; /* Per-process identifier */
-	char label[MAX_PCF_LABEL];
-	UT_hash_handle hh;
 };
 
 #define MAX_CHAN_STACK 128
@@ -151,7 +151,7 @@ enum chan {
 	CHAN_OVNI_FLUSH,
 
 	CHAN_NOSV_TASKID,
-	CHAN_NOSV_TYPEID,
+	CHAN_NOSV_TYPE,
 	CHAN_NOSV_APPID,
 	CHAN_NOSV_SUBSYSTEM,
 	CHAN_NOSV_RANK,
@@ -192,7 +192,7 @@ static const int chan_to_prvtype[CHAN_MAX][CHAN_MAXTYPE] = {
 	[CHAN_OVNI_CPU]        = { 15,  -1  },
 	[CHAN_OVNI_FLUSH]      = { 16,  66  },
 	[CHAN_NOSV_TASKID]     = { 20,  70  },
-	[CHAN_NOSV_TYPEID]     = { 21,  71  },
+	[CHAN_NOSV_TYPE]       = { 21,  71  },
 	[CHAN_NOSV_APPID]      = { 22,  72  },
 	[CHAN_NOSV_SUBSYSTEM]  = { 23,  73  },
 	[CHAN_NOSV_RANK]       = { 24,  74  },

@@ -188,7 +188,7 @@ struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
 	[CHAN_OVNI_FLUSH]       = &ovni_flush_values,
 
 	[CHAN_NOSV_TASKID]      = &default_values,
-	[CHAN_NOSV_TYPEID]      = &default_values,
+	[CHAN_NOSV_TYPE]        = &default_values,
 	[CHAN_NOSV_APPID]       = &default_values,
 	[CHAN_NOSV_SUBSYSTEM]   = &nosv_ss_values,
 	[CHAN_NOSV_RANK]        = &default_values,
@@ -212,7 +212,7 @@ char *pcf_chan_name[CHAN_MAX] = {
 	[CHAN_OVNI_FLUSH]       = "Flushing state",
 
 	[CHAN_NOSV_TASKID]      = "nOS-V TaskID",
-	[CHAN_NOSV_TYPEID]      = "nOS-V task TypeID",
+	[CHAN_NOSV_TYPE]        = "nOS-V task type",
 	[CHAN_NOSV_APPID]       = "nOS-V task AppID",
 	[CHAN_NOSV_SUBSYSTEM]   = "nOS-V subsystem",
 	[CHAN_NOSV_RANK]        = "MPI rank",
@@ -244,7 +244,7 @@ int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
 	[CHAN_OVNI_FLUSH]       = { CUR_TH, RUN_TH },
 
 	[CHAN_NOSV_TASKID]      = { RUN_TH, RUN_TH },
-	[CHAN_NOSV_TYPEID]      = { RUN_TH, RUN_TH },
+	[CHAN_NOSV_TYPE]        = { RUN_TH, RUN_TH },
 	[CHAN_NOSV_APPID]       = { RUN_TH, RUN_TH },
 	[CHAN_NOSV_SUBSYSTEM]   = { ACT_TH, RUN_TH },
 	[CHAN_NOSV_RANK]        = { RUN_TH, RUN_TH },
@@ -385,30 +385,38 @@ pcf_find_type(struct pcf_file *pcf, int type_id)
 struct pcf_type *
 pcf_add_type(struct pcf_file *pcf, int type_id, const char *label)
 {
-	struct pcf_type *type;
+	struct pcf_type *pcftype;
 
-	type = pcf_find_type(pcf, type_id);
+	pcftype = pcf_find_type(pcf, type_id);
 
-	if(type != NULL)
+	if(pcftype != NULL)
 		die("PCF type %d already defined\n", type_id);
 
-	type = calloc(1, sizeof(struct pcf_type));
-
-	if(type == NULL)
+	pcftype = calloc(1, sizeof(struct pcf_type));
+	if(pcftype == NULL)
 		die("calloc failed: %s\n", strerror(errno));
 
-	type->id = type_id;
-	type->values = NULL;
-	type->nvalues = 0;
-	if(snprintf(type->label, MAX_PCF_LABEL,
-				"%s", label) >= MAX_PCF_LABEL)
-	{
-		die("PCF label too long\n");
-	}
+	pcftype->id = type_id;
+	pcftype->values = NULL;
+	pcftype->nvalues = 0;
 
-	HASH_ADD_INT(pcf->types, id, type);
+	int len = snprintf(pcftype->label, MAX_PCF_LABEL, "%s", label);
+	if(len >= MAX_PCF_LABEL)
+		die("PCF type label too long\n");
 
-	return type;
+	HASH_ADD_INT(pcf->types, id, pcftype);
+
+	return pcftype;
+}
+
+struct pcf_value *
+pcf_find_value(struct pcf_type *type, int value)
+{
+	struct pcf_value *pcfvalue;
+
+	HASH_FIND_INT(type->values, &value, pcfvalue);
+
+	return pcfvalue;
 }
 
 /** Adds a new value to the given pcf_type. The label can be disposed
@@ -419,30 +427,26 @@ pcf_add_type(struct pcf_file *pcf, int type_id, const char *label)
 struct pcf_value *
 pcf_add_value(struct pcf_type *type, int value, const char *label)
 {
-	struct pcf_value *pv;
+	struct pcf_value *pcfvalue = pcf_find_value(type, value);
 
-	HASH_FIND_INT(type->values, &value, pv);
-
-	if(pv != NULL)
+	if(pcfvalue != NULL)
 		die("PCF value %d already in type %d\n", value, type->id);
 
-	pv = calloc(1, sizeof(struct pcf_value));
-
-	if(pv == NULL)
+	pcfvalue = calloc(1, sizeof(struct pcf_value));
+	if(pcfvalue == NULL)
 		die("calloc failed: %s\n", strerror(errno));
 
-	pv->value = value;
+	pcfvalue->value = value;
 
-	int len = snprintf(pv->label, MAX_PCF_LABEL, "%s", label);
-
+	int len = snprintf(pcfvalue->label, MAX_PCF_LABEL, "%s", label);
 	if(len >= MAX_PCF_LABEL)
-		die("PCF label too long\n");
+		die("PCF value label too long\n");
 
-	HASH_ADD_INT(type->values, value, pv);
+	HASH_ADD_INT(type->values, value, pcfvalue);
 
 	type->nvalues++;
 
-	return pv;
+	return pcfvalue;
 }
 
 /** Writes the defined event and values to the PCF file. */

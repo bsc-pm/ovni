@@ -231,7 +231,9 @@ pre_task_end(struct ovni_emu *emu)
 		die("task is assigned to a different thread\n");
 
 	task->state = TASK_ST_DEAD;
-	task->thread = NULL;
+
+	/* Don't unset the thread from the task, as it will be used
+	 * later to ensure we switch to tasks of the same thread. */
 
 	DL_DELETE(emu->cur_thread->task_stack, task);
 

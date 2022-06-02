@@ -117,6 +117,9 @@ struct nosv_task_type {
 struct nosv_task {
 	uint32_t id;
 	struct nosv_task_type *type;
+
+	/* The thread that has began to execute the task. It cannot
+	 * change after being set, even if the task ends. */
 	struct ovni_ethread *thread;
 	enum nosv_task_state state;
 	UT_hash_handle hh;

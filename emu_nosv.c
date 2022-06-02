@@ -302,10 +302,12 @@ pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
 	if(next_task->type->gid == 0)
 		die("next task type id cannot be 0\n");
 
-	chan_set(&th->chan[CHAN_NOSV_TASKID], next_task->id);
+	if(prev_task->thread != next_task->thread)
+		die("cannot switch to a task of another thread\n");
 
-	/* No need to change the rank, as we can only switch to tasks of
-	 * the same loom (with same rank) */
+	/* No need to change the rank or app ID, as we can only switch
+	 * to tasks of the same thread */
+	chan_set(&th->chan[CHAN_NOSV_TASKID], next_task->id);
 
 	/* FIXME: We should emit a PRV event even if we are switching to
 	 * the same type event, to mark the end of the current task. For

@@ -25,12 +25,10 @@ macro(ovni_test name driver)
     COMMAND "${OVNI_TEST_SOURCE_DIR}/${driver}" "${name}"
     WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
 
+  set_property(TEST "${name}" PROPERTY RUN_SERIAL TRUE)
+
   if("${name}" MATCHES ".*-bad")
-    set_tests_properties("${name}"
-      PROPERTIES RUN_SERIAL TRUE WILL_FAIL TRUE)
-  else()
-    set_tests_properties("${name}"
-      PROPERTIES RUN_SERIAL TRUE)
+    set_property(TEST "${name}" PROPERTY WILL_FAIL TRUE)
   endif()
 
 endmacro()

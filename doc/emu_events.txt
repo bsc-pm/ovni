@@ -112,7 +112,7 @@ DU]	Ends the unregistration of a task's accesses
 DW[	Enters a blocking condition (waiting for an If0 task)
 DW]	Exits a blocking condition (waiting for an If0 task)
 
-DI[	Beings the inline execution of an If0 task
+DI[	Begins the inline execution of an If0 task
 DI]	Ends the inline execution of an If0 task
 
 DT[	Enters a taskwait
@@ -131,3 +131,45 @@ DP]	Ends the spawn of a function
 
 KCO	Is out of the CPU due to a context switch
 KCI	Is back in the CPU due to a context switch
+
+-------------------- Nanos6 (model=6) ----------------------
+
+6Tc	Task creation begins
+6TC	Task creation ends
+6Tx	Task execute
+6Te	Task end
+6Tp	Task pause
+6Tr	Task resume
+
+6Yc	Task type create (punctual event)
+
+6Sr	Receives a task from another thread (punctual event)
+6Ss	Sends a task to another thread (punctual event)
+6S@	Self-assigns itself a task (punctual event)
+6Sh	Enters the hungry state, waiting for a task
+6Sf	Is no longer hungry
+6S[	Enters the scheduler server mode
+6S]	Ends the scheduler server mode
+
+6U[	Starts to submit a task
+6U]	Ends the submission of a task
+
+6Ha	Attaches to nanos6
+6HA	Detaches from nanos6
+6Hs	Begins the spawn of a function
+6HS	Ends the spawn of a function
+
+6Dr	Begins the registration of a task's accesses
+6DR	Ends the registration of a task's accesses
+6Du	Begins the unregistration of a task's accesses
+6DU	Ends the unregistration of a task's accesses
+
+6Bb	Begins to block the given task
+6BB	Ends blocking the given task
+6Bu	Begins to unblock the given task
+6BU	Ends unblocking the given task
+6Bw	Enters a wait for
+6BW	Exits the wait for
+
+6Wt	Enters a taskwait
+6WT	Exits a taskwait

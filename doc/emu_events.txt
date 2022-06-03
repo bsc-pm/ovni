@@ -150,6 +150,8 @@ KCI	Is back in the CPU due to a context switch
 6Sf	Is no longer hungry
 6S[	Enters the scheduler server mode
 6S]	Ends the scheduler server mode
+6Su	Begins task submission into the scheduler
+6SU	Ends task submission into the scheduler
 
 6U[	Starts to submit a task
 6U]	Ends the submission of a task

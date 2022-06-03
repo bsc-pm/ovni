@@ -241,10 +241,13 @@ pre_task_end(struct ovni_emu *emu)
 }
 
 static void
-pre_task_not_running(struct ovni_emu *emu)
+pre_task_not_running(struct ovni_emu *emu, struct nosv_task *task)
 {
 	struct ovni_ethread *th;
 	th = emu->cur_thread;
+
+	if(task->state == TASK_ST_RUNNING)
+		die("task is still running\n");
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], 0);
 	chan_set(&th->chan[CHAN_NOSV_TYPE], 0);
@@ -286,7 +289,7 @@ pre_task_running(struct ovni_emu *emu, struct nosv_task *task)
 
 static void
 pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
-		struct nosv_task *next_task)
+		struct nosv_task *next_task, int newtask)
 {
 	struct ovni_ethread *th;
 
@@ -297,6 +300,15 @@ pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
 
 	if(prev_task == next_task)
 		die("cannot switch to the same task\n");
+
+	if(newtask && prev_task->state != TASK_ST_RUNNING)
+		die("previous task must not be no longer running\n");
+
+	if(!newtask && prev_task->state != TASK_ST_DEAD)
+		die("previous task must be dead\n");
+
+	if(next_task->state != TASK_ST_RUNNING)
+		die("next task must be running\n");
 
 	if(next_task->id == 0)
 		die("next task id cannot be 0\n");
@@ -319,13 +331,26 @@ pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
 		chan_set(&th->chan[CHAN_NOSV_TYPE], next_task->type->gid);
 }
 
+static int
+is_running_task(struct ovni_emu *emu, struct nosv_task **ptask)
+{
+	struct nosv_task *task = emu->cur_thread->task_stack;
+	if(task && task->state == TASK_ST_RUNNING)
+	{
+		*ptask = task;
+		return 1;
+	}
+
+	return 0;
+}
+
 static void
 pre_task(struct ovni_emu *emu)
 {
-	struct nosv_task *prev_task, *next_task;
+	struct nosv_task *prev_task = NULL;
+	int was_running_task = is_running_task(emu, &prev_task);
 
-	prev_task = emu->cur_thread->task_stack;
-
+	/* Update the emulator state, but don't modify the channels yet */
 	switch(emu->cur_ev->header.value)
 	{
 		case 'c': pre_task_create(emu); break;
@@ -337,17 +362,33 @@ pre_task(struct ovni_emu *emu)
 			  abort();
 	}
 
-	next_task = emu->cur_thread->task_stack;
+	struct nosv_task *next_task = NULL;
+	int runs_task_now = is_running_task(emu, &next_task);
 
-	/* Unless we're creating a task, register the switch */
-	if(emu->cur_ev->header.value != 'c')
+	/* Now that we know if the emulator was running a task before
+	 * or if it's running one now, update the channels accordingly. */
+	switch(emu->cur_ev->header.value)
 	{
-		if(next_task == NULL)
-			pre_task_not_running(emu);
-		else if(prev_task == NULL)
+		case 'x': /* Execute: either a nested task or a new one */
+			if(was_running_task)
+				pre_task_switch(emu, prev_task, next_task, 1);
+			else
+				pre_task_running(emu, next_task);
+			break;
+		case 'e': /* End: either a nested task or the last one */
+			if(runs_task_now)
+				pre_task_switch(emu, prev_task, next_task, 0);
+			else
+				pre_task_not_running(emu, prev_task);
+			break;
+		case 'p': /* Pause */
+			pre_task_not_running(emu, prev_task);
+			break;
+		case 'r': /* Resume */
 			pre_task_running(emu, next_task);
-		else
-			pre_task_switch(emu, prev_task, next_task);
+			break;
+		default:
+			break;
 	}
 }
 

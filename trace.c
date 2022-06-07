@@ -124,6 +124,29 @@ load_proc_metadata(struct ovni_eproc *proc, int *rank_enabled)
 	}
 }
 
+static void
+check_metadata_version(struct ovni_eproc *proc)
+{
+	JSON_Object *meta = json_value_get_object(proc->meta);
+	if(meta == NULL)
+		die("check_metadata_version: json_value_get_object() failed\n");
+
+	JSON_Value *version_val = json_object_get_value(meta, "version");
+	if(version_val == NULL)
+	{
+		die("process %d is missing attribute \"version\" in metadata\n",
+				proc->pid);
+	}
+
+	int version = (int) json_number(version_val);
+
+	if(version != OVNI_METADATA_VERSION)
+	{
+		die("pid %d: metadata version mismatch %d (expected %d)\n",
+				proc->pid, version,
+				OVNI_METADATA_VERSION);
+	}
+}
 
 static int
 load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, char *procdir)
@@ -155,6 +178,8 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 		err("error loading metadata from %s\n", path);
 		return -1;
 	}
+
+	check_metadata_version(proc);
 
 	/* The appid is populated from the metadata */
 	load_proc_metadata(proc, &loom->rank_enabled);

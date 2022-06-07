@@ -167,6 +167,19 @@ proc_set_app(int appid)
 		die("json_object_set_number for app_id failed\n");
 }
 
+static void
+proc_set_version(void)
+{
+	JSON_Object *meta = json_value_get_object(rproc.meta);
+
+	if(meta == NULL)
+		die("json_value_get_object failed\n");
+
+	if(json_object_set_number(meta, "version", OVNI_METADATA_VERSION) != 0)
+		die("json_object_set_number for app_id failed\n");
+}
+
+
 void
 ovni_proc_set_rank(int rank, int nranks)
 {
@@ -246,6 +259,7 @@ ovni_proc_init(int app, const char *loom, int pid)
 
 	rproc.ready = 1;
 
+	proc_set_version();
 	proc_set_app(app);
 }
 

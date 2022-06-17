@@ -331,24 +331,21 @@ pre_task_switch(struct ovni_emu *emu, struct nosv_task *prev_task,
 		chan_set(&th->chan[CHAN_NOSV_TYPE], next_task->type->gid);
 }
 
-static int
-is_running_task(struct ovni_emu *emu, struct nosv_task **ptask)
+static struct nosv_task *
+get_running_task(struct ovni_emu *emu)
 {
 	struct nosv_task *task = emu->cur_thread->task_stack;
 	if(task && task->state == TASK_ST_RUNNING)
-	{
-		*ptask = task;
-		return 1;
-	}
+		return task;
 
-	return 0;
+	return NULL;
 }
 
 static void
 pre_task(struct ovni_emu *emu)
 {
-	struct nosv_task *prev_task = NULL;
-	int was_running_task = is_running_task(emu, &prev_task);
+	struct nosv_task *prev_running = get_running_task(emu);
+	int was_running_task = (prev_running != NULL);
 
 	/* Update the emulator state, but don't modify the channels yet */
 	switch(emu->cur_ev->header.value)
@@ -362,8 +359,8 @@ pre_task(struct ovni_emu *emu)
 			  abort();
 	}
 
-	struct nosv_task *next_task = NULL;
-	int runs_task_now = is_running_task(emu, &next_task);
+	struct nosv_task *next_running = get_running_task(emu);
+	int runs_task_now = (next_running != NULL);
 
 	/* Now that we know if the emulator was running a task before
 	 * or if it's running one now, update the channels accordingly. */
@@ -371,21 +368,21 @@ pre_task(struct ovni_emu *emu)
 	{
 		case 'x': /* Execute: either a nested task or a new one */
 			if(was_running_task)
-				pre_task_switch(emu, prev_task, next_task, 1);
+				pre_task_switch(emu, prev_running, next_running, 1);
 			else
-				pre_task_running(emu, next_task);
+				pre_task_running(emu, next_running);
 			break;
 		case 'e': /* End: either a nested task or the last one */
 			if(runs_task_now)
-				pre_task_switch(emu, prev_task, next_task, 0);
+				pre_task_switch(emu, prev_running, next_running, 0);
 			else
-				pre_task_not_running(emu, prev_task);
+				pre_task_not_running(emu, prev_running);
 			break;
 		case 'p': /* Pause */
-			pre_task_not_running(emu, prev_task);
+			pre_task_not_running(emu, prev_running);
 			break;
 		case 'r': /* Resume */
-			pre_task_running(emu, next_task);
+			pre_task_running(emu, next_running);
 			break;
 		default:
 			break;

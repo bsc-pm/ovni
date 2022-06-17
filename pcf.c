@@ -197,7 +197,7 @@ struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
 	[CHAN_OPENMP_MODE]      = &openmp_mode_values,
 	[CHAN_NODES_SUBSYSTEM]  = &nodes_mode_values,
 
-	[CHAN_KERNEL_CS]        = &kernel_cs_values, 
+	[CHAN_KERNEL_CS]        = &kernel_cs_values,
 };
 
 /* ------------------ Type labels --------------------- */
@@ -253,7 +253,7 @@ int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
 	[CHAN_OPENMP_MODE]      = { RUN_TH, RUN_TH },
 	[CHAN_NODES_SUBSYSTEM]  = { RUN_TH, RUN_TH },
 
-	[CHAN_KERNEL_CS]        = { CUR_TH, ACT_TH }, 
+	[CHAN_KERNEL_CS]        = { CUR_TH, ACT_TH },
 };
 
 /* ----------------------------------------------- */

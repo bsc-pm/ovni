@@ -33,8 +33,12 @@ macro(ovni_test name driver)
 
 endmacro()
 
+# Only run performance sensitive tests on Release builds
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  ovni_test("flush-overhead" "driver.sh")
+endif()
+
 ovni_test("flush" "driver.sh")
-ovni_test("flush-overhead" "driver.sh")
 ovni_test("mp-simple" "mp-driver.sh")
 ovni_test("mp-rank" "mp-driver.sh")
 ovni_test("nosv-nested-tasks" "driver.sh")

@@ -24,7 +24,9 @@ in
     cmakeBuildType = "Debug";
     cmakeFlags = [ "-DCMAKE_SKIP_BUILD_RPATH=OFF" ];
     buildFlags = [ "VERBOSE=1" ];
-    checkFlags = [ "CTEST_OUTPUT_ON_FAILURE=1" "ARGS=-V" ];
+    preCheck = ''
+      export CTEST_OUTPUT_ON_FAILURE=1
+    '';
     dontStrip = true;
     doCheck = true;
     checkTarget = "test";

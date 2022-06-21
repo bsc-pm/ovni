@@ -106,6 +106,11 @@ int main(void)
 	/* It should be able to write 1 MiB in less than 1 ms */
 	if (mean > 1.0) {
 		fprintf(stderr, "took too much time to flush: %f ms\n", mean);
+
+		fprintf(stderr, "times (in ms):\n");
+		for(int i=0; i < NRUNS; i++)
+		    fprintf(stderr, " %4d  %f\n", i, times[i]);
+
 		exit(EXIT_FAILURE);
 	}
 

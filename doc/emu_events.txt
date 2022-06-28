@@ -138,8 +138,8 @@ KCI	Is back in the CPU due to a context switch
 6TC	Task creation ends
 6Tx	Task execute
 6Te	Task end
-6Tp	Task pause
-6Tr	Task resume
+6Tb	Task block
+6Tu	Task unblock
 
 6Yc	Task type create (punctual event)
 
@@ -156,8 +156,8 @@ KCI	Is back in the CPU due to a context switch
 6U[	Starts to submit a task via submitTask()
 6U]	Ends the submission of a task via submitTask()
 
-6Ha	Attaches to nanos6
-6HA	Detaches from nanos6
+6Ha	Attaches to Nanos6 as external thread
+6HA	Detaches from Nanos6 as external thread
 6Hs	Begins the spawn of a function
 6HS	Ends the spawn of a function
 
@@ -166,12 +166,5 @@ KCI	Is back in the CPU due to a context switch
 6Du	Begins the unregistration of a task's accesses
 6DU	Ends the unregistration of a task's accesses
 
-6Bb	Begins to block the given task
-6BB	Ends blocking the given task
 6Bu	Begins to unblock the given task
 6BU	Ends unblocking the given task
-6Bw	Enters a wait for
-6BW	Exits the wait for
-
-6Wt	Enters a taskwait
-6WT	Exits a taskwait

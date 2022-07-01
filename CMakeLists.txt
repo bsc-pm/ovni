@@ -76,6 +76,8 @@ add_executable(ovniemu
   emu_tampi.c
   emu_nodes.c
   emu_kernel.c
+  emu_nanos6.c
+  emu_task.c
   trace.c
   ovni.c
   parson.c

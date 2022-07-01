@@ -37,7 +37,7 @@ enum ethread_state {
 	TH_ST_WARMING,
 };
 
-enum nosv_task_state {
+enum task_state {
 	TASK_ST_CREATED,
 	TASK_ST_RUNNING,
 	TASK_ST_PAUSED,
@@ -100,6 +100,46 @@ enum nodes_state {
 	ST_NODES_SPAWN = 8,
 };
 
+/* The values of nanos6_ss_state are synced to the previous
+ * CTF implementation. */
+enum nanos6_ss_state {
+	ST_NANOS6_NULL = 0,				/* IDLE */
+									/* RUNTIME */
+	ST_NANOS6_SCHED_HUNGRY = 2,		/* BUSY_WAIT */
+	ST_NANOS6_TASK_RUNNING = 3, 	/* TASK */
+	ST_NANOS6_DEP_REG = 4, 			/* DEPENDENCY_REGISTER */
+	ST_NANOS6_DEP_UNREG = 5, 		/* DEPENDENCY_UNREGISTER */
+	ST_NANOS6_SCHED_SUBMITTING = 6, /* SCHEDULER_ADD_TASK */
+									/* SCHEDULER_GET_TASK */
+	ST_NANOS6_CREATING = 8, 		/* TASK_CREATE */
+									/* TASK_ARGS_INIT */
+	ST_NANOS6_SUBMIT = 10, 			/* TASK_SUBMIT */
+									/* TASKFOR_INIT */
+	ST_NANOS6_TASKWAIT = 12, 		/* TASK_WAIT */
+	ST_NANOS6_WAITFOR = 13, 		/* WAIT_FOR */
+									/* LOCK */
+									/* UNLOCK */
+	ST_NANOS6_BLOCKING = 16,		/* BLOCKING_API_BLOCK */
+	ST_NANOS6_UNBLOCKING = 17,		/* BLOCKING_API_UNBLOCK */
+	ST_NANOS6_SPAWNING = 18,		/* SPAWN_FUNCTION */
+									/* SCHEDULER_LOCK_ENTER */
+	ST_NANOS6_SCHED_SERVING = 20,	/* SCHEDULER_LOCK_SERVING */
+	ST_NANOS6_ATTACHED,
+
+	EV_NANOS6_SCHED_RECV,
+	EV_NANOS6_SCHED_SEND,
+	EV_NANOS6_SCHED_SELF,
+};
+
+/* Possible reasons for Nanos6 tasks becoming running or not running */
+enum nanos6_task_run_reason
+{
+	TB_EXEC_OR_END = -1,
+	TB_BLOCKING_API = 0,
+	TB_TASKWAIT = 1,
+	TB_WAITFOR = 2
+};
+
 enum kernel_cs_state {
 	ST_KERNEL_CSOUT = 3,
 };
@@ -107,26 +147,26 @@ enum kernel_cs_state {
 struct ovni_ethread;
 struct ovni_eproc;
 
-struct nosv_task_type {
-	uint32_t id;    /* Per-process identifier, same as nOS-V */
+struct task_type {
+	uint32_t id;    /* Per-process task identifier */
 	uint32_t gid;   /* Global identifier computed from the label */
 	char label[MAX_PCF_LABEL];
 	UT_hash_handle hh;
 };
 
-struct nosv_task {
+struct task {
 	uint32_t id;
-	struct nosv_task_type *type;
+	struct task_type *type;
 
 	/* The thread that has began to execute the task. It cannot
 	 * change after being set, even if the task ends. */
 	struct ovni_ethread *thread;
-	enum nosv_task_state state;
+	enum task_state state;
 	UT_hash_handle hh;
 
 	/* List handle for nested task support */
-	struct nosv_task *next;
-	struct nosv_task *prev;
+	struct task *next;
+	struct task *prev;
 };
 
 #define MAX_CHAN_STACK 128
@@ -163,6 +203,11 @@ enum chan {
 	CHAN_OPENMP_MODE,
 	CHAN_NODES_SUBSYSTEM,
 
+	CHAN_NANOS6_TASKID,
+	CHAN_NANOS6_TYPE,
+	CHAN_NANOS6_SUBSYSTEM,
+	CHAN_NANOS6_RANK,
+
 	CHAN_KERNEL_CS,
 
 	CHAN_MAX
@@ -184,29 +229,28 @@ enum chan_dirty {
 	CHAN_DIRTY_VALUE = 2,
 };
 
-static const int chan_to_prvtype[CHAN_MAX][CHAN_MAXTYPE] = {
-	/* FIXME: Use odd/even identifiers for thread and cpu */
-	/* Channel                 TH   CPU */
-	[CHAN_OVNI_PID]        = { 10,  60  },
-	[CHAN_OVNI_TID]        = { 11,  61  },
-	[CHAN_OVNI_NRTHREADS]  = { -1,  62  },
-	[CHAN_OVNI_STATE]      = { 13,  -1  },
-	[CHAN_OVNI_APPID]      = { 14,  64  }, /* Not used */
-	[CHAN_OVNI_CPU]        = { 15,  -1  },
-	[CHAN_OVNI_FLUSH]      = { 16,  66  },
-	[CHAN_NOSV_TASKID]     = { 20,  70  },
-	[CHAN_NOSV_TYPE]       = { 21,  71  },
-	[CHAN_NOSV_APPID]      = { 22,  72  },
-	[CHAN_NOSV_SUBSYSTEM]  = { 23,  73  },
-	[CHAN_NOSV_RANK]       = { 24,  74  },
-	[CHAN_TAMPI_MODE]      = { 30,  80  },
-	[CHAN_OPENMP_MODE]     = { 40,  90  },
-	[CHAN_NODES_SUBSYSTEM] = { 50, 100  },
-	[CHAN_KERNEL_CS]       = { 55, 105  },
+static const int chan_to_prvtype[CHAN_MAX] = {
+	[CHAN_OVNI_PID]         = 1,
+	[CHAN_OVNI_TID]         = 2,
+	[CHAN_OVNI_NRTHREADS]   = 3,
+	[CHAN_OVNI_STATE]       = 4,
+	[CHAN_OVNI_APPID]       = 5, /* Not used */
+	[CHAN_OVNI_CPU]         = 6,
+	[CHAN_OVNI_FLUSH]       = 7,
+	[CHAN_NOSV_TASKID]      = 10,
+	[CHAN_NOSV_TYPE]        = 11,
+	[CHAN_NOSV_APPID]       = 12,
+	[CHAN_NOSV_SUBSYSTEM]   = 13,
+	[CHAN_NOSV_RANK]        = 14,
+	[CHAN_TAMPI_MODE]       = 20,
+	[CHAN_OPENMP_MODE]      = 25,
+	[CHAN_NODES_SUBSYSTEM]  = 30,
+	[CHAN_NANOS6_TASKID]    = 35,
+	[CHAN_NANOS6_TYPE]      = 36,
+	[CHAN_NANOS6_SUBSYSTEM] = 37,
+	[CHAN_NANOS6_RANK]      = 38,
+	[CHAN_KERNEL_CS]        = 40,
 };
-
-#define CHAN_PRV_TH(id) chan_to_prvtype[id][CHAN_TH]
-#define CHAN_PRV_CPU(id) chan_to_prvtype[id][CHAN_CPU]
 
 struct ovni_chan {
 	/* Channel id */
@@ -290,8 +334,9 @@ struct ovni_ethread {
 	/* FIXME: Use a table with registrable pointers to custom data
 	 * structures */
 
-	/* nOS-V stack of tasks: points to the runnable task. */
-	struct nosv_task *task_stack;
+	/* Task stacks, top ones are the tasks currently runnable. */
+	struct task *nosv_task_stack;
+	struct task *nanos6_task_stack;
 
 	/* Channels are used to output the emulator state in PRV */
 	struct ovni_chan chan[CHAN_MAX];
@@ -331,8 +376,11 @@ struct ovni_eproc {
 	/* ------ Subsystem specific data --------*/
 	/* TODO: Use dynamic allocation */
 
-	struct nosv_task_type *types;
-	struct nosv_task *tasks;
+	struct task_type *nosv_types;
+	struct task *nosv_tasks;
+
+	struct task_type *nanos6_types;
+	struct task *nanos6_tasks;
 };
 
 
@@ -511,6 +559,10 @@ void hook_pre_nodes(struct ovni_emu *emu);
 
 void hook_init_kernel(struct ovni_emu *emu);
 void hook_pre_kernel(struct ovni_emu *emu);
+
+void hook_init_nanos6(struct ovni_emu *emu);
+void hook_pre_nanos6(struct ovni_emu *emu);
+void hook_end_nanos6(struct ovni_emu *emu);
 
 struct ovni_cpu *emu_get_cpu(struct ovni_loom *loom, int cpuid);
 

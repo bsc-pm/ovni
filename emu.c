@@ -266,12 +266,14 @@ hook_init(struct ovni_emu *emu)
 	hook_init_openmp(emu);
 	hook_init_nodes(emu);
 	hook_init_kernel(emu);
+	hook_init_nanos6(emu);
 }
 
 static void
 hook_end(struct ovni_emu *emu)
 {
 	hook_end_nosv(emu);
+	hook_end_nanos6(emu);
 }
 
 static void
@@ -285,6 +287,7 @@ hook_pre(struct ovni_emu *emu)
 		case 'M': hook_pre_openmp(emu); break;
 		case 'D': hook_pre_nodes(emu); break;
 		case 'K': hook_pre_kernel(emu); break;
+		case '6': hook_pre_nanos6(emu); break;
 		default:
 			break;
 	}
@@ -1095,10 +1098,10 @@ create_pcf_cpus(struct ovni_emu *emu)
 {
 	/* Only needed for the thread PCF */
 	struct pcf_file *pcf = &emu->pcf[CHAN_TH];
-	int prvtype = CHAN_PRV_TH(CHAN_OVNI_CPU);
+	int prvtype = chan_to_prvtype[CHAN_OVNI_CPU];
 	struct pcf_type *type = pcf_find_type(pcf, prvtype);
 
-	if (type == NULL)
+	if(type == NULL)
 		die("cannot find PCF type for CHAN_OVNI_CPU\n");
 
 	for(size_t i=0; i<emu->total_ncpus; i++)

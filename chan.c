@@ -68,7 +68,7 @@ chan_th_init(struct ovni_ethread *th,
 	int prvth;
 
 	chan = &th->chan[id];
-	prvth = CHAN_PRV_TH(id);
+	prvth = chan_to_prvtype[id];
 
 	chan_init(chan, track, row, prvth, prv, clock);
 
@@ -97,7 +97,7 @@ chan_cpu_init(struct ovni_cpu *cpu,
 	int prvcpu;
 
 	chan = &cpu->chan[id];
-	prvcpu = CHAN_PRV_CPU(id);
+	prvcpu = chan_to_prvtype[id];
 
 	chan_init(chan, track, row, prvcpu, prv, clock);
 

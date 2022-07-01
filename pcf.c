@@ -178,6 +178,29 @@ struct pcf_value_label kernel_cs_values[] = {
 	{ -1, NULL },
 };
 
+struct pcf_value_label nanos6_ss_values[] = {
+	{ ST_NULL,                    "NULL" },
+	{ ST_TOO_MANY_TH,             "Unknown: multiple threads running" },
+	{ ST_NANOS6_TASK_RUNNING,     "Task: Running" },
+	{ ST_NANOS6_SCHED_HUNGRY,     "Scheduler: Waiting for tasks" },
+	{ ST_NANOS6_SCHED_SERVING,    "Scheduler: Serving tasks" },
+	{ ST_NANOS6_SCHED_SUBMITTING, "Scheduler: Adding ready tasks" },
+	{ ST_NANOS6_SPAWNING,         "Task: Spawning function" },
+	{ ST_NANOS6_ATTACHED,         "Threading: Attached as external thread" },
+	{ ST_NANOS6_DEP_REG,          "Dependency: Registering" },
+	{ ST_NANOS6_DEP_UNREG,        "Dependency: Unregistering" },
+	{ ST_NANOS6_TASKWAIT,         "Blocking: Taskwait" },
+	{ ST_NANOS6_BLOCKING,         "Blocking: Blocking current task" },
+	{ ST_NANOS6_UNBLOCKING,       "Blocking: Unblocking remote task" },
+	{ ST_NANOS6_WAITFOR,          "Blocking: Wait For" },
+	{ ST_NANOS6_CREATING,         "Task: Creating" },
+	{ ST_NANOS6_SUBMIT,           "Task: Submitting" },
+	{ EV_NANOS6_SCHED_SEND,       "EV Scheduler: Send task" },
+	{ EV_NANOS6_SCHED_RECV,       "EV Scheduler: Recv task" },
+	{ EV_NANOS6_SCHED_SELF,       "EV Scheduler: Self-assign task" },
+	{ -1, NULL },
+};
+
 struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
 	[CHAN_OVNI_PID]         = &default_values,
 	[CHAN_OVNI_TID]         = &default_values,
@@ -197,6 +220,11 @@ struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
 	[CHAN_OPENMP_MODE]      = &openmp_mode_values,
 	[CHAN_NODES_SUBSYSTEM]  = &nodes_mode_values,
 
+	[CHAN_NANOS6_TASKID]    = &default_values,
+	[CHAN_NANOS6_TYPE]  	= &default_values,
+	[CHAN_NANOS6_SUBSYSTEM] = &nanos6_ss_values,
+	[CHAN_NANOS6_RANK]      = &default_values,
+
 	[CHAN_KERNEL_CS]        = &kernel_cs_values,
 };
 
@@ -215,11 +243,16 @@ char *pcf_chan_name[CHAN_MAX] = {
 	[CHAN_NOSV_TYPE]        = "nOS-V task type",
 	[CHAN_NOSV_APPID]       = "nOS-V task AppID",
 	[CHAN_NOSV_SUBSYSTEM]   = "nOS-V subsystem",
-	[CHAN_NOSV_RANK]        = "MPI rank",
+	[CHAN_NOSV_RANK]        = "nOS-V task MPI rank",
 
 	[CHAN_TAMPI_MODE]       = "TAMPI mode",
 	[CHAN_OPENMP_MODE]      = "OpenMP mode",
 	[CHAN_NODES_SUBSYSTEM]  = "NODES subsystem",
+
+	[CHAN_NANOS6_TASKID]    = "Nanos6 task ID",
+	[CHAN_NANOS6_TYPE]      = "Nanos6 task type",
+	[CHAN_NANOS6_SUBSYSTEM] = "Nanos6 subsystem",
+	[CHAN_NANOS6_RANK]      = "Nanos6 task MPI rank",
 
 	[CHAN_KERNEL_CS]        = "Context switches",
 };
@@ -252,6 +285,11 @@ int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
 	[CHAN_TAMPI_MODE]       = { RUN_TH, RUN_TH },
 	[CHAN_OPENMP_MODE]      = { RUN_TH, RUN_TH },
 	[CHAN_NODES_SUBSYSTEM]  = { RUN_TH, RUN_TH },
+
+	[CHAN_NANOS6_TASKID]    = { RUN_TH, RUN_TH },
+	[CHAN_NANOS6_TYPE]      = { RUN_TH, RUN_TH },
+	[CHAN_NANOS6_SUBSYSTEM] = { ACT_TH, RUN_TH },
+	[CHAN_NANOS6_RANK]   	= { RUN_TH, RUN_TH },
 
 	[CHAN_KERNEL_CS]        = { CUR_TH, ACT_TH },
 };
@@ -326,7 +364,7 @@ create_type(struct pcf_file *pcf, enum chan c)
 {
 	char label[MAX_PCF_LABEL];
 	enum chan_type ct = pcf->chantype;
-	int prv_type = chan_to_prvtype[c][ct];
+	int prv_type = chan_to_prvtype[c];
 
 	if(prv_type == -1)
 		return;

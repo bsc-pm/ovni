@@ -33,6 +33,12 @@ ovni_test(NAME nosv-nested-tasks-bad
 ovni_test(NAME nosv-task-types MP)
 ovni_test(NAME nosv-pause MP)
 
+ovni_test(NAME nanos6-nested-tasks)
+ovni_test(NAME nanos6-nested-tasks-bad)
+ovni_test(NAME nanos6-task-types MP)
+ovni_test(NAME nanos6-blocking MP)
+ovni_test(NAME nanos6-subsystems MP)
+
 if(BUILD_RT_TESTING)
   add_subdirectory(rt)
 endif()

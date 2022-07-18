@@ -13,7 +13,7 @@ build:debian-latest:
       - install/
 
 build:old-glibc:
-  image: nixos/nix:latest
+  image: nixos/nix:2.9.2
   stage: build
   script: 
     - nix-build nix/old-glibc.nix

@@ -48,6 +48,9 @@ typedef struct json_value_t  JSON_Value;
 /* Reserved buffer for event allocation per thread */
 #define OVNI_MAX_EV_BUF (2 * 1024LL * 1024LL) /* 2 MiB */
 
+#define OVNI_STREAM_MAGIC "ovni"
+#define OVNI_STREAM_VERSION 1
+
 /* ----------------------- common ------------------------ */
 
 enum ovni_ev_flags {
@@ -90,6 +93,11 @@ struct __attribute__((__packed__)) ovni_ev {
 	 *   - normal: 0, or 2 to 16 bytes
 	 *   - jumbo: 0 to 2^32 - 1 bytes */
 	union ovni_ev_payload payload;
+};
+
+struct __attribute__((__packed__)) ovni_stream_header {
+	char magic[4];
+	uint32_t version;
 };
 
 /* ----------------------- runtime ------------------------ */

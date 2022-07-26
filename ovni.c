@@ -378,6 +378,42 @@ ovni_proc_fini(void)
 	}
 }
 
+static void
+write_evbuf(uint8_t *buf, size_t size)
+{
+	do
+	{
+		ssize_t written = write(rthread.streamfd, buf, size);
+
+		if(written < 0)
+			die("failed to write buffer to disk: %s\n", strerror(errno));
+
+		size -= written;
+		buf += written;
+	} while(size > 0);
+}
+
+static void
+flush_evbuf(void)
+{
+	write_evbuf(rthread.evbuf, rthread.evlen);
+
+	rthread.evlen = 0;
+}
+
+static void
+write_stream_header(void)
+{
+	struct ovni_stream_header *h =
+		(struct ovni_stream_header *) rthread.evbuf;
+
+	memcpy(h->magic, OVNI_STREAM_MAGIC, 4);
+	h->version = OVNI_STREAM_VERSION;
+
+	rthread.evlen = sizeof(struct ovni_stream_header);
+	flush_evbuf();
+}
+
 void
 ovni_thread_init(pid_t tid)
 {
@@ -403,6 +439,7 @@ ovni_thread_init(pid_t tid)
 		die("ovni_thread_init: malloc failed: %s", strerror(errno));
 
 	create_trace_stream();
+	write_stream_header();
 
 	rthread.ready = 1;
 }
@@ -454,29 +491,6 @@ ovni_clock_now(void)
 #else
 	return clock_monotonic_now();
 #endif
-}
-
-static void
-write_evbuf(uint8_t *buf, size_t size)
-{
-	do
-	{
-		ssize_t written = write(rthread.streamfd, buf, size);
-
-		if(written < 0)
-			die("failed to write buffer to disk: %s\n", strerror(errno));
-
-		size -= written;
-		buf += written;
-	} while(size > 0);
-}
-
-static void
-flush_evbuf(void)
-{
-	write_evbuf(rthread.evbuf, rthread.evlen);
-
-	rthread.evlen = 0;
 }
 
 void

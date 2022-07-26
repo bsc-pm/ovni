@@ -443,9 +443,74 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 }
 
 static int
-load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
+check_stream_header(struct ovni_stream *stream)
+{
+	int ret = 0;
+
+	if(stream->size < sizeof(struct ovni_stream_header))
+	{
+		err("stream %d: incomplete stream header\n",
+				stream->tid);
+		return -1;
+	}
+
+	struct ovni_stream_header *h =
+		(struct ovni_stream_header *) stream->buf;
+
+	if(memcmp(h->magic, OVNI_STREAM_MAGIC, 4) != 0)
+	{
+		char magic[5];
+		memcpy(magic, h->magic, 4);
+		magic[4] = '\0';
+		err("stream %d: wrong stream magic '%s' (expected '%s')\n",
+				stream->tid, magic, OVNI_STREAM_MAGIC);
+		ret = -1;
+	}
+
+	if(h->version != OVNI_STREAM_VERSION)
+	{
+		err("stream %d: stream version mismatch %u (expected %u)\n",
+				stream->tid, h->version, OVNI_STREAM_VERSION);
+		ret = -1;
+	}
+
+	return ret;
+}
+
+static int
+load_stream_fd(struct ovni_stream *stream, int fd)
 {
 	struct stat st;
+	if(fstat(fd, &st) < 0)
+	{
+		perror("fstat failed");
+		return -1;
+	}
+
+	/* Error because it doesn't have the header */
+	if(st.st_size == 0)
+	{
+		err("stream %d is empty\n", stream->tid);
+		return -1;
+	}
+
+	int prot = PROT_READ | PROT_WRITE;
+	stream->buf = mmap(NULL, st.st_size, prot, MAP_PRIVATE, fd, 0);
+
+	if(stream->buf == MAP_FAILED)
+	{
+		perror("mmap failed");
+		return -1;
+	}
+
+	stream->size = st.st_size;
+
+	return 0;
+}
+
+static int
+load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
+{
 	int fd;
 
 	if((fd = open(thread->tracefile, O_RDWR)) == -1)
@@ -454,34 +519,21 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 		return -1;
 	}
 
-	if(fstat(fd, &st) < 0)
+	if(load_stream_fd(stream, fd) != 0)
+		return -1;
+
+	if(check_stream_header(stream) != 0)
 	{
-		perror("fstat failed");
+		err("stream %d: bad header\n", stream->tid);
 		return -1;
 	}
 
-	if(st.st_size == 0)
-	{
-		err("warning: stream %d is empty\n", stream->tid);
-		stream->size = 0;
-		stream->buf = NULL;
+	stream->offset = sizeof(struct ovni_stream_header);
+
+	if(stream->offset == stream->size)
 		stream->active = 0;
-
-		/* No need to do anything else */
-		return 0;
-	}
-
-	stream->size = st.st_size;
-	stream->buf = mmap(NULL, stream->size, PROT_READ | PROT_WRITE,
-			MAP_PRIVATE, fd, 0);
-
-	if(stream->buf == MAP_FAILED)
-	{
-		perror("mmap failed");
-		return -1;
-	}
-
-	stream->active = 1;
+	else
+		stream->active = 1;
 
 	/* No need to keep the fd open */
 	if(close(fd))
@@ -594,25 +646,15 @@ ovni_free_trace(struct ovni_trace *trace)
 int
 ovni_load_next_event(struct ovni_stream *stream)
 {
-	size_t size;
-
 	if(stream->active == 0)
 	{
 		dbg("stream is inactive, cannot load more events\n");
 		return -1;
 	}
 
-	if(stream->cur_ev == NULL)
-	{
-		stream->cur_ev = (struct ovni_ev *) stream->buf;
-		stream->offset = 0;
-		size = 0;
-		goto out;
-	}
-
-	//printf("advancing offset %ld bytes\n", ovni_ev_size(stream->cur_ev));
-	size = ovni_ev_size(stream->cur_ev);
-	stream->offset += size;
+	/* Only step the offset if we have load an event */
+	if(stream->cur_ev != NULL)
+		stream->offset += ovni_ev_size(stream->cur_ev);
 
 	/* It cannot overflow, otherwise we are reading garbage */
 	if(stream->offset > stream->size)
@@ -622,20 +664,12 @@ ovni_load_next_event(struct ovni_stream *stream)
 	if(stream->offset == stream->size)
 	{
 		stream->active = 0;
+		stream->cur_ev = NULL;
 		dbg("stream %d runs out of events\n", stream->tid);
 		return -1;
 	}
 
 	stream->cur_ev = (struct ovni_ev *) &stream->buf[stream->offset];
 
-out:
-
-	//dbg("---------\n");
-	//dbg("ev size = %d\n", ovni_ev_size(stream->cur_ev));
-	//dbg("ev flags = %02x\n", stream->cur_ev->header.flags);
-	//dbg("loaded next event:\n");
-	//hexdump((uint8_t *) stream->cur_ev, ovni_ev_size(stream->cur_ev));
-	//dbg("---------\n");
-
-	return (int) size;
+	return 0;
 }

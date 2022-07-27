@@ -146,6 +146,23 @@ check_metadata_version(struct ovni_eproc *proc)
 				proc->pid, version,
 				OVNI_METADATA_VERSION);
 	}
+
+	JSON_Value *mversion_val = json_object_get_value(meta, "model_version");
+	if(mversion_val == NULL)
+	{
+		die("process %d is missing attribute \"model_version\" in metadata\n",
+				proc->pid);
+	}
+
+	const char *mversion = json_string(mversion_val);
+
+	if(strcmp(mversion, OVNI_MODEL_VERSION) != 0)
+	{
+		die("pid %d: metadata model version mismatch '%s' (expected '%s')\n",
+				proc->pid, mversion,
+				OVNI_MODEL_VERSION);
+
+	}
 }
 
 static int

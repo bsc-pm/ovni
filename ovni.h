@@ -50,6 +50,7 @@ typedef struct json_value_t  JSON_Value;
 
 #define OVNI_STREAM_MAGIC "ovni"
 #define OVNI_STREAM_VERSION 1
+#define OVNI_MODEL_VERSION "O1 V1 T1 M1 D1 K1"
 
 /* ----------------------- common ------------------------ */
 

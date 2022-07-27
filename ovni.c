@@ -176,7 +176,10 @@ proc_set_version(void)
 		die("json_value_get_object failed\n");
 
 	if(json_object_set_number(meta, "version", OVNI_METADATA_VERSION) != 0)
-		die("json_object_set_number for app_id failed\n");
+		die("json_object_set_number for version failed\n");
+
+	if(json_object_set_string(meta, "model_version", OVNI_MODEL_VERSION) != 0)
+		die("json_object_set_string for model_version failed\n");
 }
 
 

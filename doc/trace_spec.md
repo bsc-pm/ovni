@@ -1,7 +1,7 @@
 # Trace specification version 1
 
-The ovni instrumentation library produces a trace with the following
-specification.
+The ovni instrumentation library stores the information collected in a
+trace following the specification of this document.
 
 The complete trace is stored in a top-level directory named "ovni".
 Inside this directory you will find the loom directories with the prefix
@@ -15,7 +15,7 @@ specified in the `pid` argument to `ovni_proc_init()`.
 Each process directory contains:
 
 - The metadata file `metadata.json`.
-- The thread traces with prefix `thread.`.
+- The thread streams with prefix `thread.`.
 
 ## Process metadata
 
@@ -27,6 +27,8 @@ The metadata is stored in the JSON file `metadata.json` inside each
 process directory and contains the following keys:
 
 - `version`: a number specifying the version of the metadata format.
+- `model_version`: a string with the version of each model supported by
+  the emulator.
 - `app_id`: the application ID, used to distinguish between applications
   running on the same loom.
 - `rank`: the rank of the MPI process (optional).
@@ -38,27 +40,66 @@ process directory and contains the following keys:
   - `phyid`: the number of the CPU as given by the operating system
     (which can exceed $`N_c`$).
 
-## Thread trace
+Here is an example of the `metadata.json` file:
 
-The thread trace is a binary file composed of events joined one after
-the other. Each event has a header with the following information:
+```
+{
+    "version": 1,
+    "model_version": "O1 V1 T1 M1 D1 K1",
+    "app_id": 1,
+    "rank": 0,
+    "nranks": 4,
+    "cpus": [
+        {
+            "index": 0,
+            "phyid": 0
+        },
+        {
+            "index": 1,
+            "phyid": 1
+        },
+        {
+            "index": 2,
+            "phyid": 2
+        },
+        {
+            "index": 3,
+            "phyid": 3
+        }
+    ]
+}
+```
+
+## Thread streams
+
+Streams are a binary files that contains a succession of events with
+monotonically increasing clock values. Streams have a small header and
+the variable size events just after the header.
+
+The header contains the magic 4 bytes of "ovni" and a version number of
+4 bytes too. Here is a figure of the data stored in disk:
+
+<img src="fig/stream.svg" alt="Stream" width="400px"/>
+
+Similarly, events have a fixed size header followed by an optional
+payload of varying size. The header has the following information:
 
 - Event flags
 - Payload size in a special format
 - Model, category and value codes
 - Time in nanoseconds
-- Payload (optional)
 
-The payload size is specified using 4 bits, with the value `0x0` for no
-payload, or with value $`v`$ for $`v + 1`$ bytes of payload. This
-allows us to use 16 bytes of payload with value `0xf` at the cost of
+The event size can vary depending on the data stored in the payload. The
+payload size is specified using 4 bits, with the value `0x0` for no
+payload, or with value $`v`$ for $`v + 1`$ bytes of payload. This allows
+us to use 16 bytes of payload with value `0xf` at the cost of
 sacrificing payloads of one byte.
 
 There are two types of events, depending of the size needed for the
 payload:
 
-- Normal: with a payload up to 16 bytes
-- Jumbo: with a payload up to 2^32 bytes
+- Normal events: with a payload up to 16 bytes
+- Jumbo events: with a payload up to 2^32 bytes
 
 ## Normal events
 
@@ -74,8 +115,7 @@ Here is an example of a normal event without payload, a total of 12
 bytes:
 
 ```
-% dd if=thread.552943 skip=5258 bs=1 | hexdump -C 
-00000000  00 4f 48 65 01 c5 cf 1d  96 d0 12 00              |.OHe........|
+00 4f 48 65 01 c5 cf 1d  96 d0 12 00              |.OHe........|
 ```
 
 And in the following figure you can see every field annotated: 
@@ -83,12 +123,11 @@ And in the following figure you can see every field annotated:
 <img src="fig/event-normal.svg" alt="Normal event without payload" width="400px"/>
 
 Another example of a normal event with 16 bytes of payload, a total of
-28 bytes as reported by hexdump:
+28 bytes:
 
 ```
-% dd if=thread.552943 bs=1 count=28 | hexdump -C
-00000000  0f 4f 48 78 58 c1 b0 b5  95 43 11 00 00 00 00 00  |.OHxX....C......|
-00000010  ff ff ff ff 00 00 00 00  00 00 00 00              |............|
+0f 4f 48 78 58 c1 b0 b5  95 43 11 00 00 00 00 00  |.OHxX....C......|
+ff ff ff ff 00 00 00 00  00 00 00 00              |............|
 ```
 
 In the following figure you can see each field annotated:
@@ -112,8 +151,8 @@ Example of a jumbo event of 30 bytes in total, with 14 bytes of jumbo
 data:
 
 ```
-00000000  13 56 59 63 eb c1 4b 1a  96 d0 12 00 0e 00 00 00  |.VYc..K.........|
-00000010  01 00 00 00 74 65 73 74  74 79 70 65 31 00        |....testtype1.|
+13 56 59 63 eb c1 4b 1a  96 d0 12 00 0e 00 00 00  |.VYc..K.........|
+01 00 00 00 74 65 73 74  74 79 70 65 31 00        |....testtype1.|
 ```
 
 In the following figure you can see each field annotated:
@@ -122,38 +161,43 @@ In the following figure you can see each field annotated:
 
 ## Design considerations
 
-The trace format has been designed to be very simple, so writing a
-parser library would take no more than 2 days.
+The stream format has been designed to be very simple, so writing a
+parser library would take no more than 2 days for a single developer.
 
-The common events don't use any payload, so the size per event is kept
-at the minimum of 12 bytes.
+The size of the events has been designed to be small, with 12 bytes per
+event when no payload is used.
 
 **Important:** The events are stored in disk following the endianness of
-the machine where they are generated. So a trace generated with a little
-endian machine would be different than on a big endian machine. Using
-the same endiannes avoids the cost of serialization when writting the
-trace at runtime.
+the machine where they are generated. So a stream generated with a little
+endian machine would be different than on a big endian machine. We
+assume the same endiannes is used to write the trace at runtime and read
+it after, at the emulation process.
 
 The events are designed to be easily identified when looking at the
-raw trace in binary, as the MCV codes can be read as ASCII characters:
+raw stream in binary, as the MCV codes can be read as ASCII characters:
 
 ```
-00000000  0f 4f 48 78 58 c1 b0 b5  95 43 11 00 00 00 00 00  |.OHxX....C......|
-00000010  ff ff ff ff 00 00 00 00  00 00 00 00 00 36 53 72  |.............6Sr|
-00000020  ab cb b0 b5 95 43 11 00  00 36 53 73 78 c3 b9 b5  |.....C...6Ssx...|
-00000030  95 43 11 00 00 36 53 40  87 a4 c2 b5 95 43 11 00  |.C...6S@.....C..|
-00000040  00 36 53 68 9c 4b cb b5  95 43 11 00 00 36 53 66  |.6Sh.K...C...6Sf|
-00000050  85 44 d4 b5 95 43 11 00  00 36 53 5b cb e7 dc b5  |.D...C...6S[....|
-00000060  95 43 11 00 00 36 53 5d  cf ca e5 b5 95 43 11 00  |.C...6S].....C..|
-00000070  00 36 53 75 8c db ee b5  95 43 11 00 00 36 53 55  |.6Su.....C...6SU|
-00000080  5a 70 f8 b5 95 43 11 00  00 36 55 5b 1b ae 01 b6  |Zp...C...6U[....|
-00000090  95 43 11 00 00 36 55 5d  aa 19 0b b6 95 43 11 00  |.C...6U].....C..|
+00000000  6f 76 6e 69 01 00 00 00  0f 4f 48 78 08 ba 2e 5c  |ovni.....OHx...\|
+00000010  b5 b0 00 00 00 00 00 00  ff ff ff ff 00 00 00 00  |................|
+00000020  00 00 00 00 13 56 59 63  3c c2 2e 5c b5 b0 00 00  |.....VYc<..\....|
+00000030  0e 00 00 00 01 00 00 00  74 65 73 74 74 79 70 65  |........testtype|
+00000040  31 00 07 56 54 63 43 cc  2e 5c b5 b0 00 00 01 00  |1..VTcC..\......|
+00000050  00 00 01 00 00 00 03 56  54 78 03 cd 2e 5c b5 b0  |.......VTx...\..|
+00000060  00 00 01 00 00 00 03 56  54 70 2b 7d 37 5c b5 b0  |.......VTp+}7\..|
+00000070  00 00 01 00 00 00 03 56  54 72 c3 4d 40 5c b5 b0  |.......VTr.M@\..|
+00000080  00 00 01 00 00 00 03 56  54 65 03 36 49 5c b5 b0  |.......VTe.6I\..|
+00000090  00 00 01 00 00 00 00 4f  48 65 f5 36 49 5c b5 b0  |.......OHe.6I\..|
+000000a0  00 00                                             |..|
 ```
 
-This allows a human to detect signs of corruption by just visually
-inspecting the trace.
+This allows a human to detect signs of corruption by visually inspecting
+the streams.
 
 ## Limitations
 
-The traces are designed to be read only forward, as they only contain
+The streams are designed to be read only forward, as they only contain
 the size of each event in the header.
+
+Currently, we only support using the threads as sources of events, using
+one stream per thread. However, adding support for more streams from
+multiple sources is planned for the future.

@@ -1,6 +1,9 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <stdio.h>
+#include <stdlib.h>
+
 /* Debug macros */
 
 #ifdef ENABLE_DEBUG

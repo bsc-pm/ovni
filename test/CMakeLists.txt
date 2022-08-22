@@ -17,31 +17,22 @@
 set(OVNI_TEST_SOURCE_DIR "${CMAKE_SOURCE_DIR}/test")
 set(OVNI_TEST_BUILD_DIR "${CMAKE_BINARY_DIR}/test")
 
-macro(ovni_test name driver)
-  add_executable("${name}" "${name}.c")
-  target_link_libraries("${name}" ovni)
-
-  add_test(NAME "${name}"
-    COMMAND "${OVNI_TEST_SOURCE_DIR}/${driver}" "${name}"
-    WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
-
-  set_property(TEST "${name}" PROPERTY RUN_SERIAL TRUE)
-
-  if("${name}" MATCHES ".*-bad")
-    set_property(TEST "${name}" PROPERTY WILL_FAIL TRUE)
-  endif()
-
-endmacro()
+include(macros.cmake)
 
 # Only run performance sensitive tests on Release builds
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  ovni_test("flush-overhead" "driver.sh")
+  ovni_test(NAME flush-overhead)
 endif()
 
-ovni_test("flush" "driver.sh")
-ovni_test("mp-simple" "mp-driver.sh")
-ovni_test("mp-rank" "mp-driver.sh")
-ovni_test("nosv-nested-tasks" "driver.sh")
-ovni_test("nosv-nested-tasks-bad" "driver.sh")
-ovni_test("nosv-task-types" "mp-driver.sh")
-ovni_test("nosv-pause" "mp-driver.sh")
+ovni_test(NAME flush)
+ovni_test(NAME mp-simple MP)
+ovni_test(NAME mp-rank MP)
+ovni_test(NAME nosv-nested-tasks)
+ovni_test(NAME nosv-nested-tasks-bad
+  SHOULD_FAIL REGEX "fatal: unknown task type id 1")
+ovni_test(NAME nosv-task-types MP)
+ovni_test(NAME nosv-pause MP)
+
+if(BUILD_RT_TESTING)
+  add_subdirectory(rt)
+endif()

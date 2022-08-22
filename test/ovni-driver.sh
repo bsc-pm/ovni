@@ -17,25 +17,30 @@
 
 set -e
 
-testname="$1"
+dir=$(readlink -f "${OVNI_CURRENT_DIR}")
+testname="$dir/$1"
+workdir="${testname}.trace"
+tracedir="${workdir}/ovni"
+emubin="${OVNI_BUILD_DIR}/ovniemu"
 
-if [ -z "$2" ]; then
-  NPROCS=4
-else
-  NPROCS="$2"
-fi
-
-tracedir="ovni"
-emubin=../ovniemu
+mkdir -p "${workdir}"
+cd "${workdir}"
 
 rm -rf "$tracedir"
 
-for i in $(seq 1 $NPROCS); do
-  # Run the test in the background
-  OVNI_RANK=$(($i-1)) OVNI_NRANKS=$NPROCS "./$testname" &
-done
+if [ -z "$OVNI_NPROCS" ]; then
+  OVNI_NPROCS=1
+fi
 
-wait
+if [ "$OVNI_NPROCS" -gt 1 ]; then
+  for i in $(seq 1 "$OVNI_NPROCS"); do
+    # Run the test in the background
+    OVNI_RANK=$(($i-1)) OVNI_NRANKS=$OVNI_NPROCS "$testname" &
+  done
+  wait
+else
+  "$testname"
+fi
 
 # Then launch the emulator in lint mode
 "$emubin" -l "$tracedir"

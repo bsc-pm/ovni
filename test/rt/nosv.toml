@@ -1,0 +1,90 @@
+# This file is part of nOS-V and is licensed under the terms contained in the COPYING file
+#
+# Copyright (C) 2021-2022 Barcelona Supercomputing Center (BSC)
+
+# Default nOS-V configuration file.
+# Note that every process in the same nOS-V instance should load an identical configuration file,
+# otherwise, the behaviour is unspecified
+
+# Shared memory configuration
+[shared_memory]
+	# Name of the shared memory section. This can be leveraged to create two separate nOS-V instances
+	# in the same system. Generally this has to remain unchanged
+	name = "nosv"
+	# Size of the shared memory section. Choose powers of two
+	size = "2G"
+	# Start of the shared memory mapping
+	# This option should be memory address codified in hexadecimal (start with 0x)
+	start = 0x0000200000000000
+
+# Scheduler configuration
+# These parameters allow to fine tune the scheduler's behaviour
+[scheduler]
+	# Number of logical CPUs mapped to a single scheduler SPSC for ready tasks
+	# Minimum is 1, there is no maximum. Try to choose numbers that divide evenly the number
+	# of CPUs in the system.
+	# A lower number will yield more scheduling throughput and is adequate when using
+	# multiple task creator processes.
+	# A higher number will yield lower scheduling latency and is adequate when using one or few
+	# task creator processes
+	cpus_per_queue = 1
+	# Number of tasks that are grabbed off of a queue when processing ready tasks.
+	# Lowering the number may be better if there are very few ready tasks during execution.
+	# Increasing the batch may help if your CPU has bad single-thread performance.
+	# In general, the default value of 64 should result in a good trade-off
+	queue_batch = 64
+	# Scheduler quantum in ns. This is a guideline for how long should we execute one process' tasks
+	# until we have to switch to the next one. However, as nOS-V tasks are not preemptable, it isn't enforced.
+	# This parameter is specially relevant for the nosv_schedpoint function, which will try to schedule
+	# each quantum ns.
+	# A lower value will cause more inter-process context switches but may provide more uniform progress,
+	# while a higher value will minimize context switches but may stall applications for longer
+	quantum_ns = 20000000 # nanoseconds
+	# Size of the queues that are used to place tasks into the scheduler
+	# A good value should be a multiple of queue_batch
+	in_queue_size = 256
+
+# CPU Governor configuration
+# Controls the policy that nOS-V follows to block idle CPUs to save energy and resources
+[governor]
+	# There is a choice between three different governor policies:
+	# - hybrid: CPUs will spin for governor.spins before going to sleep when no work is available
+	# - idle: CPUs will sleep immediately when no work is available
+	# - busy: CPUs will never sleep
+	# In general, use idle when targeting minimum power usage, and busy when targeting maximum performance
+	# The default is hybrid as it provides a good balance between power and performance.
+	policy = "hybrid"
+	# Number of times a CPU will spin without sleeping in the "hybrid" policy.
+	# When "idle" or "busy" are selected, this setting is ignored
+	spins = 10000
+
+# Debug options
+[debug]
+	# Dump all the configuration options nOS-V is running with, its final parsed values and the
+	# path of the config file being used
+	dump_config = false
+
+# Hardware Counters configuration
+[hwcounters]
+	# Whether to print verbose information if a backend is enabled
+	verbose = false
+	# The enabled HWCounter backends. Possible options: "papi", "none"
+	backend = "none"
+	# The list of PAPI counters to read. By default only "PAPI_TOT_INS" and "PAPI_TOT_CYC"
+	papi_events = [
+		"PAPI_TOT_INS",
+		"PAPI_TOT_CYC"
+	]
+
+# Enabling turbo will cause nOS-V to set architecture-specific optimization flags on every created
+# or attached threads. In x86, this will cause the FTZ and DAZ flags of the SSE FPU to be enabled,
+# causing a significant performance increase in floating-point applications, but disabling IEEE-754
+# compatibility.
+[turbo]
+	enabled = false
+
+# Monitoring cappabilities and configuration.
+[monitoring]
+	enabled = false
+	# Whether to print verbose information if monitoring is enabled
+	verbose = false

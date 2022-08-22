@@ -19,6 +19,9 @@ in
     # current directory as-is
     preConfigure = ''
       rm -rf build install
+
+      # There is no /bin/bash
+      patchShebangs test/*.sh
     '';
 
     cmakeBuildType = "Debug";

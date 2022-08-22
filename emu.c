@@ -1198,5 +1198,7 @@ main(int argc, char *argv[])
 
 	free(emu);
 
+	err("ovniemu finished\n");
+
 	return 0;
 }

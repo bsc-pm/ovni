@@ -15,10 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE
-
-#include "test/common.h"
-#include "test/nanos6.h"
+#include "test/instr_nanos6.h"
 
 int
 main(void)
@@ -28,18 +25,18 @@ main(void)
 	int ntasks = 100;
 	uint32_t typeid = 1;
 
-	type_create(typeid);
+	instr_nanos6_type_create(typeid);
 
 	/* Create and run the tasks, one nested into another */
 	for(int i = 0; i < ntasks; i++)
 	{
-		task_begin(i + 1, typeid);
+		instr_nanos6_task_create_and_execute(i + 1, typeid);
 		usleep(500);
 	}
 
 	/* End the tasks in the opposite order */
 	for(int i = ntasks - 1; i >= 0; i--)
-		task_end(i + 1);
+		instr_nanos6_task_end(i + 1);
 
 	instr_end();
 

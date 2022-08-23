@@ -15,10 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OVNI_TEST_COMMON_H
-#define OVNI_TEST_COMMON_H
+#ifndef OVNI_TEST_INSTR_H
+#define OVNI_TEST_INSTR_H
 
-#include "../common.h"
+#define _GNU_SOURCE /* For gethostname() */
+
+#include "common.h"
 #include "ovni.h"
 
 #include <inttypes.h>
@@ -86,4 +88,39 @@ instr_thread_end(void)
 	ovni_flush();
 }
 
-#endif /* OVNI_TEST_COMMON_H */
+static inline void
+instr_start(int rank, int nranks)
+{
+	char hostname[OVNI_MAX_HOSTNAME];
+	char rankname[OVNI_MAX_HOSTNAME + 64];
+
+	if(gethostname(hostname, HOST_NAME_MAX) != 0)
+		die("gethostname failed");
+
+	sprintf(rankname, "%s.%d", hostname, rank);
+
+	ovni_proc_init(1, rankname, getpid());
+	ovni_proc_set_rank(rank, nranks);
+	ovni_thread_init(gettid());
+
+	/* All ranks inform CPUs */
+	for(int i=0; i < nranks; i++)
+		ovni_add_cpu(i, i);
+
+	int curcpu = rank;
+
+	dbg("thread %d has cpu %d (ncpus=%d)\n",
+			gettid(), curcpu, nranks);
+
+	instr_thread_execute(curcpu, -1, 0);
+}
+
+static inline void
+instr_end(void)
+{
+	instr_thread_end();
+	ovni_thread_free();
+	ovni_proc_fini();
+}
+
+#endif /* OVNI_TEST_INSTR_H */

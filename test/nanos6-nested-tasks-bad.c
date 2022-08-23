@@ -15,23 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE
-
-#include "test/common.h"
-#include "test/nanos6.h"
+#include "test/instr_nanos6.h"
 
 int
 main(void)
 {
 	instr_start(0, 1);
 
-	/* Create two nested tasks with the same task_id: this should
-	 * fail */
-	task_begin(1, 500);
-	task_begin(1, 500);
+	uint32_t typeid = 666;
+	instr_nanos6_type_create(typeid);
+
+	uint32_t taskid = 1;
+	instr_nanos6_task_create(taskid, typeid);
+	instr_nanos6_task_create_end();
+	instr_nanos6_task_execute(taskid);
+	/* Run another nested task with same id (should fail) */
+	instr_nanos6_task_execute(taskid);
 
 	instr_end();
 
 	return 0;
 }
-

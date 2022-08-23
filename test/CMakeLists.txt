@@ -27,17 +27,21 @@ endif()
 ovni_test(NAME flush)
 ovni_test(NAME mp-simple MP)
 ovni_test(NAME mp-rank MP)
+
 ovni_test(NAME nosv-nested-tasks)
-ovni_test(NAME nosv-nested-tasks-bad
-  SHOULD_FAIL REGEX "fatal: unknown task type id 1")
+ovni_test(NAME nosv-nested-tasks-bad SHOULD_FAIL
+  REGEX "fatal: cannot execute task 1: state is not created")
 ovni_test(NAME nosv-task-types MP)
 ovni_test(NAME nosv-pause MP)
 
 ovni_test(NAME nanos6-nested-tasks)
-ovni_test(NAME nanos6-nested-tasks-bad)
+ovni_test(NAME nanos6-nested-tasks-bad SHOULD_FAIL
+  REGEX "fatal: cannot execute task 1: state is not created")
 ovni_test(NAME nanos6-task-types MP)
 ovni_test(NAME nanos6-blocking MP)
 ovni_test(NAME nanos6-subsystems MP)
+ovni_test(NAME nanos6-ss-mismatch MP SHOULD_FAIL
+  REGEX "fatal: thread 0 has left 1 state(s) in the subsystem channel, top state=2")
 
 if(BUILD_RT_TESTING)
   add_subdirectory(rt)

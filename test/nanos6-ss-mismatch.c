@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+ * Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,32 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "instr_nosv.h"
+#include "instr_nanos6.h"
 
 int
 main(void)
 {
 	int rank = atoi(getenv("OVNI_RANK"));
 	int nranks = atoi(getenv("OVNI_NRANKS"));
-
 	instr_start(rank, nranks);
 
-	int ntasks = 100;
-	int ntypes = 10;
-
-	for(int i=0; i<ntypes; i++)
-		instr_nosv_type_create(i + 1);
-
-	for(int i=0; i<ntasks; i++)
-	{
-		instr_nosv_task_create(i + 1, (i % ntypes) + 1);
-		instr_nosv_task_execute(i + 1);
-		usleep(500);
-		instr_nosv_task_end(i + 1);
-	}
+	instr_nanos6_sched_hungry();
+	/* The thread is left in the hungry state (should fail) */
 
 	instr_end();
 
 	return 0;
 }
-

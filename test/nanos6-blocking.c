@@ -15,10 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE
-
-#include "test/common.h"
-#include "test/nanos6.h"
+#include "test/instr_nanos6.h"
 
 int
 main(void)
@@ -30,18 +27,17 @@ main(void)
 	int us = 500;
 	uint32_t typeid = 1;
 
-	type_create(typeid);
+	instr_nanos6_type_create(typeid);
 
-	task_begin(1, typeid);
+	instr_nanos6_task_create_and_execute(1, typeid);
 	usleep(us);
-	block_enter(1);
+	instr_nanos6_block_enter(1);
 	usleep(us);
-	block_exit(1);
+	instr_nanos6_block_exit(1);
 	usleep(us);
-	task_end(1);
+	instr_nanos6_task_end(1);
 
 	instr_end();
 
 	return 0;
 }
-

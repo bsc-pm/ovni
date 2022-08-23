@@ -15,10 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE
-
-#include "test/common.h"
-#include "test/nanos6.h"
+#include "instr_nanos6.h"
 
 int
 main(void)
@@ -32,58 +29,36 @@ main(void)
 	int32_t typeid = 1;
 	int32_t taskid = 1;
 
-	type_create(typeid);
-	task_begin(taskid, typeid);
+	instr_nanos6_type_create(typeid);
+	instr_nanos6_task_create_and_execute(taskid, typeid);
 
-	sched_receive_task();
-	usleep(us);
-	sched_assign_task();
-	usleep(us);
-	sched_self_assign_task();
-	usleep(us);
-	sched_hungry();
-	usleep(us);
-	sched_fill();
-	usleep(us);
-	sched_server_enter();
-	usleep(us);
-	sched_server_exit();
-	usleep(us);
-	sched_submit_enter();
-	usleep(us);
-	sched_submit_exit();
-	usleep(us);
-	enter_submit_task();
-	usleep(us);
-	exit_submit_task();
-	usleep(us);
-	block_enter(taskid);
-	usleep(us);
-	block_exit(taskid);
-	usleep(us);
-	waitfor_enter(taskid);
-	usleep(us);
-	waitfor_exit(taskid);
-	usleep(us);
-	register_accesses_enter();
-	usleep(us);
-	register_accesses_exit();
-	usleep(us);
-	unregister_accesses_enter();
-	usleep(us);
-	unregister_accesses_exit();
-	usleep(us);
-	task_wait_enter(taskid);
-	usleep(us);
-	task_wait_exit(taskid);
-	usleep(us);
-	spawn_function_enter();
-	usleep(us);
-	spawn_function_exit();
-	usleep(us);
+	instr_nanos6_sched_receive_task(); usleep(us);
+	instr_nanos6_sched_assign_task(); usleep(us);
+	instr_nanos6_sched_self_assign_task(); usleep(us);
+	instr_nanos6_sched_hungry(); usleep(us);
+	instr_nanos6_sched_fill(); usleep(us);
+	instr_nanos6_sched_server_enter(); usleep(us);
+	instr_nanos6_sched_server_exit(); usleep(us);
+	instr_nanos6_sched_submit_enter(); usleep(us);
+	instr_nanos6_sched_submit_exit(); usleep(us);
+	instr_nanos6_enter_submit_task(); usleep(us);
+	instr_nanos6_exit_submit_task(); usleep(us);
+	instr_nanos6_block_enter(taskid); usleep(us);
+	instr_nanos6_block_exit(taskid); usleep(us);
+	instr_nanos6_waitfor_enter(taskid); usleep(us);
+	instr_nanos6_waitfor_exit(taskid); usleep(us);
+	instr_nanos6_register_accesses_enter(); usleep(us);
+	instr_nanos6_register_accesses_exit(); usleep(us);
+	instr_nanos6_unregister_accesses_enter(); usleep(us);
+	instr_nanos6_unregister_accesses_exit(); usleep(us);
+	instr_nanos6_task_wait_enter(taskid); usleep(us);
+	instr_nanos6_task_wait_exit(taskid); usleep(us);
+	instr_nanos6_spawn_function_enter(); usleep(us);
+	instr_nanos6_spawn_function_exit(); usleep(us);
+
+	instr_nanos6_task_end(taskid);
 
 	instr_end();
 
 	return 0;
 }
-

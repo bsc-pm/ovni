@@ -32,14 +32,14 @@ task_create(uint32_t task_id, uint32_t type_id, struct task **task_map, struct t
 	HASH_FIND_INT(*task_map, &task_id, task);
 
 	if(task != NULL)
-		die("a task with id %u already exists\n", task_id);
+		die("cannot create a task with id %u: already exists\n", task_id);
 
 	/* Ensure the type exists */
 	struct task_type *type = NULL;
 	HASH_FIND_INT(*type_map, &type_id, type);
 
 	if(type == NULL)
-		die("unknown task type id %u\n", type_id);
+		die("cannot create task: unknown type id %u\n", type_id);
 
 	task = calloc(1, sizeof(*task));
 
@@ -68,7 +68,7 @@ task_execute(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **ta
 		die("cannot find task with id %u\n", task_id);
 
 	if(task->state != TASK_ST_CREATED)
-		die("task state is not created\n");
+		die("cannot execute task %u: state is not created\n", task_id);
 
 	if(task->thread != NULL)
 		die("task already has a thread assigned\n");

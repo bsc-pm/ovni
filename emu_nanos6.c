@@ -417,6 +417,23 @@ hook_pre_nanos6(struct ovni_emu *emu)
 	check_affinity(emu);
 }
 
+static void
+end_lint(struct ovni_emu *emu)
+{
+	/* Ensure we run out of subsystem states */
+	for(size_t i = 0; i < emu->total_nthreads; i++)
+	{
+		struct ovni_ethread *th = emu->global_thread[i];
+		struct ovni_chan *ch = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+		if(ch->n != 1)
+		{
+			int top = ch->stack[ch->n - 1];
+			die("thread %ld has left %d state(s) in the subsystem channel, top state=%d\n",
+					i, ch->n - 1, top);
+		}
+	}
+}
+
 void
 hook_end_nanos6(struct ovni_emu *emu)
 {
@@ -437,4 +454,8 @@ hook_end_nanos6(struct ovni_emu *emu)
 			}
 		}
 	}
+
+	/* When running in linter mode perform additional checks */
+	if(emu->enable_linter)
+		end_lint(emu);
 }

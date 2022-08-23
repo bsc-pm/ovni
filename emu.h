@@ -103,27 +103,27 @@ enum nodes_state {
 /* The values of nanos6_ss_state are synced to the previous
  * CTF implementation. */
 enum nanos6_ss_state {
-	ST_NANOS6_NULL = 0,				/* IDLE */
-									/* RUNTIME */
-	ST_NANOS6_SCHED_HUNGRY = 2,		/* BUSY_WAIT */
-	ST_NANOS6_TASK_RUNNING = 3, 	/* TASK */
-	ST_NANOS6_DEP_REG = 4, 			/* DEPENDENCY_REGISTER */
-	ST_NANOS6_DEP_UNREG = 5, 		/* DEPENDENCY_UNREGISTER */
+	ST_NANOS6_NULL = 0,             /* IDLE */
+	                                /* RUNTIME */
+	ST_NANOS6_SCHED_HUNGRY = 2,     /* BUSY_WAIT */
+	ST_NANOS6_TASK_RUNNING = 3,     /* TASK */
+	ST_NANOS6_DEP_REG = 4,          /* DEPENDENCY_REGISTER */
+	ST_NANOS6_DEP_UNREG = 5,        /* DEPENDENCY_UNREGISTER */
 	ST_NANOS6_SCHED_SUBMITTING = 6, /* SCHEDULER_ADD_TASK */
-									/* SCHEDULER_GET_TASK */
-	ST_NANOS6_CREATING = 8, 		/* TASK_CREATE */
-									/* TASK_ARGS_INIT */
-	ST_NANOS6_SUBMIT = 10, 			/* TASK_SUBMIT */
-									/* TASKFOR_INIT */
-	ST_NANOS6_TASKWAIT = 12, 		/* TASK_WAIT */
-	ST_NANOS6_WAITFOR = 13, 		/* WAIT_FOR */
-									/* LOCK */
-									/* UNLOCK */
-	ST_NANOS6_BLOCKING = 16,		/* BLOCKING_API_BLOCK */
-	ST_NANOS6_UNBLOCKING = 17,		/* BLOCKING_API_UNBLOCK */
-	ST_NANOS6_SPAWNING = 18,		/* SPAWN_FUNCTION */
-									/* SCHEDULER_LOCK_ENTER */
-	ST_NANOS6_SCHED_SERVING = 20,	/* SCHEDULER_LOCK_SERVING */
+	                                /* SCHEDULER_GET_TASK */
+	ST_NANOS6_CREATING = 8,         /* TASK_CREATE */
+	                                /* TASK_ARGS_INIT */
+	ST_NANOS6_SUBMIT = 10,          /* TASK_SUBMIT */
+	                                /* TASKFOR_INIT */
+	ST_NANOS6_TASKWAIT = 12,        /* TASK_WAIT */
+	ST_NANOS6_WAITFOR = 13,         /* WAIT_FOR */
+	                                /* LOCK */
+	                                /* UNLOCK */
+	ST_NANOS6_BLOCKING = 16,        /* BLOCKING_API_BLOCK */
+	ST_NANOS6_UNBLOCKING = 17,      /* BLOCKING_API_UNBLOCK */
+	ST_NANOS6_SPAWNING = 18,        /* SPAWN_FUNCTION */
+	                                /* SCHEDULER_LOCK_ENTER */
+	ST_NANOS6_SCHED_SERVING = 20,   /* SCHEDULER_LOCK_SERVING */
 	ST_NANOS6_ATTACHED,
 
 	EV_NANOS6_SCHED_RECV,

@@ -101,6 +101,8 @@ find_destination(struct ring *r, uint64_t clock)
 {
 	ssize_t i, start, end, nback = 0;
 
+	(void) nback;
+
 	start = r->tail - 1 >= 0 ? r->tail - 1 : r->size - 1;
 	end = r->head - 1 >= 0 ? r->head - 1 : r->size - 1;
 
@@ -185,6 +187,8 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 	uint8_t *p, *q;
 	int64_t evsize, injected = 0;
 	struct ovni_ev *ep, *eq, *ev;
+
+	(void) injected;
 
 	p = src;
 	q = srcbad;
@@ -290,7 +294,6 @@ execute_sort_plan(struct sortplan *sp)
 static int
 stream_winsort(struct ovni_stream *stream, struct ring *r)
 {
-	ssize_t i;
 	struct ovni_ev *ev;
 	struct sortplan sp = {0};
 	//uint64_t lastclock = 0;
@@ -310,7 +313,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 	size_t empty_regions = 0;
 	size_t updated = 0;
 
-	for(i=0; stream->active; i++)
+	while(stream->active)
 	{
 		ovni_load_next_event(stream);
 		ev = stream->cur_ev;
@@ -381,7 +384,7 @@ stream_check(struct ovni_stream *stream)
 	uint64_t last_clock = ev->header.clock;
 	int ret = 0;
 
-	for(ssize_t i=0; stream->active; i++)
+	while(stream->active)
 	{
 		ovni_load_next_event(stream);
 		ev = stream->cur_ev;

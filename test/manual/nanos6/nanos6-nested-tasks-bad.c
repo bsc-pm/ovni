@@ -20,12 +20,17 @@
 int
 main(void)
 {
-	int rank = atoi(getenv("OVNI_RANK"));
-	int nranks = atoi(getenv("OVNI_NRANKS"));
-	instr_start(rank, nranks);
+	instr_start(0, 1);
 
-	instr_nanos6_sched_hungry();
-	/* The thread is left in the hungry state (should fail) */
+	uint32_t typeid = 666;
+	instr_nanos6_type_create(typeid);
+
+	uint32_t taskid = 1;
+	instr_nanos6_task_create(taskid, typeid);
+	instr_nanos6_task_create_end();
+	instr_nanos6_task_execute(taskid);
+	/* Run another nested task with same id (should fail) */
+	instr_nanos6_task_execute(taskid);
 
 	instr_end();
 

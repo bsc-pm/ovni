@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OVNI_TEST_INSTR_H
-#define OVNI_TEST_INSTR_H
+#ifndef INSTR_H
+#define INSTR_H
 
 #define _GNU_SOURCE /* For gethostname() */
 
@@ -123,4 +123,4 @@ instr_end(void)
 	ovni_proc_fini();
 }
 
-#endif /* OVNI_TEST_INSTR_H */
+#endif /* INSTR_H */

@@ -15,28 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "test/instr_nanos6.h"
+#include "instr_nanos6.h"
 
 int
 main(void)
 {
 	instr_start(0, 1);
 
-	int ntasks = 100;
-	uint32_t typeid = 1;
-
-	instr_nanos6_type_create(typeid);
-
-	/* Create and run the tasks, one nested into another */
-	for(int i = 0; i < ntasks; i++)
-	{
-		instr_nanos6_task_create_and_execute(i + 1, typeid);
-		usleep(500);
-	}
-
-	/* End the tasks in the opposite order */
-	for(int i = ntasks - 1; i >= 0; i--)
-		instr_nanos6_task_end(i + 1);
+	instr_nanos6_sched_hungry();
+	/* The thread is left in the hungry state (should fail) */
 
 	instr_end();
 

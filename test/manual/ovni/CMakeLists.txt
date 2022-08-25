@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,13 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set(OVNI_TEST_SOURCE_DIR "${CMAKE_SOURCE_DIR}/test")
-set(OVNI_TEST_BUILD_DIR "${CMAKE_BINARY_DIR}/test")
-
-include(macros.cmake)
-
-add_subdirectory(manual)
-
-if(ENABLE_TEST_RT)
-  add_subdirectory(rt)
+# Only run performance sensitive tests on Release builds
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  ovni_test(NAME flush-overhead)
 endif()
+
+ovni_test(NAME flush)
+ovni_test(NAME mp-simple MP)
+ovni_test(NAME mp-rank MP)

@@ -24,7 +24,9 @@ function(nosv_test)
     PUBLIC ${NOSV_INCLUDE_DIR})
   set_property(TEST "${OVNI_TEST_NAME}" APPEND
     PROPERTY
-      ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nosv.toml")
+      ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nosv/nosv.toml")
 endfunction()
 
 nosv_test(NAME nosv-attach SOURCE nosv/attach.c)
+
+add_subdirectory(nanos6)

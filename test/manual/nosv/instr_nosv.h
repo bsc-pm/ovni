@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OVNI_TEST_INSTR_NOSV_H
-#define OVNI_TEST_INSTR_NOSV_H
+#ifndef INSTR_NOSV_H
+#define INSTR_NOSV_H
 
-#include "test/instr.h"
+#include "../instr.h"
 #include "compat.h"
 
 static inline void
@@ -49,4 +49,4 @@ INSTR_1ARG(instr_nosv_task_resume, "VTr", int32_t, id)
 INSTR_1ARG(instr_nosv_task_end, "VTe", int32_t, id)
 
 
-#endif /* OVNI_TEST_INSTR_NOSV_H */
+#endif /* INSTR_NOSV_H */

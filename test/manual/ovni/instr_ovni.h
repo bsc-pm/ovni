@@ -15,29 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "test/instr_nanos6.h"
+#ifndef INSTR_OVNI_H
+#define INSTR_OVNI_H
 
-int
-main(void)
-{
-	int rank = atoi(getenv("OVNI_RANK"));
-	int nranks = atoi(getenv("OVNI_NRANKS"));
-	instr_start(rank, nranks);
+#include "../instr.h"
 
-	int us = 500;
-	uint32_t typeid = 1;
-
-	instr_nanos6_type_create(typeid);
-
-	instr_nanos6_task_create_and_execute(1, typeid);
-	usleep(us);
-	instr_nanos6_block_enter(1);
-	usleep(us);
-	instr_nanos6_block_exit(1);
-	usleep(us);
-	instr_nanos6_task_end(1);
-
-	instr_end();
-
-	return 0;
-}
+#endif /* INSTR_OVNI_H */

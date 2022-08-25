@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,13 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set(OVNI_TEST_SOURCE_DIR "${CMAKE_SOURCE_DIR}/test")
-set(OVNI_TEST_BUILD_DIR "${CMAKE_BINARY_DIR}/test")
-
-include(macros.cmake)
-
-add_subdirectory(manual)
-
-if(ENABLE_TEST_RT)
-  add_subdirectory(rt)
-endif()
+ovni_test(NAME nanos6-nested-tasks)
+ovni_test(NAME nanos6-nested-tasks-bad SHOULD_FAIL
+  REGEX "fatal: cannot execute task 1: state is not created")
+ovni_test(NAME nanos6-task-types MP)
+ovni_test(NAME nanos6-blocking MP)
+ovni_test(NAME nanos6-subsystems MP)
+ovni_test(NAME nanos6-ss-mismatch SHOULD_FAIL
+  REGEX "thread [0-9]\\+ ended with 1 extra stacked nanos6 subsystems, top=ST_NANOS6_SCHED_HUNGRY")

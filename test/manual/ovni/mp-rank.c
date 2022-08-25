@@ -22,7 +22,6 @@
 
 #include <assert.h>
 #include <inttypes.h>
-#include <sched.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,15 +33,6 @@ static void fail(const char *msg)
 {
 	fprintf(stderr, "%s\n", msg);
 	abort();
-}
-
-static inline void emit_ev(char *mcv)
-{
-	struct ovni_ev ev = { 0 };
-
-	ovni_ev_set_mcv(&ev, mcv);
-	ovni_ev_set_clock(&ev, ovni_clock_now());
-	ovni_ev_emit(&ev);
 }
 
 #define INSTR_3ARG(name, mcv, ta, a, tb, b, tc, c)               \
@@ -71,44 +61,31 @@ static inline void instr_thread_end(void)
 	ovni_flush();
 }
 
-static inline void instr_start(int rank)
+static inline void instr_start(int rank, int nranks)
 {
-	cpu_set_t mask;
 	char hostname[HOST_NAME_MAX];
-	int i, j = 0, curcpu = -1;
-	int last_phy;
 
 	if(gethostname(hostname, HOST_NAME_MAX) != 0)
 		fail("gethostname failed");
 
-	if(sched_getaffinity(0, sizeof(mask), &mask) < 0)
-		fail("sched_getaffinity failed");
-
 	ovni_proc_init(1, hostname, getpid());
+	
+	ovni_proc_set_rank(rank, nranks);
+
 	ovni_thread_init(gettid());
 
 	/* Only the rank 0 inform about all CPUs */
 	if(rank == 0)
 	{
-		for(i=0; i < CPU_SETSIZE; i++)
-		{
-			if(CPU_ISSET(i, &mask))
-			{
-				last_phy = i;
-
-				if (rank == 0)
-					ovni_add_cpu(j++, i);
-			}
-		}
+		/* Fake nranks cpus */
+		for(int i=0; i < nranks; i++)
+			ovni_add_cpu(i, i);
 	}
 
-	if(CPU_COUNT(&mask) == 1)
-		curcpu = last_phy;
-	else
-		curcpu = -1;
+	int curcpu = rank;
 
 	fprintf(stderr, "thread %d has cpu %d (ncpus=%d)\n",
-			gettid(), curcpu, CPU_COUNT(&mask));
+			gettid(), curcpu, nranks);
 
 	instr_thread_execute(curcpu, -1, 0);
 }
@@ -120,14 +97,68 @@ static inline void instr_end(void)
 	ovni_proc_fini();
 }
 
+static void
+type_create(int32_t typeid)
+{
+	struct ovni_ev ev = {0};
+
+	ovni_ev_set_mcv(&ev, "VYc");
+	ovni_ev_set_clock(&ev, ovni_clock_now());
+
+	char buf[256];
+	char *p = buf;
+
+	size_t nbytes = 0;
+	memcpy(buf, &typeid, sizeof(typeid));
+	p += sizeof(typeid);
+	nbytes += sizeof(typeid);
+	sprintf(p, "testtype%d", typeid);
+	nbytes += strlen(p) + 1;
+
+	ovni_ev_jumbo_emit(&ev, (uint8_t *) buf, nbytes);
+}
+
+static void
+task(int32_t id, uint32_t typeid, int us)
+{
+	struct ovni_ev ev = {0};
+
+	ovni_ev_set_mcv(&ev, "VTc");
+	ovni_ev_set_clock(&ev, ovni_clock_now());
+	ovni_payload_add(&ev, (uint8_t *) &id, sizeof(id));
+	ovni_payload_add(&ev, (uint8_t *) &typeid, sizeof(id));
+	ovni_ev_emit(&ev);
+
+	memset(&ev, 0, sizeof(ev));
+
+	ovni_ev_set_mcv(&ev, "VTx");
+	ovni_ev_set_clock(&ev, ovni_clock_now());
+	ovni_payload_add(&ev, (uint8_t *) &id, sizeof(id));
+	ovni_ev_emit(&ev);
+
+	usleep(us);
+
+	memset(&ev, 0, sizeof(ev));
+
+	ovni_ev_set_mcv(&ev, "VTe");
+	ovni_ev_set_clock(&ev, ovni_clock_now());
+	ovni_payload_add(&ev, (uint8_t *) &id, sizeof(id));
+	ovni_ev_emit(&ev);
+}
+
 int main(void)
 {
 	int rank = atoi(getenv("OVNI_RANK"));
-	//int nranks = atoi(getenv("OVNI_NRANKS"));
+	int nranks = atoi(getenv("OVNI_NRANKS"));
+	uint32_t typeid = 1;
 
-	instr_start(rank);
+	instr_start(rank, nranks);
 
-	usleep(50 * 1000);
+	type_create(typeid);
+
+	/* Create some fake nosv tasks */
+	for(int i=0; i<10; i++)
+		task(i + 1, typeid, 5000);
 
 	instr_end();
 

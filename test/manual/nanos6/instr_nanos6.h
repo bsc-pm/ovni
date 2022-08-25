@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OVNI_TEST_INSTR_NANOS6_H
-#define OVNI_TEST_INSTR_NANOS6_H
+#ifndef INSTR_NANOS6_H
+#define INSTR_NANOS6_H
 
-#include "test/instr.h"
+#include "../instr.h"
 #include "compat.h"
 
 static inline void
@@ -114,4 +114,4 @@ INSTR_0ARG(instr_nanos6_exit_create_task, "6TC")
 INSTR_0ARG(instr_nanos6_spawn_function_enter, "6Hs")
 INSTR_0ARG(instr_nanos6_spawn_function_exit, "6HS")
 
-#endif /* OVNI_TEST_INSTR_NANOS6_H */
+#endif /* INSTR_NANOS6_H */

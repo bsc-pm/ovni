@@ -27,6 +27,6 @@ function(nosv_test)
       ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nosv/nosv.toml")
 endfunction()
 
-nosv_test(NAME nosv-attach SOURCE nosv/attach.c)
+nosv_test(nosv/attach.c)
 
 add_subdirectory(nanos6)

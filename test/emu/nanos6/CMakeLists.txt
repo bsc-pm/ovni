@@ -14,8 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-ovni_test(NAME nosv-nested-tasks)
-ovni_test(NAME nosv-nested-tasks-bad SHOULD_FAIL
+ovni_test(nested-tasks.c)
+ovni_test(nested-tasks-bad.c SHOULD_FAIL
   REGEX "fatal: cannot execute task 1: state is not created")
-ovni_test(NAME nosv-task-types MP)
-ovni_test(NAME nosv-pause MP)
+ovni_test(task-types.c MP)
+ovni_test(blocking.c MP)
+ovni_test(subsystems.c MP)
+ovni_test(ss-mismatch.c SHOULD_FAIL
+  REGEX "thread [0-9]\\+ ended with 1 extra stacked nanos6 subsystems, top=ST_NANOS6_SCHED_HUNGRY")

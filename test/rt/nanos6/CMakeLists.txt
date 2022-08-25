@@ -6,5 +6,5 @@ function(nanos6_rt_test)
     ENVIRONMENT "NANOS6_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nanos6/nanos6.toml")
 endfunction()
 
-nanos6_rt_test(NAME rt-nanos6-simple-task SOURCE simple-task.c)
-nanos6_rt_test(NAME rt-nanos6-nested-task SOURCE nested-task.c)
+nanos6_rt_test(simple-task.c)
+nanos6_rt_test(nested-task.c)

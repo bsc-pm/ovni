@@ -16,9 +16,9 @@
 
 # Only run performance sensitive tests on Release builds
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  ovni_test(NAME flush-overhead)
+  ovni_test(flush-overhead.c)
 endif()
 
-ovni_test(NAME flush)
-ovni_test(NAME mp-simple MP)
-ovni_test(NAME mp-rank MP)
+ovni_test(flush.c)
+ovni_test(mp-simple.c MP)
+ovni_test(mp-rank.c MP)

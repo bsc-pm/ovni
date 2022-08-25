@@ -1,24 +1,24 @@
 include(CMakeParseArguments)
 
-function(ovni_test)
+function(ovni_test source)
   set(switches MP SHOULD_FAIL)
-  set(single NPROC NAME REGEX)
-  set(multi SOURCE ENV)
+  set(single NPROC REGEX)
+  set(multi ENV)
+
+  # Compute the test name from the source and path
+  cmake_path(RELATIVE_PATH CMAKE_CURRENT_SOURCE_DIR
+	  BASE_DIRECTORY "${OVNI_TEST_SOURCE_DIR}"
+          OUTPUT_VARIABLE name_prefix)
+  set(full_path "${name_prefix}/${source}")
+  string(REGEX REPLACE "\.c$" "" full_path_noext "${full_path}")
+  string(REPLACE "/" "-" name "${full_path_noext}")
 
   cmake_parse_arguments(
     OVNI_TEST "${switches}" "${single}" "${multi}" ${ARGN})
 
-  if(NOT OVNI_TEST_NAME)
-    message(FATAL_ERROR "You must provide a test NAME")
-  endif(NOT OVNI_TEST_NAME)
-
-  set(OVNI_TEST_NAME ${OVNI_TEST_NAME} PARENT_SCOPE)
-
-  # Set default source if not given
-  if(NOT OVNI_TEST_SOURCE)
-    set(OVNI_TEST_SOURCE "${OVNI_TEST_NAME}.c")
-    #message("Setting default source to ${OVNI_TEST_SOURCE}")
-  endif()
+  set(OVNI_TEST_NAME ${name} PARENT_SCOPE)
+  set(OVNI_TEST_NAME ${name})
+  set(OVNI_TEST_SOURCE ${source})
 
   if(NOT OVNI_TEST_NPROC)
     if(NOT OVNI_TEST_MP)

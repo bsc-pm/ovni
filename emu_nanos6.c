@@ -417,6 +417,27 @@ hook_pre_nanos6(struct ovni_emu *emu)
 	check_affinity(emu);
 }
 
+char *nanos6_ss_names[] = {
+	[ST_NANOS6_NULL] = "ST_NANOS6_NULL",
+	[ST_NANOS6_SCHED_HUNGRY] = "ST_NANOS6_SCHED_HUNGRY",
+	[ST_NANOS6_TASK_RUNNING] = "ST_NANOS6_TASK_RUNNING",
+	[ST_NANOS6_DEP_REG] = "ST_NANOS6_DEP_REG",
+	[ST_NANOS6_DEP_UNREG] = "ST_NANOS6_DEP_UNREG",
+	[ST_NANOS6_SCHED_SUBMITTING] = "ST_NANOS6_SCHED_SUBMITTING",
+	[ST_NANOS6_CREATING] = "ST_NANOS6_CREATING",
+	[ST_NANOS6_SUBMIT] = "ST_NANOS6_SUBMIT",
+	[ST_NANOS6_TASKWAIT] = "ST_NANOS6_TASKWAIT",
+	[ST_NANOS6_WAITFOR] = "ST_NANOS6_WAITFOR",
+	[ST_NANOS6_BLOCKING] = "ST_NANOS6_BLOCKING",
+	[ST_NANOS6_UNBLOCKING] = "ST_NANOS6_UNBLOCKING",
+	[ST_NANOS6_SPAWNING] = "ST_NANOS6_SPAWNING",
+	[ST_NANOS6_SCHED_SERVING] = "ST_NANOS6_SCHED_SERVING",
+	[ST_NANOS6_ATTACHED] = "ST_NANOS6_ATTACHED",
+	[EV_NANOS6_SCHED_RECV] = "EV_NANOS6_SCHED_RECV",
+	[EV_NANOS6_SCHED_SEND] = "EV_NANOS6_SCHED_SEND",
+	[EV_NANOS6_SCHED_SELF] = "EV_NANOS6_SCHED_SELF",
+};
+
 static void
 end_lint(struct ovni_emu *emu)
 {
@@ -428,8 +449,9 @@ end_lint(struct ovni_emu *emu)
 		if(ch->n != 1)
 		{
 			int top = ch->stack[ch->n - 1];
-			die("thread %ld has left %d state(s) in the subsystem channel, top state=%d\n",
-					i, ch->n - 1, top);
+			char *name = nanos6_ss_names[top];
+			die("thread %d ended with %d extra stacked nanos6 subsystems, top=%s\n",
+					th->tid, ch->n - 1, name);
 		}
 	}
 }

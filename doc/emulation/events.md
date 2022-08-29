@@ -1,9 +1,12 @@
+# Emulator events
+
 This file contains an exhaustive list of events supported by the emulator.
 
 - Punctual events don't produce a state transition.
 - All events refer to the current thread.
 - Descriptions must be kept short.
 
+```
 **********************************************************
 Please keep this list synchronized with the emulator code!
 **********************************************************
@@ -168,3 +171,4 @@ KCI	Is back in the CPU due to a context switch
 
 6Bu	Begins to unblock the given task
 6BU	Ends unblocking the given task
+```

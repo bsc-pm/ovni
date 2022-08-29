@@ -1,4 +1,6 @@
-# nOS-V task type colors
+# nOS-V model
+
+## nOS-V task type colors
 
 The color assigned to each nOS-V task type is computed from the task
 type label using a hash function; the task type id doesn't affect in any

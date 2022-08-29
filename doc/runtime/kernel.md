@@ -1,4 +1,4 @@
---- Kernel support ---
+# Kernel support
 
 Currently, only context switch events are supported. The kernel events are
 usually written by the kernel into a buffer, without any action from user space.
@@ -6,7 +6,7 @@ This behavior poses a problem, as the user space events and kernel events can
 leave a unsorted trace.
 
 The current workaround involves surounding the kernel events by two special ovni
-event markers OU[ and OU] which determine the region of events which must be
+event markers `OU[` and `OU]` which determine the region of events which must be
 sorted first. Notice that the events inside the region must be sorted!
 
 The `ovnisort` tool has been designed to sort the events enclosed by those

@@ -1,4 +1,4 @@
-# Nanos6 Emulation
+# Nanos6 model
 
 The Nanos6 emulator generates four different Paraver views, which are
 explained in this document.
@@ -50,68 +50,77 @@ exiting each section), and one common section of code which is shared
 across the subsystems, U, of no interest. We also assume any other code
 not belonging to the runtime to be in the U section.
 
-Every instruction of the runtime belongs to *exactly one section*.
+!!! remark
+
+     Every instruction of the runtime belongs to *exactly one section*.
 
 To determine the state of a thread, we look into the stack to see what
 is the top-most instrumented section.
 
 At any given point in time, a thread may be executing code with a stack
-that spawns multiple sections, for example \[ S1, U, S2, S3, U \] (the
+that spawns multiple sections, for example *S1, U, S2, S3* and *U* (the
 last is on top). The subsystem view selects the last subsystem section
-from the stack ignoring the common section U, and presents that section
-as the current state of the execution, in this case the S3.
+from the stack ignoring the common section *U*, and presents that section
+as the current state of the execution, in this case the *S3*.
 
-Additionally, the runtime sections are grouped together in systems,
+Additionally, the runtime sections are grouped together in subsystems,
 which form a group of closely related functions. A complete set of
-states for the subsystem view is listed below. The system is listed
-first and then the subsystem:
+states for each subsystem is listed below.
 
-- **No subsystem**: There is no instrumented section in the stack of the
-thread.
+When there is no instrumented section in the thread stack, the state is
+set to **No subsystem**.
 
-The **Scheduler** system groups the actions that relate to the queueing
-and dequeueing of ready tasks. The subsystems are:
+### Task subsystem
 
-- **Scheduler: Waiting for tasks**: Actively waiting for tasks inside the
-scheduler subsystem, registered but not holding the scheduler lock
+The **Task** subsystem contains the code that controls the lifecycle of
+tasks. It contains the following sections:
 
-- **Scheduler: Serving tasks**: Inside the scheduler lock, serving tasks
-to other threads
+- **Running**: Executing the body of the task (user defined code).
 
-- **Scheduler: Adding ready tasks**: Adding tasks to the scheduler queues,
-but outside of the scheduler lock.
-
-The **Task** system contains the code that controls the lifecycle of
-tasks.
-
-- **Task: Running**: Executing the body of the task (user defined code).
-
-- **Task: Spawning function**: Registering a new spawn function
+- **Spawning function**: Registering a new spawn function
 (programmatically created task)
 
-- **Task: Creating**: Creating a new task, through `nanos6_create_task`
+- **Creating**: Creating a new task, through `nanos6_create_task`
 
-- **Task: Submitting**: Submitting a recently created task, through
+- **Submitting**: Submitting a recently created task, through
 `nanos6_submit_task`
 
-The **Dependency** group only contains the dependency code:
+### Scheduler subsystem
 
-- **Dependency: Registering**: Registering a task's dependencies
+The **Scheduler** system groups the actions that relate to the queueing
+and dequeueing of ready tasks. It contains the following sections:
 
-- **Dependency: Unregistering**: Releasing a task's dependencies because
+- **Waiting for tasks**: Actively waiting for tasks inside the
+scheduler subsystem, registered but not holding the scheduler lock
+
+- **Serving tasks**: Inside the scheduler lock, serving tasks
+to other threads
+
+- **Adding ready tasks**: Adding tasks to the scheduler queues,
+but outside of the scheduler lock.
+
+### Dependency subsystem
+
+The **Dependency** system only contains the code that manages the
+registration of task dependencies. It contains the following sections:
+
+- **Registering**: Registering a task's dependencies
+
+- **Unregistering**: Releasing a task's dependencies because
 it has ended
 
-- **Blocking: Taskwait**: Task is blocked while inside a taskwait
+### Blocking subsystem
 
-- **Blocking: Blocking current task**: Task is blocked through the Nanos6
+The **Blocking** subsystem deals with the code stops the thread
+execution. It contains the following sections:
+
+- **Taskwait**: Task is blocked while inside a taskwait
+
+- **Blocking current task**: Task is blocked through the Nanos6
 blocking API
 
-- **Blocking: Unblocking remote task**: Unblocking a different task using
+- **Unblocking remote task**: Unblocking a different task using
 the Nanos6 blocking API
 
-- **Blocking: Wait For**: Blocking a deadline task, which will be
+- **Wait For**: Blocking a deadline task, which will be
 re-enqueued when a certain amount of time has passed
-
-- **Threading: Attached as external thread**: External/Leader thread
-(which has registered to Nanos6) is running
-

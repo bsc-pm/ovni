@@ -1,0 +1,20 @@
+site_name: ovni
+theme: readthedocs
+docs_dir: doc
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: "#"
+      separator: "_"
+nav:
+  - index.md
+  - 'Runtime':
+    - runtime/tracing.md
+    - runtime/kernel.md
+  - 'Emulation':
+    - emulation/index.md
+    - emulation/ovni.md
+    - emulation/nosv.md
+    - emulation/nanos6.md
+    - emulation/events.md
+    - emulation/channels.md

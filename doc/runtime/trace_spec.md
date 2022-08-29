@@ -1,9 +1,13 @@
-# Trace specification version 1
+# Trace specification
+
+!!! Note
+
+	Thie is the trace specification for the version 1
 
 The ovni instrumentation library stores the information collected in a
 trace following the specification of this document.
 
-The complete trace is stored in a top-level directory named "ovni".
+The complete trace is stored in a top-level directory named `ovni`.
 Inside this directory you will find the loom directories with the prefix
 `loom.`. The name of the loom is built from the `loom` parameter of
 `ovni_proc_init()`, prefixing it with `loom.`.
@@ -79,7 +83,7 @@ the variable size events just after the header.
 The header contains the magic 4 bytes of "ovni" and a version number of
 4 bytes too. Here is a figure of the data stored in disk:
 
-<img src="fig/stream.svg" alt="Stream" width="400px"/>
+<img src="stream.svg" alt="Stream" width="400px"/>
 
 Similarly, events have a fixed size header followed by an optional
 payload of varying size. The header has the following information:
@@ -120,7 +124,7 @@ bytes:
 
 And in the following figure you can see every field annotated: 
 
-<img src="fig/event-normal.svg" alt="Normal event without payload" width="400px"/>
+<img src="event-normal.svg" alt="Normal event without payload" width="400px"/>
 
 Another example of a normal event with 16 bytes of payload, a total of
 28 bytes:
@@ -132,7 +136,7 @@ ff ff ff ff 00 00 00 00  00 00 00 00              |............|
 
 In the following figure you can see each field annotated:
 
-<img src="fig/event-normal-payload.svg" alt="Normal event with payload content" width="400px"/>
+<img src="event-normal-payload.svg" alt="Normal event with payload content" width="400px"/>
 
 ## Jumbo events
 
@@ -157,7 +161,7 @@ data:
 
 In the following figure you can see each field annotated:
 
-<img src="fig/event-jumbo.svg" alt="Jumbo event" width="400px"/>
+<img src="event-jumbo.svg" alt="Jumbo event" width="400px"/>
 
 ## Design considerations
 

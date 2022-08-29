@@ -1,23 +1,24 @@
-# Tracing a program with ovni
+# Tracing a program
 
 Read carefully this document before using libovni to generate a trace.
 
-## Mark the start and end of processes and threads
+## Trace processes and threads
 
-Call `ovni_proc_init()` when a new program begins the execution.
+- Call `ovni_proc_init()` when a new process begins the execution.
 
-Call `ovni_thread_init()` when a new thread begins the execution
+- Call `ovni_thread_init()` when a new thread begins the execution
 (including the main process thread). Call `ovni_flush()` and
-`ovni_thread_free()` when it finishes.
+`ovni_thread_free()` when it finishes (in that order).
 
-Call `ovni_proc_fini()` when the program ends, after all threads have
+- Call `ovni_proc_fini()` when a process ends, after all threads have
 finished.
 
 You can use `ovni_ev_emit()` to record a new event. If you need more
-than 16 bytes of payload, use `ovni_ev_jumbo_emit()`.
+than 16 bytes of payload, use `ovni_ev_jumbo_emit()`. See the [trace
+specification](../trace_spec) for more details.
 
 Compile and link with libovni. When you run your program, a new
-directory ovni will be created in the current directory ($PWD/ovni)
+directory ovni will be created in the current directory `$PWD/ovni`
 which contains the execution trace.
 
 ## Rules

@@ -105,14 +105,14 @@ state.
 
 The channels can be updated in three ways:
 
-1) A fixed state can be set to the channel using `chan_set()`, which
+1. A fixed state can be set to the channel using `chan_set()`, which
 overrides the previous state.
 
-2) The new state can be stored in a stack with `chan_push()` and
+2. The new state can be stored in a stack with `chan_push()` and
 `chan_pop()`, to remember the history of the previous states. The
 emitted event will be the one on the top.
 
-3) Using a punctual event.
+3. Using a punctual event.
 
 Setting the channel state is commonly used to track quantities such as
 the number of threads running per CPU. While the stack mode is commonly
@@ -133,7 +133,7 @@ An example program may be instrumented like this:
 		instr("Xf]");
 	}
 
-Then, in the emulator, when processing the events "Xf[" and "Xf]", we
+Then, in the emulator, when processing the events `Xf[` and `Xf]`, we
 could track of the state as follows:
 
 	int hook_pre_foo(struct ovni_chan *chan, int value) {

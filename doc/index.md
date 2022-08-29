@@ -9,6 +9,10 @@ Instrumentation project.
 	unless the grammar rules suggest otherwise, such as starting a
 	new sentence.
 
+The ovni project implements a fast instrumentation library that records
+small events (starting at 12 bytes) during the execution of programs to
+later investigate how the execution happened.
+
 The instrumentation process is split in two stages: [runtime](runtime)
 tracing and [emulation](emulation/).
 

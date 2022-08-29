@@ -1,6 +1,7 @@
 site_name: ovni
 theme: readthedocs
 docs_dir: doc
+extra_css: [extra.css]
 markdown_extensions:
   - admonition
   - toc:
@@ -11,6 +12,7 @@ nav:
   - 'Runtime':
     - runtime/tracing.md
     - runtime/kernel.md
+    - runtime/trace_spec.md
   - 'Emulation':
     - emulation/index.md
     - emulation/ovni.md

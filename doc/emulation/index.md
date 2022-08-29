@@ -1,9 +1,9 @@
 # Emulation overview
 
-The emulator reads the events stored during runtime and reconstructs the
-execution, restoring the state of each thread and CPU as time evolves. During
-the emulation process, a detailed trace is generated with the state of the
-execution in the Paraver PRV format.
+The emulator `ovniemu` reads the events stored during runtime and
+reconstructs the execution, restoring the state of each thread and CPU
+as time evolves. During the emulation process, a detailed trace is
+generated with the state of the execution in the Paraver PRV format.
 
 The emulator has an execution model to represent the real execution that
 happened on the hardware. It consists of CPUs which can execute multiple threads
@@ -24,3 +24,18 @@ that use the same CPUs in a single node are grouped into looms.
 
 The task model includes the information of MPI and tasks of the
 programming model (OmpSs-2).
+
+## Design considerations
+
+The emulator tries to perform every posible check to detect if there is
+any inconsistency in the received events from the runtime trace. When a
+problem is found, the emulation is aborted, forcing the user to report
+the problem. No effort is made to let the emulator recover from an
+inconsistency.
+
+The emulator critical path is kept as simple as possible, so the
+processing of events can keep the disk writting as the bottleneck.
+
+The linter mode enables more tests which are disabled from the default
+mode to prevent costly operations running in the emulator by default.
+The linter tests are enabled when running the ovni testsuite.

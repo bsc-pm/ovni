@@ -1,6 +1,8 @@
-# Tracing a program
+# Tracing a new program
 
-Read carefully this document before using libovni to generate a trace.
+Read carefully this document before using libovni to instrument a new
+component. There are a few rules you must follow to ensure the runtime
+trace is correct.
 
 ## Trace processes and threads
 

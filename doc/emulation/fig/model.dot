@@ -1,0 +1,66 @@
+digraph {
+	#rankdir=LR;
+	graph [ranksep="1"];
+	newrank=true;
+
+	subgraph cluster_resource {
+		color="#ffeeee";
+		style=filled;
+		label="Resouce model";
+
+		cluster -> {"node 0", "node 1"}
+
+		"node 0" -> {"cpu 0.0", "cpu 0.1"}
+		"node 1" -> {"cpu 1.0", "cpu 1.1"}
+	}
+
+	subgraph cluster_process {
+		color="#eeffee";
+		style=filled;
+		label="Process model"
+
+		genesis -> {"loom 0", "loom 1"}
+
+		"loom 0" -> {"pid 0.0", "pid 0.1"}
+		"loom 1" -> {"pid 1.0", "pid 1.1"}
+
+		"pid 0.0" -> {"th 0.0.0", "th 0.0.1"}
+		"pid 0.1" -> {"th 0.1.0", "th 0.1.1"}
+	}
+
+	subgraph cluster_task {
+		color="#eeeeff";
+		style=filled;
+		label="Task model";
+
+		workload -> { "app 0", "app 1"};
+
+		"app 0" -> {"rank 0.0", "rank 0.1"};
+		"app 1" -> {"rank 1.0", "rank 1.1"};
+
+		"rank 0.0" -> {"task 0.0.0","task 0.0.1"};
+		"rank 0.1" -> {"task 0.1.0", "task 0.1.1"};
+	}
+
+	{rank = same; workload; cluster; genesis;}
+	{
+		rank = same;
+		"node 0"; "node 1"; "loom 0"; "loom 1";
+	}
+	{ rank=same; "app 0"; "app 1"; }
+	{
+		rank = same; "rank 0.0"; "pid 0.0";
+	}
+	{
+		rank = same; "th 0.0.0"; "task 0.0.0";
+		"cpu 0.0"; "cpu 0.1"; "cpu 1.0"; "cpu 1.1";
+	}
+
+
+	
+	edge [style=dashed, constraint=false];
+	"loom 0" -> "node 0" [color=blue, label="mapped to"];
+	"rank 0.0" -> "pid 0.0" [color=blue, label="mapped to"];
+	"task 0.0.0" -> "th 0.0.0" [color=red, label="runs at"];
+	"th 0.0.0" -> "cpu 0.0" [color=red, label="runs at"];
+}

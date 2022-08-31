@@ -1,4 +1,4 @@
-![Ovni logo](logo2.png)
+![Ovni logo](fig/logo2.png)
 
 This is the documentation of ovni, the Obtuse (but Versatile) Nanoscale
 Instrumentation project.
@@ -6,8 +6,8 @@ Instrumentation project.
 !!! Note
 
 	Preferably write the name of the project as lowercase *ovni*
-	unless the grammar rules suggest otherwise, such as starting a
-	new sentence.
+	unless the grammar rules suggest otherwise, such as when
+	starting a new sentence.
 
 The ovni project implements a fast instrumentation library that records
 small events (starting at 12 bytes) during the execution of programs to
@@ -16,7 +16,7 @@ later investigate how the execution happened.
 The instrumentation process is split in two stages: [runtime](runtime)
 tracing and [emulation](emulation/).
 
-During runtime, very simple and short events are stored on disk which
+During runtime, very short binary events are stored on disk which
 describe what is happening. Once the execution finishes, the events are
 read and processed to reproduce the execution during the emulation
 process, and the final execution trace is generated.
@@ -29,5 +29,15 @@ Each event belongs to a model, which has a direct mapping to a target
 library or program. Each model is independent of other models, and they
 can be instrumented concurrently.
 
-The events are classified by using three identifiers known as *model*,
-*category* and *value* (or MCV for short).
+## Quick start
+
+To start a trace follow these steps:
+
+- First enable the instrumentation of those libraries or programs that
+  you are interested in (see their documentation).
+- Then simply run the program normally. You will see a new `ovni`
+  directory containing the runtime trace.
+- Finally run the `ovniemu ovni` command to generate the Paraver traces.
+- Use the command `wxparaver ovni/cpu.prv` to load the CPU trace.
+- Load the configurations from the `cfg/` directory that you are
+  interested in, to open a timeline view.

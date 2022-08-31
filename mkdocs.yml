@@ -1,14 +1,25 @@
 site_name: ovni
-theme: readthedocs
 docs_dir: doc
 extra_css: [extra.css]
+theme:
+  name: readthedocs
+  sticky_navigation: false
+extra_javascript: 
+    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML
 markdown_extensions:
   - admonition
+  - attr_list
+  - def_list
+  - mdx_math:
+      use_gitlab_delimiters: true
+      enable_dollar_delimiter: true
+      add_preview: true
   - toc:
       permalink: "#"
       separator: "_"
 nav:
   - index.md
+  - concepts.md
   - 'Runtime':
     - runtime/tracing.md
     - runtime/kernel.md
@@ -20,3 +31,5 @@ nav:
     - emulation/nanos6.md
     - emulation/events.md
     - emulation/channels.md
+  - 'Developer guide':
+    - developer-guide/index.md

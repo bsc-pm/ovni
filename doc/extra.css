@@ -3,13 +3,14 @@
   font-size: 85%;
   border: none;
   padding: 0px;
-  background: #f8f8f8;
+  background: #eee;
 }
 
 .rst-content pre code {
   color: inherit;
   font-size: 80%;
   line-height: 1.5em;
+  background: #eee;
 }
 
 p {

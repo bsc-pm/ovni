@@ -1,0 +1,11 @@
+digraph {
+	rankdir=LR;
+
+	{ rank=same; Running; Paused; }
+
+	Unknown -> Created;
+	Created -> Running;
+	Running -> Paused;
+	Paused -> Running;
+	Running -> Dead;
+}

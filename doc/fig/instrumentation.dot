@@ -1,0 +1,8 @@
+digraph {
+	rankdir = LR;
+
+	Execution, Emulation, Visualization [ shape = circle, width=1.5 ];
+	"Event trace", "State trace", "Timeline" [ shape = box ];
+
+	Execution -> "Event trace" -> Emulation -> "State trace" -> Visualization -> "Timeline";
+}

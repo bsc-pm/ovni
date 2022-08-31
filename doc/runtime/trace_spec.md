@@ -1,8 +1,9 @@
 # Trace specification
 
-!!! Note
+!!! Important
 
-	Thie is the trace specification for the version 1
+	This document refers to the trace specification for
+	the version 1
 
 The ovni instrumentation library stores the information collected in a
 trace following the specification of this document.
@@ -83,7 +84,7 @@ the variable size events just after the header.
 The header contains the magic 4 bytes of "ovni" and a version number of
 4 bytes too. Here is a figure of the data stored in disk:
 
-<img src="stream.svg" alt="Stream" width="400px"/>
+![Stream](fig/stream.svg)
 
 Similarly, events have a fixed size header followed by an optional
 payload of varying size. The header has the following information:
@@ -103,7 +104,7 @@ There are two types of events, depending of the size needed for the
 payload:
 
 - Normal events: with a payload up to 16 bytes
-- Jumbo events: with a payload up to 2^32 bytes
+- Jumbo events: with a payload up to $`2^{32}`$ bytes
 
 ## Normal events
 
@@ -124,7 +125,7 @@ bytes:
 
 And in the following figure you can see every field annotated: 
 
-<img src="event-normal.svg" alt="Normal event without payload" width="400px"/>
+![Normal event without payload](fig/event-normal.svg)
 
 Another example of a normal event with 16 bytes of payload, a total of
 28 bytes:
@@ -136,7 +137,7 @@ ff ff ff ff 00 00 00 00  00 00 00 00              |............|
 
 In the following figure you can see each field annotated:
 
-<img src="event-normal-payload.svg" alt="Normal event with payload content" width="400px"/>
+![Normal event with payload content](fig/event-normal-payload.svg)
 
 ## Jumbo events
 
@@ -161,7 +162,7 @@ data:
 
 In the following figure you can see each field annotated:
 
-<img src="event-jumbo.svg" alt="Jumbo event" width="400px"/>
+![Jumbo event](fig/event-jumbo.svg)
 
 ## Design considerations
 
@@ -171,11 +172,13 @@ parser library would take no more than 2 days for a single developer.
 The size of the events has been designed to be small, with 12 bytes per
 event when no payload is used.
 
-**Important:** The events are stored in disk following the endianness of
-the machine where they are generated. So a stream generated with a little
-endian machine would be different than on a big endian machine. We
-assume the same endiannes is used to write the trace at runtime and read
-it after, at the emulation process.
+!!! Caution
+
+	The events are stored in disk following the endianness of the
+	machine where they are generated. So a stream generated with a
+	little endian machine would be different than on a big endian
+	machine. We assume the same endiannes is used to write the trace
+	at runtime and read it after, at the emulation process.
 
 The events are designed to be easily identified when looking at the
 raw stream in binary, as the MCV codes can be read as ASCII characters:

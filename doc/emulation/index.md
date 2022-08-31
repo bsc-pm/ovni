@@ -13,10 +13,10 @@ The emulator uses several models to identify how the resources are being
 used. The following diagram despicts the resource, process and task
 model.
 
-![Model](model.png)
+[![Model](fig/model.svg)](fig/model.svg)
 
 The resource model directly maps to the available hardware on the
-machine. It consists of clusters which contains nodes, where each node
+machine. It consists of a cluster which contains nodes, where each node
 contains a set of CPUs that can execute instructions.
 
 The process model tracks the state of processes and threads. Processes
@@ -39,3 +39,19 @@ processing of events can keep the disk writting as the bottleneck.
 The linter mode enables more tests which are disabled from the default
 mode to prevent costly operations running in the emulator by default.
 The linter tests are enabled when running the ovni testsuite.
+
+## Emulation models
+
+Each component is implemented in an emulation model, which consists of
+the following elements:
+
+- A single byte model identification (for example `O`).
+- A set of runtime events with that model identification (see the [list
+  of events](events)).
+- Rules that determine which sequences of events are valid.
+- The emulation hooks that process each event and modify the state of
+  the emulator.
+- A set of channels that output the states from the emulator.
+- A set of Paraver views that present the information in a timeline.
+
+All the models are independent and can be instrumented at the same time.

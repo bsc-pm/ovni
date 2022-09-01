@@ -162,14 +162,20 @@ KCI	Is back in the CPU due to a context switch
 6Ha	Attaches to Nanos6 as external thread
 6HA	Detaches from Nanos6 as external thread
 
-6s[	Begins to spawn a function via spawnFunction()
-6s]	Ends spawning a function
+6F[	Begins to spawn a function via spawnFunction()
+6F]	Ends spawning a function
 
 6Dr	Begins the registration of a task's accesses
 6DR	Ends the registration of a task's accesses
 6Du	Begins the unregistration of a task's accesses
 6DU	Ends the unregistration of a task's accesses
 
-6Bu	Begins to unblock the given task
-6BU	Ends unblocking the given task
+6Bu	Begins to unblock a task
+6BU	Ends unblocking a task
+6Bb	Begins to block the current task via blockCurrentTask()
+6BB	Ends blocking the current task via blockCurrentTask()
+6Bw	Enters taskWait()
+6BW	Exits taskWait()
+6Bf	Enters taskFor()
+6BF	Exits taskFor()
 ```

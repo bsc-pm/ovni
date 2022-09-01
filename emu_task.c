@@ -24,24 +24,39 @@
 #include "prv.h"
 #include "chan.h"
 
+struct task *
+task_find(struct task *tasks, uint32_t task_id)
+{
+	struct task *task = NULL;
+	HASH_FIND_INT(tasks, &task_id, task);
+
+	return task;
+}
+
+struct task_type *
+task_type_find(struct task_type *types, uint32_t type_id)
+{
+	struct task_type *type = NULL;
+	HASH_FIND_INT(types, &type_id, type);
+
+	return type;
+}
+
 void
-task_create(uint32_t task_id, uint32_t type_id, struct task **task_map, struct task_type **type_map)
+task_create(struct task_info *info,
+		uint32_t type_id, uint32_t task_id)
 {
 	/* Ensure the task id is new */
-	struct task *task = NULL;
-	HASH_FIND_INT(*task_map, &task_id, task);
-
-	if(task != NULL)
-		die("cannot create a task with id %u: already exists\n", task_id);
+	if(task_find(info->tasks, task_id) != NULL)
+		die("cannot create task: task_id %u already exists\n",
+				task_id);
 
 	/* Ensure the type exists */
-	struct task_type *type = NULL;
-	HASH_FIND_INT(*type_map, &type_id, type);
-
+	struct task_type *type = task_type_find(info->types, type_id);
 	if(type == NULL)
 		die("cannot create task: unknown type id %u\n", type_id);
 
-	task = calloc(1, sizeof(*task));
+	struct task *task = calloc(1, sizeof(struct task));
 
 	if(task == NULL)
 		die("calloc failed\n");
@@ -52,64 +67,59 @@ task_create(uint32_t task_id, uint32_t type_id, struct task **task_map, struct t
 	task->thread = NULL;
 
 	/* Add the new task to the hash table */
-	HASH_ADD_INT(*task_map, id, task);
+	HASH_ADD_INT(info->tasks, id, task);
 
 	dbg("new task created id=%d\n", task->id);
 }
 
 void
-task_execute(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_map, struct task **thread_task_stack)
+task_execute(struct task_stack *stack, struct task *task)
 {
-	struct task *top = *thread_task_stack;
-	struct task *task = NULL;
-	HASH_FIND_INT(*task_map, &task_id, task);
-
 	if(task == NULL)
-		die("cannot find task with id %u\n", task_id);
+		die("cannot execute: task is NULL\n");
 
 	if(task->state != TASK_ST_CREATED)
-		die("cannot execute task %u: state is not created\n", task_id);
+		die("cannot execute task %u: state is not created\n", task->id);
 
 	if(task->thread != NULL)
 		die("task already has a thread assigned\n");
 
-	if(cur_thread->state != TH_ST_RUNNING)
+	if(stack->thread->state != TH_ST_RUNNING)
 		die("thread state is not running\n");
 
-	if(top == task)
-		die("thread already has assigned task %u\n", task_id);
+	if(stack->top == task)
+		die("thread already has assigned task %u\n", task->id);
 
-	if(top && top->state != TASK_ST_RUNNING)
+	if(stack->top && stack->top->state != TASK_ST_RUNNING)
 		die("cannot execute a nested task from a non-running task\n");
 
 	task->state = TASK_ST_RUNNING;
-	task->thread = cur_thread;
+	task->thread = stack->thread;
 
-	DL_PREPEND(*thread_task_stack, task);
+	DL_PREPEND(stack->tasks, task);
 
 	dbg("task id=%u runs now\n", task->id);
 }
 
 void
-task_pause(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_map, struct task **thread_task_stack)
+task_pause(struct task_stack *stack, struct task *task)
 {
-	struct task *top = *thread_task_stack;
-	struct task *task = NULL;
-	HASH_FIND_INT(*task_map, &task_id, task);
-
 	if(task == NULL)
-		die("cannot find task with id %u\n", task_id);
+		die("cannot pause: task is NULL\n");
 
 	if(task->state != TASK_ST_RUNNING)
-		die("task state is not running\n");
+		die("cannot pause: task state is not running\n");
 
-	if(cur_thread->state != TH_ST_RUNNING)
-		die("thread state is not running\n");
+	if(task->thread == NULL)
+		die("cannot pause: task has no thread assigned\n");
 
-	if(top != task)
+	if(stack->thread->state != TH_ST_RUNNING)
+		die("cannot pause: thread state is not running\n");
+
+	if(stack->top != task)
 		die("thread has assigned a different task\n");
 
-	if(cur_thread != task->thread)
+	if(stack->thread != task->thread)
 		die("task is assigned to a different thread\n");
 
 	task->state = TASK_ST_PAUSED;
@@ -118,25 +128,24 @@ task_pause(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task
 }
 
 void
-task_resume(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_map, struct task **thread_task_stack)
+task_resume(struct task_stack *stack, struct task *task)
 {
-	struct task *top = *thread_task_stack;
-	struct task *task = NULL;
-	HASH_FIND_INT(*task_map, &task_id, task);
-
 	if(task == NULL)
-		die("cannot find task with id %u\n", task_id);
+		die("cannot resume: task is NULL\n");
 
 	if(task->state != TASK_ST_PAUSED)
 		die("task state is not paused\n");
 
-	if(cur_thread->state != TH_ST_RUNNING)
+	if(task->thread == NULL)
+		die("cannot resume: task has no thread assigned\n");
+
+	if(stack->thread->state != TH_ST_RUNNING)
 		die("thread is not running\n");
 
-	if(top != task)
+	if(stack->top != task)
 		die("thread has assigned a different task\n");
 
-	if(cur_thread != task->thread)
+	if(stack->thread != task->thread)
 		die("task is assigned to a different thread\n");
 
 	task->state = TASK_ST_RUNNING;
@@ -145,25 +154,24 @@ task_resume(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **tas
 }
 
 void
-task_end(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_map, struct task **thread_task_stack)
+task_end(struct task_stack *stack, struct task *task)
 {
-	struct task *top = *thread_task_stack;
-	struct task *task = NULL;
-	HASH_FIND_INT(*task_map, &task_id, task);
-
 	if(task == NULL)
-		die("cannot find task with id %u\n", task_id);
+		die("cannot end: task is NULL\n");
 
 	if(task->state != TASK_ST_RUNNING)
 		die("task state is not running\n");
 
-	if(cur_thread->state != TH_ST_RUNNING)
-		die("thread is not running\n");
+	if(task->thread == NULL)
+		die("cannot end: task has no thread assigned\n");
 
-	if(top != task)
+	if(stack->thread->state != TH_ST_RUNNING)
+		die("cannot end task: thread is not running\n");
+
+	if(stack->top != task)
 		die("thread has assigned a different task\n");
 
-	if(cur_thread != task->thread)
+	if(stack->thread != task->thread)
 		die("task is assigned to a different thread\n");
 
 	task->state = TASK_ST_DEAD;
@@ -171,7 +179,7 @@ task_end(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_m
 	/* Don't unset the thread from the task, as it will be used
 	 * later to ensure we switch to tasks of the same thread. */
 
-	DL_DELETE(*thread_task_stack, task);
+	DL_DELETE(stack->tasks, task);
 
 	dbg("task id=%d ends\n", task->id);
 }
@@ -193,27 +201,21 @@ get_task_type_gid(const char *label)
 }
 
 void
-task_type_create(uint32_t typeid, const char *label, struct task_type **type_map)
+task_type_create(struct task_info *info, uint32_t type_id, const char *label)
 {
 	struct task_type *type;
 	/* Ensure the type id is new */
-	HASH_FIND_INT(*type_map, &typeid, type);
+	HASH_FIND_INT(info->types, &type_id, type);
 
 	if(type != NULL)
-	{
-		err("A task type with id %d already exists\n", typeid);
-		abort();
-	}
+		die("a task type with id %u already exists\n", type_id);
 
 	type = calloc(1, sizeof(*type));
 
 	if(type == NULL)
-	{
-		perror("calloc");
-		abort();
-	}
+		die("calloc failed");
 
-	type->id = typeid;
+	type->id = type_id;
 
 	if(type->id == 0)
 		die("invalid task type id %d\n", type->id);
@@ -221,21 +223,21 @@ task_type_create(uint32_t typeid, const char *label, struct task_type **type_map
 	type->gid = get_task_type_gid(label);
 	int n = snprintf(type->label, MAX_PCF_LABEL, "%s", label);
 	if(n >= MAX_PCF_LABEL)
-		die("task label too long: %s\n", label);
+		die("task type label too long: %s\n", label);
 
 	/* Add the new task type to the hash table */
-	HASH_ADD_INT(*type_map, id, type);
+	HASH_ADD_INT(info->types, id, type);
 
 	dbg("new task type created id=%d label=%s\n", type->id,
 			type->label);
 }
 
 void
-task_create_pcf_types(struct pcf_type *pcftype, struct task_type *type_map)
+task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
 {
 	/* Emit types for all task types */
 	struct task_type *tt;
-	for(tt = type_map; tt != NULL; tt = tt->hh.next)
+	for(tt = types; tt != NULL; tt = tt->hh.next)
 	{
 		struct pcf_value *pcfvalue = pcf_find_value(pcftype, tt->gid);
 		if(pcfvalue != NULL)
@@ -253,9 +255,9 @@ task_create_pcf_types(struct pcf_type *pcftype, struct task_type *type_map)
 }
 
 struct task *
-task_get_running(struct task *task_stack)
+task_get_running(struct task_stack *stack)
 {
-	struct task *task = task_stack;
+	struct task *task = stack->top;
 	if(task && task->state == TASK_ST_RUNNING)
 		return task;
 

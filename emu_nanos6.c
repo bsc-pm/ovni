@@ -30,7 +30,6 @@ hook_init_nanos6(struct ovni_emu *emu)
 	struct ovni_ethread *th;
 	struct ovni_cpu *cpu;
 	struct ovni_chan **uth, **ucpu;
-	size_t i;
 	int row;
 	FILE *prv_th, *prv_cpu;
 	int64_t *clock;
@@ -40,7 +39,7 @@ hook_init_nanos6(struct ovni_emu *emu)
 	prv_cpu = emu->prv_cpu;
 
 	/* Init the channels in all threads */
-	for(i=0; i<emu->total_nthreads; i++)
+	for(size_t i=0; i<emu->total_nthreads; i++)
 	{
 		th = emu->global_thread[i];
 		row = th->gindex + 1;
@@ -51,10 +50,11 @@ hook_init_nanos6(struct ovni_emu *emu)
 		chan_th_init(th, uth, CHAN_NANOS6_TYPE,      CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_NANOS6_SUBSYSTEM, CHAN_TRACK_TH_ACTIVE,  0, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_NANOS6_RANK,      CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
+		chan_th_init(th, uth, CHAN_NANOS6_THREAD,    CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 	}
 
 	/* Init the Nanos6 channels in all cpus */
-	for(i=0; i<emu->total_ncpus; i++)
+	for(size_t i=0; i<emu->total_ncpus; i++)
 	{
 		cpu = emu->global_cpu[i];
 		row = cpu->gindex + 1;
@@ -64,19 +64,24 @@ hook_init_nanos6(struct ovni_emu *emu)
 		chan_cpu_init(cpu, ucpu, CHAN_NANOS6_TYPE,      CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_NANOS6_SUBSYSTEM, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_NANOS6_RANK,      CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
+		chan_cpu_init(cpu, ucpu, CHAN_NANOS6_THREAD,    CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
+	}
+
+	/* Init task stack */
+	for(size_t i=0; i<emu->total_nthreads; i++)
+	{
+		th = emu->global_thread[i];
+		th->nanos6_task_stack.thread = th;
 	}
 }
 
 /* --------------------------- pre ------------------------------- */
 
 static void
-task_not_running(struct ovni_emu *emu, struct task *task, enum nanos6_task_run_reason reason)
+chan_task_stopped(struct ovni_emu *emu, char tr)
 {
 	struct ovni_ethread *th;
 	th = emu->cur_thread;
-
-	if(task->state == TASK_ST_RUNNING)
-		die("task is still running\n");
 
 	chan_set(&th->chan[CHAN_NANOS6_TASKID], 0);
 	chan_set(&th->chan[CHAN_NANOS6_TYPE], 0);
@@ -84,26 +89,13 @@ task_not_running(struct ovni_emu *emu, struct task *task, enum nanos6_task_run_r
 	if(emu->cur_loom->rank_enabled)
 		chan_set(&th->chan[CHAN_NANOS6_RANK], 0);
 
-	// Check the reason
-	switch (reason)
-	{
-		case TB_EXEC_OR_END:
-			chan_pop(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_TASK_RUNNING);
-			break;
-		case TB_BLOCKING_API:
-			chan_push(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_BLOCKING);
-			break;
-		case TB_TASKWAIT:
-			chan_push(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_TASKWAIT);
-			break;
-		case TB_WAITFOR:
-			chan_push(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_WAITFOR);
-			break;
-	}
+    /* Only exit the task body when finishing */
+    if(tr == 'e')
+        chan_pop(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_TASK_BODY);
 }
 
 static void
-task_running(struct ovni_emu *emu, struct task *task, enum nanos6_task_run_reason reason)
+chan_task_running(struct ovni_emu *emu, struct task *task, char tr)
 {
 	struct ovni_ethread *th;
 	struct ovni_eproc *proc;
@@ -126,65 +118,150 @@ task_running(struct ovni_emu *emu, struct task *task, enum nanos6_task_run_reaso
 	if(emu->cur_loom->rank_enabled)
 		chan_set(&th->chan[CHAN_NANOS6_RANK], proc->rank + 1);
 
-	// Check the reason
-	switch (reason)
-	{
-		case TB_EXEC_OR_END:
-			chan_push(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_TASK_RUNNING);
-			break;
-		case TB_BLOCKING_API:
-			chan_pop(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_BLOCKING);
-			break;
-		case TB_TASKWAIT:
-			chan_pop(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_TASKWAIT);
-			break;
-		case TB_WAITFOR:
-			chan_pop(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_WAITFOR);
-			break;
-	}
+    /* Only enter the body of the task when we begin the execution */
+    if(tr == 'x')
+        chan_push(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_TASK_BODY);
 }
 
 static void
-task_switch(struct ovni_emu *emu, struct task *prev_task,
-		struct task *next_task, int newtask)
+chan_task_switch(struct ovni_emu *emu,
+		struct task *prev, struct task *next)
 {
-	struct ovni_ethread *th;
+	struct ovni_ethread *th = emu->cur_thread;
 
-	th = emu->cur_thread;
-
-	if(!prev_task || !next_task)
+	if(!prev || !next)
 		die("cannot switch to or from a NULL task\n");
 
-	if(prev_task == next_task)
+	if(prev == next)
 		die("cannot switch to the same task\n");
 
-	if(newtask && prev_task->state != TASK_ST_RUNNING)
-		die("previous task must not be no longer running\n");
-
-	if(!newtask && prev_task->state != TASK_ST_DEAD)
-		die("previous task must be dead\n");
-
-	if(next_task->state != TASK_ST_RUNNING)
-		die("next task must be running\n");
-
-	if(next_task->id == 0)
+	if(next->id == 0)
 		die("next task id cannot be 0\n");
 
-	if(next_task->type->gid == 0)
+	if(next->type->gid == 0)
 		die("next task type id cannot be 0\n");
 
-	if(prev_task->thread != next_task->thread)
+	if(prev->thread != next->thread)
 		die("cannot switch to a task of another thread\n");
 
-	/* No need to change the rank as we will switch to tasks from same stack */
-	chan_set(&th->chan[CHAN_NANOS6_TASKID], next_task->id);
+	/* No need to change the rank as we will switch to tasks from
+	 * same thread */
+	chan_set(&th->chan[CHAN_NANOS6_TASKID], next->id);
 
 	/* FIXME: We should emit a PRV event even if we are switching to
 	 * the same type event, to mark the end of the current task. For
 	 * now we only emit a new type if we switch to a type with a
 	 * different gid. */
-	if(prev_task->type->gid != next_task->type->gid)
-		chan_set(&th->chan[CHAN_NANOS6_TYPE], next_task->type->gid);
+	if(prev->type->gid != next->type->gid)
+		chan_set(&th->chan[CHAN_NANOS6_TYPE], next->type->gid);
+}
+
+static void
+update_task_state(struct ovni_emu *emu)
+{
+	if(ovni_payload_size(emu->cur_ev) < 4)
+		die("missing task id in payload\n");
+
+	uint32_t task_id = emu->cur_ev->payload.u32[0];
+
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_eproc *proc = emu->cur_proc;
+
+	struct task_info *info = &proc->nanos6_task_info;
+	struct task_stack *stack = &th->nanos6_task_stack;
+
+	struct task *task = task_find(info->tasks, task_id);
+
+	if(task == NULL)
+		die("cannot find task with id %u\n", task_id);
+
+	switch(emu->cur_ev->header.value)
+	{
+		case 'x': task_execute(stack, task); break;
+		case 'e': task_end(stack, task); break;
+		case 'p': task_pause(stack, task); break;
+		case 'r': task_resume(stack, task); break;
+		default:
+			  die("unexpected Nanos6 task event value %c\n",
+					  emu->cur_ev->header.value);
+	}
+}
+
+static char
+expand_transition_value(struct ovni_emu *emu, int was_running, int runs_now)
+{
+	char tr = emu->cur_ev->header.value;
+
+	/* Ensure we don't clobber the value */
+	if(tr == 'X' || tr == 'E')
+		die("unexpected event value %c\n", tr);
+
+	/* Modify the event value to detect nested transitions */
+	if(tr == 'x' && was_running)
+		tr = 'X'; /* Execute a new nested task */
+	else if(tr == 'e' && runs_now)
+		tr = 'E'; /* End a nested task */
+
+	return tr;
+}
+
+static void
+update_task_channels(struct ovni_emu *emu,
+		char tr, struct task *prev, struct task *next)
+{
+	switch(tr)
+	{
+		case 'x':
+		case 'r':
+                  chan_task_running(emu, next, tr);
+                  break;
+		case 'e':
+		case 'p':
+                  chan_task_stopped(emu, tr);
+                  break;
+		/* Additional nested transitions */
+		case 'X':
+		case 'E':
+                  chan_task_switch(emu, prev, next);
+                  break;
+		default:
+			  die("unexpected transition value %c\n", tr);
+	}
+}
+
+static void
+update_task(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th = emu->cur_thread;
+	struct task_stack *stack = &th->nanos6_task_stack;
+
+	struct task *prev = task_get_running(stack);
+
+	/* Update the emulator state, but don't modify the channels */
+	update_task_state(emu);
+
+	struct task *next = task_get_running(stack);
+
+	int was_running = (prev != NULL);
+	int runs_now = (next != NULL);
+	char tr = expand_transition_value(emu, was_running, runs_now);
+
+	/* Update the channels now */
+	update_task_channels(emu, tr, prev, next);
+}
+
+static void
+create_task(struct ovni_emu *emu)
+{
+	if(ovni_payload_size(emu->cur_ev) != 8)
+		die("cannot create task: unexpected payload size\n");
+
+	uint32_t task_id = emu->cur_ev->payload.u32[0];
+	uint32_t type_id = emu->cur_ev->payload.u32[1];
+
+	struct task_info *info = &emu->cur_proc->nanos6_task_info;
+
+	task_create(info, type_id, task_id);
 }
 
 static void
@@ -192,87 +269,53 @@ pre_task(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
 	struct ovni_chan *chan_th;
-	struct task **task_map = &emu->cur_proc->nanos6_tasks;
-	struct task_type **type_map = &emu->cur_proc->nanos6_types;
-	struct task **task_stack = &emu->cur_thread->nanos6_task_stack;
-	struct task *prev_running = task_get_running(*task_stack);
-	int was_running_task = (prev_running != NULL);
 
 	th = emu->cur_thread;
 	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
 
-	/* Update the emulator state, but don't modify the channels yet */
 	switch(emu->cur_ev->header.value)
 	{
-		case 'c': task_create(emu->cur_ev->payload.i32[0], emu->cur_ev->payload.i32[1], task_map, type_map); break;
-		case 'x': task_execute(emu->cur_ev->payload.i32[0], emu->cur_thread, task_map, task_stack); break;
-		case 'e': task_end(emu->cur_ev->payload.i32[0], emu->cur_thread, task_map, task_stack); break;
-		case 'b': task_pause(emu->cur_ev->payload.i32[0], emu->cur_thread, task_map, task_stack); break;
-		case 'u': task_resume(emu->cur_ev->payload.i32[0], emu->cur_thread, task_map, task_stack); break;
-		case 'C': break;
-		default:
-			  abort();
-	}
-
-	struct task *next_running = task_get_running(*task_stack);
-	int runs_task_now = (next_running != NULL);
-
-	/* Now that we know if the emulator was running a task before
-	 * or if it's running one now, update the channels accordingly. */
-	switch(emu->cur_ev->header.value)
-	{
-		case 'x': /* Execute: either a nested task or a new one */
-			if(was_running_task)
-				task_switch(emu, prev_running, next_running, 1);
-			else
-				task_running(emu, next_running, TB_EXEC_OR_END);
+		/* We use the 'c' event to create the task and switch
+		 * the subsystem all in one step because the timing here
+		 * is critical. */
+		case 'c':
+			chan_push(chan_th, ST_NANOS6_TASK_CREATING);
+			create_task(emu);
 			break;
-		case 'e': /* End: either a nested task or the last one */
-			if(runs_task_now)
-				task_switch(emu, prev_running, next_running, 0);
-			else
-				task_not_running(emu, prev_running, TB_EXEC_OR_END);
+		case 'C':
+			chan_pop(chan_th, ST_NANOS6_TASK_CREATING);
 			break;
-		case 'b': /* Block */
-			task_not_running(emu, prev_running, emu->cur_ev->payload.i32[1]);
-			break;
-		case 'u': /* Unblock */
-			task_running(emu, next_running, emu->cur_ev->payload.i32[1]);
-			break;
-		case 'c': /* Create */
-			chan_push(chan_th, ST_NANOS6_CREATING);
-			break;
-		case 'C': /* Create end */
-			chan_pop(chan_th, ST_NANOS6_CREATING);
+		case 'x':
+		case 'e':
+		case 'r':
+		case 'p': /* Wet floor */
+			update_task(emu);
 			break;
 		default:
-			break;
+			die("unexpected event value %c\n",
+					emu->cur_ev->header.value);
 	}
 }
 
 static void
 pre_type(struct ovni_emu *emu)
 {
-	uint8_t *data;
+	if(emu->cur_ev->header.value != 'c')
+		die("unexpected event value %c\n",
+				emu->cur_ev->header.value);
 
-	switch(emu->cur_ev->header.value)
-	{
-		case 'c':
-			if((emu->cur_ev->header.flags & OVNI_EV_JUMBO) == 0)
-			{
-				err("expecting a jumbo event\n");
-				abort();
-			}
+	if((emu->cur_ev->header.flags & OVNI_EV_JUMBO) == 0)
+		die("expecting a jumbo event\n");
 
-			data = &emu->cur_ev->payload.jumbo.data[0];
-			uint32_t *typeid = (uint32_t *) data;
-			data += sizeof(*typeid);
-			const char *label = (const char *) data;
-			task_type_create(*typeid, label, &emu->cur_proc->nanos6_types);
-			break;
-		default:
-			  break;
-	}
+	uint8_t *data = &emu->cur_ev->payload.jumbo.data[0];
+	uint32_t typeid = *(uint32_t *) data;
+	data += 4;
+
+	const char *label = (const char *) data;
+
+	struct ovni_eproc *proc = emu->cur_proc;
+
+	task_type_create(&proc->nanos6_task_info, typeid, label);
 }
 
 static void
@@ -287,9 +330,9 @@ pre_deps(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.value)
 	{
 		case 'r': chan_push(chan_th, ST_NANOS6_DEP_REG); break;
-		case 'R': chan_pop(chan_th, ST_NANOS6_DEP_REG); break;
+		case 'R': chan_pop (chan_th, ST_NANOS6_DEP_REG); break;
 		case 'u': chan_push(chan_th, ST_NANOS6_DEP_UNREG); break;
-		case 'U': chan_pop(chan_th, ST_NANOS6_DEP_UNREG); break;
+		case 'U': chan_pop (chan_th, ST_NANOS6_DEP_UNREG); break;
 		default: break;
 	}
 }
@@ -305,8 +348,14 @@ pre_blocking(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.value)
 	{
-		case 'u': chan_push(chan_th, ST_NANOS6_UNBLOCKING); break;
-		case 'U': chan_pop(chan_th, ST_NANOS6_UNBLOCKING); break;
+		case 'b': chan_push(chan_th, ST_NANOS6_BLK_BLOCKING); break;
+		case 'B': chan_pop (chan_th, ST_NANOS6_BLK_BLOCKING); break;
+		case 'u': chan_push(chan_th, ST_NANOS6_BLK_UNBLOCKING); break;
+		case 'U': chan_pop (chan_th, ST_NANOS6_BLK_UNBLOCKING); break;
+		case 'w': chan_push(chan_th, ST_NANOS6_BLK_TASKWAIT); break;
+		case 'W': chan_pop (chan_th, ST_NANOS6_BLK_TASKWAIT); break;
+		case 'f': chan_push(chan_th, ST_NANOS6_BLK_WAITFOR); break;
+		case 'F': chan_pop (chan_th, ST_NANOS6_BLK_WAITFOR); break;
 		default: break;
 	}
 }
@@ -334,20 +383,24 @@ pre_sched(struct ovni_emu *emu)
 }
 
 static void
-pre_thread_type(struct ovni_emu *emu)
+pre_thread(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
 	struct ovni_chan *chan_th;
 
 	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+	chan_th = &th->chan[CHAN_NANOS6_THREAD];
 
 	switch(emu->cur_ev->header.value)
 	{
-		case 'a': chan_push(chan_th, ST_NANOS6_ATTACHED); break;
-		case 'A': chan_pop (chan_th, ST_NANOS6_ATTACHED); break;
-		case 's': chan_push(chan_th, ST_NANOS6_SPAWNING); break;
-		case 'S': chan_pop (chan_th, ST_NANOS6_SPAWNING); break;
+		case 'e': chan_push(chan_th, ST_NANOS6_TH_EXTERNAL); break;
+		case 'E': chan_pop (chan_th, ST_NANOS6_TH_EXTERNAL); break;
+		case 'w': chan_push(chan_th, ST_NANOS6_TH_WORKER); break;
+		case 'W': chan_pop (chan_th, ST_NANOS6_TH_WORKER); break;
+		case 'l': chan_push(chan_th, ST_NANOS6_TH_LEADER); break;
+		case 'L': chan_pop (chan_th, ST_NANOS6_TH_LEADER); break;
+		case 'm': chan_push(chan_th, ST_NANOS6_TH_MAIN); break;
+		case 'M': chan_pop (chan_th, ST_NANOS6_TH_MAIN); break;
 		default: break;
 	}
 }
@@ -406,8 +459,8 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		case 'T': pre_task(emu); break;
 		case 'Y': pre_type(emu); break;
 		case 'S': pre_sched(emu); break;
-		case 'U': pre_ss(emu, ST_NANOS6_SUBMIT); break;
-		case 'H': pre_thread_type(emu); break;
+		case 'U': pre_ss(emu, ST_NANOS6_TASK_SUBMIT); break;
+		case 'H': pre_thread(emu); break;
 		case 'D': pre_deps(emu); break;
 		case 'B': pre_blocking(emu); break;
 		default:
@@ -416,27 +469,6 @@ hook_pre_nanos6(struct ovni_emu *emu)
 
 	check_affinity(emu);
 }
-
-char *nanos6_ss_names[] = {
-	[ST_NANOS6_NULL] = "ST_NANOS6_NULL",
-	[ST_NANOS6_SCHED_HUNGRY] = "ST_NANOS6_SCHED_HUNGRY",
-	[ST_NANOS6_TASK_RUNNING] = "ST_NANOS6_TASK_RUNNING",
-	[ST_NANOS6_DEP_REG] = "ST_NANOS6_DEP_REG",
-	[ST_NANOS6_DEP_UNREG] = "ST_NANOS6_DEP_UNREG",
-	[ST_NANOS6_SCHED_SUBMITTING] = "ST_NANOS6_SCHED_SUBMITTING",
-	[ST_NANOS6_CREATING] = "ST_NANOS6_CREATING",
-	[ST_NANOS6_SUBMIT] = "ST_NANOS6_SUBMIT",
-	[ST_NANOS6_TASKWAIT] = "ST_NANOS6_TASKWAIT",
-	[ST_NANOS6_WAITFOR] = "ST_NANOS6_WAITFOR",
-	[ST_NANOS6_BLOCKING] = "ST_NANOS6_BLOCKING",
-	[ST_NANOS6_UNBLOCKING] = "ST_NANOS6_UNBLOCKING",
-	[ST_NANOS6_SPAWNING] = "ST_NANOS6_SPAWNING",
-	[ST_NANOS6_SCHED_SERVING] = "ST_NANOS6_SCHED_SERVING",
-	[ST_NANOS6_ATTACHED] = "ST_NANOS6_ATTACHED",
-	[EV_NANOS6_SCHED_RECV] = "EV_NANOS6_SCHED_RECV",
-	[EV_NANOS6_SCHED_SEND] = "EV_NANOS6_SCHED_SEND",
-	[EV_NANOS6_SCHED_SELF] = "EV_NANOS6_SCHED_SELF",
-};
 
 static void
 end_lint(struct ovni_emu *emu)
@@ -449,8 +481,19 @@ end_lint(struct ovni_emu *emu)
 		if(ch->n != 1)
 		{
 			int top = ch->stack[ch->n - 1];
-			char *name = nanos6_ss_names[top];
-			die("thread %d ended with %d extra stacked nanos6 subsystems, top=%s\n",
+
+			struct pcf_value_label *pv;
+			char *name = "(unknown)";
+			for(pv = &nanos6_ss_values[0]; pv->label; pv++)
+			{
+				if(pv->value == top)
+				{
+					name = pv->label;
+					break;
+				}
+			}
+
+			die("thread %d ended with %d extra stacked nanos6 subsystems, top=\"%s\"\n",
 					th->tid, ch->n - 1, name);
 		}
 	}
@@ -472,7 +515,7 @@ hook_end_nanos6(struct ovni_emu *emu)
 			for(size_t j = 0; j < loom->nprocs; j++)
 			{
 				struct ovni_eproc *proc = &loom->proc[j];
-				task_create_pcf_types(pcftype, proc->nanos6_types);
+				task_create_pcf_types(pcftype, proc->nanos6_task_info.types);
 			}
 		}
 	}

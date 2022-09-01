@@ -21,4 +21,4 @@ ovni_test(task-types.c MP)
 ovni_test(blocking.c MP)
 ovni_test(subsystems.c MP)
 ovni_test(ss-mismatch.c SHOULD_FAIL
-  REGEX "thread [0-9]\\+ ended with 1 extra stacked nanos6 subsystems, top=ST_NANOS6_SCHED_HUNGRY")
+  REGEX "thread [0-9]\\+ ended with 1 extra stacked nanos6 subsystems, top=\"Scheduler: Waiting for ready tasks\"")

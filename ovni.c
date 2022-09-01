@@ -54,7 +54,7 @@ create_trace_stream(void)
 	int written = snprintf(path, PATH_MAX, "%s/thread.%d",
 			rproc.procdir, rthread.tid);
 
-       	if(written >= PATH_MAX)
+	if(written >= PATH_MAX)
 		die("thread trace path too long: %s/thread.%d\n",
 				rproc.procdir, rthread.tid);
 
@@ -80,7 +80,7 @@ proc_metadata_store(JSON_Value *meta, const char *procdir)
 
 	if(meta == NULL)
 		die("process metadata not initialized\n");
-       
+
 	if(snprintf(path, PATH_MAX, "%s/metadata.json", procdir) >= PATH_MAX)
 		die("metadata path too long: %s/metadata.json\n",
 				procdir);
@@ -111,7 +111,7 @@ ovni_add_cpu(int index, int phyid)
 
 	int first_time = 0;
 
-	/* Find the CPU array and create it if needed  */
+	/* Find the CPU array and create it if needed */
 	JSON_Array *cpuarray = json_object_dotget_array(meta, "cpus");
 
 	if(cpuarray == NULL)
@@ -289,7 +289,7 @@ move_thread_to_final(const char *src, const char *dst)
 	}
 
 	while((bytes = fread(buffer, 1, sizeof(buffer), infile)) > 0)
-	    fwrite(buffer, 1, bytes, outfile);
+		fwrite(buffer, 1, bytes, outfile);
 
 	fclose(outfile);
 	fclose(infile);
@@ -466,11 +466,11 @@ ovni_thread_isready(void)
 static inline
 uint64_t clock_tsc_now(void)
 {
-    uint32_t lo, hi;
+	uint32_t lo, hi;
 
-    /* RDTSC copies contents of 64-bit TSC into EDX:EAX */
-    __asm__ volatile("rdtsc" : "=a" (lo), "=d" (hi));
-    return (uint64_t) hi << 32 | lo;
+	/* RDTSC copies contents of 64-bit TSC into EDX:EAX */
+	__asm__ volatile("rdtsc" : "=a" (lo), "=d" (hi));
+	return (uint64_t) hi << 32 | lo;
 }
 #endif
 

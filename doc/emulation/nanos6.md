@@ -53,6 +53,10 @@ task. It is only shown when the task is in the running state. This view
 is specially useful to identify task in a distributed workload, which
 spans several nodes.
 
+As the zero value in Paraver gets hidden, we use the rank+1 value
+instead. Therefore the rank numeric value go from 1 to the number of
+ranks (inclusive).
+
 ## Subsystem view
 
 The subsystem view attempts to provide a general overview of what Nanos6
@@ -95,7 +99,7 @@ Task subsystem
 : The **Task** subsystem contains the code that controls the life cycle
 of tasks. It contains the following sections:
 
-- **Running**: Executing the body of the task (user defined code).
+- **Body**: Executing the body of the task (user defined code).
 
 - **Spawning function**: Spawning a function as task (it will be
   submitted to the scheduler for later execution).

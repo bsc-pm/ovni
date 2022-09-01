@@ -50,6 +50,14 @@ struct pcf_file {
 	struct pcf_type *types;
 };
 
+/* Only used to generate tables */
+struct pcf_value_label {
+	int value;
+	char *label;
+};
+
+extern struct pcf_value_label nanos6_ss_values[];
+
 void pcf_open(struct pcf_file *pcf, char *path, int chantype);
 
 void pcf_write(struct pcf_file *pcf);

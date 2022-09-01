@@ -20,13 +20,18 @@
 
 #include "emu.h"
 
-void task_create(uint32_t task_id, uint32_t type_id, struct task **task_map, struct task_type **type_map);
-void task_execute(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_map, struct task **thread_task_stack);
-void task_pause(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_map, struct task **thread_task_stack);
-void task_resume(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_map, struct task **thread_task_stack);
-void task_end(uint32_t task_id, struct ovni_ethread *cur_thread, struct task **task_map, struct task **thread_task_stack);
-void task_type_create(uint32_t typeid, const char *label, struct task_type **type_map);
-void task_create_pcf_types(struct pcf_type *pcftype, struct task_type *type_map);
-struct task *task_get_running(struct task *task_stack);
+struct task *task_find(struct task *tasks, uint32_t task_id);
+
+void task_create(struct task_info *info, uint32_t type_id, uint32_t task_id);
+void task_execute(struct task_stack *stack, struct task *task);
+void task_pause(struct task_stack *stack, struct task *task);
+void task_resume(struct task_stack *stack, struct task *task);
+void task_end(struct task_stack *stack, struct task *task);
+
+struct task_type *task_type_find(struct task_type *types, uint32_t type_id);
+void task_type_create(struct task_info *info, uint32_t type_id, const char *label);
+
+void task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types);
+struct task *task_get_running(struct task_stack *stack);
 
 #endif /* OVNI_EMU_TASK_H */

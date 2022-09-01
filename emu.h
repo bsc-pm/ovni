@@ -104,40 +104,30 @@ enum nodes_state {
  * CTF implementation. */
 enum nanos6_ss_state {
 	ST_NANOS6_NULL = 0,             /* IDLE */
-	                                /* RUNTIME */
+	ST_NANOS6_TASK_BODY = 3,        /* TASK */
+	ST_NANOS6_TASK_CREATING = 8,    /* TASK_CREATE */
+	ST_NANOS6_TASK_SUBMIT = 10,     /* TASK_SUBMIT */
+	ST_NANOS6_TASK_SPAWNING = 18,   /* SPAWN_FUNCTION */
 	ST_NANOS6_SCHED_HUNGRY = 2,     /* BUSY_WAIT */
-	ST_NANOS6_TASK_RUNNING = 3,     /* TASK */
+	ST_NANOS6_SCHED_ADDING = 6,     /* SCHEDULER_ADD_TASK */
+	ST_NANOS6_SCHED_SERVING = 20,   /* SCHEDULER_LOCK_SERVING */
 	ST_NANOS6_DEP_REG = 4,          /* DEPENDENCY_REGISTER */
 	ST_NANOS6_DEP_UNREG = 5,        /* DEPENDENCY_UNREGISTER */
-	ST_NANOS6_SCHED_SUBMITTING = 6, /* SCHEDULER_ADD_TASK */
-	                                /* SCHEDULER_GET_TASK */
-	ST_NANOS6_CREATING = 8,         /* TASK_CREATE */
-	                                /* TASK_ARGS_INIT */
-	ST_NANOS6_SUBMIT = 10,          /* TASK_SUBMIT */
-	                                /* TASKFOR_INIT */
-	ST_NANOS6_TASKWAIT = 12,        /* TASK_WAIT */
-	ST_NANOS6_WAITFOR = 13,         /* WAIT_FOR */
-	                                /* LOCK */
-	                                /* UNLOCK */
-	ST_NANOS6_BLOCKING = 16,        /* BLOCKING_API_BLOCK */
-	ST_NANOS6_UNBLOCKING = 17,      /* BLOCKING_API_UNBLOCK */
-	ST_NANOS6_SPAWNING = 18,        /* SPAWN_FUNCTION */
-	                                /* SCHEDULER_LOCK_ENTER */
-	ST_NANOS6_SCHED_SERVING = 20,   /* SCHEDULER_LOCK_SERVING */
-	ST_NANOS6_ATTACHED,
+	ST_NANOS6_BLK_TASKWAIT = 12,    /* TASK_WAIT */
+	ST_NANOS6_BLK_WAITFOR = 13,     /* WAIT_FOR */
+	ST_NANOS6_BLK_BLOCKING = 16,    /* BLOCKING_API_BLOCK */
+	ST_NANOS6_BLK_UNBLOCKING = 17,  /* BLOCKING_API_UNBLOCK */
 
-	EV_NANOS6_SCHED_RECV,
-	EV_NANOS6_SCHED_SEND,
-	EV_NANOS6_SCHED_SELF,
+	EV_NANOS6_SCHED_RECV = 50,
+	EV_NANOS6_SCHED_SEND = 51,
+	EV_NANOS6_SCHED_SELF = 52,
 };
 
-/* Possible reasons for Nanos6 tasks becoming running or not running */
-enum nanos6_task_run_reason
-{
-	TB_EXEC_OR_END = -1,
-	TB_BLOCKING_API = 0,
-	TB_TASKWAIT = 1,
-	TB_WAITFOR = 2
+enum nanos6_thread_state {
+	ST_NANOS6_TH_EXTERNAL = 1,
+	ST_NANOS6_TH_WORKER,
+	ST_NANOS6_TH_LEADER,
+	ST_NANOS6_TH_MAIN
 };
 
 enum kernel_cs_state {
@@ -167,6 +157,20 @@ struct task {
 	/* List handle for nested task support */
 	struct task *next;
 	struct task *prev;
+};
+
+struct task_info {
+    /* Both hash maps of all known tasks and types */
+    struct task_type *types;
+    struct task *tasks;
+};
+
+struct task_stack {
+    union {
+        struct task *top; /* Synctactic sugar */
+        struct task *tasks;
+    };
+    struct ovni_ethread *thread;
 };
 
 #define MAX_CHAN_STACK 128
@@ -207,6 +211,7 @@ enum chan {
 	CHAN_NANOS6_TYPE,
 	CHAN_NANOS6_SUBSYSTEM,
 	CHAN_NANOS6_RANK,
+	CHAN_NANOS6_THREAD,
 
 	CHAN_KERNEL_CS,
 
@@ -249,7 +254,8 @@ static const int chan_to_prvtype[CHAN_MAX] = {
 	[CHAN_NANOS6_TYPE]      = 36,
 	[CHAN_NANOS6_SUBSYSTEM] = 37,
 	[CHAN_NANOS6_RANK]      = 38,
-	[CHAN_KERNEL_CS]        = 40,
+	[CHAN_NANOS6_THREAD]    = 39,
+	[CHAN_KERNEL_CS]        = 45,
 };
 
 struct ovni_chan {
@@ -335,8 +341,8 @@ struct ovni_ethread {
 	 * structures */
 
 	/* Task stacks, top ones are the tasks currently runnable. */
-	struct task *nosv_task_stack;
-	struct task *nanos6_task_stack;
+	struct task_stack nosv_task_stack;
+	struct task_stack nanos6_task_stack;
 
 	/* Channels are used to output the emulator state in PRV */
 	struct ovni_chan chan[CHAN_MAX];
@@ -376,11 +382,8 @@ struct ovni_eproc {
 	/* ------ Subsystem specific data --------*/
 	/* TODO: Use dynamic allocation */
 
-	struct task_type *nosv_types;
-	struct task *nosv_tasks;
-
-	struct task_type *nanos6_types;
-	struct task *nanos6_tasks;
+	struct task_info nosv_task_info;
+    struct task_info nanos6_task_info;
 };
 
 

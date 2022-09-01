@@ -11,13 +11,22 @@ let
     mpi = last.impi;
     #mpi = last.openmpi;
 
-    nanos6 = (prev.nanos6Git.override {
-      gitUrl = "ssh://git@bscpm03.bsc.es/nanos6/forks/nanos6-extern-001.git";
-      gitBranch = "ovni_instr";
-      extrae = null;
-    }).overrideAttrs (old: {
+    #nanos6 = (prev.nanos6Git.override {
+    #  gitUrl = "ssh://git@bscpm03.bsc.es/nanos6/forks/nanos6-extern-001.git";
+    #  gitBranch = "ovni_instr";
+    #  extrae = null;
+    #}).overrideAttrs (old: {
+    #  buildInputs = old.buildInputs ++ [ last.ovni ];
+    #  patches = [ ./0001-Emit-a-fill-event-at-shutdown.patch ];
+    #  configureFlags = old.configureFlags ++ [
+    #    "--with-ovni=${last.ovni}"
+    #  ];
+    #});
+
+    nanos6 = prev.nanos6Git.overrideAttrs (old: {
+      src = ~/bsc/nanos6;
+      version = "local";
       buildInputs = old.buildInputs ++ [ last.ovni ];
-      patches = [ ./0001-Emit-a-fill-event-at-shutdown.patch ];
       configureFlags = old.configureFlags ++ [
         "--with-ovni=${last.ovni}"
       ];
@@ -30,7 +39,7 @@ let
       clangUnwrapped = prev.clangOmpss2Unwrapped.overrideAttrs (
         old:
         rec {
-          src = ../kk/llvm-mono-d3d4f2bf231b9461a5881c5bf56659516d45e670.tar.bz2;
+          src = ../../ovni-misc/kk2/llvm-mono-d3d4f2bf231b9461a5881c5bf56659516d45e670.tar.bz2;
           #src = fetchTarball {
           #  url = ../kk/llvm-mono-d3d4f2bf231b9461a5881c5bf56659516d45e670.tar.bz2;
           #};
@@ -89,5 +98,5 @@ let
   });
 
 in
-  bsc.ovni-rt
-  #bsc.ompss2.clang
+  #bsc.ovni-rt
+  bsc.ompss2.clang

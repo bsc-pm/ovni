@@ -45,6 +45,9 @@ instr_nanos6_type_create(int32_t typeid)
 INSTR_2ARG(instr_nanos6_task_create, "6Tc", int32_t, id, uint32_t, typeid)
 INSTR_0ARG(instr_nanos6_task_create_end, "6TC")
 INSTR_1ARG(instr_nanos6_task_execute, "6Tx", int32_t, id)
+INSTR_1ARG(instr_nanos6_task_pause, "6Tp", int32_t, id)
+INSTR_1ARG(instr_nanos6_task_resume, "6Tr", int32_t, id)
+INSTR_1ARG(instr_nanos6_task_end, "6Te", int32_t, id)
 
 static inline void
 instr_nanos6_task_create_and_execute(int32_t id, uint32_t typeid)
@@ -54,46 +57,14 @@ instr_nanos6_task_create_and_execute(int32_t id, uint32_t typeid)
 	instr_nanos6_task_execute(id);
 }
 
-INSTR_2ARG(instr_nanos6_task_block, "6Tb", int32_t, id, int32_t, reason)
-INSTR_2ARG(instr_nanos6_task_unblock, "6Tu", int32_t, id, int32_t, reason)
-
-static inline void
-instr_nanos6_block_enter(int32_t id)
-{
-	instr_nanos6_task_block(id, 0);
-}
-
-static inline void
-instr_nanos6_block_exit(int32_t id)
-{
-	instr_nanos6_task_unblock(id, 0);
-}
-
-static inline void
-instr_nanos6_task_wait_enter(int32_t id)
-{
-	instr_nanos6_task_block(id, 1);
-}
-
-static inline void
-instr_nanos6_task_wait_exit(int32_t id)
-{
-	instr_nanos6_task_unblock(id, 1);
-}
-
-static inline void
-instr_nanos6_waitfor_enter(int32_t id)
-{
-	instr_nanos6_task_block(id, 2);
-}
-
-static inline void
-instr_nanos6_waitfor_exit(int32_t id)
-{
-	instr_nanos6_task_unblock(id, 2);
-}
-
-INSTR_1ARG(instr_nanos6_task_end, "6Te", int32_t, id)
+INSTR_0ARG(instr_nanos6_block_enter, "6Bb")
+INSTR_0ARG(instr_nanos6_block_exit, "6BB")
+INSTR_0ARG(instr_nanos6_unblock_enter, "6Bb")
+INSTR_0ARG(instr_nanos6_unblock_exit, "6BB")
+INSTR_0ARG(instr_nanos6_taskwait_enter, "6Bw")
+INSTR_0ARG(instr_nanos6_taskwait_exit, "6BW")
+INSTR_0ARG(instr_nanos6_waitfor_enter, "6Bf")
+INSTR_0ARG(instr_nanos6_waitfor_exit, "6BF")
 
 INSTR_0ARG(instr_nanos6_sched_receive_task, "6Sr")
 INSTR_0ARG(instr_nanos6_sched_assign_task, "6Ss")

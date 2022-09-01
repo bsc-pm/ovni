@@ -81,12 +81,6 @@ const uint32_t pcf_def_palette[] = {
 const uint32_t *pcf_palette = pcf_def_palette;
 const int pcf_palette_len = ARRAY_LEN(pcf_def_palette);
 
-/* Only used to generate tables */
-struct pcf_value_label {
-	int value;
-	char *label;
-};
-
 /* ------------------ Value labels --------------------- */
 
 struct pcf_value_label default_values[] = {
@@ -181,20 +175,19 @@ struct pcf_value_label kernel_cs_values[] = {
 struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_NULL,                    "No subsystem" },
 	{ ST_TOO_MANY_TH,             "Unknown: multiple threads running" },
-	{ ST_NANOS6_TASK_RUNNING,     "Task: Running" },
-	{ ST_NANOS6_SPAWNING,         "Task: Spawning function" },
-	{ ST_NANOS6_CREATING,         "Task: Creating" },
-	{ ST_NANOS6_SUBMIT,           "Task: Submitting" },
-	{ ST_NANOS6_SCHED_HUNGRY,     "Scheduler: Waiting for tasks" },
+	{ ST_NANOS6_TASK_BODY,        "Task: Running body" },
+	{ ST_NANOS6_TASK_CREATING,    "Task: Creating" },
+	{ ST_NANOS6_TASK_SUBMIT,      "Task: Submitting" },
+	{ ST_NANOS6_TASK_SPAWNING,    "Task: Spawning function" },
+	{ ST_NANOS6_SCHED_HUNGRY,     "Scheduler: Waiting for ready tasks" },
 	{ ST_NANOS6_SCHED_SERVING,    "Scheduler: Serving tasks" },
-	{ ST_NANOS6_SCHED_SUBMITTING, "Scheduler: Adding ready tasks" },
-	{ ST_NANOS6_ATTACHED,         "Threading: Attached as external thread" },
+	{ ST_NANOS6_SCHED_ADDING,     "Scheduler: Adding ready tasks" },
 	{ ST_NANOS6_DEP_REG,          "Dependency: Registering" },
 	{ ST_NANOS6_DEP_UNREG,        "Dependency: Unregistering" },
-	{ ST_NANOS6_TASKWAIT,         "Blocking: Taskwait" },
-	{ ST_NANOS6_BLOCKING,         "Blocking: Blocking current task" },
-	{ ST_NANOS6_UNBLOCKING,       "Blocking: Unblocking remote task" },
-	{ ST_NANOS6_WAITFOR,          "Blocking: Wait For" },
+	{ ST_NANOS6_BLK_TASKWAIT,     "Blocking: Taskwait" },
+	{ ST_NANOS6_BLK_BLOCKING,     "Blocking: Blocking current task" },
+	{ ST_NANOS6_BLK_UNBLOCKING,   "Blocking: Unblocking remote task" },
+	{ ST_NANOS6_BLK_WAITFOR,      "Blocking: Wait For" },
 	{ EV_NANOS6_SCHED_SEND,       "EV Scheduler: Send task" },
 	{ EV_NANOS6_SCHED_RECV,       "EV Scheduler: Recv task" },
 	{ EV_NANOS6_SCHED_SELF,       "EV Scheduler: Self-assign task" },

@@ -43,16 +43,16 @@ main(void)
 	instr_nanos6_sched_submit_exit(); usleep(us);
 	instr_nanos6_enter_submit_task(); usleep(us);
 	instr_nanos6_exit_submit_task(); usleep(us);
-	instr_nanos6_block_enter(taskid); usleep(us);
-	instr_nanos6_block_exit(taskid); usleep(us);
-	instr_nanos6_waitfor_enter(taskid); usleep(us);
-	instr_nanos6_waitfor_exit(taskid); usleep(us);
+	instr_nanos6_block_enter(); usleep(us);
+	instr_nanos6_block_exit(); usleep(us);
+	instr_nanos6_waitfor_enter(); usleep(us);
+	instr_nanos6_waitfor_exit(); usleep(us);
 	instr_nanos6_register_accesses_enter(); usleep(us);
 	instr_nanos6_register_accesses_exit(); usleep(us);
 	instr_nanos6_unregister_accesses_enter(); usleep(us);
 	instr_nanos6_unregister_accesses_exit(); usleep(us);
-	instr_nanos6_task_wait_enter(taskid); usleep(us);
-	instr_nanos6_task_wait_exit(taskid); usleep(us);
+	instr_nanos6_taskwait_enter(); usleep(us);
+	instr_nanos6_taskwait_exit(); usleep(us);
 	instr_nanos6_spawn_function_enter(); usleep(us);
 	instr_nanos6_spawn_function_exit(); usleep(us);
 

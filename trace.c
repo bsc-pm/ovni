@@ -183,6 +183,20 @@ check_metadata_version(struct ovni_eproc *proc)
 }
 
 static int
+compare_int(const void *a, const void *b)
+{
+	int aa = *(const int *) a;
+	int bb = *(const int *) b;
+
+	if(aa < bb)
+		return -1;
+	else if(aa > bb)
+		return +1;
+	else
+		return 0;
+}
+
+static int
 load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, char *procdir)
 {
 	static int total_procs = 0;
@@ -191,8 +205,6 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 	DIR *dir;
 	char path[PATH_MAX];
 	struct ovni_ethread *thread;
-	int tid;
-	size_t i;
 
 	proc->pid = pid;
 	proc->index = index;
@@ -242,15 +254,42 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 		return -1;
 	}
 
+	int *tids;
+
+	if((tids = calloc(proc->nthreads, sizeof(int))) == NULL)
+	{
+		perror("calloc failed\n");
+		return -1;
+	}
+
 	rewinddir(dir);
 
-	i = 0;
-	while((dirent = readdir(dir)) != NULL)
+	for(size_t i = 0; i < proc->nthreads; )
 	{
-		if(find_dir_prefix_int(dirent, "thread", &tid) != 0)
+		dirent = readdir(dir);
+
+		if(dirent == NULL)
+		{
+			err("inconsistent: readdir returned NULL\n");
+			return -1;
+		}
+
+		if(find_dir_prefix_int(dirent, "thread", &tids[i]) != 0)
 			continue;
 
-		if(snprintf(path, PATH_MAX, "%s/%s", procdir, dirent->d_name) >=
+		i++;
+	}
+
+	closedir(dir);
+
+	/* Sort threads by ascending TID */
+	qsort(tids, proc->nthreads, sizeof(int), compare_int);
+
+	for(size_t i = 0; i < proc->nthreads; i++)
+	{
+		int tid = tids[i];
+
+		if(snprintf(path, PATH_MAX, "%s/thread.%d", procdir, tid) >=
 				PATH_MAX)
 		{
 			err("snprintf: path too large: %s\n", procdir);
@@ -261,11 +300,9 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 
 		if(load_thread(thread, proc, i, tid, path) != 0)
 			return -1;
-
-		i++;
 	}
 
-	closedir(dir);
+	free(tids);
 
 	return 0;
 }

@@ -6,7 +6,7 @@ This file contains an exhaustive list of events supported by the emulator.
 - All events refer to the current thread.
 - Descriptions must be kept short.
 
-```
+```txt
 **********************************************************
 Please keep this list synchronized with the emulator code!
 **********************************************************
@@ -141,26 +141,26 @@ KCI	Is back in the CPU due to a context switch
 6TC	Task creation ends
 6Tx	Task execute
 6Te	Task end
-6Tb	Task block
-6Tu	Task unblock
+6Tp	Task pause
+6Tr	Task resume
 
 6Yc	Task type create (punctual event)
 
+6S[	Enters the scheduler serving mode
+6S]	Ends the scheduler serving mode
+6Sa	Begins to submit a ready task via addReadyTask()
+6SA	Ends submitting a ready task via addReadyTask()
 6Sr	Receives a task from another thread (punctual event)
 6Ss	Sends a task to another thread (punctual event)
 6S@	Self-assigns itself a task (punctual event)
-6Sh	Enters the hungry state, waiting for a task
-6Sf	Is no longer hungry
-6S[	Enters the scheduler server mode
-6S]	Ends the scheduler server mode
-6Su	Begins a ready task submission via addReadyTask()
-6SU	Ends a ready task submission via addReadyTask()
+
+6W[	Begins the worker body loop, looking for tasks
+6W]	Ends the worker body loop
+6Wt	Begins handling a task via handleTask()
+6WT	Ends handling a task via handleTask()
 
 6U[	Starts to submit a task via submitTask()
 6U]	Ends the submission of a task via submitTask()
-
-6Ha	Attaches to Nanos6 as external thread
-6HA	Detaches from Nanos6 as external thread
 
 6F[	Begins to spawn a function via spawnFunction()
 6F]	Ends spawning a function
@@ -170,12 +170,21 @@ KCI	Is back in the CPU due to a context switch
 6Du	Begins the unregistration of a task's accesses
 6DU	Ends the unregistration of a task's accesses
 
-6Bu	Begins to unblock a task
-6BU	Ends unblocking a task
 6Bb	Begins to block the current task via blockCurrentTask()
 6BB	Ends blocking the current task via blockCurrentTask()
+6Bu	Begins to unblock a task
+6BU	Ends unblocking a task
 6Bw	Enters taskWait()
 6BW	Exits taskWait()
 6Bf	Enters taskFor()
 6BF	Exits taskFor()
+
+6He	Sets itself as external thread
+6HE	Unsets itself as external thread
+6Hw	Sets itself as worker thread
+6HW	Unsets itself as worker thread
+6Hl	Sets itself as leader thread
+6HL	Unsets itself as leader thread
+6Hm	Sets itself as main thread
+6HM	Unsets itself as main thread
 ```

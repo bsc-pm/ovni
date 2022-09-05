@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   sodipodi:docname="palette.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#000000"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.5126683"
+     inkscape:cx="337.15256"
+     inkscape:cy="253.85604"
+     inkscape:window-width="1914"
+     inkscape:window-height="1025"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid8317"
+       empcolor="#e4ff3f"
+       empopacity="0.25098039" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#54d200;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="task-executing-body"
+       width="10.583334"
+       height="10.583333"
+       x="7.9375"
+       y="7.9375005" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="21.520691"
+       y="14.202404"
+       id="text8213"><tspan
+         sodipodi:role="line"
+         id="tspan8211"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="21.520691"
+         y="14.202404">Task: Executing body</tspan></text>
+    <rect
+       style="fill:#666666;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect8319"
+       width="10.583334"
+       height="10.583333"
+       x="82.020836"
+       y="7.9375" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="96.294754"
+       y="14.544328"
+       id="text8323"><tspan
+         sodipodi:role="line"
+         id="tspan8321"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="96.294754"
+         y="14.544328">Worker: Waiting for work</tspan></text>
+    <rect
+       style="fill:#004468;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect8325"
+       width="10.583334"
+       height="10.583333"
+       x="7.9375"
+       y="34.395832" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="21.520691"
+       y="40.660736"
+       id="text8329"><tspan
+         sodipodi:role="line"
+         id="tspan8327"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="21.520691"
+         y="40.660736">Task: Creating</tspan></text>
+    <rect
+       style="fill:#8c2e2e;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect8331"
+       width="10.583334"
+       height="10.583333"
+       x="82.020836"
+       y="34.395832" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="96.065659"
+       y="41.002663"
+       id="text8335"><tspan
+         sodipodi:role="line"
+         id="tspan8333"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="96.065659"
+         y="41.002663">Block: Taskwait</tspan></text>
+    <rect
+       style="fill:#69b498;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect9063"
+       width="10.583334"
+       height="10.583333"
+       x="7.9374995"
+       y="21.166666" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="21.277811"
+       y="27.431568"
+       id="text9067"><tspan
+         sodipodi:role="line"
+         id="tspan9065"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="21.277811"
+         y="27.431568">Scheduler: Adding ready tasks</tspan></text>
+    <rect
+       style="fill:#730dff;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect11247"
+       width="10.583334"
+       height="10.583333"
+       x="7.9374995"
+       y="47.625" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="21.164124"
+       y="53.889904"
+       id="text11251"><tspan
+         sodipodi:role="line"
+         id="tspan11249"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="21.164124"
+         y="53.889904">Dependency: Registering</tspan></text>
+    <rect
+       style="fill:#4400ff;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect11253"
+       width="10.583334"
+       height="10.583333"
+       x="7.937499"
+       y="60.854164" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="21.164124"
+       y="67.119064"
+       id="text11257"><tspan
+         sodipodi:role="line"
+         id="tspan11255"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="21.164124"
+         y="67.119064">Dependency: Unregistering</tspan></text>
+    <rect
+       style="fill:#816803;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect13437"
+       width="10.583334"
+       height="10.583333"
+       x="82.020836"
+       y="60.854168" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="96.179344"
+       y="67.119072"
+       id="text13441"><tspan
+         sodipodi:role="line"
+         id="tspan13439"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="96.179344"
+         y="67.119072">Scheduler: Serving tasks</tspan></text>
+    <rect
+       style="fill:#483737;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect14940"
+       width="10.583334"
+       height="10.583333"
+       x="82.020836"
+       y="47.625" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="96.065659"
+       y="54.231831"
+       id="text14944"><tspan
+         sodipodi:role="line"
+         id="tspan14942"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="96.065659"
+         y="54.231831">Block: Taskfor</tspan></text>
+    <rect
+       style="fill:#333333;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect14946"
+       width="10.583334"
+       height="10.583333"
+       x="82.020836"
+       y="21.166666" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="96.294754"
+       y="27.773493"
+       id="text14950"><tspan
+         sodipodi:role="line"
+         id="tspan14948"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="96.294754"
+         y="27.773493">Worker: handling task</tspan></text>
+    <rect
+       style="fill:#a916a7;fill-opacity:1;stroke:none;stroke-width:0.264999"
+       id="rect18669"
+       width="10.583334"
+       height="10.583333"
+       x="7.9375"
+       y="74.083336" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="21.520691"
+       y="80.348236"
+       id="text18673"><tspan
+         sodipodi:role="line"
+         id="tspan18671"
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0.264583"
+         x="21.520691"
+         y="80.348236">Task: Subtmitting</tspan></text>
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect8319"
+       id="use26699"
+       transform="matrix(12.000002,0,0,0.25000006,-973.66686,97.234375)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect14946"
+       id="use26701"
+       transform="matrix(4.9999992,0,0,0.25000008,-375.7083,93.927081)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#task-executing-body"
+       id="use26703"
+       transform="matrix(4.2499997,0,0,0.24999998,5.9531158,97.234375)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect8325"
+       id="use26705"
+       transform="matrix(0.74999999,0,0,0.25000006,60.192697,90.61979)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect18669"
+       id="use26707"
+       transform="matrix(0.74999999,0,0,0.24999989,68.130197,80.697925)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect8319"
+       id="use26719"
+       transform="matrix(11.999997,0,0,0.24999994,-973.66645,101.20313)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect14946"
+       id="use28173"
+       transform="matrix(10.999997,0,0,0.25000008,-886.35397,97.895827)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#task-executing-body"
+       id="use28175"
+       transform="matrix(10.249999,0,0,0.24999995,-62.838518,101.20313)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect8331"
+       id="use28177"
+       transform="matrix(4.499999,0,0,0.25000002,-318.82282,94.588537)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect8325"
+       id="use28179"
+       transform="matrix(1.239965,0,0,0.24999994,13.666176,94.588545)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect18669"
+       id="use28183"
+       transform="matrix(0.54985987,0,0,0.25000004,35.515186,84.666658)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect8319"
+       id="use28237"
+       transform="matrix(3.8245086,0,0,0.25000012,-259.84411,101.20312)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#rect13437"
+       id="use28239"
+       transform="matrix(11.999996,0,0,0.24999991,-973.66636,80.036465)" />
+  </g>
+</svg>

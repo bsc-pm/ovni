@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   sodipodi:docname="subsystem-stack.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.5126683"
+     inkscape:cx="416.15203"
+     inkscape:cy="244.60087"
+     inkscape:window-width="1914"
+     inkscape:window-height="1025"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid3825" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <marker
+       style="overflow:visible"
+       id="Arrow2"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Arrow2"
+       markerWidth="7.6999998"
+       markerHeight="5.5999999"
+       viewBox="0 0 7.7 5.6"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.7)"
+         d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
+         id="arrow2L" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#eee8d5;stroke:#000000;stroke-width:0.2"
+       id="rect3879"
+       width="58.208332"
+       height="7.9375"
+       x="21.166666"
+       y="22.489584" />
+    <rect
+       style="fill:#aaeeff;stroke:#000000;stroke-width:0.2"
+       id="rect3881"
+       width="58.208332"
+       height="7.9375"
+       x="21.166666"
+       y="30.427084" />
+    <rect
+       style="fill:#eee8d5;stroke:#000000;stroke-width:0.2"
+       id="rect3883"
+       width="58.208332"
+       height="7.9375"
+       x="21.166666"
+       y="38.364582" />
+    <rect
+       style="fill:#ffaaaa;stroke:#000000;stroke-width:0.2"
+       id="rect3885"
+       width="58.208332"
+       height="7.9375"
+       x="21.166666"
+       y="46.302082" />
+    <rect
+       style="fill:#deaa87;stroke:#000000;stroke-width:0.2"
+       id="rect3887"
+       width="58.208332"
+       height="7.9375"
+       x="21.166666"
+       y="54.239582" />
+    <rect
+       style="fill:#eee8d5;stroke:#000000;stroke-width:0.2"
+       id="rect3889"
+       width="58.208332"
+       height="7.9375"
+       x="21.166666"
+       y="62.177082" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="34.193466"
+       y="35.369072"
+       id="text3645"><tspan
+         sodipodi:role="line"
+         id="tspan3643"
+         style="stroke-width:0.264583"
+         x="34.193466"
+         y="35.369072">Creating new task</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="32.009281"
+       y="43.306568"
+       id="text3649"><tspan
+         sodipodi:role="line"
+         id="tspan3647"
+         style="stroke-width:0.264583"
+         x="32.009281"
+         y="43.306568">Unknown (app code)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="33.635365"
+       y="51.244068"
+       id="text3653"><tspan
+         sodipodi:role="line"
+         id="tspan3651"
+         style="stroke-width:0.264583"
+         x="33.635365"
+         y="51.244068">Running task Body</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="39.037262"
+       y="59.181568"
+       id="text3657"><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.264583"
+         x="39.037262"
+         y="59.181568"
+         id="tspan3659">Worker Body</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="28.103415"
+       y="27.431572"
+       id="text3715"><tspan
+         sodipodi:role="line"
+         id="tspan3713"
+         style="stroke-width:0.264583"
+         x="28.103415"
+         y="27.431572">Unknown (memory alloc)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="36.400909"
+       y="67.460991"
+       id="text3893"><tspan
+         sodipodi:role="line"
+         id="tspan3891"
+         style="stroke-width:0.264583"
+         x="36.400909"
+         y="67.460991">Other frames ...</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2)"
+       d="m 79.747761,34.198069 c 9.27107,-0.479269 18.184197,3.203946 18.339362,26.014504"
+       id="path4008"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="84.488319"
+       y="67.429054"
+       id="text4012"><tspan
+         sodipodi:role="line"
+         id="tspan4010"
+         style="stroke-width:0.264583"
+         x="84.488319"
+         y="67.429054">Subsystem=Creating new task</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="38.870174"
+       y="75.927666"
+       id="text4234"><tspan
+         sodipodi:role="line"
+         id="tspan4232"
+         style="stroke-width:0.264583"
+         x="38.870174"
+         y="75.927666">Thread stack</tspan></text>
+  </g>
+</svg>

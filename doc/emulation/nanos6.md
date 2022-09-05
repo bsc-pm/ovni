@@ -89,59 +89,56 @@ presents that section as the current state of the execution, in this
 case the section $`S_3`$.
 
 Additionally, the runtime sections $`S_i`$ are grouped together in
-subsystems, which form a closely related group of functions. The
-complete list of subsystems and sections is shown below.
+subsystems, which form a closely related group of functions. When there is no
+instrumented section in the thread stack, the state is set to **No subsystem**.
+The complete list of subsystems and sections is shown below.
 
-When there is no instrumented section in the thread stack, the state is
-set to **No subsystem**.
+- **Task subsystem**: Controls the life cycle of tasks
 
-Task subsystem
-: The **Task** subsystem contains the code that controls the life cycle
-of tasks. It contains the following sections:
+    - **Body**: Executing the body of the task (user defined code).
+    
+    - **Spawning function**: Spawning a function as task that will be submitted
+      for later execution.
+    
+    - **Creating**: Creating a new task via `nanos6_create_task`
+    
+    - **Submitting**: Submitting a recently created task via
+      `nanos6_submit_task`
 
-- **Body**: Executing the body of the task (user defined code).
+- **Scheduler subsystem**: Queueing and dequeueing ready tasks.
 
-- **Spawning function**: Spawning a function as task (it will be
-  submitted to the scheduler for later execution).
+    - **Serving tasks**: Inside the scheduler lock, serving tasks
+    to other threads
+    
+    - **Adding ready tasks**: Adding tasks to the scheduler queues,
+    but outside of the scheduler lock.
 
-- **Creating**: Creating a new task, through `nanos6_create_task`
 
-- **Submitting**: Submitting a recently created task, through
-`nanos6_submit_task`
+- **Worker subsystem**: Actions that relate to worker threads, which
+  continuously try to execute new tasks.
 
-Scheduler subsystem
-: The **Scheduler** system groups the actions that relate to the queueing
-and dequeueing of ready tasks. It contains the following sections:
+    - **Looking for work**: Actively requesting tasks from the scheduler,
+      registered but not holding the lock.
+    
+    - **Handling task**: Processing a recently assigned task.
 
-- **Waiting for tasks**: Actively waiting for tasks inside the
-scheduler subsystem, registered but not holding the scheduler lock
+- **Dependency subsystem**: Manages the registration of task
+  dependencies.
 
-- **Serving tasks**: Inside the scheduler lock, serving tasks
-to other threads
+    - **Registering**: Registering dependencies of a task
+    
+    - **Unregistering**: Releasing dependencies of a task because
+    it has ended
 
-- **Adding ready tasks**: Adding tasks to the scheduler queues,
-but outside of the scheduler lock.
+- **Blocking subsystem**: Code that stops the thread execution.
 
-Dependency subsystem
-: The **Dependency** system only contains the code that manages the
-registration of task dependencies. It contains the following sections:
-
-- **Registering**: Registering a task's dependencies
-
-- **Unregistering**: Releasing a task's dependencies because
-it has ended
-
-Blocking subsystem
-: The **Blocking** subsystem deals with the code stops the thread
-execution. It contains the following sections:
-
-- **Taskwait**: Task is blocked while inside a taskwait
-
-- **Blocking current task**: Task is blocked through the Nanos6
-blocking API
-
-- **Unblocking remote task**: Unblocking a different task using
-the Nanos6 blocking API
-
-- **Wait For**: Blocking a deadline task, which will be
-re-enqueued when a certain amount of time has passed
+    - **Taskwait**: Task is blocked due to a `taskwait` clause
+    
+    - **Blocking current task**: Task is blocked through the Nanos6
+      blocking API
+    
+    - **Unblocking remote task**: Unblocking a different task using the
+      Nanos6 blocking API
+    
+    - **Wait for deadline**: Blocking a deadline task, which will be
+      re-enqueued when a certain amount of time has passed

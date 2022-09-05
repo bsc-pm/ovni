@@ -179,7 +179,6 @@ struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_NANOS6_TASK_CREATING,    "Task: Creating" },
 	{ ST_NANOS6_TASK_SUBMIT,      "Task: Submitting" },
 	{ ST_NANOS6_TASK_SPAWNING,    "Task: Spawning function" },
-	{ ST_NANOS6_SCHED_HUNGRY,     "Scheduler: Waiting for ready tasks" },
 	{ ST_NANOS6_SCHED_SERVING,    "Scheduler: Serving tasks" },
 	{ ST_NANOS6_SCHED_ADDING,     "Scheduler: Adding ready tasks" },
 	{ ST_NANOS6_DEP_REG,          "Dependency: Registering" },
@@ -188,9 +187,21 @@ struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_NANOS6_BLK_BLOCKING,     "Blocking: Blocking current task" },
 	{ ST_NANOS6_BLK_UNBLOCKING,   "Blocking: Unblocking remote task" },
 	{ ST_NANOS6_BLK_WAITFOR,      "Blocking: Wait For" },
+	{ ST_NANOS6_HANDLING_TASK,    "Worker: Handling task" },
+	{ ST_NANOS6_WORKER_LOOP,      "Worker: Looking for work" },
 	{ EV_NANOS6_SCHED_SEND,       "EV Scheduler: Send task" },
 	{ EV_NANOS6_SCHED_RECV,       "EV Scheduler: Recv task" },
 	{ EV_NANOS6_SCHED_SELF,       "EV Scheduler: Self-assign task" },
+	{ -1, NULL },
+};
+
+struct pcf_value_label nanos6_thread_type[] = {
+	{ ST_NULL,                 "No type" },
+	{ ST_TOO_MANY_TH,          "Unknown: multiple threads running" },
+	{ ST_NANOS6_TH_EXTERNAL,   "External" },
+	{ ST_NANOS6_TH_WORKER,     "Worker" },
+	{ ST_NANOS6_TH_LEADER,     "Leader" },
+	{ ST_NANOS6_TH_MAIN,       "Main" },
 	{ -1, NULL },
 };
 
@@ -217,6 +228,7 @@ struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
 	[CHAN_NANOS6_TYPE]  	= &default_values,
 	[CHAN_NANOS6_SUBSYSTEM] = &nanos6_ss_values,
 	[CHAN_NANOS6_RANK]      = &default_values,
+	[CHAN_NANOS6_THREAD]    = &nanos6_thread_type,
 
 	[CHAN_KERNEL_CS]        = &kernel_cs_values,
 };
@@ -246,6 +258,7 @@ char *pcf_chan_name[CHAN_MAX] = {
 	[CHAN_NANOS6_TYPE]      = "Nanos6 task type",
 	[CHAN_NANOS6_SUBSYSTEM] = "Nanos6 subsystem",
 	[CHAN_NANOS6_RANK]      = "Nanos6 task MPI rank",
+	[CHAN_NANOS6_THREAD]    = "Nanos6 thread type",
 
 	[CHAN_KERNEL_CS]        = "Context switches",
 };
@@ -283,8 +296,9 @@ int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
 	[CHAN_NANOS6_TYPE]      = { RUN_TH, RUN_TH },
 	[CHAN_NANOS6_SUBSYSTEM] = { ACT_TH, RUN_TH },
 	[CHAN_NANOS6_RANK]   	= { RUN_TH, RUN_TH },
+	[CHAN_NANOS6_THREAD]   	= { ACT_TH, NONE },
 
-	[CHAN_KERNEL_CS]        = { CUR_TH, ACT_TH },
+	[CHAN_KERNEL_CS]        = { RUN_TH, ACT_TH },
 };
 
 /* ----------------------------------------------- */

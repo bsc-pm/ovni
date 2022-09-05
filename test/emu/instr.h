@@ -21,6 +21,7 @@
 #define _GNU_SOURCE /* For gethostname() */
 
 #include "common.h"
+#include "compat.h"
 #include "ovni.h"
 
 #include <inttypes.h>

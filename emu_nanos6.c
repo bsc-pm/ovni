@@ -50,7 +50,7 @@ hook_init_nanos6(struct ovni_emu *emu)
 		chan_th_init(th, uth, CHAN_NANOS6_TYPE,      CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_NANOS6_SUBSYSTEM, CHAN_TRACK_TH_ACTIVE,  0, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_NANOS6_RANK,      CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
-		chan_th_init(th, uth, CHAN_NANOS6_THREAD,    CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
+		chan_th_init(th, uth, CHAN_NANOS6_THREAD,    CHAN_TRACK_NONE,       0, 1, 1, row, prv_th, clock);
 	}
 
 	/* Init the Nanos6 channels in all cpus */
@@ -292,7 +292,7 @@ pre_task(struct ovni_emu *emu)
 			update_task(emu);
 			break;
 		default:
-			die("unexpected event value %c\n",
+			die("unexpected Nanos6 task event value %c\n",
 					emu->cur_ev->header.value);
 	}
 }
@@ -361,6 +361,26 @@ pre_blocking(struct ovni_emu *emu)
 }
 
 static void
+pre_worker(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case '[': chan_push(chan_th, ST_NANOS6_WORKER_LOOP); break;
+		case ']': chan_pop (chan_th, ST_NANOS6_WORKER_LOOP); break;
+		case 't': chan_push(chan_th, ST_NANOS6_HANDLING_TASK); break;
+		case 'T': chan_pop (chan_th, ST_NANOS6_HANDLING_TASK); break;
+		default: break;
+	}
+}
+
+
+static void
 pre_sched(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
@@ -371,14 +391,16 @@ pre_sched(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.value)
 	{
-		case 'h': chan_push(chan_th, ST_NANOS6_SCHED_HUNGRY); break;
-		case 'f': chan_pop(chan_th, ST_NANOS6_SCHED_HUNGRY); break;
 		case '[': chan_push(chan_th, ST_NANOS6_SCHED_SERVING); break;
-		case ']': chan_pop(chan_th, ST_NANOS6_SCHED_SERVING); break;
-		case '@': chan_ev(chan_th, EV_NANOS6_SCHED_SELF); break;
-		case 'r': chan_ev(chan_th, EV_NANOS6_SCHED_RECV); break;
-		case 's': chan_ev(chan_th, EV_NANOS6_SCHED_SEND); break;
-		default: break;
+		case ']': chan_pop (chan_th, ST_NANOS6_SCHED_SERVING); break;
+		case 'a': chan_push(chan_th, ST_NANOS6_SCHED_ADDING); break;
+		case 'A': chan_pop (chan_th, ST_NANOS6_SCHED_ADDING); break;
+		case '@': chan_ev  (chan_th, EV_NANOS6_SCHED_SELF); break;
+		case 'r': chan_ev  (chan_th, EV_NANOS6_SCHED_RECV); break;
+		case 's': chan_ev  (chan_th, EV_NANOS6_SCHED_SEND); break;
+		default:
+			die("unknown Nanos6 scheduler event %c\n",
+                    emu->cur_ev->header.value);
 	}
 }
 
@@ -421,9 +443,8 @@ pre_ss(struct ovni_emu *emu, int st)
 		case '[': chan_push(chan_th, st); break;
 		case ']': chan_pop(chan_th, st); break;
 		default:
-			err("unexpected value '%c' (expecting '[' or ']')\n",
+			die("unexpected value '%c' (expecting '[' or ']')\n",
 					emu->cur_ev->header.value);
-			abort();
 	}
 }
 
@@ -438,8 +459,9 @@ check_affinity(struct ovni_emu *emu)
 
 	if(cpu->nrunning_threads > 1)
 	{
-		die("cpu %s has more than one thread running\n",
-				cpu->name);
+		err("cpu %s has more than one thread running\n", cpu->name);
+        if(emu->enable_linter)
+            abort();
 	}
 }
 
@@ -460,11 +482,14 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		case 'Y': pre_type(emu); break;
 		case 'S': pre_sched(emu); break;
 		case 'U': pre_ss(emu, ST_NANOS6_TASK_SUBMIT); break;
+		case 'F': pre_ss(emu, ST_NANOS6_TASK_SPAWNING); break;
 		case 'H': pre_thread(emu); break;
 		case 'D': pre_deps(emu); break;
 		case 'B': pre_blocking(emu); break;
+		case 'W': pre_worker(emu); break;
 		default:
-			break;
+			die("unknown Nanos6 event category %c\n",
+                    emu->cur_ev->header.category);
 	}
 
 	check_affinity(emu);

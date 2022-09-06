@@ -22,8 +22,8 @@ main(void)
 {
 	instr_start(0, 1);
 
-	instr_nanos6_sched_hungry();
-	/* The thread is left in the hungry state (should fail) */
+	instr_nanos6_worker_loop_enter();
+	/* The thread is left in the worker loop state (should fail) */
 
 	instr_end();
 

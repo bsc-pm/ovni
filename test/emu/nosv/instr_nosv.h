@@ -19,7 +19,6 @@
 #define INSTR_NOSV_H
 
 #include "../instr.h"
-#include "compat.h"
 
 static inline void
 instr_nosv_type_create(int32_t typeid)

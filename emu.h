@@ -118,10 +118,12 @@ enum nanos6_ss_state {
 	ST_NANOS6_HANDLING_TASK,
 	ST_NANOS6_WORKER_LOOP,
 
-    /* Value 51 is broken in old Paraver */
+	/* Value 51 is broken in old Paraver */
 	EV_NANOS6_SCHED_RECV = 60,
-	EV_NANOS6_SCHED_SEND = 61,
-	EV_NANOS6_SCHED_SELF = 62,
+	EV_NANOS6_SCHED_SEND,
+	EV_NANOS6_SCHED_SELF,
+	EV_NANOS6_CPU_IDLE,
+	EV_NANOS6_CPU_ACTIVE,
 };
 
 enum nanos6_thread_type {

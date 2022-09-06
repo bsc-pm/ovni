@@ -379,7 +379,6 @@ pre_worker(struct ovni_emu *emu)
 	}
 }
 
-
 static void
 pre_sched(struct ovni_emu *emu)
 {
@@ -424,6 +423,25 @@ pre_thread(struct ovni_emu *emu)
 		case 'm': chan_push(chan_th, ST_NANOS6_TH_MAIN); break;
 		case 'M': chan_pop (chan_th, ST_NANOS6_TH_MAIN); break;
 		default: break;
+	}
+}
+
+static void
+pre_cpu(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case 'i': chan_ev(chan_th, EV_NANOS6_CPU_IDLE); break;
+		case 'a': chan_ev(chan_th, EV_NANOS6_CPU_ACTIVE); break;
+		default:
+			die("unknown Nanos6 cpu event %c\n",
+                    emu->cur_ev->header.value);
 	}
 }
 
@@ -487,6 +505,7 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		case 'D': pre_deps(emu); break;
 		case 'B': pre_blocking(emu); break;
 		case 'W': pre_worker(emu); break;
+		case 'C': pre_cpu(emu); break;
 		default:
 			die("unknown Nanos6 event category %c\n",
                     emu->cur_ev->header.category);

@@ -187,4 +187,7 @@ KCI	Is back in the CPU due to a context switch
 6HL	Unsets itself as leader thread
 6Hm	Sets itself as main thread
 6HM	Unsets itself as main thread
+
+6Ci	CPU becomes idle
+6Ca	CPU becomes active
 ```

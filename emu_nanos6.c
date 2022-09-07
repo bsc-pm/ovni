@@ -160,7 +160,7 @@ static void
 update_task_state(struct ovni_emu *emu)
 {
 	if(ovni_payload_size(emu->cur_ev) < 4)
-		die("missing task id in payload\n");
+		edie(emu, "missing task id in payload\n");
 
 	uint32_t task_id = emu->cur_ev->payload.u32[0];
 
@@ -173,7 +173,7 @@ update_task_state(struct ovni_emu *emu)
 	struct task *task = task_find(info->tasks, task_id);
 
 	if(task == NULL)
-		die("cannot find task with id %u\n", task_id);
+		edie(emu, "cannot find task with id %u\n", task_id);
 
 	switch(emu->cur_ev->header.value)
 	{
@@ -182,8 +182,7 @@ update_task_state(struct ovni_emu *emu)
 		case 'p': task_pause(stack, task); break;
 		case 'r': task_resume(stack, task); break;
 		default:
-			  die("unexpected Nanos6 task event value %c\n",
-					  emu->cur_ev->header.value);
+			  edie(emu, "unexpected Nanos6 task event\n");
 	}
 }
 
@@ -225,7 +224,7 @@ update_task_channels(struct ovni_emu *emu,
                   chan_task_switch(emu, prev, next);
                   break;
 		default:
-			  die("unexpected transition value %c\n", tr);
+			  edie(emu, "unexpected transition value %c\n", tr);
 	}
 }
 
@@ -292,8 +291,7 @@ pre_task(struct ovni_emu *emu)
 			update_task(emu);
 			break;
 		default:
-			die("unexpected Nanos6 task event value %c\n",
-					emu->cur_ev->header.value);
+			edie(emu, "unexpected Nanos6 task event value\n");
 	}
 }
 
@@ -333,7 +331,8 @@ pre_deps(struct ovni_emu *emu)
 		case 'R': chan_pop (chan_th, ST_NANOS6_DEP_REG); break;
 		case 'u': chan_push(chan_th, ST_NANOS6_DEP_UNREG); break;
 		case 'U': chan_pop (chan_th, ST_NANOS6_DEP_UNREG); break;
-		default: break;
+		default:
+			edie(emu, "unknown Nanos6 dependency event\n");
 	}
 }
 
@@ -356,7 +355,8 @@ pre_blocking(struct ovni_emu *emu)
 		case 'W': chan_pop (chan_th, ST_NANOS6_BLK_TASKWAIT); break;
 		case 'f': chan_push(chan_th, ST_NANOS6_BLK_WAITFOR); break;
 		case 'F': chan_pop (chan_th, ST_NANOS6_BLK_WAITFOR); break;
-		default: break;
+		default:
+			edie(emu, "unknown Nanos6 blocking event\n");
 	}
 }
 
@@ -375,7 +375,36 @@ pre_worker(struct ovni_emu *emu)
 		case ']': chan_pop (chan_th, ST_NANOS6_WORKER_LOOP); break;
 		case 't': chan_push(chan_th, ST_NANOS6_HANDLING_TASK); break;
 		case 'T': chan_pop (chan_th, ST_NANOS6_HANDLING_TASK); break;
-		default: break;
+		case 'w': chan_push(chan_th, ST_NANOS6_SWITCH_TO); break;
+		case 'W': chan_pop (chan_th, ST_NANOS6_SWITCH_TO); break;
+		case 'm': chan_push(chan_th, ST_NANOS6_MIGRATE); break;
+		case 'M': chan_pop (chan_th, ST_NANOS6_MIGRATE); break;
+		case 's': chan_push(chan_th, ST_NANOS6_SUSPEND); break;
+		case 'S': chan_pop (chan_th, ST_NANOS6_SUSPEND); break;
+		case 'r': chan_push(chan_th, ST_NANOS6_RESUME); break;
+		case 'R': chan_pop (chan_th, ST_NANOS6_RESUME); break;
+		default:
+			edie(emu, "unknown Nanos6 worker event\n");
+	}
+}
+
+static void
+pre_memory(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+
+	switch(emu->cur_ev->header.value)
+	{
+		case 'a': chan_push(chan_th, ST_NANOS6_ALLOCATING); break;
+		case 'A': chan_pop (chan_th, ST_NANOS6_ALLOCATING); break;
+		case 'f': chan_push(chan_th, ST_NANOS6_FREEING); break;
+		case 'F': chan_pop (chan_th, ST_NANOS6_FREEING); break;
+		default:
+			edie(emu, "unknown Nanos6 memory event\n");
 	}
 }
 
@@ -398,8 +427,7 @@ pre_sched(struct ovni_emu *emu)
 		case 'r': chan_ev  (chan_th, EV_NANOS6_SCHED_RECV); break;
 		case 's': chan_ev  (chan_th, EV_NANOS6_SCHED_SEND); break;
 		default:
-			die("unknown Nanos6 scheduler event %c\n",
-                    emu->cur_ev->header.value);
+			edie(emu, "unknown Nanos6 scheduler event\n");
 	}
 }
 
@@ -443,6 +471,20 @@ pre_cpu(struct ovni_emu *emu)
 			die("unknown Nanos6 cpu event %c\n",
                     emu->cur_ev->header.value);
 	}
+}
+
+static void
+pre_shutdown(struct ovni_emu *emu)
+{
+	struct ovni_ethread *th;
+	struct ovni_chan *chan_th;
+
+	th = emu->cur_thread;
+	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+
+	uint8_t value = emu->cur_ev->header.value;
+
+	chan_ev(chan_th, 100 + value - '0');
 }
 
 static void
@@ -490,9 +532,11 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		die("hook_pre_nanos6: unexpected event with model %c\n",
 				emu->cur_ev->header.model);
 
-	if(!emu->cur_thread->is_active)
-		die("hook_pre_nanos6: current thread %d not active\n",
+	if(!emu->cur_thread->is_active) {
+		eerr(emu, "hook_pre_nanos6: current thread %d not active\n",
 				emu->cur_thread->tid);
+		return;
+	}
 
 	switch(emu->cur_ev->header.category)
 	{
@@ -506,9 +550,10 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		case 'B': pre_blocking(emu); break;
 		case 'W': pre_worker(emu); break;
 		case 'C': pre_cpu(emu); break;
+		case 's': pre_shutdown(emu); break;
+		case 'M': pre_memory(emu); break;
 		default:
-			die("unknown Nanos6 event category %c\n",
-                    emu->cur_ev->header.category);
+			edie(emu, "unknown Nanos6 event category\n");
 	}
 
 	check_affinity(emu);

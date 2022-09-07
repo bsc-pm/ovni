@@ -189,9 +189,17 @@ struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_NANOS6_BLK_WAITFOR,      "Blocking: Wait For" },
 	{ ST_NANOS6_HANDLING_TASK,    "Worker: Handling task" },
 	{ ST_NANOS6_WORKER_LOOP,      "Worker: Looking for work" },
+	{ ST_NANOS6_SWITCH_TO,        "Worker: Switching to another thread" },
+	{ ST_NANOS6_MIGRATE,          "Worker: Migrating CPU" },
+	{ ST_NANOS6_SUSPEND,          "Worker: Suspending thread" },
+	{ ST_NANOS6_RESUME,           "Worker: Resuming another thread" },
+	{ ST_NANOS6_ALLOCATING,       "Memory: Allocating" },
+	{ ST_NANOS6_FREEING,          "Memory: Freeing" },
 	{ EV_NANOS6_SCHED_SEND,       "EV Scheduler: Send task" },
 	{ EV_NANOS6_SCHED_RECV,       "EV Scheduler: Recv task" },
 	{ EV_NANOS6_SCHED_SELF,       "EV Scheduler: Self-assign task" },
+	{ EV_NANOS6_CPU_IDLE,         "EV CPU: Becomes idle" },
+	{ EV_NANOS6_CPU_ACTIVE,       "EV CPU: Becomes active" },
 	{ -1, NULL },
 };
 

@@ -17,6 +17,7 @@
 
 #define _POSIX_C_SOURCE 200112L
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -1176,6 +1177,44 @@ emu_destroy(struct ovni_emu *emu)
 
 	free(emu->global_cpu);
 	free(emu->global_thread);
+}
+
+void
+edie(struct ovni_emu *emu, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    fprintf(stderr, "fatal: ");
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+
+    fprintf(stderr, "fatal: while evaluating the event %c%c%c with clock=%ld in thread=%d\n",
+		    emu->cur_ev->header.model,
+		    emu->cur_ev->header.category,
+		    emu->cur_ev->header.value,
+		    emu->cur_ev->header.clock,
+		    emu->cur_thread->tid);
+
+    abort();
+}
+
+void
+eerr(struct ovni_emu *emu, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    fprintf(stderr, "fatal: ");
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+
+    fprintf(stderr, "fatal: while evaluating the event %c%c%c with clock=%ld in thread=%d\n",
+		    emu->cur_ev->header.model,
+		    emu->cur_ev->header.category,
+		    emu->cur_ev->header.value,
+		    emu->cur_ev->header.clock,
+		    emu->cur_thread->tid);
 }
 
 int

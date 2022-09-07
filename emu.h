@@ -547,6 +547,9 @@ struct ovni_emu {
 
 /* Emulator function declaration */
 
+void edie(struct ovni_emu *emu, const char* fmt, ...);
+void eerr(struct ovni_emu *emu, const char* fmt, ...);
+
 void hook_init_ovni(struct ovni_emu *emu);
 void hook_pre_ovni(struct ovni_emu *emu);
 

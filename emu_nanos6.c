@@ -520,7 +520,7 @@ check_affinity(struct ovni_emu *emu)
 
 	if(cpu->nrunning_threads > 1)
 	{
-		err("cpu %s has more than one thread running\n", cpu->name);
+		eerr(emu, "cpu %s has more than one thread running\n", cpu->name);
         if(emu->enable_linter)
             abort();
 	}

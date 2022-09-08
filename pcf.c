@@ -200,6 +200,7 @@ struct pcf_value_label nanos6_ss_values[] = {
 	{ EV_NANOS6_SCHED_SELF,       "EV Scheduler: Self-assign task" },
 	{ EV_NANOS6_CPU_IDLE,         "EV CPU: Becomes idle" },
 	{ EV_NANOS6_CPU_ACTIVE,       "EV CPU: Becomes active" },
+	{ EV_NANOS6_SIGNAL,           "EV Worker: Wakening another thread" },
 	{ -1, NULL },
 };
 

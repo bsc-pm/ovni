@@ -383,6 +383,7 @@ pre_worker(struct ovni_emu *emu)
 		case 'S': chan_pop (chan_th, ST_NANOS6_SUSPEND); break;
 		case 'r': chan_push(chan_th, ST_NANOS6_RESUME); break;
 		case 'R': chan_pop (chan_th, ST_NANOS6_RESUME); break;
+		case '*': chan_ev  (chan_th, EV_NANOS6_SIGNAL); break;
 		default:
 			edie(emu, "unknown Nanos6 worker event\n");
 	}

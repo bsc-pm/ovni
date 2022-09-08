@@ -130,6 +130,7 @@ enum nanos6_ss_state {
 	EV_NANOS6_SCHED_SELF,
 	EV_NANOS6_CPU_IDLE,
 	EV_NANOS6_CPU_ACTIVE,
+	EV_NANOS6_SIGNAL,
 };
 
 enum nanos6_thread_type {

@@ -334,8 +334,8 @@ pre_thread_execute(struct ovni_emu *emu, struct ovni_ethread *th)
 static void
 pre_thread_end(struct ovni_ethread *th)
 {
-	if(th->state != TH_ST_RUNNING)
-		die("pre_thread_end: thread %d not running\n",
+	if(th->state != TH_ST_RUNNING && th->state != TH_ST_COOLING)
+		die("pre_thread_end: thread %d not running or cooling\n",
 				th->tid);
 
 	if(th->cpu == NULL)

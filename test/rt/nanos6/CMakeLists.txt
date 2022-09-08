@@ -8,3 +8,4 @@ endfunction()
 
 nanos6_rt_test(simple-task.c)
 nanos6_rt_test(nested-task.c)
+nanos6_rt_test(several-tasks.c)

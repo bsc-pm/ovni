@@ -181,6 +181,7 @@ struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_NANOS6_TASK_SPAWNING,    "Task: Spawning function" },
 	{ ST_NANOS6_SCHED_SERVING,    "Scheduler: Serving tasks" },
 	{ ST_NANOS6_SCHED_ADDING,     "Scheduler: Adding ready tasks" },
+	{ ST_NANOS6_SCHED_PROCESSING, "Scheduler: Processing ready tasks" },
 	{ ST_NANOS6_DEP_REG,          "Dependency: Registering" },
 	{ ST_NANOS6_DEP_UNREG,        "Dependency: Unregistering" },
 	{ ST_NANOS6_BLK_TASKWAIT,     "Blocking: Taskwait" },

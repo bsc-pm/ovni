@@ -424,6 +424,8 @@ pre_sched(struct ovni_emu *emu)
 		case ']': chan_pop (chan_th, ST_NANOS6_SCHED_SERVING); break;
 		case 'a': chan_push(chan_th, ST_NANOS6_SCHED_ADDING); break;
 		case 'A': chan_pop (chan_th, ST_NANOS6_SCHED_ADDING); break;
+		case 'p': chan_push(chan_th, ST_NANOS6_SCHED_PROCESSING); break;
+		case 'P': chan_pop (chan_th, ST_NANOS6_SCHED_PROCESSING); break;
 		case '@': chan_ev  (chan_th, EV_NANOS6_SCHED_SELF); break;
 		case 'r': chan_ev  (chan_th, EV_NANOS6_SCHED_RECV); break;
 		case 's': chan_ev  (chan_th, EV_NANOS6_SCHED_SEND); break;

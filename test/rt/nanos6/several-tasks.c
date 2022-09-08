@@ -4,7 +4,7 @@ int main(void)
 	{
 		#pragma oss task
 		{
-			for(volatile long j = 0; j < 1000000L; j++)
+			for(volatile long j = 0; j < 100000L; j++)
 			{
 			}
 		}

@@ -1,5 +1,7 @@
-build:debian-latest:
-  image: debian:latest
+build:debian-testing:
+  image: debian:testing
+  tags:
+    - docker
   stage: build
   before_script:
     - apt update && apt -y install make autoconf gfortran libopenmpi-dev cmake
@@ -12,22 +14,9 @@ build:debian-latest:
     paths:
       - install/
 
-build:old-glibc:
-  image: nixos/nix:2.9.2
+build:rt-tests:
   stage: build
+  tags:
+    - nix
   script: 
-    - nix-build nix/old-glibc.nix
-
-build:nosv-tests:
-  image:
-    name: nixos/nix:2.9.2
-  stage: build
-  before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | ssh-add /dev/fd/0
-    - mkdir -p ~/.ssh
-    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-    - cat /proc/sys/user/max_user_namespaces || true
-  script: 
-    - nix --extra-experimental-features "nix-command impure-derivations ca-derivations" --option sandbox false build -L --impure --file nix/nosv.nix
+    - nix build -L --file nix/rt.nix

@@ -1,5 +1,5 @@
 
-           ovni - Obtuse but Versatile nOS-V Instrumentation
+           ovni - Obtuse but Versatile Nanoscale Instrumentation
 
 The ovni instrumentation project is composed of a runtime library (libovni.so),
 which generates a fast binary trace, and post-processing tools such as the
@@ -11,7 +11,7 @@ unless otherwise stated.
 
 For more information, take a look at the doc/ directory.
 
-To build ovni you would need a C compiler, MPI and cmake version 3.10 or newer.
+To build ovni you would need a C compiler, MPI and cmake version 3.20 or newer.
 To compile in build/ and install into $prefix use:
 
   % mkdir build

@@ -43,7 +43,8 @@ instr_nanos6_type_create(int32_t typeid)
 }
 
 INSTR_2ARG(instr_nanos6_task_create, "6Tc", int32_t, id, uint32_t, typeid)
-INSTR_0ARG(instr_nanos6_task_create_end, "6TC")
+INSTR_0ARG(instr_nanos6_task_create_begin, "6C[")
+INSTR_0ARG(instr_nanos6_task_create_end, "6C]")
 INSTR_1ARG(instr_nanos6_task_execute, "6Tx", int32_t, id)
 INSTR_1ARG(instr_nanos6_task_pause, "6Tp", int32_t, id)
 INSTR_1ARG(instr_nanos6_task_resume, "6Tr", int32_t, id)
@@ -52,6 +53,7 @@ INSTR_1ARG(instr_nanos6_task_end, "6Te", int32_t, id)
 static inline void
 instr_nanos6_task_create_and_execute(int32_t id, uint32_t typeid)
 {
+	instr_nanos6_task_create_begin();
 	instr_nanos6_task_create(id, typeid);
 	instr_nanos6_task_create_end();
 	instr_nanos6_task_execute(id);

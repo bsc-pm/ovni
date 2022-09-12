@@ -446,20 +446,6 @@ pre_thread(struct ovni_emu *emu)
 }
 
 static void
-pre_shutdown(struct ovni_emu *emu)
-{
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
-
-	uint8_t value = emu->cur_ev->header.value;
-
-	chan_ev(chan_th, 100 + value - '0');
-}
-
-static void
 pre_ss(struct ovni_emu *emu, int st)
 {
 	struct ovni_ethread *th;

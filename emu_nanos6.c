@@ -266,23 +266,10 @@ create_task(struct ovni_emu *emu)
 static void
 pre_task(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
-
 	switch(emu->cur_ev->header.value)
 	{
-		/* We use the 'c' event to create the task and switch
-		 * the subsystem all in one step because the timing here
-		 * is critical. */
 		case 'c':
-			chan_push(chan_th, ST_NANOS6_TASK_CREATING);
 			create_task(emu);
-			break;
-		case 'C':
-			chan_pop(chan_th, ST_NANOS6_TASK_CREATING);
 			break;
 		case 'x':
 		case 'e':
@@ -458,25 +445,6 @@ pre_thread(struct ovni_emu *emu)
 }
 
 static void
-pre_cpu(struct ovni_emu *emu)
-{
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
-
-	switch(emu->cur_ev->header.value)
-	{
-		case 'i': chan_ev(chan_th, EV_NANOS6_CPU_IDLE); break;
-		case 'a': chan_ev(chan_th, EV_NANOS6_CPU_ACTIVE); break;
-		default:
-			die("unknown Nanos6 cpu event %c\n",
-                    emu->cur_ev->header.value);
-	}
-}
-
-static void
 pre_shutdown(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
@@ -544,6 +512,7 @@ hook_pre_nanos6(struct ovni_emu *emu)
 	switch(emu->cur_ev->header.category)
 	{
 		case 'T': pre_task(emu); break;
+		case 'C': pre_ss(emu, ST_NANOS6_TASK_CREATING); break;
 		case 'Y': pre_type(emu); break;
 		case 'S': pre_sched(emu); break;
 		case 'U': pre_ss(emu, ST_NANOS6_TASK_SUBMIT); break;
@@ -552,7 +521,6 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		case 'D': pre_deps(emu); break;
 		case 'B': pre_blocking(emu); break;
 		case 'W': pre_worker(emu); break;
-		case 'C': pre_cpu(emu); break;
 		case 's': pre_shutdown(emu); break;
 		case 'M': pre_memory(emu); break;
 		default:

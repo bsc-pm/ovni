@@ -162,6 +162,12 @@
 				# 	"sys_enter_gettimeofday",
 				# 	"sys_exit_gettimeofday"
 				# ]
+	[instrument.ovni]
+		# Level of detail. Selects what should be instrumented:
+		# 1 = Tasks
+		# 2 = Tasks + simple subsystem (the default)
+		# 3 = Tasks + full subsystem + memory (huge performance penalty)
+		level = 2
 	[instrument.extrae]
 		# Indicate whether the trace should show the activity of the threads instead of the CPUs'
 		# activity. Default is false, which shows the activity of CPUs

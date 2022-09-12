@@ -286,11 +286,11 @@ static void
 pre_type(struct ovni_emu *emu)
 {
 	if(emu->cur_ev->header.value != 'c')
-		die("unexpected event value %c\n",
+		edie(emu, "unexpected event value %c\n",
 				emu->cur_ev->header.value);
 
 	if((emu->cur_ev->header.flags & OVNI_EV_JUMBO) == 0)
-		die("expecting a jumbo event\n");
+		edie(emu, "expecting a jumbo event\n");
 
 	uint8_t *data = &emu->cur_ev->payload.jumbo.data[0];
 	uint32_t typeid = *(uint32_t *) data;
@@ -440,7 +440,8 @@ pre_thread(struct ovni_emu *emu)
 		case 'L': chan_pop (chan_th, ST_NANOS6_TH_LEADER); break;
 		case 'm': chan_push(chan_th, ST_NANOS6_TH_MAIN); break;
 		case 'M': chan_pop (chan_th, ST_NANOS6_TH_MAIN); break;
-		default: break;
+		default:
+			edie(emu, "unknown Nanos6 thread type event\n");
 	}
 }
 
@@ -474,7 +475,7 @@ pre_ss(struct ovni_emu *emu, int st)
 		case '[': chan_push(chan_th, st); break;
 		case ']': chan_pop(chan_th, st); break;
 		default:
-			die("unexpected value '%c' (expecting '[' or ']')\n",
+			edie(emu, "unexpected value '%c' (expecting '[' or ']')\n",
 					emu->cur_ev->header.value);
 	}
 }
@@ -521,7 +522,6 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		case 'D': pre_deps(emu); break;
 		case 'B': pre_blocking(emu); break;
 		case 'W': pre_worker(emu); break;
-		case 's': pre_shutdown(emu); break;
 		case 'M': pre_memory(emu); break;
 		default:
 			edie(emu, "unknown Nanos6 event category\n");

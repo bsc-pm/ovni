@@ -137,8 +137,7 @@ KCI	Is back in the CPU due to a context switch
 
 -------------------- Nanos6 (model=6) ----------------------
 
-6Tc	Task creation begins
-6TC	Task creation ends
+6Tc	Creates a new task
 6Tx	Task execute
 6Te	Task end
 6Tp	Task pause
@@ -146,10 +145,15 @@ KCI	Is back in the CPU due to a context switch
 
 6Yc	Task type create (punctual event)
 
+6C[	Begins creating a new task
+6C]	Ends creating a new task
+
 6S[	Enters the scheduler serving mode
 6S]	Ends the scheduler serving mode
 6Sa	Begins to submit a ready task via addReadyTask()
 6SA	Ends submitting a ready task via addReadyTask()
+6Sa	Begins to process ready tasks via processReadyTasks()
+6SA	Ends processing ready taska via processReadyTasks()
 6Sr	Receives a task from another thread (punctual event)
 6Ss	Sends a task to another thread (punctual event)
 6S@	Self-assigns itself a task (punctual event)
@@ -158,6 +162,15 @@ KCI	Is back in the CPU due to a context switch
 6W]	Ends the worker body loop
 6Wt	Begins handling a task via handleTask()
 6WT	Ends handling a task via handleTask()
+6Ww	Begins switching to another worker via switchTo()
+6WW	Ends switching to another worker via switchTo()
+6Wm	Begins migrating the CPU via migrate()
+6WM	Ends migrating the CPU via migrate()
+6Ws	Begins suspending the worker via suspend()
+6WS	Ends suspending the worker via suspend()
+6Wr	Begins resuming another worker via resume()
+6WR	Ends resuming another worker via resume()
+6W*	Signals another thread to wake up (punctual event)
 
 6U[	Starts to submit a task via submitTask()
 6U]	Ends the submission of a task via submitTask()
@@ -188,6 +201,8 @@ KCI	Is back in the CPU due to a context switch
 6Hm	Sets itself as main thread
 6HM	Unsets itself as main thread
 
-6Ci	CPU becomes idle
-6Ca	CPU becomes active
+6Ma	Begins allocating memory
+6MA	Ends allocating memory
+6Mf	Begins freeing memory
+6MF	Ends freeing memory
 ```

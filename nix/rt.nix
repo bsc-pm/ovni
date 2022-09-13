@@ -82,6 +82,7 @@ let
       buildInputs = old.buildInputs ++ [
         pkgs.gdb
         last.nosv
+        last.nanos6
         pkgs.strace
       ];
       cmakeFlags = old.cmakeFlags ++ [ "-DENABLE_TEST_RT=ON" ];

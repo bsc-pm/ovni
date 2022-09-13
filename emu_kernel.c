@@ -81,9 +81,8 @@ context_switch(struct ovni_emu *emu)
 			chan_pop(chan, ST_KERNEL_CSOUT);
 			break;
 		default:
-			err("unexpected value '%c' (expecting 'O' or 'I')\n",
+			edie(emu, "unexpected value '%c' (expecting 'O' or 'I')\n",
 					emu->cur_ev->header.value);
-			abort();
 	}
 }
 
@@ -91,13 +90,16 @@ void
 hook_pre_kernel(struct ovni_emu *emu)
 {
 	if(emu->cur_ev->header.model != 'K')
-		die("hook_pre_kernel: unexpected event with model %c\n",
+		edie(emu, "hook_pre_kernel: unexpected event with model %c\n",
 				emu->cur_ev->header.model);
 
 	switch(emu->cur_ev->header.category)
 	{
-		case 'C': context_switch(emu); break;
-		default:
+		case 'C':
+			context_switch(emu);
 			break;
+		default:
+			edie(emu, "hook_pre_kernel: unexpected event with category %c\n",
+					emu->cur_ev->header.category);
 	}
 }

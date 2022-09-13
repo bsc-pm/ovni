@@ -111,13 +111,13 @@ chan_task_running(struct ovni_emu *emu, struct task *task)
 	proc = emu->cur_proc;
 
 	if(task->id == 0)
-		die("task id cannot be 0\n");
+		edie(emu, "task id cannot be 0\n");
 
 	if(task->type->gid == 0)
-		die("task type gid cannot be 0\n");
+		edie(emu, "task type gid cannot be 0\n");
 
 	if(proc->appid <= 0)
-		die("app id must be positive\n");
+		edie(emu, "app id must be positive\n");
 
 	chan_set(&th->chan[CHAN_NOSV_TASKID], task->id);
 	chan_set(&th->chan[CHAN_NOSV_TYPE], task->type->gid);
@@ -136,19 +136,19 @@ chan_task_switch(struct ovni_emu *emu,
 	struct ovni_ethread *th = emu->cur_thread;
 
 	if(!prev || !next)
-		die("cannot switch to or from a NULL task\n");
+		edie(emu, "cannot switch to or from a NULL task\n");
 
 	if(prev == next)
-		die("cannot switch to the same task\n");
+		edie(emu, "cannot switch to the same task\n");
 
 	if(next->id == 0)
-		die("next task id cannot be 0\n");
+		edie(emu, "next task id cannot be 0\n");
 
 	if(next->type->gid == 0)
-		die("next task type id cannot be 0\n");
+		edie(emu, "next task type id cannot be 0\n");
 
 	if(prev->thread != next->thread)
-		die("cannot switch to a task of another thread\n");
+		edie(emu, "cannot switch to a task of another thread\n");
 
 	/* No need to change the rank or app ID, as we can only switch
 	 * to tasks of the same thread */
@@ -166,7 +166,7 @@ static void
 update_task_state(struct ovni_emu *emu)
 {
 	if(ovni_payload_size(emu->cur_ev) < 4)
-		die("missing task id in payload\n");
+		edie(emu, "missing task id in payload\n");
 
 	uint32_t task_id = emu->cur_ev->payload.u32[0];
 
@@ -179,7 +179,7 @@ update_task_state(struct ovni_emu *emu)
 	struct task *task = task_find(info->tasks, task_id);
 
 	if(task == NULL)
-		die("cannot find task with id %u\n", task_id);
+		edie(emu, "cannot find task with id %u\n", task_id);
 
 	switch(emu->cur_ev->header.value)
 	{
@@ -188,8 +188,8 @@ update_task_state(struct ovni_emu *emu)
 		case 'p': task_pause(stack, task); break;
 		case 'r': task_resume(stack, task); break;
 		default:
-			  die("unexpected Nanos6 task event value %c\n",
-					  emu->cur_ev->header.value);
+			edie(emu, "unexpected Nanos6 task event value %c\n",
+					emu->cur_ev->header.value);
 	}
 }
 
@@ -200,7 +200,7 @@ expand_transition_value(struct ovni_emu *emu, int was_running, int runs_now)
 
 	/* Ensure we don't clobber the value */
 	if(tr == 'X' || tr == 'E')
-		die("unexpected event value %c\n", tr);
+		edie(emu, "unexpected event value %c\n", tr);
 
 	/* Modify the event value to detect nested transitions */
 	if(tr == 'x' && was_running)
@@ -225,7 +225,7 @@ update_task_channels(struct ovni_emu *emu,
 		case 'X': chan_task_switch(emu, prev, next); break;
 		case 'E': chan_task_switch(emu, prev, next); break;
 		default:
-			  die("unexpected transition value %c\n", tr);
+			edie(emu, "unexpected transition value %c\n", tr);
 	}
 }
 
@@ -254,7 +254,7 @@ static void
 create_task(struct ovni_emu *emu)
 {
 	if(ovni_payload_size(emu->cur_ev) != 8)
-		die("cannot create task: unexpected payload size\n");
+		edie(emu, "cannot create task: unexpected payload size\n");
 
 	uint32_t task_id = emu->cur_ev->payload.u32[0];
 	uint32_t type_id = emu->cur_ev->payload.u32[1];
@@ -279,7 +279,7 @@ pre_task(struct ovni_emu *emu)
 			update_task(emu);
 			break;
 		default:
-			die("unexpected event value %c\n",
+			edie(emu, "unexpected task event value %c\n",
 					emu->cur_ev->header.value);
 	}
 }
@@ -288,11 +288,11 @@ static void
 pre_type(struct ovni_emu *emu)
 {
 	if(emu->cur_ev->header.value != 'c')
-		die("unexpected event value %c\n",
+		edie(emu, "unexpected event value %c\n",
 				emu->cur_ev->header.value);
 
 	if((emu->cur_ev->header.flags & OVNI_EV_JUMBO) == 0)
-		die("expecting a jumbo event\n");
+		edie(emu, "expecting a jumbo event\n");
 
 	uint8_t *data = &emu->cur_ev->payload.jumbo.data[0];
 	uint32_t typeid = *(uint32_t *) data;
@@ -447,9 +447,8 @@ check_affinity(struct ovni_emu *emu)
 
 	if(cpu->nrunning_threads > 1)
 	{
-		err("cpu %s has more than one thread running\n",
+		edie(emu, "cpu %s has more than one thread running\n",
 				cpu->name);
-		abort();
 	}
 }
 
@@ -457,11 +456,11 @@ void
 hook_pre_nosv(struct ovni_emu *emu)
 {
 	if(emu->cur_ev->header.model != 'V')
-		die("hook_pre_nosv: unexpected event with model %c\n",
+		edie(emu, "hook_pre_nosv: unexpected event with model %c\n",
 				emu->cur_ev->header.model);
 
 	if(!emu->cur_thread->is_active)
-		die("hook_pre_nosv: current thread %d not active\n",
+		edie(emu, "hook_pre_nosv: current thread %d not active\n",
 				emu->cur_thread->tid);
 
 	switch(emu->cur_ev->header.category)

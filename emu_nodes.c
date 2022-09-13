@@ -80,8 +80,8 @@ pre_subsystem(struct ovni_emu *emu, int st)
 			chan_pop(chan, st);
 			break;
 		default:
-			err("unexpected value '%c' (expecting '[' or ']')\n", emu->cur_ev->header.value);
-			abort();
+			edie(emu, "unexpected value '%c' (expecting '[' or ']')\n",
+					emu->cur_ev->header.value);
 	}
 }
 
@@ -89,11 +89,11 @@ void
 hook_pre_nodes(struct ovni_emu *emu)
 {
 	if(emu->cur_ev->header.model != 'D')
-		die("hook_pre_nodes: unexpected event with model %c\n",
+		edie(emu, "hook_pre_nodes: unexpected event with model %c\n",
 				emu->cur_ev->header.model);
 
 	if(!emu->cur_thread->is_running)
-		die("hook_pre_nodes: current thread %d not running\n",
+		edie(emu, "hook_pre_nodes: current thread %d not running\n",
 				emu->cur_thread->tid);
 
 	switch(emu->cur_ev->header.category)

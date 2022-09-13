@@ -78,7 +78,8 @@ pre_tampi_mode(struct ovni_emu *emu, int state)
 			chan_pop(&th->chan[CHAN_TAMPI_MODE], state);
 			break;
 		default:
-			  abort();
+			edie(emu, "unexpected event value %c for tampi mode\n",
+					emu->cur_ev->header.value);
 	}
 }
 
@@ -86,7 +87,7 @@ void
 hook_pre_tampi(struct ovni_emu *emu)
 {
 	if(emu->cur_ev->header.model != 'T')
-		die("hook_pre_tampi: unexpected event with model %c\n",
+		edie(emu, "hook_pre_tampi: unexpected event with model %c\n",
 				emu->cur_ev->header.model);
 
 	switch(emu->cur_ev->header.category)

@@ -104,13 +104,13 @@ chan_task_running(struct ovni_emu *emu, struct task *task, char tr)
 	proc = emu->cur_proc;
 
 	if(task->id == 0)
-		die("task id cannot be 0\n");
+		edie(emu, "task id cannot be 0\n");
 
 	if(task->type->gid == 0)
-		die("task type gid cannot be 0\n");
+		edie(emu, "task type gid cannot be 0\n");
 
 	if(proc->appid <= 0)
-		die("app id must be positive\n");
+		edie(emu, "app id must be positive\n");
 
 	chan_set(&th->chan[CHAN_NANOS6_TASKID], task->id);
 	chan_set(&th->chan[CHAN_NANOS6_TYPE], task->type->gid);
@@ -130,19 +130,19 @@ chan_task_switch(struct ovni_emu *emu,
 	struct ovni_ethread *th = emu->cur_thread;
 
 	if(!prev || !next)
-		die("cannot switch to or from a NULL task\n");
+		edie(emu, "cannot switch to or from a NULL task\n");
 
 	if(prev == next)
-		die("cannot switch to the same task\n");
+		edie(emu, "cannot switch to the same task\n");
 
 	if(next->id == 0)
-		die("next task id cannot be 0\n");
+		edie(emu, "next task id cannot be 0\n");
 
 	if(next->type->gid == 0)
-		die("next task type id cannot be 0\n");
+		edie(emu, "next task type id cannot be 0\n");
 
 	if(prev->thread != next->thread)
-		die("cannot switch to a task of another thread\n");
+		edie(emu, "cannot switch to a task of another thread\n");
 
 	/* No need to change the rank as we will switch to tasks from
 	 * same thread */
@@ -193,7 +193,7 @@ expand_transition_value(struct ovni_emu *emu, int was_running, int runs_now)
 
 	/* Ensure we don't clobber the value */
 	if(tr == 'X' || tr == 'E')
-		die("unexpected event value %c\n", tr);
+		edie(emu, "unexpected event value %c\n", tr);
 
 	/* Modify the event value to detect nested transitions */
 	if(tr == 'x' && was_running)
@@ -212,19 +212,19 @@ update_task_channels(struct ovni_emu *emu,
 	{
 		case 'x':
 		case 'r':
-                  chan_task_running(emu, next, tr);
-                  break;
+			chan_task_running(emu, next, tr);
+			break;
 		case 'e':
 		case 'p':
-                  chan_task_stopped(emu, tr);
-                  break;
-		/* Additional nested transitions */
+			chan_task_stopped(emu, tr);
+			break;
+			/* Additional nested transitions */
 		case 'X':
 		case 'E':
-                  chan_task_switch(emu, prev, next);
-                  break;
+			chan_task_switch(emu, prev, next);
+			break;
 		default:
-			  edie(emu, "unexpected transition value %c\n", tr);
+			edie(emu, "unexpected transition value %c\n", tr);
 	}
 }
 
@@ -253,7 +253,7 @@ static void
 create_task(struct ovni_emu *emu)
 {
 	if(ovni_payload_size(emu->cur_ev) != 8)
-		die("cannot create task: unexpected payload size\n");
+		edie(emu, "cannot create task: unexpected payload size\n");
 
 	uint32_t task_id = emu->cur_ev->payload.u32[0];
 	uint32_t type_id = emu->cur_ev->payload.u32[1];
@@ -285,9 +285,10 @@ pre_task(struct ovni_emu *emu)
 static void
 pre_type(struct ovni_emu *emu)
 {
-	if(emu->cur_ev->header.value != 'c')
-		edie(emu, "unexpected event value %c\n",
-				emu->cur_ev->header.value);
+	uint8_t value = emu->cur_ev->header.value;
+
+	if(value != 'c')
+		edie(emu, "unexpected event value %c\n", value);
 
 	if((emu->cur_ev->header.flags & OVNI_EV_JUMBO) == 0)
 		edie(emu, "expecting a jumbo event\n");
@@ -478,8 +479,11 @@ check_affinity(struct ovni_emu *emu)
 	if(cpu->nrunning_threads > 1)
 	{
 		eerr(emu, "cpu %s has more than one thread running\n", cpu->name);
-        if(emu->enable_linter)
-            abort();
+
+		/* Only abort in linter mode so we can still see the
+		 * trace to find out what was happening */
+		if(emu->enable_linter)
+			abort();
 	}
 }
 
@@ -487,13 +491,12 @@ void
 hook_pre_nanos6(struct ovni_emu *emu)
 {
 	if(emu->cur_ev->header.model != '6')
-		die("hook_pre_nanos6: unexpected event with model %c\n",
+		edie(emu, "hook_pre_nanos6: unexpected event with model %c\n",
 				emu->cur_ev->header.model);
 
 	if(!emu->cur_thread->is_active) {
-		eerr(emu, "hook_pre_nanos6: current thread %d not active\n",
+		edie(emu, "hook_pre_nanos6: current thread %d not active\n",
 				emu->cur_thread->tid);
-		return;
 	}
 
 	switch(emu->cur_ev->header.category)

@@ -312,7 +312,7 @@ pre_thread_execute(struct ovni_emu *emu, struct ovni_ethread *th)
 
 	/* The thread cannot be already running */
 	if(th->state == TH_ST_RUNNING)
-		die("pre_thread_execute: thread %d already running\n",
+		edie(emu, "pre_thread_execute: thread %d already running\n",
 				th->tid);
 
 	cpuid = emu->cur_ev->payload.i32[0];
@@ -456,11 +456,11 @@ pre_affinity_set(struct ovni_emu *emu)
 	cpuid = emu->cur_ev->payload.i32[0];
 
 	if(th->cpu == NULL)
-		die("pre_affinity_set: thread %d doesn't have a CPU\n",
+		edie(emu, "pre_affinity_set: thread %d doesn't have a CPU\n",
 				th->tid);
 
 	if(!th->is_active)
-		die("pre_affinity_set: thread %d is not active\n",
+		edie(emu, "pre_affinity_set: thread %d is not active\n",
 				th->tid);
 
 	/* Migrate current cpu to the one at cpuid */
@@ -521,16 +521,16 @@ pre_affinity_remote(struct ovni_emu *emu)
 
 	/* The remote_th cannot be in states dead or unknown */
 	if(remote_th->state == TH_ST_DEAD)
-		die("pre_affinity_remote: remote thread %d in state DEAD\n",
+		edie(emu, "pre_affinity_remote: remote thread %d in state DEAD\n",
 				remote_th->tid);
 
 	if(remote_th->state == TH_ST_UNKNOWN)
-		die("pre_affinity_remote: remote thread %d in state UNKNOWN\n",
+		edie(emu, "pre_affinity_remote: remote thread %d in state UNKNOWN\n",
 				remote_th->tid);
 
 	/* It must have an assigned CPU */
 	if(remote_th->cpu == NULL)
-		die("pre_affinity_remote: remote thread %d has no CPU\n",
+		edie(emu, "pre_affinity_remote: remote thread %d has no CPU\n",
 				remote_th->tid);
 
 	/* Migrate current cpu to the one at cpuid */

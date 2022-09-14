@@ -9,12 +9,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 
 static int ncpus = -1;
 static long nruns = 3L;
-static long ntasks = 10000L;
+static long ntasks = 1000L;
 
 static atomic_int wait = 0;
 static void **handle;
@@ -43,9 +42,8 @@ do_run(void)
 
 	for(int t = 0; t < ntasks; t++)
 	{
-		if (handle[t]) {
+		if(handle[t])
 			nanos6_unblock_task(handle[t]);
-		}
 	}
 
 	#pragma oss taskwait
@@ -69,7 +67,6 @@ main(void)
 		return -1;
 	}
 
-	printf("%s,%s,%s,%s\n", "run", "ntasks", "time", "time_per_task_per_cpu");
 	for(int run = 0; run < nruns; run++)
 		do_run();
 

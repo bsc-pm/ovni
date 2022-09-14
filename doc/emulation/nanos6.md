@@ -57,6 +57,22 @@ As the zero value in Paraver gets hidden, we use the rank+1 value
 instead. Therefore the rank numeric value go from 1 to the number of
 ranks (inclusive).
 
+## Thread type view
+
+This view shows the type of each thread:
+
+- Main: the first thread executed before the main() function even
+  begins.
+
+- Leader: helps with the execution of the main().
+
+- Worker: the most common threads, these are in charge of queueing
+  and running tasks.
+
+- External: used for external threads that attach to Nanos6 (currently
+  there are not in use).
+
+
 ## Subsystem view
 
 The subsystem view attempts to provide a general overview of what Nanos6
@@ -76,7 +92,7 @@ other code not belonging to the runtime belongs to the $`U`$ section.
 
 !!! remark
 
-     Every instruction of the runtime belongs to *exactly one section*.
+    Every instruction of the runtime belongs to *exactly one section*.
 
 To determine the state of a thread, we look into the stack to see what
 is the top-most instrumented section.
@@ -107,12 +123,14 @@ The complete list of subsystems and sections is shown below.
 
 - **Scheduler subsystem**: Queueing and dequeueing ready tasks.
 
-    - **Serving tasks**: Inside the scheduler lock, serving tasks
-    to other threads
-    
-    - **Adding ready tasks**: Adding tasks to the scheduler queues,
-    but outside of the scheduler lock.
+    - **Serving tasks**: Inside the scheduler lock, serving tasks to
+      other workers.
 
+    - **Adding ready tasks**: Adding tasks to the scheduler queues, but
+      outside of the scheduler lock.
+
+    - **Processing ready tasks**: Moving tasks from the lock-free add
+      queues to the scheduler queues.
 
 - **Worker subsystem**: Actions that relate to worker threads, which
   continuously try to execute new tasks.
@@ -121,6 +139,24 @@ The complete list of subsystems and sections is shown below.
       registered but not holding the lock.
     
     - **Handling task**: Processing a recently assigned task.
+
+    - **Switching to another thread**: Switching to another thread via
+      switchTo().
+
+    - **Migrating CPU**: Changing the CPU of the current worker.
+
+    - **Suspending thread**: The current thread is in the suspend()
+      function.
+
+    - **Resuming another thread**: Inside the resume() function,
+      wakening another thread.
+
+- **Memory**: Manages the allocation and deallocation of memory.
+
+    - **Allocating**: Allocating new memory. This can take very long
+      with jemalloc in the first calls from each thread.
+
+    - **Freeing**: Deallocating memory.
 
 - **Dependency subsystem**: Manages the registration of task
   dependencies.

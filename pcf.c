@@ -187,7 +187,7 @@ struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_NANOS6_BLK_TASKWAIT,     "Blocking: Taskwait" },
 	{ ST_NANOS6_BLK_BLOCKING,     "Blocking: Blocking current task" },
 	{ ST_NANOS6_BLK_UNBLOCKING,   "Blocking: Unblocking remote task" },
-	{ ST_NANOS6_BLK_WAITFOR,      "Blocking: Wait For" },
+	{ ST_NANOS6_BLK_WAITFOR,      "Blocking: Wait for deadline" },
 	{ ST_NANOS6_HANDLING_TASK,    "Worker: Handling task" },
 	{ ST_NANOS6_WORKER_LOOP,      "Worker: Looking for work" },
 	{ ST_NANOS6_SWITCH_TO,        "Worker: Switching to another thread" },

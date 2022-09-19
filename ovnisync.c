@@ -1,16 +1,19 @@
-/* Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200112L
+#define _POSIX_C_SOURCE 200809L
 
+#include <errno.h>
 #include <limits.h>
-#include <time.h>
-#include <stdio.h>
-#include <mpi.h>
-#include <stdlib.h>
 #include <math.h>
-#include <unistd.h>
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "ovni.h"
 
@@ -50,6 +53,7 @@ struct options {
 	int ndrift_samples;
 	int drift_wait; /* in seconds */
 	int verbose;
+	char *outpath;
 };
 
 static double
@@ -91,9 +95,57 @@ usage(void)
 {
 	fprintf(stderr, "%s: clock synchronization utility\n", progname);
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Usage: %s [-d ndrift_samples] [-v] [-n nsamples] [-w drift_delay]\n",
+	fprintf(stderr, "Usage: %s [-o outfile] [-d ndrift_samples] [-v] [-n nsamples] [-w drift_delay]\n",
 			progname);
 	exit(EXIT_FAILURE);
+}
+
+static int
+try_mkdir(const char *path, mode_t mode)
+{
+	struct stat st;
+
+	if(stat(path, &st) != 0)
+	{
+		/* Directory does not exist */
+		return mkdir(path, mode);
+	}
+	else if(!S_ISDIR(st.st_mode))
+	{
+		errno = ENOTDIR;
+		return -1;
+	}
+
+	return 0;
+}
+
+static int
+mkpath(const char *path, mode_t mode)
+{
+	char *pp;
+	char *sp;
+	int status;
+	char *copypath = strdup(path);
+
+	/* Remove trailing slash */
+	int last = strlen(path) - 1;
+	while (last > 0 && copypath[last] == '/')
+		copypath[last--] = '\0';
+
+	status = 0;
+	pp = copypath;
+	while (status == 0 && (sp = strchr(pp, '/')) != 0) {
+		if (sp != pp) {
+			/* Neither root nor double slash in path */
+			*sp = '\0';
+			status = try_mkdir(copypath, mode);
+			*sp = '/';
+		}
+		pp = sp + 1;
+	}
+
+	free(copypath);
+	return status;
 }
 
 static void
@@ -106,8 +158,9 @@ parse_options(struct options *options, int argc, char *argv[])
 	options->nsamples = 100;
 	options->verbose = 0;
 	options->drift_wait = 5;
+	options->outpath = "ovni/clock-offsets.txt";
 
-	while ((opt = getopt(argc, argv, "d:vn:w:")) != -1) {
+	while ((opt = getopt(argc, argv, "d:vn:w:o:h")) != -1) {
 		switch (opt) {
 			case 'd':
 				options->ndrift_samples = atoi(optarg);
@@ -121,6 +174,10 @@ parse_options(struct options *options, int argc, char *argv[])
 			case 'n':
 				options->nsamples = atoi(optarg);
 				break;
+			case 'o':
+				options->outpath = optarg;
+				break;
+			case 'h':
 			default: /* '?' */
 				usage();
 		}
@@ -326,46 +383,48 @@ build_offset_table(int nsamples, int rank, int verbose)
 }
 
 static void
-print_drift_header(struct offset_table *table)
+print_drift_header(FILE *out, struct offset_table *table)
 {
 	int i;
 	//char buf[64];
 
-	printf("%-20s", "wallclock");
+	fprintf(out, "%-20s", "wallclock");
 
 	for(i=0; i<table->nprocs; i++)
 	{
 		//sprintf(buf, "rank%d", i);
-		printf(" %-20s", table->offset[i]->hostname);
+		fprintf(out, " %-20s", table->offset[i]->hostname);
 	}
 
-	printf("\n");
+	fprintf(out, "\n");
 }
 
 static void
-print_drift_row(struct offset_table *table)
+print_drift_row(FILE *out, struct offset_table *table)
 {
 	int i;
 
-	printf("%-20f", table->offset[0]->wall_t1);
+	fprintf(out, "%-20f", table->offset[0]->wall_t1);
 
 	for(i=0; i<table->nprocs; i++)
-		printf(" %-20ld", table->offset[i]->offset);
+		fprintf(out, " %-20ld", table->offset[i]->offset);
 
-	printf("\n");
+	fprintf(out, "\n");
 }
 
 static void
-print_table_detailed(struct offset_table *table)
+print_table_detailed(FILE *out, struct offset_table *table)
 {
 	int i;
 	struct offset *offset;
 
-	printf("%-10s %-20s %-20s %-20s %-20s\n", "rank", "hostname", "offset_median", "offset_mean", "offset_std");
+	fprintf(out, "%-10s %-20s %-20s %-20s %-20s\n",
+			"rank", "hostname", "offset_median", "offset_mean", "offset_std");
+
 	for(i=0; i<table->nprocs; i++)
 	{
 		offset = table->offset[i];
-		printf("%-10d %-20s %-20ld %-20f %-20f\n",
+		fprintf(out, "%-10d %-20s %-20ld %-20f %-20f\n",
 				i, offset->hostname, offset->offset,
 				offset->delta_mean, offset->delta_std);
 	}
@@ -377,8 +436,27 @@ do_work(struct options *options, int rank)
 	int drift_mode;
 	int i;
 	struct offset_table *table;
+	FILE *out = NULL;
 
 	drift_mode = options->ndrift_samples > 1 ? 1 : 0;
+
+	if(rank == 0)
+	{
+		if(mkpath(options->outpath, 0755) != 0)
+		{
+			fprintf(stderr, "mkpath(%s) failed: %s\n",
+					options->outpath, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+
+		out = fopen(options->outpath, "w");
+		if(out == NULL)
+		{
+			fprintf(stderr, "fopen(%s) failed: %s\n",
+					options->outpath, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	for(i=0; i<options->ndrift_samples; i++)
 	{
@@ -389,13 +467,13 @@ do_work(struct options *options, int rank)
 			if(drift_mode)
 			{
 				if(i == 0)
-					print_drift_header(table);
+					print_drift_header(out, table);
 
-				print_drift_row(table);
+				print_drift_row(out, table);
 			}
 			else
 			{
-				print_table_detailed(table);
+				print_table_detailed(out, table);
 			}
 
 			free(table->_offset);
@@ -406,6 +484,9 @@ do_work(struct options *options, int rank)
 		if(drift_mode)
 			sleep(options->drift_wait);
 	}
+
+	if(rank == 0)
+		fclose(out);
 }
 
 int

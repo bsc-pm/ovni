@@ -22,6 +22,7 @@ nav:
   - concepts.md
   - 'Runtime':
     - runtime/tracing.md
+    - runtime/distributed.md
     - runtime/kernel.md
     - runtime/trace_spec.md
   - 'Emulation':

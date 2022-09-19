@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #define _POSIX_C_SOURCE 200112L
@@ -849,14 +849,35 @@ load_clock_offsets(struct ovni_emu *emu)
 	struct ovni_trace *trace;
 	struct ovni_stream *stream;
 
-	f = fopen(emu->clock_offset_file, "r");
-
-	if(f == NULL)
+	if(emu->clock_offset_file != NULL)
 	{
-		err("error opening clock offset file %s: %s\n",
-				emu->clock_offset_file,
-				strerror(errno));
-		exit(EXIT_FAILURE);
+		f = fopen(emu->clock_offset_file, "r");
+
+		/* If provided by the user, it must exist */
+		if(f == NULL)
+		{
+			err("error opening clock offset file %s: %s\n",
+					emu->clock_offset_file,
+					strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
+	else
+	{
+		char path[PATH_MAX];
+		if(snprintf(path, PATH_MAX, "%s/clock-offsets.txt",
+					emu->tracedir) >= PATH_MAX)
+		{
+			die("clock offset path too long\n");
+		}
+
+		f = fopen(path, "r");
+
+		if(f == NULL)
+		{
+			/* May not exist, but is fine */
+			return;
+		}
 	}
 
 	/* Ignore header line */

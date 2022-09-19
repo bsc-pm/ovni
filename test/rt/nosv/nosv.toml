@@ -1,11 +1,3 @@
-# This file is part of nOS-V and is licensed under the terms contained in the COPYING file
-#
-# Copyright (C) 2021-2022 Barcelona Supercomputing Center (BSC)
-
-# Default nOS-V configuration file.
-# Note that every process in the same nOS-V instance should load an identical configuration file,
-# otherwise, the behaviour is unspecified
-
 # Shared memory configuration
 [shared_memory]
 	# Name of the shared memory section. This can be leveraged to create two separate nOS-V instances

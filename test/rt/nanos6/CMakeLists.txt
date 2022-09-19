@@ -1,3 +1,6 @@
+# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 find_library(nanos6 libnanos6)
 find_path(NANOS6_INCLUDE_DIR nanos6.h)
 

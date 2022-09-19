@@ -1,3 +1,6 @@
+/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+ * SPDX-License-Identifier: MIT */
+
 #ifndef COMMON_H
 #define COMMON_H
 

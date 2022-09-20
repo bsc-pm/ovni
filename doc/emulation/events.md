@@ -152,8 +152,8 @@ KCI	Is back in the CPU due to a context switch
 6S]	Ends the scheduler serving mode
 6Sa	Begins to submit a ready task via addReadyTask()
 6SA	Ends submitting a ready task via addReadyTask()
-6Sa	Begins to process ready tasks via processReadyTasks()
-6SA	Ends processing ready taska via processReadyTasks()
+6Sp	Begins to process ready tasks via processReadyTasks()
+6SP	Ends processing ready taska via processReadyTasks()
 6Sr	Receives a task from another thread (punctual event)
 6Ss	Sends a task to another thread (punctual event)
 6S@	Self-assigns itself a task (punctual event)

@@ -194,6 +194,9 @@ get_task_type_gid(const char *label)
 	/* Use non-negative values */
 	gid &= 0x7FFFFFFF;
 
+	/* Avoid bad colors for "Unlabeled0" */
+	gid += 123;
+
 	if(gid == 0)
 		gid++;
 

@@ -20,4 +20,4 @@ build:rt-tests:
   tags:
     - nix
   script: 
-    - nix build -L --file nix/rt.nix
+    - nix build -L --tarball-ttl 0 --file nix/rt.nix

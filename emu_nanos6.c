@@ -78,30 +78,6 @@ hook_init_nanos6(struct ovni_emu *emu)
 /* --------------------------- pre ------------------------------- */
 
 static void
-update_ss_channel(struct ovni_emu *emu, int tr)
-{
-	struct ovni_ethread *th = emu->cur_thread;
-	struct ovni_chan *chan = &th->chan[CHAN_NANOS6_SUBSYSTEM];
-
-	switch(tr)
-	{
-		case 'x':
-		case 'X':
-			chan_push(chan, ST_NANOS6_TASK_BODY);
-			break;
-		case 'e':
-		case 'E':
-			chan_pop(chan, ST_NANOS6_TASK_BODY);
-			break;
-		case 'r':
-		case 'p':
-			break;
-		default:
-			edie(emu, "unexpected transition value %c\n", tr);
-	}
-}
-
-static void
 chan_task_stopped(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
@@ -286,9 +262,6 @@ update_task(struct ovni_emu *emu)
 
 	/* Update the task related channels now */
 	update_task_channels(emu, tr, prev, next);
-
-	/* Update the subsystem channel */
-	update_ss_channel(emu, tr);
 
 	enforce_task_rules(emu, tr, prev, next);
 }
@@ -552,6 +525,7 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		case 'U': pre_ss(emu, ST_NANOS6_TASK_SUBMIT); break;
 		case 'F': pre_ss(emu, ST_NANOS6_TASK_SPAWNING); break;
 		case 'O': pre_ss(emu, ST_NANOS6_TASK_FOR); break;
+		case 't': pre_ss(emu, ST_NANOS6_TASK_BODY); break;
 		case 'H': pre_thread(emu); break;
 		case 'D': pre_deps(emu); break;
 		case 'B': pre_blocking(emu); break;

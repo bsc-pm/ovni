@@ -178,6 +178,12 @@ KCI	Is back in the CPU due to a context switch
 6F[	Begins to spawn a function via spawnFunction()
 6F]	Ends spawning a function
 
+6t[	Begins running the task body
+6t]	Ends running the task body
+
+6O[	Begins running the task body as taskfor collaborator
+6O]	Ends running the task body as taskfor collaborator
+
 6Dr	Begins the registration of a task's accesses
 6DR	Ends the registration of a task's accesses
 6Du	Begins the unregistration of a task's accesses

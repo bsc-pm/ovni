@@ -43,18 +43,18 @@ task_type_find(struct task_type *types, uint32_t type_id)
 }
 
 void
-task_create(struct task_info *info,
+task_create(struct ovni_emu *emu, struct task_info *info,
 		uint32_t type_id, uint32_t task_id)
 {
 	/* Ensure the task id is new */
 	if(task_find(info->tasks, task_id) != NULL)
-		die("cannot create task: task_id %u already exists\n",
+		edie(emu, "cannot create task: task_id %u already exists\n",
 				task_id);
 
 	/* Ensure the type exists */
 	struct task_type *type = task_type_find(info->types, type_id);
 	if(type == NULL)
-		die("cannot create task: unknown type id %u\n", type_id);
+		edie(emu, "cannot create task: unknown type id %u\n", type_id);
 
 	struct task *task = calloc(1, sizeof(struct task));
 
@@ -73,25 +73,26 @@ task_create(struct task_info *info,
 }
 
 void
-task_execute(struct task_stack *stack, struct task *task)
+task_execute(struct ovni_emu *emu,
+		struct task_stack *stack, struct task *task)
 {
 	if(task == NULL)
-		die("cannot execute: task is NULL\n");
+		edie(emu, "cannot execute: task is NULL\n");
 
 	if(task->state != TASK_ST_CREATED)
-		die("cannot execute task %u: state is not created\n", task->id);
+		edie(emu, "cannot execute task %u: state is not created\n", task->id);
 
 	if(task->thread != NULL)
-		die("task already has a thread assigned\n");
+		edie(emu, "task already has a thread assigned\n");
 
 	if(stack->thread->state != TH_ST_RUNNING)
-		die("thread state is not running\n");
+		edie(emu, "thread state is not running\n");
 
 	if(stack->top == task)
-		die("thread already has assigned task %u\n", task->id);
+		edie(emu, "thread already has assigned task %u\n", task->id);
 
 	if(stack->top && stack->top->state != TASK_ST_RUNNING)
-		die("cannot execute a nested task from a non-running task\n");
+		edie(emu, "cannot execute a nested task from a non-running task\n");
 
 	task->state = TASK_ST_RUNNING;
 	task->thread = stack->thread;
@@ -102,25 +103,26 @@ task_execute(struct task_stack *stack, struct task *task)
 }
 
 void
-task_pause(struct task_stack *stack, struct task *task)
+task_pause(struct ovni_emu *emu,
+		struct task_stack *stack, struct task *task)
 {
 	if(task == NULL)
-		die("cannot pause: task is NULL\n");
+		edie(emu, "cannot pause: task is NULL\n");
 
 	if(task->state != TASK_ST_RUNNING)
-		die("cannot pause: task state is not running\n");
+		edie(emu, "cannot pause: task state is not running\n");
 
 	if(task->thread == NULL)
-		die("cannot pause: task has no thread assigned\n");
+		edie(emu, "cannot pause: task has no thread assigned\n");
 
 	if(stack->thread->state != TH_ST_RUNNING)
-		die("cannot pause: thread state is not running\n");
+		edie(emu, "cannot pause: thread state is not running\n");
 
 	if(stack->top != task)
-		die("thread has assigned a different task\n");
+		edie(emu, "thread has assigned a different task\n");
 
 	if(stack->thread != task->thread)
-		die("task is assigned to a different thread\n");
+		edie(emu, "task is assigned to a different thread\n");
 
 	task->state = TASK_ST_PAUSED;
 
@@ -128,25 +130,26 @@ task_pause(struct task_stack *stack, struct task *task)
 }
 
 void
-task_resume(struct task_stack *stack, struct task *task)
+task_resume(struct ovni_emu *emu,
+		struct task_stack *stack, struct task *task)
 {
 	if(task == NULL)
-		die("cannot resume: task is NULL\n");
+		edie(emu, "cannot resume: task is NULL\n");
 
 	if(task->state != TASK_ST_PAUSED)
-		die("task state is not paused\n");
+		edie(emu, "task state is not paused\n");
 
 	if(task->thread == NULL)
-		die("cannot resume: task has no thread assigned\n");
+		edie(emu, "cannot resume: task has no thread assigned\n");
 
 	if(stack->thread->state != TH_ST_RUNNING)
-		die("thread is not running\n");
+		edie(emu, "thread is not running\n");
 
 	if(stack->top != task)
-		die("thread has assigned a different task\n");
+		edie(emu, "thread has assigned a different task\n");
 
 	if(stack->thread != task->thread)
-		die("task is assigned to a different thread\n");
+		edie(emu, "task is assigned to a different thread\n");
 
 	task->state = TASK_ST_RUNNING;
 
@@ -154,25 +157,26 @@ task_resume(struct task_stack *stack, struct task *task)
 }
 
 void
-task_end(struct task_stack *stack, struct task *task)
+task_end(struct ovni_emu *emu,
+		struct task_stack *stack, struct task *task)
 {
 	if(task == NULL)
-		die("cannot end: task is NULL\n");
+		edie(emu, "cannot end: task is NULL\n");
 
 	if(task->state != TASK_ST_RUNNING)
-		die("task state is not running\n");
+		edie(emu, "task state is not running\n");
 
 	if(task->thread == NULL)
-		die("cannot end: task has no thread assigned\n");
+		edie(emu, "cannot end: task has no thread assigned\n");
 
 	if(stack->thread->state != TH_ST_RUNNING)
-		die("cannot end task: thread is not running\n");
+		edie(emu, "cannot end task: thread is not running\n");
 
 	if(stack->top != task)
-		die("thread has assigned a different task\n");
+		edie(emu, "thread has assigned a different task\n");
 
 	if(stack->thread != task->thread)
-		die("task is assigned to a different thread\n");
+		edie(emu, "task is assigned to a different thread\n");
 
 	task->state = TASK_ST_DEAD;
 

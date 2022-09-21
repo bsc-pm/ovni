@@ -177,10 +177,10 @@ update_task_state(struct ovni_emu *emu)
 
 	switch(emu->cur_ev->header.value)
 	{
-		case 'x': task_execute(stack, task); break;
-		case 'e': task_end(stack, task); break;
-		case 'p': task_pause(stack, task); break;
-		case 'r': task_resume(stack, task); break;
+		case 'x': task_execute(emu, stack, task); break;
+		case 'e': task_end(emu, stack, task); break;
+		case 'p': task_pause(emu, stack, task); break;
+		case 'r': task_resume(emu, stack, task); break;
 		default:
 			  edie(emu, "unexpected Nanos6 task event\n");
 	}
@@ -260,7 +260,7 @@ create_task(struct ovni_emu *emu)
 
 	struct task_info *info = &emu->cur_proc->nanos6_task_info;
 
-	task_create(info, type_id, task_id);
+	task_create(emu, info, type_id, task_id);
 }
 
 static void

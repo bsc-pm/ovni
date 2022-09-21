@@ -78,7 +78,31 @@ hook_init_nanos6(struct ovni_emu *emu)
 /* --------------------------- pre ------------------------------- */
 
 static void
-chan_task_stopped(struct ovni_emu *emu, char tr)
+update_ss_channel(struct ovni_emu *emu, int tr)
+{
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+
+	switch(tr)
+	{
+		case 'x':
+		case 'X':
+			chan_push(chan, ST_NANOS6_TASK_BODY);
+			break;
+		case 'e':
+		case 'E':
+			chan_pop(chan, ST_NANOS6_TASK_BODY);
+			break;
+		case 'r':
+		case 'p':
+			break;
+		default:
+			edie(emu, "unexpected transition value %c\n", tr);
+	}
+}
+
+static void
+chan_task_stopped(struct ovni_emu *emu)
 {
 	struct ovni_ethread *th;
 	th = emu->cur_thread;
@@ -88,14 +112,10 @@ chan_task_stopped(struct ovni_emu *emu, char tr)
 
 	if(emu->cur_loom->rank_enabled)
 		chan_set(&th->chan[CHAN_NANOS6_RANK], 0);
-
-    /* Only exit the task body when finishing */
-    if(tr == 'e')
-        chan_pop(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_TASK_BODY);
 }
 
 static void
-chan_task_running(struct ovni_emu *emu, struct task *task, char tr)
+chan_task_running(struct ovni_emu *emu, struct task *task)
 {
 	struct ovni_ethread *th;
 	struct ovni_eproc *proc;
@@ -117,10 +137,6 @@ chan_task_running(struct ovni_emu *emu, struct task *task, char tr)
 
 	if(emu->cur_loom->rank_enabled)
 		chan_set(&th->chan[CHAN_NANOS6_RANK], proc->rank + 1);
-
-    /* Only enter the body of the task when we begin the execution */
-    if(tr == 'x')
-        chan_push(&th->chan[CHAN_NANOS6_SUBSYSTEM], ST_NANOS6_TASK_BODY);
 }
 
 static void
@@ -212,11 +228,11 @@ update_task_channels(struct ovni_emu *emu,
 	{
 		case 'x':
 		case 'r':
-			chan_task_running(emu, next, tr);
+			chan_task_running(emu, next);
 			break;
 		case 'e':
 		case 'p':
-			chan_task_stopped(emu, tr);
+			chan_task_stopped(emu);
 			break;
 			/* Additional nested transitions */
 		case 'X':
@@ -225,6 +241,29 @@ update_task_channels(struct ovni_emu *emu,
 			break;
 		default:
 			edie(emu, "unexpected transition value %c\n", tr);
+	}
+}
+
+static void
+enforce_task_rules(struct ovni_emu *emu,
+		char tr, struct task *prev, struct task *next)
+
+{
+	UNUSED(prev);
+
+	/* If a task has just entered the running state, it must show
+	 * the running task body subsystem */
+	if(tr == 'x' || tr == 'X')
+	{
+		if(next->state != TASK_ST_RUNNING)
+			edie(emu, "a Nanos6 task starts running but not in the running state\n");
+
+		struct ovni_ethread *th = emu->cur_thread;
+		struct ovni_chan *sschan = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+		int st = chan_get_st(sschan);
+
+		if(st != ST_NANOS6_TASK_BODY)
+			edie(emu, "a Nanos6 task starts running but not in the \"running body\" subsystem state\n");
 	}
 }
 
@@ -245,8 +284,13 @@ update_task(struct ovni_emu *emu)
 	int runs_now = (next != NULL);
 	char tr = expand_transition_value(emu, was_running, runs_now);
 
-	/* Update the channels now */
+	/* Update the task related channels now */
 	update_task_channels(emu, tr, prev, next);
+
+	/* Update the subsystem channel */
+	update_ss_channel(emu, tr);
+
+	enforce_task_rules(emu, tr, prev, next);
 }
 
 static void

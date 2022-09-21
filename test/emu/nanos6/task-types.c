@@ -36,6 +36,7 @@ main(void)
 		instr_nanos6_task_create_and_execute(i + 1, (i % ntypes) + 1);
 		usleep(500);
 		instr_nanos6_task_end(i + 1);
+		instr_nanos6_task_body_exit();
 	}
 
 	instr_end();

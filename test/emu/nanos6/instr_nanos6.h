@@ -81,6 +81,12 @@ INSTR_0ARG(instr_nanos6_submit_task_exit,        "6U]")
 INSTR_0ARG(instr_nanos6_spawn_function_enter,    "6F[")
 INSTR_0ARG(instr_nanos6_spawn_function_exit,     "6F]")
 
+INSTR_0ARG(instr_nanos6_taskfor_start,           "6O[")
+INSTR_0ARG(instr_nanos6_taskfor_stop,            "6O]")
+
+INSTR_0ARG(instr_nanos6_task_body_enter,         "6t[")
+INSTR_0ARG(instr_nanos6_task_body_exit,          "6t]")
+
 INSTR_0ARG(instr_nanos6_register_enter,          "6Dr")
 INSTR_0ARG(instr_nanos6_register_exit,           "6DR")
 INSTR_0ARG(instr_nanos6_unregister_enter,        "6Du")
@@ -115,6 +121,7 @@ instr_nanos6_task_create_and_execute(int32_t id, uint32_t typeid)
 	instr_nanos6_task_create_begin();
 	instr_nanos6_task_create(id, typeid);
 	instr_nanos6_task_create_end();
+	instr_nanos6_task_body_enter();
 	instr_nanos6_task_execute(id);
 }
 

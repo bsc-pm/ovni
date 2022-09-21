@@ -39,6 +39,7 @@ main(void)
 	instr_nanos6_block_exit();
 	usleep(us);
 	instr_nanos6_task_end(taskid);
+	instr_nanos6_task_body_exit();
 
 	instr_end();
 

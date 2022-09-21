@@ -179,6 +179,7 @@ struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_NANOS6_TASK_CREATING,    "Task: Creating" },
 	{ ST_NANOS6_TASK_SUBMIT,      "Task: Submitting" },
 	{ ST_NANOS6_TASK_SPAWNING,    "Task: Spawning function" },
+	{ ST_NANOS6_TASK_FOR,         "Task: Running task for" },
 	{ ST_NANOS6_SCHED_SERVING,    "Scheduler: Serving tasks" },
 	{ ST_NANOS6_SCHED_ADDING,     "Scheduler: Adding ready tasks" },
 	{ ST_NANOS6_SCHED_PROCESSING, "Scheduler: Processing ready tasks" },

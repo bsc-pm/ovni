@@ -551,6 +551,7 @@ hook_pre_nanos6(struct ovni_emu *emu)
 		case 'S': pre_sched(emu); break;
 		case 'U': pre_ss(emu, ST_NANOS6_TASK_SUBMIT); break;
 		case 'F': pre_ss(emu, ST_NANOS6_TASK_SPAWNING); break;
+		case 'O': pre_ss(emu, ST_NANOS6_TASK_FOR); break;
 		case 'H': pre_thread(emu); break;
 		case 'D': pre_deps(emu); break;
 		case 'B': pre_blocking(emu); break;

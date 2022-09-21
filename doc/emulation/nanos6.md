@@ -117,6 +117,9 @@ The complete list of subsystems and sections is shown below.
 
     - **Running body**: Executing the body of the task (user defined code).
     
+    - **Running task for**: Running the body of the task in a task for (one of
+      the collaborators).
+
     - **Spawning function**: Spawning a function as task that will be submitted
       for later execution.
     
@@ -189,3 +192,14 @@ The complete list of subsystems and sections is shown below.
     body" subsystem only when the task has not called any other instrumented
     subsystem in Nanos6. Tasks will continue to be in the running state until
     paused or finished.
+
+## Limitations
+
+The task for clause is partially supported, as currently the emulator uses a
+simplified tasking model where a task can only be executed by one thread, and
+only once. However, the Nanos6 runtime can run the body of a single task
+multiple times by varying the arguments with the task for clause, which breaks
+the emulation model.
+
+The task for is currently only shown in the subsystem view, but it doesn't
+appear as running any task in the the other views.

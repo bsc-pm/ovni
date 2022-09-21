@@ -107,6 +107,7 @@ enum nanos6_ss_state {
 	ST_NANOS6_TASK_CREATING,
 	ST_NANOS6_TASK_SUBMIT,
 	ST_NANOS6_TASK_SPAWNING,
+	ST_NANOS6_TASK_FOR,
 	ST_NANOS6_SCHED_ADDING,
 	ST_NANOS6_SCHED_PROCESSING,
 	ST_NANOS6_SCHED_SERVING,
@@ -184,7 +185,7 @@ struct task_stack {
     struct ovni_ethread *thread;
 };
 
-#define MAX_CHAN_STACK 128
+#define MAX_CHAN_STACK 512
 
 enum chan_track {
 	/* The channel is manually controlled. */

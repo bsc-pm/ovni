@@ -11,23 +11,27 @@ The library is instrumented to track the execution of tasks and also the
 execution path inside the runtime library to identify what is happening.
 This information is typically used by both the users and the developers
 of the Nanos6 library to analyze problems and unwanted behaviors.
-Towards this goal, four different Paraver views are generated, which are
+Towards this goal, five different Paraver views are generated, which are
 explained below.
 
 The state of each task is modelled in a simple finite state machine,
 which identifies the main state changes of the task. The task is set to
-the *Running* state only when is executing the body of the task,
+the *Running* state when it begins executing the body of the task,
 consisting of user defined code. The states can be observed in the
 following diagram:
 
 ![Nanos6 task states](fig/nanos6-task-model.svg)
 
+A thread can only execute one task at a time, but multiple tasks can be
+nested and only the topmost one will actually run. When a view presents
+the running task of a thread, that one is always the top of the stack.
+
 ## Task ID view
 
-The task ID view represents the ID of the Nanos6 task instance that is
-currently executing on each thread. This ID is a monotonically
-increasing identifier assigned on task creation. Lower IDs correspond to
-tasks created at an earlier point than higher IDs.
+The task ID view represents the numeric ID of the Nanos6 task that is
+currently running on each thread. The ID is a monotonically increasing
+identifier assigned on task creation. Lower IDs correspond to tasks
+created at an earlier point than higher IDs.
 
 ## Task type view
 
@@ -38,8 +42,8 @@ in a program, every created task will have a different ID, but the same
 type.
 
 In the view, each type is shown with a label declared in the source with
-the label attribute of the task. If no label was specified, one is
-automatically generated for each type.
+the label attribute of the running task. If no label was specified, one
+is automatically generated for each type.
 
 Note that in this view, the numeric event value is a hash function of
 the type label, so two distinct types (tasks declared in different parts
@@ -111,7 +115,7 @@ The complete list of subsystems and sections is shown below.
 
 - **Task subsystem**: Controls the life cycle of tasks
 
-    - **Body**: Executing the body of the task (user defined code).
+    - **Running body**: Executing the body of the task (user defined code).
     
     - **Spawning function**: Spawning a function as task that will be submitted
       for later execution.
@@ -178,3 +182,10 @@ The complete list of subsystems and sections is shown below.
     
     - **Wait for deadline**: Blocking a deadline task, which will be
       re-enqueued when a certain amount of time has passed
+
+!!! remark
+
+    Notice that tasks in the running state will display the "Task: Running
+    body" subsystem only when the task has not called any other instrumented
+    subsystem in Nanos6. Tasks will continue to be in the running state until
+    paused or finished.

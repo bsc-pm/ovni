@@ -456,6 +456,8 @@ struct ovni_cpu {
 struct ovni_loom {
 	size_t nprocs;
 	char hostname[OVNI_MAX_HOSTNAME];
+	char dname[PATH_MAX]; /* Loom directory name */
+	char path[PATH_MAX]; /* Relative to cwd */
 
 	size_t max_ncpus;
 	size_t max_phyid;

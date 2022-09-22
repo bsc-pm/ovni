@@ -36,11 +36,11 @@
 #include <dirent.h>
 
 static int
-find_dir_prefix_str(struct dirent *dirent, const char *prefix, const char **str)
+find_dir_prefix_str(const char *dirname, const char *prefix, const char **str)
 {
 	const char *p;
 
-	p = dirent->d_name;
+	p = dirname;
 
 	/* Check the prefix */
 	if(strncmp(p, prefix, strlen(prefix)) != 0)
@@ -61,11 +61,11 @@ find_dir_prefix_str(struct dirent *dirent, const char *prefix, const char **str)
 }
 
 static int
-find_dir_prefix_int(struct dirent *dirent, const char *prefix, int *num)
+find_dir_prefix_int(const char *dirname, const char *prefix, int *num)
 {
 	const char *p;
 
-	if(find_dir_prefix_str(dirent, prefix, &p) != 0)
+	if(find_dir_prefix_str(dirname, prefix, &p) != 0)
 		return -1;
 
 	/* Convert the suffix string to a number */
@@ -74,15 +74,15 @@ find_dir_prefix_int(struct dirent *dirent, const char *prefix, int *num)
 	return 0;
 }
 
-static int
+static size_t
 count_dir_prefix(DIR *dir, const char *prefix)
 {
 	struct dirent *dirent;
-	int n = 0;
+	size_t n = 0;
 
 	while((dirent = readdir(dir)) != NULL)
 	{
-		if(find_dir_prefix_str(dirent, prefix, NULL) != 0)
+		if(find_dir_prefix_str(dirent->d_name, prefix, NULL) != 0)
 			continue;
 
 		n++;
@@ -274,7 +274,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 			return -1;
 		}
 
-		if(find_dir_prefix_int(dirent, "thread", &tids[i]) != 0)
+		if(find_dir_prefix_int(dirent->d_name, "thread", &tids[i]) != 0)
 			continue;
 
 		i++;
@@ -346,7 +346,7 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 	i = 0;
 	while((dirent = readdir(dir)) != NULL)
 	{
-		if(find_dir_prefix_int(dirent, "proc", &pid) != 0)
+		if(find_dir_prefix_int(dirent->d_name, "proc", &pid) != 0)
 			continue;
 
 		sprintf(path, "%s/%s", loomdir, dirent->d_name);
@@ -390,22 +390,37 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 }
 
 static int
-compare_alph(const void *a, const void *b)
+compare_looms(const void *a, const void *b)
 {
-	return strcmp((const char *)a, (const char *)b);
+	struct ovni_loom *la = (struct ovni_loom *) a;
+	struct ovni_loom *lb = (struct ovni_loom *) b;
+	return strcmp(la->dname, lb->dname);
+}
+
+static void
+loom_to_host(const char *loom_name, char *host, int n)
+{
+	int i;
+
+	for(i = 0; i < n; i++)
+	{
+		/* Copy until dot or end */
+		if(loom_name[i] != '.' && loom_name[i] != '\0')
+			host[i] = loom_name[i];
+		else
+			break;
+	}
+
+	if(i == n)
+		die("loom host name %s too long\n", loom_name);
+
+	host[i] = '\0';
 }
 
 int
 ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 {
-	char (*looms)[PATH_MAX];
-	char (*hosts)[PATH_MAX];
-	const char *loom_name;
 	DIR *dir;
-	struct dirent *dirent;
-	size_t l;
-
-	trace->nlooms = 0;
 
 	if((dir = opendir(tracedir)) == NULL)
 	{
@@ -413,17 +428,7 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		return -1;
 	}
 
-	/* Find how many looms we have */
-	while((dirent = readdir(dir)) != NULL)
-	{
-		if(find_dir_prefix_str(dirent, "loom", &loom_name) != 0)
-		{
-			/* Ignore other files in tracedir */
-			continue;
-		}
-
-		trace->nlooms++;
-	}
+	trace->nlooms = count_dir_prefix(dir, "loom");
 
 	if(trace->nlooms == 0)
 	{
@@ -431,7 +436,6 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		return -1;
 	}
 
-	/* Then allocate the loom array */
 	trace->loom = calloc(trace->nlooms, sizeof(struct ovni_loom));
 
 	if(trace->loom == NULL)
@@ -440,25 +444,16 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		return -1;
 	}
 
-	if((looms = calloc(trace->nlooms, PATH_MAX)) == NULL)
-	{
-		perror("calloc failed\n");
-		return -1;
-	}
-
-	if((hosts = calloc(trace->nlooms, PATH_MAX)) == NULL)
-	{
-		perror("calloc failed\n");
-		return -1;
-	}
-
 	rewinddir(dir);
 
-	l = 0;
+	size_t l = 0;
+	struct dirent *dirent;
 
 	while((dirent = readdir(dir)) != NULL)
 	{
-		if(find_dir_prefix_str(dirent, "loom", &loom_name) != 0)
+		struct ovni_loom *loom = &trace->loom[l];
+		const char *loom_name;
+		if(find_dir_prefix_str(dirent->d_name, "loom", &loom_name) != 0)
 		{
 			/* Ignore other files in tracedir */
 			continue;
@@ -470,17 +465,10 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 			return -1;
 		}
 
-		if(snprintf(hosts[l], PATH_MAX, "%s",
-					loom_name) >= PATH_MAX)
+		/* Copy the complete loom directory name to looms */
+		if(snprintf(loom->dname, PATH_MAX, "%s", dirent->d_name) >= PATH_MAX)
 		{
-			err("error: hostname %s too long\n", loom_name);
-			return -1;
-		}
-
-		if(snprintf(looms[l], PATH_MAX, "%s/%s",
-					tracedir, dirent->d_name) >= PATH_MAX)
-		{
-			err("error: loom name %s too long\n", loom_name);
+			err("error: loom name %s too long\n", dirent->d_name);
 			return -1;
 		}
 
@@ -489,26 +477,34 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 
 	closedir(dir);
 
-	qsort(hosts, trace->nlooms, PATH_MAX, compare_alph);
-	qsort(looms, trace->nlooms, PATH_MAX, compare_alph);
+	/* Sort the looms, so we get the hostnames in alphanumeric order */
+	qsort(trace->loom, trace->nlooms, sizeof(struct ovni_loom),
+			compare_looms);
 
-	for(l=0; l<trace->nlooms; l++)
+	for(size_t i = 0; i < trace->nlooms; i++)
 	{
-		if(strlen(hosts[l]) >= PATH_MAX)
+		struct ovni_loom *loom = &trace->loom[i];
+		const char *name = NULL;
+
+		if(find_dir_prefix_str(loom->dname, "loom", &name) != 0)
 		{
-			err("error hostname too long: %s\n", hosts[l]);
+			err("error: mismatch for loom %s\n", loom->dname);
 			return -1;
 		}
 
-		/* Safe */
-		strcpy(trace->loom[l].hostname, hosts[l]);
+		loom_to_host(name, loom->hostname, sizeof(loom->hostname));
 
-		if(load_loom(&trace->loom[l], looms[l]) != 0)
+		if(snprintf(loom->path, PATH_MAX, "%s/%s",
+					tracedir, loom->dname) >= PATH_MAX)
+		{
+			err("error: loom path %s/%s too long\n",
+					tracedir, loom->dname);
+			return -1;
+		}
+
+		if(load_loom(loom, loom->path) != 0)
 			return -1;
 	}
-
-	free(looms);
-	free(hosts);
 
 	return 0;
 }

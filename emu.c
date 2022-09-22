@@ -925,6 +925,8 @@ load_clock_offsets(struct ovni_emu *emu)
 	}
 
 	fclose(f);
+
+	err("loaded clock offsets ok\n");
 }
 
 static void

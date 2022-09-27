@@ -826,21 +826,28 @@ parse_args(struct ovni_emu *emu, int argc, char *argv[])
 	emu->tracedir = argv[optind];
 }
 
-static struct ovni_loom *
-find_loom_by_hostname(struct ovni_emu *emu, char *host)
+static void
+set_clock_offsets(struct ovni_emu *emu, const char *host, size_t offset)
 {
-	size_t i;
-	struct ovni_loom *loom;
+	size_t matches = 0;
 
-	for(i=0; i<emu->trace.nlooms; i++)
+	for(size_t i = 0; i < emu->trace.nlooms; i++)
 	{
-		loom = &emu->trace.loom[i];
+		struct ovni_loom *loom = &emu->trace.loom[i];
 
-		if(strcmp(loom->hostname, host) == 0)
-			return loom;
+		/* Match the hostname exactly */
+		if(strcmp(loom->hostname, host) != 0)
+			continue;
+
+		if(loom->clock_offset != 0)
+			die("loom %s already has a clock offset\n", loom->dname);
+
+		loom->clock_offset = offset;
+		matches++;
 	}
 
-	return NULL;
+	if(matches == 0)
+		die("no loom has hostname %s\n", host);
 }
 
 static void
@@ -896,21 +903,7 @@ load_clock_offsets(struct ovni_emu *emu)
 			exit(EXIT_FAILURE);
 		}
 
-		loom = find_loom_by_hostname(emu, host);
-
-		if(loom == NULL)
-		{
-			err("No loom has hostname %s\n", host);
-			exit(EXIT_FAILURE);
-		}
-
-		if(loom->clock_offset != 0)
-		{
-			err("warning: loom at host %s already has a clock offset\n",
-					host);
-		}
-
-		loom->clock_offset = (int64_t) offset;
+		set_clock_offsets(emu, host, (int64_t) offset);
 	}
 
 	/* Then populate the stream offsets */

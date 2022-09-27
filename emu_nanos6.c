@@ -238,7 +238,7 @@ enforce_task_rules(struct ovni_emu *emu,
 		struct ovni_chan *sschan = &th->chan[CHAN_NANOS6_SUBSYSTEM];
 		int st = chan_get_st(sschan);
 
-		if(st != ST_NANOS6_TASK_BODY)
+		if(st != 0 && st != ST_NANOS6_TASK_BODY)
 			edie(emu, "a Nanos6 task starts running but not in the \"running body\" subsystem state\n");
 	}
 }

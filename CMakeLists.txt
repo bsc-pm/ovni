@@ -60,6 +60,20 @@ set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_DEBUG} \
 set(CMAKE_C_FLAGS_UBSAN "${CMAKE_C_FLAGS_DEBUG} -fsanitize=undefined"
   CACHE STRING "Flags used by the C compiler during UndefinedBehaviorSanitizer builds." FORCE)
 
+# Required for clock_gettime() in glibc <= 2.17
+include(CheckLibraryExists)
+check_library_exists(c clock_gettime "" HAVE_CLOCK_GETTIME)
+
+if (NOT HAVE_CLOCK_GETTIME)
+  check_library_exists(rt clock_gettime "time.h" HAVE_CLOCK_GETTIME_RT)
+  if (HAVE_CLOCK_GETTIME_RT)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lrt")
+    set(CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} -lrt")
+  else()
+    message(FATAL_ERROR "cannot find clock_gettime()")
+  endif()
+endif()
+
 add_library(ovni SHARED
   ovni.c
   parson.c

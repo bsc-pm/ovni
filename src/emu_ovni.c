@@ -544,8 +544,7 @@ pre_burst(struct ovni_emu *emu)
 
 		avg /= (double) th->nbursts;
 
-		err("burst avg %.1f ns, max %.0f ns\n",
-				MAX_BURSTS, avg, maxdelta);
+		err("burst avg %.1f ns, max %.0f ns\n", avg, maxdelta);
 
 		th->nbursts = 0;
 	}

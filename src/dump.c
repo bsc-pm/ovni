@@ -21,33 +21,10 @@
 int filter_tid = -1;
 char *tracedir;
 
-// static void
-// hexdump(uint8_t *buf, size_t size)
-//{
-//	size_t i, j;
-//
-//	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
-//
-//	for(i=0; i<size; i+=16)
-//	{
-//		for(j=0; j<16 && i+j < size; j++)
-//		{
-//			fprintf(stderr, "%02x ", buf[i+j]);
-//		}
-//		fprintf(stderr, "\n");
-//	}
-// }
-
 static void
 emit(struct ovni_stream *stream, struct ovni_ev *ev)
 {
-	uint64_t clock;
-	int i, payloadsize;
-
-	// printf("sizeof(*ev) = %d\n", sizeof(*ev));
-	// hexdump((uint8_t *) ev, sizeof(*ev));
-
-	clock = ovni_ev_get_clock(ev);
+	uint64_t clock = ovni_ev_get_clock(ev);
 
 	printf("%s.%d.%d  %ld  %c%c%c",
 		stream->loom->hostname,
@@ -58,10 +35,10 @@ emit(struct ovni_stream *stream, struct ovni_ev *ev)
 		ev->header.category,
 		ev->header.value);
 
-	payloadsize = ovni_payload_size(ev);
+	int payloadsize = ovni_payload_size(ev);
 	if (payloadsize > 0) {
 		printf(" ");
-		for (i = 0; i < payloadsize; i++)
+		for (int i = 0; i < payloadsize; i++)
 			printf(":%02x", ev->payload.u8[i]);
 	}
 	printf("\n");
@@ -73,15 +50,9 @@ emit(struct ovni_stream *stream, struct ovni_ev *ev)
 static void
 dump_events(struct ovni_trace *trace)
 {
-	size_t i;
-	ssize_t f;
-	uint64_t minclock, lastclock;
-	struct ovni_ev *ev;
-	struct ovni_stream *stream;
-
 	/* Load events */
-	for (i = 0; i < trace->nstreams; i++) {
-		stream = &trace->stream[i];
+	for (size_t i = 0; i < trace->nstreams; i++) {
+		struct ovni_stream *stream = &trace->stream[i];
 
 		/* It can be inactive if it has been disabled by the
 		 * thread TID filter */
@@ -89,20 +60,21 @@ dump_events(struct ovni_trace *trace)
 			ovni_load_next_event(stream);
 	}
 
-	lastclock = 0;
+	uint64_t lastclock = 0;
 
 	while (1) {
-		f = -1;
-		minclock = 0;
+		ssize_t f = -1;
+		uint64_t minclock = 0;
+		struct ovni_stream *stream = NULL;
 
 		/* Select next event based on the clock */
-		for (i = 0; i < trace->nstreams; i++) {
+		for (size_t i = 0; i < trace->nstreams; i++) {
 			stream = &trace->stream[i];
 
 			if (!stream->active)
 				continue;
 
-			ev = stream->cur_ev;
+			struct ovni_ev *ev = stream->cur_ev;
 			if (f < 0 || ovni_ev_get_clock(ev) < minclock) {
 				f = i;
 				minclock = ovni_ev_get_clock(ev);
@@ -136,11 +108,8 @@ dump_events(struct ovni_trace *trace)
 }
 
 static void
-usage(int argc, char *argv[])
+usage(void)
 {
-	UNUSED(argc);
-	UNUSED(argv);
-
 	err("Usage: ovnidump [-t TID] tracedir\n");
 	err("\n");
 	err("Dumps the events of the trace to the standard output.\n");
@@ -165,13 +134,13 @@ parse_args(int argc, char *argv[])
 				filter_tid = atoi(optarg);
 				break;
 			default: /* '?' */
-				usage(argc, argv);
+				usage();
 		}
 	}
 
 	if (optind >= argc) {
 		err("missing tracedir\n");
-		usage(argc, argv);
+		usage();
 	}
 
 	tracedir = argv[optind];

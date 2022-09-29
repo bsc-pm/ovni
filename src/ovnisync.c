@@ -74,10 +74,8 @@ get_time(clockid_t clock, int use_ns)
 static int
 cmp_double(const void *pa, const void *pb)
 {
-	double a, b;
-
-	a = *(const double *) pa;
-	b = *(const double *) pb;
+	double a = *(const double *) pa;
+	double b = *(const double *) pb;
 
 	if (a < b)
 		return -1;
@@ -116,9 +114,6 @@ try_mkdir(const char *path, mode_t mode)
 static int
 mkpath(const char *path, mode_t mode)
 {
-	char *pp;
-	char *sp;
-	int status;
 	char *copypath = strdup(path);
 
 	/* Remove trailing slash */
@@ -126,8 +121,9 @@ mkpath(const char *path, mode_t mode)
 	while (last > 0 && copypath[last] == '/')
 		copypath[last--] = '\0';
 
-	status = 0;
-	pp = copypath;
+	int status = 0;
+	char *pp = copypath;
+	char *sp;
 	while (status == 0 && (sp = strchr(pp, '/')) != 0) {
 		if (sp != pp) {
 			/* Neither root nor double slash in path */
@@ -145,8 +141,6 @@ mkpath(const char *path, mode_t mode)
 static void
 parse_options(struct options *options, int argc, char *argv[])
 {
-	int opt;
-
 	/* Default options */
 	options->ndrift_samples = 1;
 	options->nsamples = 100;
@@ -154,6 +148,7 @@ parse_options(struct options *options, int argc, char *argv[])
 	options->drift_wait = 5;
 	options->outpath = "ovni/clock-offsets.txt";
 
+	int opt;
 	while ((opt = getopt(argc, argv, "d:vn:w:o:h")) != -1) {
 		switch (opt) {
 			case 'd':
@@ -186,14 +181,12 @@ parse_options(struct options *options, int argc, char *argv[])
 static void
 get_clock_samples(struct offset *offset, int nsamples)
 {
-	int i;
-
 	/* Keep the wall time as well */
 	offset->wall_t0 = get_time(CLOCK_REALTIME, 0);
 
 	offset->nsamples = nsamples;
 
-	for (i = 0; i < nsamples; i++) {
+	for (int i = 0; i < nsamples; i++) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		offset->clock_sample[i] = get_time(CLOCK_MONOTONIC, 1);
 	}
@@ -204,8 +197,6 @@ get_clock_samples(struct offset *offset, int nsamples)
 static void
 fill_offset(struct offset *offset, int nsamples)
 {
-	int warmup_nsamples;
-
 	/* Identify the rank */
 	MPI_Comm_rank(MPI_COMM_WORLD, &offset->rank);
 
@@ -218,7 +209,7 @@ fill_offset(struct offset *offset, int nsamples)
 	// printf("rank=%d hostname=%s\n", offset->rank, offset->hostname);
 
 	/* Warm up iterations */
-	warmup_nsamples = nsamples >= 20 ? 20 : nsamples;
+	int warmup_nsamples = nsamples >= 20 ? 20 : nsamples;
 	get_clock_samples(offset, warmup_nsamples);
 
 	get_clock_samples(offset, nsamples);
@@ -227,17 +218,14 @@ fill_offset(struct offset *offset, int nsamples)
 static void
 offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int verbose)
 {
-	int i;
-	double *delta;
-
-	delta = malloc(sizeof(double) * nsamples);
+	double *delta = malloc(sizeof(double) * nsamples);
 
 	if (delta == NULL) {
 		perror("malloc");
 		exit(EXIT_FAILURE);
 	}
 
-	for (i = 0; i < nsamples; i++) {
+	for (int i = 0; i < nsamples; i++) {
 		delta[i] = ref->clock_sample[i] - cur->clock_sample[i];
 		if (verbose) {
 			printf("rank=%d  sample=%d  delta=%f  ref=%f  cur=%f\n",
@@ -250,13 +238,13 @@ offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int v
 	qsort(delta, nsamples, sizeof(double), cmp_double);
 
 	cur->delta_median = delta[nsamples / 2];
-
-	for (cur->delta_mean = 0, i = 0; i < nsamples; i++)
+	cur->delta_mean = 0;
+	for (int i = 0; i < nsamples; i++)
 		cur->delta_mean += delta[i];
 
 	cur->delta_mean /= nsamples;
-
-	for (cur->delta_var = 0, i = 0; i < nsamples; i++)
+	cur->delta_var = 0;
+	for (int i = 0; i < nsamples; i++)
 		cur->delta_var += (delta[i] - cur->delta_mean) * (delta[i] - cur->delta_mean);
 
 	cur->delta_var /= (double) (nsamples - 1);
@@ -277,9 +265,7 @@ offset_size(int nsamples)
 static struct offset *
 table_get_offset(struct offset_table *table, int i, int nsamples)
 {
-	char *p;
-
-	p = (char *) table->_offset;
+	char *p = (char *) table->_offset;
 	p += i * offset_size(nsamples);
 
 	return (struct offset *) p;
@@ -288,10 +274,8 @@ table_get_offset(struct offset_table *table, int i, int nsamples)
 static struct offset_table *
 build_offset_table(int nsamples, int rank, int verbose)
 {
-	int i;
 	struct offset_table *table = NULL;
 	struct offset *offset = NULL;
-	void *sendbuf;
 
 	/* The rank 0 must build the table */
 	if (rank == 0) {
@@ -318,7 +302,7 @@ build_offset_table(int nsamples, int rank, int verbose)
 			exit(EXIT_FAILURE);
 		}
 
-		for (i = 0; i < table->nprocs; i++)
+		for (int i = 0; i < table->nprocs; i++)
 			table->offset[i] = table_get_offset(table, i, nsamples);
 
 		offset = table->offset[0];
@@ -337,7 +321,7 @@ build_offset_table(int nsamples, int rank, int verbose)
 	/* Each rank fills its own offset */
 	fill_offset(offset, nsamples);
 
-	sendbuf = rank == 0 ? MPI_IN_PLACE : offset;
+	void *sendbuf = rank == 0 ? MPI_IN_PLACE : offset;
 
 	/* Then collect all the offsets into the rank 0 */
 	MPI_Gather(sendbuf, offset_size(nsamples), MPI_CHAR,
@@ -346,7 +330,7 @@ build_offset_table(int nsamples, int rank, int verbose)
 
 	/* Finish the offsets by computing the deltas on rank 0 */
 	if (rank == 0) {
-		for (i = 0; i < table->nprocs; i++) {
+		for (int i = 0; i < table->nprocs; i++) {
 			offset_compute_delta(offset, table->offset[i],
 				nsamples, verbose);
 		}
@@ -362,15 +346,10 @@ build_offset_table(int nsamples, int rank, int verbose)
 static void
 print_drift_header(FILE *out, struct offset_table *table)
 {
-	int i;
-	// char buf[64];
-
 	fprintf(out, "%-20s", "wallclock");
 
-	for (i = 0; i < table->nprocs; i++) {
-		// sprintf(buf, "rank%d", i);
+	for (int i = 0; i < table->nprocs; i++)
 		fprintf(out, " %-20s", table->offset[i]->hostname);
-	}
 
 	fprintf(out, "\n");
 }
@@ -378,11 +357,9 @@ print_drift_header(FILE *out, struct offset_table *table)
 static void
 print_drift_row(FILE *out, struct offset_table *table)
 {
-	int i;
-
 	fprintf(out, "%-20f", table->offset[0]->wall_t1);
 
-	for (i = 0; i < table->nprocs; i++)
+	for (int i = 0; i < table->nprocs; i++)
 		fprintf(out, " %-20ld", table->offset[i]->offset);
 
 	fprintf(out, "\n");
@@ -391,14 +368,11 @@ print_drift_row(FILE *out, struct offset_table *table)
 static void
 print_table_detailed(FILE *out, struct offset_table *table)
 {
-	int i;
-	struct offset *offset;
-
 	fprintf(out, "%-10s %-20s %-20s %-20s %-20s\n",
 		"rank", "hostname", "offset_median", "offset_mean", "offset_std");
 
-	for (i = 0; i < table->nprocs; i++) {
-		offset = table->offset[i];
+	for (int i = 0; i < table->nprocs; i++) {
+		struct offset *offset = table->offset[i];
 		fprintf(out, "%-10d %-20s %-20ld %-20f %-20f\n",
 			i, offset->hostname, offset->offset,
 			offset->delta_mean, offset->delta_std);
@@ -408,12 +382,9 @@ print_table_detailed(FILE *out, struct offset_table *table)
 static void
 do_work(struct options *options, int rank)
 {
-	int drift_mode;
-	int i;
-	struct offset_table *table;
 	FILE *out = NULL;
 
-	drift_mode = options->ndrift_samples > 1 ? 1 : 0;
+	int drift_mode = options->ndrift_samples > 1 ? 1 : 0;
 
 	if (rank == 0) {
 		if (mkpath(options->outpath, 0755) != 0) {
@@ -430,8 +401,9 @@ do_work(struct options *options, int rank)
 		}
 	}
 
-	for (i = 0; i < options->ndrift_samples; i++) {
-		table = build_offset_table(options->nsamples, rank, options->verbose);
+	for (int i = 0; i < options->ndrift_samples; i++) {
+		struct offset_table *table = build_offset_table(
+				options->nsamples, rank, options->verbose);
 
 		if (rank == 0) {
 			if (drift_mode) {
@@ -459,13 +431,12 @@ do_work(struct options *options, int rank)
 int
 main(int argc, char *argv[])
 {
-	int rank;
-	struct options options;
-
 	MPI_Init(&argc, &argv);
 
+	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+	struct options options;
 	parse_options(&options, argc, argv);
 
 	do_work(&options, rank);

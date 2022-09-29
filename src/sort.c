@@ -86,14 +86,14 @@ ring_add(struct ring *r, struct ovni_ev *ev)
 static ssize_t
 find_destination(struct ring *r, uint64_t clock)
 {
-	ssize_t i, start, end, nback = 0;
+	ssize_t nback = 0;
 
-	(void) nback;
+	UNUSED(nback);
 
-	start = r->tail - 1 >= 0 ? r->tail - 1 : r->size - 1;
-	end = r->head - 1 >= 0 ? r->head - 1 : r->size - 1;
+	ssize_t start = r->tail - 1 >= 0 ? r->tail - 1 : r->size - 1;
+	ssize_t end = r->head - 1 >= 0 ? r->head - 1 : r->size - 1;
 
-	for (i = start; i != end; i = i - 1 < 0 ? r->size - 1 : i - 1) {
+	for (ssize_t i = start; i != end; i = i - 1 < 0 ? r->size - 1 : i - 1) {
 		if (r->ev[i]->header.clock < clock) {
 			dbg("found suitable position %ld events backwards\n",
 				nback);
@@ -119,64 +119,23 @@ ends_unsorted_region(struct ovni_ev *ev)
 	return ev->header.model == 'O' && ev->header.category == 'U' && ev->header.value == ']';
 }
 
-#if 0
-static void
-hexdump(uint8_t *buf, size_t size)
-{
-	UNUSED(buf);
-	UNUSED(size);
-
-	size_t i, j;
-
-	//printf("writing %ld bytes in cpu=%d\n", size, rthread.cpu);
-
-	for(i=0; i<size; i+=16)
-	{
-		for(j=0; j<16; j++)
-		{
-			if(i+j < size)
-				fprintf(stderr, "%02x ", buf[i+j]);
-			else
-				fprintf(stderr, "   ");
-		}
-
-		fprintf(stderr, " | ");
-
-		for(j=0; j<16; j++)
-		{
-			if(i+j < size)
-			{
-				if(isprint(buf[i+j]))
-					fprintf(stderr, "%c", buf[i+j]);
-				else
-					fprintf(stderr, ".");
-			}
-			else
-			{
-				fprintf(stderr, " ");
-			}
-		}
-		fprintf(stderr, "\n");
-	}
-}
-#endif
-
 static void
 sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 	uint8_t *srcbad, uint8_t *srcnext)
 {
-	uint8_t *p, *q;
-	int64_t evsize, injected = 0;
-	struct ovni_ev *ep, *eq, *ev;
+	int64_t injected = 0;
 
-	(void) injected;
+	UNUSED(injected);
 
-	p = src;
-	q = srcbad;
+	uint8_t *p = src;
+	uint8_t *q = srcbad;
 
 	while (1) {
-		ep = (struct ovni_ev *) p;
-		eq = (struct ovni_ev *) q;
+		struct ovni_ev *ep = (struct ovni_ev *) p;
+		struct ovni_ev *eq = (struct ovni_ev *) q;
+		struct ovni_ev *ev = NULL;
+
+		int64_t evsize = 0;
 
 		if (p < srcbad && ep->header.clock < eq->header.clock) {
 			ev = ep;
@@ -225,32 +184,27 @@ write_stream(int fd, void *base, void *dst, const void *src, size_t size)
 static int
 execute_sort_plan(struct sortplan *sp)
 {
-	int64_t i0, bufsize;
-	uint8_t *buf;
-	/* The first event in the stream that may be affected */
-	struct ovni_ev *first;
-
-
 	dbg("attempt to sort: start clock %ld\n", sp->bad0->header.clock);
 
 	/* Cannot sort in one pass; just fail for now */
-	if ((i0 = find_destination(sp->r, sp->bad0->header.clock)) < 0) {
+	int64_t i0 = find_destination(sp->r, sp->bad0->header.clock);
+	if (i0 < 0) {
 		err("cannot find destination for region starting at clock %ld\n",
 			sp->bad0->header.clock);
 
 		return -1;
 	}
 
-	/* Set the pointer to the first event */
-	first = sp->r->ev[i0];
+	/* Set the pointer to the first event that may be affected */
+	struct ovni_ev *first = sp->r->ev[i0];
 
 	/* Allocate a working buffer */
-	bufsize = ((int64_t) sp->next) - ((int64_t) first);
+	int64_t bufsize = ((int64_t) sp->next) - ((int64_t) first);
 
 	if (bufsize <= 0)
 		die("bufsize is non-positive\n");
 
-	buf = malloc(bufsize);
+	uint8_t *buf = malloc(bufsize);
 	if (!buf)
 		die("malloc failed: %s\n", strerror(errno));
 
@@ -270,11 +224,6 @@ execute_sort_plan(struct sortplan *sp)
 static int
 stream_winsort(struct ovni_stream *stream, struct ring *r)
 {
-	struct ovni_ev *ev;
-	struct sortplan sp = {0};
-	// uint64_t lastclock = 0;
-	char st = 'S';
-
 	char *fn = stream->thread->tracefile;
 	int fd = open(fn, O_WRONLY);
 
@@ -282,16 +231,19 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 		die("open %s failed: %s\n", fn, strerror(errno));
 
 	ring_reset(r);
+
+	struct sortplan sp = {0};
 	sp.r = r;
 	sp.fd = fd;
 	sp.base = stream->buf;
 
 	size_t empty_regions = 0;
 	size_t updated = 0;
+	char st = 'S';
 
 	while (stream->active) {
 		ovni_load_next_event(stream);
-		ev = stream->cur_ev;
+		struct ovni_ev *ev = stream->cur_ev;
 
 		if (st == 'S' && starts_unsorted_region(ev)) {
 			st = 'U';
@@ -369,8 +321,6 @@ stream_check(struct ovni_stream *stream)
 static int
 process_trace(struct ovni_trace *trace)
 {
-	size_t i;
-	struct ovni_stream *stream;
 	struct ring ring;
 	int ret = 0;
 
@@ -380,8 +330,8 @@ process_trace(struct ovni_trace *trace)
 	if (ring.ev == NULL)
 		die("malloc failed: %s\n", strerror(errno));
 
-	for (i = 0; i < trace->nstreams; i++) {
-		stream = &trace->stream[i];
+	for (size_t i = 0; i < trace->nstreams; i++) {
+		struct ovni_stream *stream = &trace->stream[i];
 		if (operation_mode == SORT) {
 			dbg("sorting stream tid=%d\n", stream->tid);
 			if (stream_winsort(stream, &ring) != 0) {
@@ -414,11 +364,8 @@ process_trace(struct ovni_trace *trace)
 }
 
 static void
-usage(int argc, char *argv[])
+usage(void)
 {
-	UNUSED(argc);
-	UNUSED(argv);
-
 	err("Usage: ovnisort [-c] tracedir\n");
 	err("\n");
 	err("Sorts the events in each stream of the trace given in\n");
@@ -449,13 +396,13 @@ parse_args(int argc, char *argv[])
 				operation_mode = CHECK;
 				break;
 			default: /* '?' */
-				usage(argc, argv);
+				usage();
 		}
 	}
 
 	if (optind >= argc) {
 		err("missing tracedir\n");
-		usage(argc, argv);
+		usage();
 	}
 
 	tracedir = argv[optind];
@@ -465,11 +412,10 @@ int
 main(int argc, char *argv[])
 {
 	int ret = 0;
-	struct ovni_trace *trace;
 
 	parse_args(argc, argv);
 
-	trace = calloc(1, sizeof(struct ovni_trace));
+	struct ovni_trace *trace = calloc(1, sizeof(struct ovni_trace));
 
 	if (trace == NULL) {
 		perror("calloc");

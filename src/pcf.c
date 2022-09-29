@@ -321,13 +321,11 @@ write_header(FILE *f)
 static void
 write_colors(FILE *f, const uint32_t *palette, int n)
 {
-	int i;
-	uint8_t r, g, b;
-
 	fprintf(f, "\n\n");
 	fprintf(f, "STATES_COLOR\n");
 
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
+		uint8_t r, g, b;
 		decompose_rgb(palette[i], &r, &g, &b);
 		fprintf(f, "%-3d {%3d, %3d, %3d}\n", i, r, g, b);
 	}
@@ -348,9 +346,7 @@ write_type(FILE *f, struct pcf_type *type)
 static void
 write_types(struct pcf_file *pcf)
 {
-	struct pcf_type *t;
-
-	for (t = pcf->types; t != NULL; t = t->hh.next)
+	for (struct pcf_type *t = pcf->types; t != NULL; t = t->hh.next)
 		write_type(pcf->f, t);
 }
 
@@ -369,7 +365,6 @@ create_values(struct pcf_type *t, enum chan c)
 static void
 create_type(struct pcf_file *pcf, enum chan c)
 {
-	char label[MAX_PCF_LABEL];
 	enum chan_type ct = pcf->chantype;
 	int prv_type = chan_to_prvtype[c];
 
@@ -381,6 +376,7 @@ create_type(struct pcf_file *pcf, enum chan c)
 	int isuffix = pcf_chan_suffix[c][ct];
 	char *suffix = pcf_suffix_name[isuffix];
 
+	char label[MAX_PCF_LABEL];
 	int ret = snprintf(label, MAX_PCF_LABEL, "%s %s",
 		prefix, suffix);
 
@@ -429,9 +425,7 @@ pcf_find_type(struct pcf_file *pcf, int type_id)
 struct pcf_type *
 pcf_add_type(struct pcf_file *pcf, int type_id, const char *label)
 {
-	struct pcf_type *pcftype;
-
-	pcftype = pcf_find_type(pcf, type_id);
+	struct pcf_type *pcftype = pcf_find_type(pcf, type_id);
 
 	if (pcftype != NULL)
 		die("PCF type %d already defined\n", type_id);

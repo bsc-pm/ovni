@@ -13,32 +13,24 @@
 void
 hook_init_tampi(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_cpu *cpu;
-	size_t i;
-	int row;
-	FILE *prv_th, *prv_cpu;
-	int64_t *clock;
-	struct ovni_chan **uth, **ucpu;
-
-	clock = &emu->delta_time;
-	prv_th = emu->prv_thread;
-	prv_cpu = emu->prv_cpu;
+	int64_t *clock = &emu->delta_time;
+	FILE *prv_th = emu->prv_thread;
+	FILE *prv_cpu = emu->prv_cpu;
 
 	/* Init the channels in all threads */
-	for (i = 0; i < emu->total_nthreads; i++) {
-		th = emu->global_thread[i];
-		row = th->gindex + 1;
-		uth = &emu->th_chan;
+	for (size_t i = 0; i < emu->total_nthreads; i++) {
+		struct ovni_ethread *th = emu->global_thread[i];
+		int row = th->gindex + 1;
+		struct ovni_chan **uth = &emu->th_chan;
 
 		chan_th_init(th, uth, CHAN_TAMPI_MODE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 	}
 
 	/* Init the channels in all cpus */
-	for (i = 0; i < emu->total_ncpus; i++) {
-		cpu = emu->global_cpu[i];
-		row = cpu->gindex + 1;
-		ucpu = &emu->cpu_chan;
+	for (size_t i = 0; i < emu->total_ncpus; i++) {
+		struct ovni_cpu *cpu = emu->global_cpu[i];
+		int row = cpu->gindex + 1;
+		struct ovni_chan **ucpu = &emu->cpu_chan;
 
 		chan_cpu_init(cpu, ucpu, CHAN_TAMPI_MODE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 	}
@@ -49,9 +41,7 @@ hook_init_tampi(struct ovni_emu *emu)
 static void
 pre_tampi_mode(struct ovni_emu *emu, int state)
 {
-	struct ovni_ethread *th;
-
-	th = emu->cur_thread;
+	struct ovni_ethread *th = emu->cur_thread;
 
 	switch (emu->cur_ev->header.value) {
 		case '[':

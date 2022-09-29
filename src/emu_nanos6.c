@@ -13,23 +13,16 @@
 void
 hook_init_nanos6(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_cpu *cpu;
-	struct ovni_chan **uth, **ucpu;
-	int row;
-	FILE *prv_th, *prv_cpu;
-	int64_t *clock;
-
-	clock = &emu->delta_time;
-	prv_th = emu->prv_thread;
-	prv_cpu = emu->prv_cpu;
+	int64_t *clock = &emu->delta_time;
+	FILE *prv_th = emu->prv_thread;
+	FILE *prv_cpu = emu->prv_cpu;
 
 	/* Init the channels in all threads */
 	for (size_t i = 0; i < emu->total_nthreads; i++) {
-		th = emu->global_thread[i];
-		row = th->gindex + 1;
+		struct ovni_ethread *th = emu->global_thread[i];
+		int row = th->gindex + 1;
 
-		uth = &emu->th_chan;
+		struct ovni_chan **uth = &emu->th_chan;
 
 		chan_th_init(th, uth, CHAN_NANOS6_TASKID, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_NANOS6_TYPE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
@@ -40,9 +33,9 @@ hook_init_nanos6(struct ovni_emu *emu)
 
 	/* Init the Nanos6 channels in all cpus */
 	for (size_t i = 0; i < emu->total_ncpus; i++) {
-		cpu = emu->global_cpu[i];
-		row = cpu->gindex + 1;
-		ucpu = &emu->cpu_chan;
+		struct ovni_cpu *cpu = emu->global_cpu[i];
+		int row = cpu->gindex + 1;
+		struct ovni_chan **ucpu = &emu->cpu_chan;
 
 		chan_cpu_init(cpu, ucpu, CHAN_NANOS6_TASKID, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_NANOS6_TYPE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
@@ -53,7 +46,7 @@ hook_init_nanos6(struct ovni_emu *emu)
 
 	/* Init task stack */
 	for (size_t i = 0; i < emu->total_nthreads; i++) {
-		th = emu->global_thread[i];
+		struct ovni_ethread *th = emu->global_thread[i];
 		th->nanos6_task_stack.thread = th;
 	}
 }
@@ -63,8 +56,7 @@ hook_init_nanos6(struct ovni_emu *emu)
 static void
 chan_task_stopped(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	th = emu->cur_thread;
+	struct ovni_ethread *th = emu->cur_thread;
 
 	chan_set(&th->chan[CHAN_NANOS6_TASKID], 0);
 	chan_set(&th->chan[CHAN_NANOS6_TYPE], 0);
@@ -76,11 +68,8 @@ chan_task_stopped(struct ovni_emu *emu)
 static void
 chan_task_running(struct ovni_emu *emu, struct task *task)
 {
-	struct ovni_ethread *th;
-	struct ovni_eproc *proc;
-
-	th = emu->cur_thread;
-	proc = emu->cur_proc;
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_eproc *proc = emu->cur_proc;
 
 	if (task->id == 0)
 		edie(emu, "task id cannot be 0\n");
@@ -311,11 +300,8 @@ pre_type(struct ovni_emu *emu)
 static void
 pre_deps(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case 'r':
@@ -338,11 +324,8 @@ pre_deps(struct ovni_emu *emu)
 static void
 pre_blocking(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case 'b':
@@ -377,11 +360,8 @@ pre_blocking(struct ovni_emu *emu)
 static void
 pre_worker(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case '[':
@@ -431,11 +411,8 @@ pre_worker(struct ovni_emu *emu)
 static void
 pre_memory(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case 'a':
@@ -458,11 +435,8 @@ pre_memory(struct ovni_emu *emu)
 static void
 pre_sched(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case '[':
@@ -500,11 +474,8 @@ pre_sched(struct ovni_emu *emu)
 static void
 pre_thread(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_THREAD];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NANOS6_THREAD];
 
 	switch (emu->cur_ev->header.value) {
 		case 'e':
@@ -539,11 +510,8 @@ pre_thread(struct ovni_emu *emu)
 static void
 pre_ss(struct ovni_emu *emu, int st)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NANOS6_SUBSYSTEM];
 
 	dbg("pre_ss chan id %d st=%d\n", chan_th->id, st);
 

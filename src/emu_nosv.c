@@ -15,24 +15,16 @@
 void
 hook_init_nosv(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_cpu *cpu;
-	struct ovni_chan **uth, **ucpu;
-	size_t i;
-	int row;
-	FILE *prv_th, *prv_cpu;
-	int64_t *clock;
-
-	clock = &emu->delta_time;
-	prv_th = emu->prv_thread;
-	prv_cpu = emu->prv_cpu;
+	int64_t *clock = &emu->delta_time;
+	FILE *prv_th = emu->prv_thread;
+	FILE *prv_cpu = emu->prv_cpu;
 
 	/* Init the channels in all threads */
-	for (i = 0; i < emu->total_nthreads; i++) {
-		th = emu->global_thread[i];
-		row = th->gindex + 1;
+	for (size_t i = 0; i < emu->total_nthreads; i++) {
+		struct ovni_ethread *th = emu->global_thread[i];
+		int row = th->gindex + 1;
 
-		uth = &emu->th_chan;
+		struct ovni_chan **uth = &emu->th_chan;
 
 		chan_th_init(th, uth, CHAN_NOSV_TASKID, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
 		chan_th_init(th, uth, CHAN_NOSV_TYPE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_th, clock);
@@ -47,10 +39,10 @@ hook_init_nosv(struct ovni_emu *emu)
 	}
 
 	/* Init the nosv channels in all cpus */
-	for (i = 0; i < emu->total_ncpus; i++) {
-		cpu = emu->global_cpu[i];
-		row = cpu->gindex + 1;
-		ucpu = &emu->cpu_chan;
+	for (size_t i = 0; i < emu->total_ncpus; i++) {
+		struct ovni_cpu *cpu = emu->global_cpu[i];
+		int row = cpu->gindex + 1;
+		struct ovni_chan **ucpu = &emu->cpu_chan;
 
 		chan_cpu_init(cpu, ucpu, CHAN_NOSV_TASKID, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
 		chan_cpu_init(cpu, ucpu, CHAN_NOSV_TYPE, CHAN_TRACK_TH_RUNNING, 0, 0, 1, row, prv_cpu, clock);
@@ -60,8 +52,8 @@ hook_init_nosv(struct ovni_emu *emu)
 	}
 
 	/* Init task stack */
-	for (i = 0; i < emu->total_nthreads; i++) {
-		th = emu->global_thread[i];
+	for (size_t i = 0; i < emu->total_nthreads; i++) {
+		struct ovni_ethread *th = emu->global_thread[i];
 		th->nosv_task_stack.thread = th;
 	}
 }
@@ -87,11 +79,8 @@ chan_task_stopped(struct ovni_emu *emu)
 static void
 chan_task_running(struct ovni_emu *emu, struct task *task)
 {
-	struct ovni_ethread *th;
-	struct ovni_eproc *proc;
-
-	th = emu->cur_thread;
-	proc = emu->cur_proc;
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_eproc *proc = emu->cur_proc;
 
 	if (task->id == 0)
 		edie(emu, "task id cannot be 0\n");
@@ -308,11 +297,8 @@ pre_type(struct ovni_emu *emu)
 static void
 pre_sched(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case 'h':
@@ -344,11 +330,8 @@ pre_sched(struct ovni_emu *emu)
 static void
 pre_api(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case 's':
@@ -389,11 +372,8 @@ pre_api(struct ovni_emu *emu)
 static void
 pre_mem(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case 'a':
@@ -416,11 +396,8 @@ pre_mem(struct ovni_emu *emu)
 static void
 pre_thread_type(struct ovni_emu *emu)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	switch (emu->cur_ev->header.value) {
 		case 'a':
@@ -449,11 +426,8 @@ pre_thread_type(struct ovni_emu *emu)
 static void
 pre_ss(struct ovni_emu *emu, int st)
 {
-	struct ovni_ethread *th;
-	struct ovni_chan *chan_th;
-
-	th = emu->cur_thread;
-	chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
+	struct ovni_ethread *th = emu->cur_thread;
+	struct ovni_chan *chan_th = &th->chan[CHAN_NOSV_SUBSYSTEM];
 
 	dbg("pre_ss chan id %d st=%d\n", chan_th->id, st);
 

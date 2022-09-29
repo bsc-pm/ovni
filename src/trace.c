@@ -23,9 +23,7 @@
 static int
 find_dir_prefix_str(const char *dirname, const char *prefix, const char **str)
 {
-	const char *p;
-
-	p = dirname;
+	const char *p = dirname;
 
 	/* Check the prefix */
 	if (strncmp(p, prefix, strlen(prefix)) != 0)
@@ -48,7 +46,7 @@ find_dir_prefix_str(const char *dirname, const char *prefix, const char **str)
 static int
 find_dir_prefix_int(const char *dirname, const char *prefix, int *num)
 {
-	const char *p;
+	const char *p = NULL;
 
 	if (find_dir_prefix_str(dirname, prefix, &p) != 0)
 		return -1;
@@ -99,9 +97,7 @@ load_thread(struct ovni_ethread *thread, struct ovni_eproc *proc, int index, int
 static void
 load_proc_metadata(struct ovni_eproc *proc, int *rank_enabled)
 {
-	JSON_Object *meta;
-
-	meta = json_value_get_object(proc->meta);
+	JSON_Object *meta = json_value_get_object(proc->meta);
 	if (meta == NULL)
 		die("load_proc_metadata: json_value_get_object() failed\n");
 
@@ -176,16 +172,12 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 {
 	static int total_procs = 0;
 
-	struct dirent *dirent;
-	DIR *dir;
-	char path[PATH_MAX];
-	struct ovni_ethread *thread;
-
 	proc->pid = pid;
 	proc->index = index;
 	proc->gindex = total_procs++;
 	proc->loom = loom;
 
+	char path[PATH_MAX];
 	if (snprintf(path, PATH_MAX, "%s/%s", procdir, "metadata.json") >= PATH_MAX) {
 		err("snprintf: path too large: %s\n", procdir);
 		abort();
@@ -202,6 +194,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 	/* The appid is populated from the metadata */
 	load_proc_metadata(proc, &loom->rank_enabled);
 
+	DIR *dir;
 	if ((dir = opendir(procdir)) == NULL) {
 		fprintf(stderr, "opendir %s failed: %s\n",
 			procdir, strerror(errno));
@@ -233,7 +226,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 	rewinddir(dir);
 
 	for (size_t i = 0; i < proc->nthreads;) {
-		dirent = readdir(dir);
+		struct dirent *dirent = readdir(dir);
 
 		if (dirent == NULL) {
 			err("inconsistent: readdir returned NULL\n");
@@ -259,7 +252,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 			abort();
 		}
 
-		thread = &proc->thread[i];
+		struct ovni_ethread *thread = &proc->thread[i];
 
 		if (load_thread(thread, proc, i, tid, path) != 0)
 			return -1;
@@ -273,11 +266,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 static int
 load_loom(struct ovni_loom *loom, char *loomdir)
 {
-	int pid;
-	size_t i;
-	char path[PATH_MAX];
-	DIR *dir;
-	struct dirent *dirent;
+	DIR *dir = NULL;
 
 	if ((dir = opendir(loomdir)) == NULL) {
 		fprintf(stderr, "opendir %s failed: %s\n",
@@ -303,11 +292,14 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 
 	rewinddir(dir);
 
-	i = 0;
+	size_t i = 0;
+	struct dirent *dirent = NULL;
 	while ((dirent = readdir(dir)) != NULL) {
+		int pid;
 		if (find_dir_prefix_int(dirent->d_name, "proc", &pid) != 0)
 			continue;
 
+		char path[PATH_MAX];
 		sprintf(path, "%s/%s", loomdir, dirent->d_name);
 
 		if (i >= loom->nprocs) {
@@ -353,8 +345,7 @@ compare_looms(const void *a, const void *b)
 static void
 loom_to_host(const char *loom_name, char *host, int n)
 {
-	int i;
-
+	int i = 0;
 	for (i = 0; i < n; i++) {
 		/* Copy until dot or end */
 		if (loom_name[i] != '.' && loom_name[i] != '\0')
@@ -372,7 +363,7 @@ loom_to_host(const char *loom_name, char *host, int n)
 int
 ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 {
-	DIR *dir;
+	DIR *dir = NULL;
 
 	if ((dir = opendir(tracedir)) == NULL) {
 		err("opendir %s failed: %s\n", tracedir, strerror(errno));
@@ -396,7 +387,7 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 	rewinddir(dir);
 
 	size_t l = 0;
-	struct dirent *dirent;
+	struct dirent *dirent = NULL;
 
 	while ((dirent = readdir(dir)) != NULL) {
 		struct ovni_loom *loom = &trace->loom[l];
@@ -550,19 +541,13 @@ load_stream_buf(struct ovni_stream *stream, struct ovni_ethread *thread)
 int
 ovni_load_streams(struct ovni_trace *trace)
 {
-	size_t i, j, k, s;
-	struct ovni_loom *loom;
-	struct ovni_eproc *proc;
-	struct ovni_ethread *thread;
-	struct ovni_stream *stream;
-
 	trace->nstreams = 0;
 
-	for (i = 0; i < trace->nlooms; i++) {
-		loom = &trace->loom[i];
-		for (j = 0; j < loom->nprocs; j++) {
-			proc = &loom->proc[j];
-			for (k = 0; k < proc->nthreads; k++) {
+	for (size_t i = 0; i < trace->nlooms; i++) {
+		struct ovni_loom *loom = &trace->loom[i];
+		for (size_t j = 0; j < loom->nprocs; j++) {
+			struct ovni_eproc *proc = &loom->proc[j];
+			for (size_t k = 0; k < proc->nthreads; k++) {
 				trace->nstreams++;
 			}
 		}
@@ -577,13 +562,14 @@ ovni_load_streams(struct ovni_trace *trace)
 
 	err("loaded %ld streams\n", trace->nstreams);
 
-	for (s = 0, i = 0; i < trace->nlooms; i++) {
-		loom = &trace->loom[i];
-		for (j = 0; j < loom->nprocs; j++) {
-			proc = &loom->proc[j];
-			for (k = 0; k < proc->nthreads; k++) {
-				thread = &proc->thread[k];
-				stream = &trace->stream[s++];
+	size_t s = 0;
+	for (size_t i = 0; i < trace->nlooms; i++) {
+		struct ovni_loom *loom = &trace->loom[i];
+		for (size_t j = 0; j < loom->nprocs; j++) {
+			struct ovni_eproc *proc = &loom->proc[j];
+			for (size_t k = 0; k < proc->nthreads; k++) {
+				struct ovni_ethread *thread = &proc->thread[k];
+				struct ovni_stream *stream = &trace->stream[s++];
 
 				stream->tid = thread->tid;
 				stream->thread = thread;
@@ -619,10 +605,8 @@ ovni_free_streams(struct ovni_trace *trace)
 void
 ovni_free_trace(struct ovni_trace *trace)
 {
-	size_t i, j;
-
-	for (i = 0; i < trace->nlooms; i++) {
-		for (j = 0; j < trace->loom[i].nprocs; j++) {
+	for (size_t i = 0; i < trace->nlooms; i++) {
+		for (size_t j = 0; j < trace->loom[i].nprocs; j++) {
 			free(trace->loom[i].proc[j].thread);
 		}
 

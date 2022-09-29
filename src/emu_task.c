@@ -229,8 +229,7 @@ void
 task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
 {
 	/* Emit types for all task types */
-	struct task_type *tt;
-	for (tt = types; tt != NULL; tt = tt->hh.next) {
+	for (struct task_type *tt = types; tt != NULL; tt = tt->hh.next) {
 		struct pcf_value *pcfvalue = pcf_find_value(pcftype, tt->gid);
 		if (pcfvalue != NULL) {
 			/* Ensure the label is the same, so we know that

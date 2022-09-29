@@ -50,11 +50,8 @@ chan_th_init(struct ovni_ethread *th,
 	FILE *prv,
 	int64_t *clock)
 {
-	struct ovni_chan *chan;
-	int prvth;
-
-	chan = &th->chan[id];
-	prvth = chan_to_prvtype[id];
+	struct ovni_chan *chan = &th->chan[id];
+	int prvth = chan_to_prvtype[id];
 
 	chan_init(chan, track, row, prvth, prv, clock);
 
@@ -79,11 +76,8 @@ chan_cpu_init(struct ovni_cpu *cpu,
 	FILE *prv,
 	int64_t *clock)
 {
-	struct ovni_chan *chan;
-	int prvcpu;
-
-	chan = &cpu->chan[id];
-	prvcpu = chan_to_prvtype[id];
+	struct ovni_chan *chan = &cpu->chan[id];
+	int prvcpu = chan_to_prvtype[id];
 
 	chan_init(chan, track, row, prvcpu, prv, clock);
 
@@ -99,11 +93,9 @@ chan_cpu_init(struct ovni_cpu *cpu,
 static void
 chan_dump_update_list(struct ovni_chan *chan)
 {
-	struct ovni_chan *c;
+	dbg("update list for chan %d at %p:\n", chan->id, (void *) chan);
 
-	dbg("update list for chan %d at %p:\n",
-		chan->id, (void *) chan);
-	for (c = *chan->update_list; c; c = c->next) {
+	for (struct ovni_chan *c = *chan->update_list; c; c = c->next) {
 		dbg(" chan %d at %p\n", c->id, (void *) c);
 	}
 }
@@ -223,8 +215,6 @@ chan_push(struct ovni_chan *chan, int st)
 int
 chan_pop(struct ovni_chan *chan, int expected_st)
 {
-	int st;
-
 	dbg("chan_pop chan %d expected_st=%d\n", chan->id, expected_st);
 
 	if (!chan->enabled)
@@ -239,7 +229,7 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 		abort();
 	}
 
-	st = chan->stack[chan->n - 1];
+	int st = chan->stack[chan->n - 1];
 
 	if (expected_st >= 0 && st != expected_st) {
 		err("chan_pop: unexpected channel state %d (expected %d)\n",
@@ -338,16 +328,14 @@ emit(struct ovni_chan *chan, int64_t t, int state)
 static void
 emit_ev(struct ovni_chan *chan)
 {
-	int new, last;
-
 	if (!chan->enabled)
 		die("emit_ev: chan %d is not enabled\n", chan->id);
 
 	if (chan->ev == -1)
 		die("emit_ev: chan %d cannot emit -1 ev\n", chan->id);
 
-	new = chan->ev;
-	last = chan_get_st(chan);
+	int new = chan->ev;
+	int last = chan_get_st(chan);
 
 	emit(chan, chan->t - 1, new);
 	emit(chan, chan->t, last);
@@ -358,9 +346,7 @@ emit_ev(struct ovni_chan *chan)
 static void
 emit_st(struct ovni_chan *chan)
 {
-	int st;
-
-	st = chan_get_st(chan);
+	int st = chan_get_st(chan);
 
 	emit(chan, chan->t, st);
 }

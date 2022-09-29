@@ -243,7 +243,6 @@ static int
 move_thread_to_final(const char *src, const char *dst)
 {
 	char buffer[1024];
-	size_t bytes;
 
 	FILE *infile = fopen(src, "r");
 
@@ -259,6 +258,7 @@ move_thread_to_final(const char *src, const char *dst)
 		return -1;
 	}
 
+	size_t bytes;
 	while ((bytes = fread(buffer, 1, sizeof(buffer), infile)) > 0)
 		fwrite(buffer, 1, bytes, outfile);
 
@@ -276,10 +276,7 @@ move_thread_to_final(const char *src, const char *dst)
 static void
 move_procdir_to_final(const char *procdir, const char *procdir_final)
 {
-	struct dirent *dirent;
 	DIR *dir;
-	char thread[PATH_MAX];
-	char thread_final[PATH_MAX];
 	int err = 0;
 
 	if ((dir = opendir(procdir)) == NULL) {
@@ -287,12 +284,14 @@ move_procdir_to_final(const char *procdir, const char *procdir_final)
 		return;
 	}
 
+	struct dirent *dirent;
 	const char *prefix = "thread.";
 	while ((dirent = readdir(dir)) != NULL) {
 		/* It should only contain thread.* directories, skip others */
 		if (strncmp(dirent->d_name, prefix, strlen(prefix)) != 0)
 			continue;
 
+		char thread[PATH_MAX];
 		if (snprintf(thread, PATH_MAX, "%s/%s", procdir,
 			    dirent->d_name)
 			>= PATH_MAX) {
@@ -302,6 +301,7 @@ move_procdir_to_final(const char *procdir, const char *procdir_final)
 			continue;
 		}
 
+		char thread_final[PATH_MAX];
 		if (snprintf(thread_final, PATH_MAX, "%s/%s", procdir_final,
 			    dirent->d_name)
 			>= PATH_MAX) {
@@ -335,7 +335,6 @@ ovni_proc_fini(void)
 
 	/* Mark the process no longer ready */
 	rproc.ready = 0;
-
 
 	if (rproc.move_to_final) {
 		proc_metadata_store(rproc.meta, rproc.procdir_final);
@@ -488,12 +487,10 @@ get_jumbo_payload_size(const struct ovni_ev *ev)
 int
 ovni_payload_size(const struct ovni_ev *ev)
 {
-	int size;
-
 	if (ev->header.flags & OVNI_EV_JUMBO)
 		return get_jumbo_payload_size(ev);
 
-	size = ev->header.flags & 0x0f;
+	int size = ev->header.flags & 0x0f;
 
 	if (size == 0)
 		return 0;

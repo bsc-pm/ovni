@@ -33,13 +33,6 @@ add_executable(ovnidump
   parson.c
 )
 
-add_executable(ovni2prv
-  ovni2prv.c
-  ovni.c
-  trace.c
-  parson.c
-)
-
 add_executable(ovnisort
   sort.c
   ovni.c
@@ -58,5 +51,5 @@ add_executable(ovnisync ovnisync.c)
 target_link_libraries(ovnisync m MPI::MPI_C)
 
 install(TARGETS ovni LIBRARY DESTINATION lib)
-install(TARGETS ovniemu ovnidump ovni2prv ovnisync ovnisort RUNTIME DESTINATION bin)
+install(TARGETS ovniemu ovnidump ovnisync ovnisort RUNTIME DESTINATION bin)
 install(FILES ovni.h DESTINATION include)

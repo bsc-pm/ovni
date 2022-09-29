@@ -85,7 +85,6 @@ let
         last.nanos6
         pkgs.strace
       ];
-      cmakeFlags = old.cmakeFlags ++ [ "-DENABLE_TEST_RT=ON" ];
     });
   });
 

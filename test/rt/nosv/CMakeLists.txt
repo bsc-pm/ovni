@@ -14,5 +14,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(nosv)
-add_subdirectory(nanos6)
+find_library(nosv libnosv)
+find_path(NOSV_INCLUDE_DIR nosv.h)
+
+check_library_exists(nosv nosv_init "nosv.h" HAVE_NOSV)
+
+if(NOT HAVE_NOSV)
+  message(STATUS "nOS-V library not found, disabling nOS-V RT tests")
+  return()
+else()
+  message(STATUS "Enabling nOS-V RT tests")
+endif()
+
+function(nosv_test)
+  ovni_test(${ARGN})
+  target_link_libraries("${OVNI_TEST_NAME}" nosv)
+  target_include_directories("${OVNI_TEST_NAME}"
+    PUBLIC ${NOSV_INCLUDE_DIR})
+  set_property(TEST "${OVNI_TEST_NAME}" APPEND
+    PROPERTY
+      ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nosv/nosv.toml")
+endfunction()
+
+nosv_test(attach.c)

@@ -9,6 +9,8 @@
 
 /* Debug macros */
 
+/* clang-format off */
+
 #ifdef ENABLE_DEBUG
 # define dbg(...) fprintf(stderr, __VA_ARGS__);
 #else
@@ -24,5 +26,7 @@
 
 /* Poison assert */
 #pragma GCC poison assert
+
+/* clang-format on */
 
 #endif /* COMMON_H */

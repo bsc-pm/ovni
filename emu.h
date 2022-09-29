@@ -232,6 +232,7 @@ enum chan_dirty {
 	CHAN_DIRTY_VALUE = 2,
 };
 
+/* clang-format off */
 static const int chan_to_prvtype[CHAN_MAX] = {
 	[CHAN_OVNI_PID]         = 1,
 	[CHAN_OVNI_TID]         = 2,
@@ -255,6 +256,7 @@ static const int chan_to_prvtype[CHAN_MAX] = {
 	[CHAN_NANOS6_THREAD]    = 39,
 	[CHAN_KERNEL_CS]        = 45,
 };
+/* clang-format on */
 
 struct ovni_chan {
 	/* Channel id */

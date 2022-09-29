@@ -3,10 +3,10 @@
 
 #include "uthash.h"
 
-#include "ovni.h"
-#include "emu.h"
-#include "prv.h"
 #include "chan.h"
+#include "emu.h"
+#include "ovni.h"
+#include "prv.h"
 
 /* --------------------------- init ------------------------------- */
 
@@ -26,8 +26,7 @@ hook_init_tampi(struct ovni_emu *emu)
 	prv_cpu = emu->prv_cpu;
 
 	/* Init the channels in all threads */
-	for(i=0; i<emu->total_nthreads; i++)
-	{
+	for (i = 0; i < emu->total_nthreads; i++) {
 		th = emu->global_thread[i];
 		row = th->gindex + 1;
 		uth = &emu->th_chan;
@@ -36,8 +35,7 @@ hook_init_tampi(struct ovni_emu *emu)
 	}
 
 	/* Init the channels in all cpus */
-	for(i=0; i<emu->total_ncpus; i++)
-	{
+	for (i = 0; i < emu->total_ncpus; i++) {
 		cpu = emu->global_cpu[i];
 		row = cpu->gindex + 1;
 		ucpu = &emu->cpu_chan;
@@ -55,8 +53,7 @@ pre_tampi_mode(struct ovni_emu *emu, int state)
 
 	th = emu->cur_thread;
 
-	switch(emu->cur_ev->header.value)
-	{
+	switch (emu->cur_ev->header.value) {
 		case '[':
 			chan_push(&th->chan[CHAN_TAMPI_MODE], state);
 			break;
@@ -65,25 +62,36 @@ pre_tampi_mode(struct ovni_emu *emu, int state)
 			break;
 		default:
 			edie(emu, "unexpected event value %c for tampi mode\n",
-					emu->cur_ev->header.value);
+				emu->cur_ev->header.value);
 	}
 }
 
 void
 hook_pre_tampi(struct ovni_emu *emu)
 {
-	if(emu->cur_ev->header.model != 'T')
+	if (emu->cur_ev->header.model != 'T')
 		edie(emu, "hook_pre_tampi: unexpected event with model %c\n",
-				emu->cur_ev->header.model);
+			emu->cur_ev->header.model);
 
-	switch(emu->cur_ev->header.category)
-	{
-		case 'S': pre_tampi_mode(emu, ST_TAMPI_SEND); break;
-		case 'R': pre_tampi_mode(emu, ST_TAMPI_RECV); break;
-		case 's': pre_tampi_mode(emu, ST_TAMPI_ISEND); break;
-		case 'r': pre_tampi_mode(emu, ST_TAMPI_IRECV); break;
-		case 'V': pre_tampi_mode(emu, ST_TAMPI_WAIT); break;
-		case 'W': pre_tampi_mode(emu, ST_TAMPI_WAITALL); break;
+	switch (emu->cur_ev->header.category) {
+		case 'S':
+			pre_tampi_mode(emu, ST_TAMPI_SEND);
+			break;
+		case 'R':
+			pre_tampi_mode(emu, ST_TAMPI_RECV);
+			break;
+		case 's':
+			pre_tampi_mode(emu, ST_TAMPI_ISEND);
+			break;
+		case 'r':
+			pre_tampi_mode(emu, ST_TAMPI_IRECV);
+			break;
+		case 'V':
+			pre_tampi_mode(emu, ST_TAMPI_WAIT);
+			break;
+		case 'W':
+			pre_tampi_mode(emu, ST_TAMPI_WAITALL);
+			break;
 		default:
 			break;
 	}

@@ -7,11 +7,11 @@
 #include <stdio.h>
 
 #include "common.h"
-#include "ovni.h"
-#include "uthash.h"
-#include "parson.h"
 #include "heap.h"
+#include "ovni.h"
+#include "parson.h"
 #include "pcf.h"
+#include "uthash.h"
 
 /* Emulated thread runtime status */
 enum ethread_state {
@@ -136,8 +136,8 @@ struct ovni_ethread;
 struct ovni_eproc;
 
 struct task_type {
-	uint32_t id;    /* Per-process task identifier */
-	uint32_t gid;   /* Global identifier computed from the label */
+	uint32_t id;  /* Per-process task identifier */
+	uint32_t gid; /* Global identifier computed from the label */
 	char label[MAX_PCF_LABEL];
 	UT_hash_handle hh;
 };
@@ -158,17 +158,17 @@ struct task {
 };
 
 struct task_info {
-    /* Both hash maps of all known tasks and types */
-    struct task_type *types;
-    struct task *tasks;
+	/* Both hash maps of all known tasks and types */
+	struct task_type *types;
+	struct task *tasks;
 };
 
 struct task_stack {
-    union {
-        struct task *top; /* Synctactic sugar */
-        struct task *tasks;
-    };
-    struct ovni_ethread *thread;
+	union {
+		struct task *top; /* Synctactic sugar */
+		struct task *tasks;
+	};
+	struct ovni_ethread *thread;
 };
 
 #define MAX_CHAN_STACK 512
@@ -383,7 +383,7 @@ struct ovni_eproc {
 	/* TODO: Use dynamic allocation */
 
 	struct task_info nosv_task_info;
-    struct task_info nanos6_task_info;
+	struct task_info nanos6_task_info;
 };
 
 
@@ -445,7 +445,7 @@ struct ovni_loom {
 	size_t nprocs;
 	char hostname[OVNI_MAX_HOSTNAME];
 	char dname[PATH_MAX]; /* Loom directory name */
-	char path[PATH_MAX]; /* Relative to cwd */
+	char path[PATH_MAX];  /* Relative to cwd */
 
 	size_t max_ncpus;
 	size_t max_phyid;
@@ -546,8 +546,8 @@ struct ovni_emu {
 
 /* Emulator function declaration */
 
-void edie(struct ovni_emu *emu, const char* fmt, ...);
-void eerr(struct ovni_emu *emu, const char* fmt, ...);
+void edie(struct ovni_emu *emu, const char *fmt, ...);
+void eerr(struct ovni_emu *emu, const char *fmt, ...);
 
 void hook_init_ovni(struct ovni_emu *emu);
 void hook_pre_ovni(struct ovni_emu *emu);

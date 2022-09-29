@@ -22,15 +22,14 @@ main(void)
 	instr_nosv_type_create(typeid);
 
 	/* Create and run the tasks, one nested into another */
-	for(int i = 0; i < ntasks; i++)
+	for (int i = 0; i < ntasks; i++)
 		create_and_run(i + 1, typeid, 500);
 
 	/* End the tasks in the opposite order */
-	for(int i = ntasks - 1; i >= 0; i--)
+	for (int i = ntasks - 1; i >= 0; i--)
 		instr_nosv_task_end(i + 1);
 
 	instr_end();
 
 	return 0;
 }
-

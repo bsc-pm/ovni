@@ -4,25 +4,24 @@
 #define _POSIX_C_SOURCE 200112L
 #define _GNU_SOURCE
 
-#include <stdint.h>
+#include <limits.h>
+#include <linux/limits.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
-#include <linux/limits.h>
-#include <limits.h>
+#include <unistd.h>
 
-#include "ovni.h"
 #include "compat.h"
+#include "ovni.h"
 
 static inline void
 init(void)
 {
 	char hostname[HOST_NAME_MAX];
 
-	if(gethostname(hostname, HOST_NAME_MAX) != 0)
-	{
+	if (gethostname(hostname, HOST_NAME_MAX) != 0) {
 		perror("gethostname failed");
 		exit(EXIT_FAILURE);
 	}
@@ -32,7 +31,8 @@ init(void)
 	ovni_add_cpu(0, 0);
 }
 
-static void emit(uint8_t *buf, size_t size)
+static void
+emit(uint8_t *buf, size_t size)
 {
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, "O$$");
@@ -40,7 +40,8 @@ static void emit(uint8_t *buf, size_t size)
 	ovni_ev_jumbo_emit(&ev, buf, size);
 }
 
-int main(void)
+int
+main(void)
 {
 	size_t payload_size;
 	uint8_t *payload_buf;
@@ -50,8 +51,7 @@ int main(void)
 	payload_size = (size_t) (0.9 * (double) OVNI_MAX_EV_BUF);
 	payload_buf = calloc(1, payload_size);
 
-	if(!payload_buf)
-	{
+	if (!payload_buf) {
 		perror("calloc failed");
 		exit(EXIT_FAILURE);
 	}

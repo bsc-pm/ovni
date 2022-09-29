@@ -8,27 +8,27 @@
 
 void
 chan_th_init(struct ovni_ethread *th,
-		struct ovni_chan **update_list,
-		enum chan id,
-		enum chan_track track,
-		int init_st,
-		int enabled,
-		int dirty,
-		int row,
-		FILE *prv,
-		int64_t *clock);
+	struct ovni_chan **update_list,
+	enum chan id,
+	enum chan_track track,
+	int init_st,
+	int enabled,
+	int dirty,
+	int row,
+	FILE *prv,
+	int64_t *clock);
 
 void
 chan_cpu_init(struct ovni_cpu *cpu,
-		struct ovni_chan **update_list,
-		enum chan id,
-		enum chan_track track,
-		int row,
-		int init_st,
-		int enabled,
-		int dirty,
-		FILE *prv,
-		int64_t *clock);
+	struct ovni_chan **update_list,
+	enum chan id,
+	enum chan_track track,
+	int row,
+	int init_st,
+	int enabled,
+	int dirty,
+	FILE *prv,
+	int64_t *clock);
 
 void
 chan_enable(struct ovni_chan *chan, int enabled);

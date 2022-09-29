@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-#include "ovni.h"
 #include "emu.h"
+#include "ovni.h"
 #include "prv.h"
 
 void
@@ -41,16 +41,16 @@ prv_ev_cpu(struct ovni_emu *emu, int row, int type, int val)
 void
 prv_ev_autocpu_raw(struct ovni_emu *emu, int64_t time, int type, int val)
 {
-	if(emu->cur_thread == NULL)
+	if (emu->cur_thread == NULL)
 		die("prv_ev_autocpu_raw: current thread is NULL\n");
 
 	struct ovni_cpu *cpu = emu->cur_thread->cpu;
 
-	if(cpu == NULL)
+	if (cpu == NULL)
 		die("prv_ev_autocpu_raw: current thread CPU is NULL\n");
 
 	/* FIXME: Use the global index of the CPUs */
-	if(cpu->i < 0)
+	if (cpu->i < 0)
 		die("prv_ev_autocpu_raw: CPU index is negative\n");
 
 	/* Begin at 1 */

@@ -11,11 +11,12 @@
 /* Define gettid for older glibc versions (below 2.30) */
 #if defined(__GLIBC__)
 #if !__GLIBC_PREREQ(2, 30)
-static inline pid_t gettid(void)
+static inline pid_t
+gettid(void)
 {
-	return (pid_t)syscall(SYS_gettid);
+	return (pid_t) syscall(SYS_gettid);
 }
 #endif /* !__GLIBC_PREREQ(2, 30) */
 #endif /* defined(__GLIBC__) */
 
-#endif // COMPAT_H
+#endif// COMPAT_H

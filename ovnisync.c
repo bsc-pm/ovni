@@ -60,18 +60,15 @@ static double
 get_time(clockid_t clock, int use_ns)
 {
 	struct timespec tv;
-	if(clock_gettime(clock, &tv) != 0)
-	{
+	if (clock_gettime(clock, &tv) != 0) {
 		perror("clock_gettime failed");
 		exit(EXIT_FAILURE);
 	}
 
-	if(use_ns)
-		return (double)(tv.tv_sec) * 1.0e9 +
-			(double)tv.tv_nsec;
+	if (use_ns)
+		return (double) (tv.tv_sec) * 1.0e9 + (double) tv.tv_nsec;
 
-	return (double)(tv.tv_sec) +
-		(double)tv.tv_nsec * 1.0e-9;
+	return (double) (tv.tv_sec) + (double) tv.tv_nsec * 1.0e-9;
 }
 
 static int
@@ -82,9 +79,9 @@ cmp_double(const void *pa, const void *pb)
 	a = *(const double *) pa;
 	b = *(const double *) pb;
 
-	if(a < b)
+	if (a < b)
 		return -1;
-	else if(a > b)
+	else if (a > b)
 		return 1;
 	else
 		return 0;
@@ -96,7 +93,7 @@ usage(void)
 	fprintf(stderr, "%s: clock synchronization utility\n", progname);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage: %s [-o outfile] [-d ndrift_samples] [-v] [-n nsamples] [-w drift_delay]\n",
-			progname);
+		progname);
 	exit(EXIT_FAILURE);
 }
 
@@ -105,13 +102,10 @@ try_mkdir(const char *path, mode_t mode)
 {
 	struct stat st;
 
-	if(stat(path, &st) != 0)
-	{
+	if (stat(path, &st) != 0) {
 		/* Directory does not exist */
 		return mkdir(path, mode);
-	}
-	else if(!S_ISDIR(st.st_mode))
-	{
+	} else if (!S_ISDIR(st.st_mode)) {
 		errno = ENOTDIR;
 		return -1;
 	}
@@ -183,8 +177,7 @@ parse_options(struct options *options, int argc, char *argv[])
 		}
 	}
 
-	if (optind < argc)
-	{
+	if (optind < argc) {
 		fprintf(stderr, "error: unexpected extra arguments\n");
 		exit(EXIT_FAILURE);
 	}
@@ -200,8 +193,7 @@ get_clock_samples(struct offset *offset, int nsamples)
 
 	offset->nsamples = nsamples;
 
-	for(i=0; i<nsamples; i++)
-	{
+	for (i = 0; i < nsamples; i++) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		offset->clock_sample[i] = get_time(CLOCK_MONOTONIC, 1);
 	}
@@ -218,13 +210,12 @@ fill_offset(struct offset *offset, int nsamples)
 	MPI_Comm_rank(MPI_COMM_WORLD, &offset->rank);
 
 	/* Fill the host name */
-	if(gethostname(offset->hostname, OVNI_MAX_HOSTNAME) != 0)
-	{
+	if (gethostname(offset->hostname, OVNI_MAX_HOSTNAME) != 0) {
 		perror("gethostname");
 		exit(EXIT_FAILURE);
 	}
 
-	//printf("rank=%d hostname=%s\n", offset->rank, offset->hostname);
+	// printf("rank=%d hostname=%s\n", offset->rank, offset->hostname);
 
 	/* Warm up iterations */
 	warmup_nsamples = nsamples >= 20 ? 20 : nsamples;
@@ -241,21 +232,18 @@ offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int v
 
 	delta = malloc(sizeof(double) * nsamples);
 
-	if(delta == NULL)
-	{
+	if (delta == NULL) {
 		perror("malloc");
 		exit(EXIT_FAILURE);
 	}
 
-	for(i=0; i<nsamples; i++)
-	{
+	for (i = 0; i < nsamples; i++) {
 		delta[i] = ref->clock_sample[i] - cur->clock_sample[i];
-		if(verbose)
-		{
+		if (verbose) {
 			printf("rank=%d  sample=%d  delta=%f  ref=%f  cur=%f\n",
-					cur->rank, i, delta[i],
-					ref->clock_sample[i],
-					cur->clock_sample[i]);
+				cur->rank, i, delta[i],
+				ref->clock_sample[i],
+				cur->clock_sample[i]);
 		}
 	}
 
@@ -263,14 +251,13 @@ offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int v
 
 	cur->delta_median = delta[nsamples / 2];
 
-	for(cur->delta_mean=0, i=0; i<nsamples; i++)
+	for (cur->delta_mean = 0, i = 0; i < nsamples; i++)
 		cur->delta_mean += delta[i];
 
 	cur->delta_mean /= nsamples;
 
-	for(cur->delta_var=0, i=0; i<nsamples; i++)
-		cur->delta_var += (delta[i] - cur->delta_mean) *
-			(delta[i] - cur->delta_mean);
+	for (cur->delta_var = 0, i = 0; i < nsamples; i++)
+		cur->delta_var += (delta[i] - cur->delta_mean) * (delta[i] - cur->delta_mean);
 
 	cur->delta_var /= (double) (nsamples - 1);
 	cur->delta_std = sqrt(cur->delta_var);
@@ -307,12 +294,10 @@ build_offset_table(int nsamples, int rank, int verbose)
 	void *sendbuf;
 
 	/* The rank 0 must build the table */
-	if(rank == 0)
-	{
+	if (rank == 0) {
 		table = malloc(sizeof(*table));
 
-		if(table == NULL)
-		{
+		if (table == NULL) {
 			perror("malloc");
 			exit(EXIT_FAILURE);
 		}
@@ -321,33 +306,27 @@ build_offset_table(int nsamples, int rank, int verbose)
 
 		table->_offset = calloc(table->nprocs, offset_size(nsamples));
 
-		if(table->_offset == NULL)
-		{
+		if (table->_offset == NULL) {
 			perror("malloc");
 			exit(EXIT_FAILURE);
 		}
 
-		table->offset = malloc(sizeof(struct offset *) *
-				table->nprocs);
+		table->offset = malloc(sizeof(struct offset *) * table->nprocs);
 
-		if(table->offset == NULL)
-		{
+		if (table->offset == NULL) {
 			perror("malloc");
 			exit(EXIT_FAILURE);
 		}
 
-		for(i=0; i<table->nprocs; i++)
+		for (i = 0; i < table->nprocs; i++)
 			table->offset[i] = table_get_offset(table, i, nsamples);
 
 		offset = table->offset[0];
-	}
-	else
-	{
+	} else {
 		/* Otherwise just allocate one offset */
 		offset = calloc(1, offset_size(nsamples));
 
-		if(offset == NULL)
-		{
+		if (offset == NULL) {
 			perror("malloc");
 			exit(EXIT_FAILURE);
 		}
@@ -362,21 +341,19 @@ build_offset_table(int nsamples, int rank, int verbose)
 
 	/* Then collect all the offsets into the rank 0 */
 	MPI_Gather(sendbuf, offset_size(nsamples), MPI_CHAR,
-			offset, offset_size(nsamples), MPI_CHAR,
-			0, MPI_COMM_WORLD);
+		offset, offset_size(nsamples), MPI_CHAR,
+		0, MPI_COMM_WORLD);
 
 	/* Finish the offsets by computing the deltas on rank 0 */
-	if(rank == 0)
-	{
-		for(i=0; i<table->nprocs; i++)
-		{
+	if (rank == 0) {
+		for (i = 0; i < table->nprocs; i++) {
 			offset_compute_delta(offset, table->offset[i],
-					nsamples, verbose);
+				nsamples, verbose);
 		}
 	}
 
 	/* Cleanup for non-zero ranks */
-	if(rank != 0)
+	if (rank != 0)
 		free(offset);
 
 	return table;
@@ -386,13 +363,12 @@ static void
 print_drift_header(FILE *out, struct offset_table *table)
 {
 	int i;
-	//char buf[64];
+	// char buf[64];
 
 	fprintf(out, "%-20s", "wallclock");
 
-	for(i=0; i<table->nprocs; i++)
-	{
-		//sprintf(buf, "rank%d", i);
+	for (i = 0; i < table->nprocs; i++) {
+		// sprintf(buf, "rank%d", i);
 		fprintf(out, " %-20s", table->offset[i]->hostname);
 	}
 
@@ -406,7 +382,7 @@ print_drift_row(FILE *out, struct offset_table *table)
 
 	fprintf(out, "%-20f", table->offset[0]->wall_t1);
 
-	for(i=0; i<table->nprocs; i++)
+	for (i = 0; i < table->nprocs; i++)
 		fprintf(out, " %-20ld", table->offset[i]->offset);
 
 	fprintf(out, "\n");
@@ -419,14 +395,13 @@ print_table_detailed(FILE *out, struct offset_table *table)
 	struct offset *offset;
 
 	fprintf(out, "%-10s %-20s %-20s %-20s %-20s\n",
-			"rank", "hostname", "offset_median", "offset_mean", "offset_std");
+		"rank", "hostname", "offset_median", "offset_mean", "offset_std");
 
-	for(i=0; i<table->nprocs; i++)
-	{
+	for (i = 0; i < table->nprocs; i++) {
 		offset = table->offset[i];
 		fprintf(out, "%-10d %-20s %-20ld %-20f %-20f\n",
-				i, offset->hostname, offset->offset,
-				offset->delta_mean, offset->delta_std);
+			i, offset->hostname, offset->offset,
+			offset->delta_mean, offset->delta_std);
 	}
 }
 
@@ -440,39 +415,31 @@ do_work(struct options *options, int rank)
 
 	drift_mode = options->ndrift_samples > 1 ? 1 : 0;
 
-	if(rank == 0)
-	{
-		if(mkpath(options->outpath, 0755) != 0)
-		{
+	if (rank == 0) {
+		if (mkpath(options->outpath, 0755) != 0) {
 			fprintf(stderr, "mkpath(%s) failed: %s\n",
-					options->outpath, strerror(errno));
+				options->outpath, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
 		out = fopen(options->outpath, "w");
-		if(out == NULL)
-		{
+		if (out == NULL) {
 			fprintf(stderr, "fopen(%s) failed: %s\n",
-					options->outpath, strerror(errno));
+				options->outpath, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
 
-	for(i=0; i<options->ndrift_samples; i++)
-	{
+	for (i = 0; i < options->ndrift_samples; i++) {
 		table = build_offset_table(options->nsamples, rank, options->verbose);
 
-		if(rank == 0)
-		{
-			if(drift_mode)
-			{
-				if(i == 0)
+		if (rank == 0) {
+			if (drift_mode) {
+				if (i == 0)
 					print_drift_header(out, table);
 
 				print_drift_row(out, table);
-			}
-			else
-			{
+			} else {
 				print_table_detailed(out, table);
 			}
 
@@ -481,11 +448,11 @@ do_work(struct options *options, int rank)
 			free(table);
 		}
 
-		if(drift_mode)
+		if (drift_mode)
 			sleep(options->drift_wait);
 	}
 
-	if(rank == 0)
+	if (rank == 0)
 		fclose(out);
 }
 

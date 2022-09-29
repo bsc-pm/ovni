@@ -14,11 +14,10 @@ main(void)
 	int ntasks = 100;
 	int ntypes = 10;
 
-	for(int i=0; i<ntypes; i++)
+	for (int i = 0; i < ntypes; i++)
 		instr_nosv_type_create(i + 1);
 
-	for(int i=0; i<ntasks; i++)
-	{
+	for (int i = 0; i < ntasks; i++) {
 		instr_nosv_task_create(i + 1, (i % ntypes) + 1);
 		instr_nosv_task_execute(i + 1);
 		usleep(500);
@@ -29,4 +28,3 @@ main(void)
 
 	return 0;
 }
-

@@ -4,11 +4,11 @@
 #include "uthash.h"
 #include "utlist.h"
 
-#include "ovni.h"
+#include "chan.h"
 #include "emu.h"
 #include "emu_task.h"
+#include "ovni.h"
 #include "prv.h"
-#include "chan.h"
 
 struct task *
 task_find(struct task *tasks, uint32_t task_id)
@@ -30,21 +30,21 @@ task_type_find(struct task_type *types, uint32_t type_id)
 
 void
 task_create(struct ovni_emu *emu, struct task_info *info,
-		uint32_t type_id, uint32_t task_id)
+	uint32_t type_id, uint32_t task_id)
 {
 	/* Ensure the task id is new */
-	if(task_find(info->tasks, task_id) != NULL)
+	if (task_find(info->tasks, task_id) != NULL)
 		edie(emu, "cannot create task: task_id %u already exists\n",
-				task_id);
+			task_id);
 
 	/* Ensure the type exists */
 	struct task_type *type = task_type_find(info->types, type_id);
-	if(type == NULL)
+	if (type == NULL)
 		edie(emu, "cannot create task: unknown type id %u\n", type_id);
 
 	struct task *task = calloc(1, sizeof(struct task));
 
-	if(task == NULL)
+	if (task == NULL)
 		die("calloc failed\n");
 
 	task->id = task_id;
@@ -60,24 +60,24 @@ task_create(struct ovni_emu *emu, struct task_info *info,
 
 void
 task_execute(struct ovni_emu *emu,
-		struct task_stack *stack, struct task *task)
+	struct task_stack *stack, struct task *task)
 {
-	if(task == NULL)
+	if (task == NULL)
 		edie(emu, "cannot execute: task is NULL\n");
 
-	if(task->state != TASK_ST_CREATED)
+	if (task->state != TASK_ST_CREATED)
 		edie(emu, "cannot execute task %u: state is not created\n", task->id);
 
-	if(task->thread != NULL)
+	if (task->thread != NULL)
 		edie(emu, "task already has a thread assigned\n");
 
-	if(stack->thread->state != TH_ST_RUNNING)
+	if (stack->thread->state != TH_ST_RUNNING)
 		edie(emu, "thread state is not running\n");
 
-	if(stack->top == task)
+	if (stack->top == task)
 		edie(emu, "thread already has assigned task %u\n", task->id);
 
-	if(stack->top && stack->top->state != TASK_ST_RUNNING)
+	if (stack->top && stack->top->state != TASK_ST_RUNNING)
 		edie(emu, "cannot execute a nested task from a non-running task\n");
 
 	task->state = TASK_ST_RUNNING;
@@ -90,24 +90,24 @@ task_execute(struct ovni_emu *emu,
 
 void
 task_pause(struct ovni_emu *emu,
-		struct task_stack *stack, struct task *task)
+	struct task_stack *stack, struct task *task)
 {
-	if(task == NULL)
+	if (task == NULL)
 		edie(emu, "cannot pause: task is NULL\n");
 
-	if(task->state != TASK_ST_RUNNING)
+	if (task->state != TASK_ST_RUNNING)
 		edie(emu, "cannot pause: task state is not running\n");
 
-	if(task->thread == NULL)
+	if (task->thread == NULL)
 		edie(emu, "cannot pause: task has no thread assigned\n");
 
-	if(stack->thread->state != TH_ST_RUNNING)
+	if (stack->thread->state != TH_ST_RUNNING)
 		edie(emu, "cannot pause: thread state is not running\n");
 
-	if(stack->top != task)
+	if (stack->top != task)
 		edie(emu, "thread has assigned a different task\n");
 
-	if(stack->thread != task->thread)
+	if (stack->thread != task->thread)
 		edie(emu, "task is assigned to a different thread\n");
 
 	task->state = TASK_ST_PAUSED;
@@ -117,24 +117,24 @@ task_pause(struct ovni_emu *emu,
 
 void
 task_resume(struct ovni_emu *emu,
-		struct task_stack *stack, struct task *task)
+	struct task_stack *stack, struct task *task)
 {
-	if(task == NULL)
+	if (task == NULL)
 		edie(emu, "cannot resume: task is NULL\n");
 
-	if(task->state != TASK_ST_PAUSED)
+	if (task->state != TASK_ST_PAUSED)
 		edie(emu, "task state is not paused\n");
 
-	if(task->thread == NULL)
+	if (task->thread == NULL)
 		edie(emu, "cannot resume: task has no thread assigned\n");
 
-	if(stack->thread->state != TH_ST_RUNNING)
+	if (stack->thread->state != TH_ST_RUNNING)
 		edie(emu, "thread is not running\n");
 
-	if(stack->top != task)
+	if (stack->top != task)
 		edie(emu, "thread has assigned a different task\n");
 
-	if(stack->thread != task->thread)
+	if (stack->thread != task->thread)
 		edie(emu, "task is assigned to a different thread\n");
 
 	task->state = TASK_ST_RUNNING;
@@ -144,24 +144,24 @@ task_resume(struct ovni_emu *emu,
 
 void
 task_end(struct ovni_emu *emu,
-		struct task_stack *stack, struct task *task)
+	struct task_stack *stack, struct task *task)
 {
-	if(task == NULL)
+	if (task == NULL)
 		edie(emu, "cannot end: task is NULL\n");
 
-	if(task->state != TASK_ST_RUNNING)
+	if (task->state != TASK_ST_RUNNING)
 		edie(emu, "task state is not running\n");
 
-	if(task->thread == NULL)
+	if (task->thread == NULL)
 		edie(emu, "cannot end: task has no thread assigned\n");
 
-	if(stack->thread->state != TH_ST_RUNNING)
+	if (stack->thread->state != TH_ST_RUNNING)
 		edie(emu, "cannot end task: thread is not running\n");
 
-	if(stack->top != task)
+	if (stack->top != task)
 		edie(emu, "thread has assigned a different task\n");
 
-	if(stack->thread != task->thread)
+	if (stack->thread != task->thread)
 		edie(emu, "task is assigned to a different thread\n");
 
 	task->state = TASK_ST_DEAD;
@@ -187,7 +187,7 @@ get_task_type_gid(const char *label)
 	/* Avoid bad colors for "Unlabeled0" */
 	gid += 123;
 
-	if(gid == 0)
+	if (gid == 0)
 		gid++;
 
 	return gid;
@@ -200,29 +200,29 @@ task_type_create(struct task_info *info, uint32_t type_id, const char *label)
 	/* Ensure the type id is new */
 	HASH_FIND_INT(info->types, &type_id, type);
 
-	if(type != NULL)
+	if (type != NULL)
 		die("a task type with id %u already exists\n", type_id);
 
 	type = calloc(1, sizeof(*type));
 
-	if(type == NULL)
+	if (type == NULL)
 		die("calloc failed");
 
 	type->id = type_id;
 
-	if(type->id == 0)
+	if (type->id == 0)
 		die("invalid task type id %d\n", type->id);
 
 	type->gid = get_task_type_gid(label);
 	int n = snprintf(type->label, MAX_PCF_LABEL, "%s", label);
-	if(n >= MAX_PCF_LABEL)
+	if (n >= MAX_PCF_LABEL)
 		die("task type label too long: %s\n", label);
 
 	/* Add the new task type to the hash table */
 	HASH_ADD_INT(info->types, id, type);
 
 	dbg("new task type created id=%d label=%s\n", type->id,
-			type->label);
+		type->label);
 }
 
 void
@@ -230,14 +230,12 @@ task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
 {
 	/* Emit types for all task types */
 	struct task_type *tt;
-	for(tt = types; tt != NULL; tt = tt->hh.next)
-	{
+	for (tt = types; tt != NULL; tt = tt->hh.next) {
 		struct pcf_value *pcfvalue = pcf_find_value(pcftype, tt->gid);
-		if(pcfvalue != NULL)
-		{
+		if (pcfvalue != NULL) {
 			/* Ensure the label is the same, so we know that
 			 * no collision occurred */
-			if(strcmp(pcfvalue->label, tt->label) != 0)
+			if (strcmp(pcfvalue->label, tt->label) != 0)
 				die("collision occurred in task type labels\n");
 			else
 				continue;
@@ -251,7 +249,7 @@ struct task *
 task_get_running(struct task_stack *stack)
 {
 	struct task *task = stack->top;
-	if(task && task->state == TASK_ST_RUNNING)
+	if (task && task->state == TASK_ST_RUNNING)
 		return task;
 
 	return NULL;

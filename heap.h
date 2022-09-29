@@ -7,8 +7,8 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-#include <stddef.h>
 #include "common.h"
+#include <stddef.h>
 
 typedef struct heap_node {
 	struct heap_node *parent;
@@ -24,15 +24,19 @@ typedef struct head_head {
 #define heap_elem(head, type, name) \
 	((type *) (((char *) head) - offsetof(type, name)))
 
-#define heap_swap(a, b) \
-	do { heap_node_t *aux = (a); (a) = (b); (b) = aux; } while(0)
+#define heap_swap(a, b)                 \
+	do {                            \
+		heap_node_t *aux = (a); \
+		(a) = (b);              \
+		(b) = aux;              \
+	} while (0)
 
 /* heap_node_compare_t - comparison function.
  * The comparison function cmp(a, b) shall return an integer:
  *  > 0 if a > b
  *  < 0 if a < b
  *  = 0 if a == b
- * 
+ *
  * Invert the comparison function to get a min-heap instead */
 typedef int (*heap_node_compare_t)(heap_node_t *a, heap_node_t *b);
 
@@ -116,7 +120,7 @@ heap_get_move(size_t *node /*out*/)
 
 	// Round to previous po2
 	size_t base = (1ULL) << (sizeof(size_t) * 8
-			- __builtin_clzll(aux_node) - 1);
+				 - __builtin_clzll(aux_node) - 1);
 
 	aux_node -= base / 2;
 
@@ -157,7 +161,7 @@ heap_pop_max(heap_head_t *head, heap_node_compare_t cmp)
 
 	size_t size = head->size;
 	heap_node_t *change = heap_get(head, size);
-	if(change == NULL)
+	if (change == NULL)
 		die("heap_pop_max: heap_get() failed\n");
 
 	head->size--;
@@ -189,10 +193,10 @@ heap_pop_max(heap_head_t *head, heap_node_compare_t cmp)
 		else
 			change->parent->left = NULL;
 
-		if(change->left)
+		if (change->left)
 			die("heap_pop_max: change->left not NULL\n");
 
-		if(change->right)
+		if (change->right)
 			die("heap_pop_max: change->right not NULL\n");
 
 		change->left = max->left;
@@ -230,11 +234,11 @@ heap_insert(heap_head_t *head, heap_node_t *node, heap_node_compare_t cmp)
 
 	// Right child
 	if (head->size % 2) {
-		if(parent->right)
+		if (parent->right)
 			die("heap_insert: parent->right already set\n");
 		parent->right = node;
 	} else {
-		if(parent->left)
+		if (parent->left)
 			die("heap_insert: parent->left already set\n");
 		parent->left = node;
 	}
@@ -286,4 +290,4 @@ heap_insert(heap_head_t *head, heap_node_t *node, heap_node_compare_t cmp)
 		head->root = node;
 }
 
-#endif // HEAP_H
+#endif// HEAP_H

@@ -3,11 +3,11 @@
 
 #include "uthash.h"
 
-#include "ovni.h"
-#include "trace.h"
-#include "emu.h"
-#include "prv.h"
 #include "chan.h"
+#include "emu.h"
+#include "ovni.h"
+#include "prv.h"
+#include "trace.h"
 
 /* --------------------------- init ------------------------------- */
 
@@ -27,8 +27,7 @@ hook_init_kernel(struct ovni_emu *emu)
 	prv_cpu = emu->prv_cpu;
 
 	/* Init the channels in all threads */
-	for(i=0; i<emu->total_nthreads; i++)
-	{
+	for (i = 0; i < emu->total_nthreads; i++) {
 		th = emu->global_thread[i];
 		row = th->gindex + 1;
 		uth = &emu->th_chan;
@@ -37,8 +36,7 @@ hook_init_kernel(struct ovni_emu *emu)
 	}
 
 	/* Init the channels in all cpus */
-	for(i=0; i<emu->total_ncpus; i++)
-	{
+	for (i = 0; i < emu->total_ncpus; i++) {
 		cpu = emu->global_cpu[i];
 		row = cpu->gindex + 1;
 		ucpu = &emu->cpu_chan;
@@ -58,8 +56,7 @@ context_switch(struct ovni_emu *emu)
 	th = emu->cur_thread;
 	chan = &th->chan[CHAN_KERNEL_CS];
 
-	switch(emu->cur_ev->header.value)
-	{
+	switch (emu->cur_ev->header.value) {
 		case 'O':
 			chan_push(chan, ST_KERNEL_CSOUT);
 			break;
@@ -68,24 +65,23 @@ context_switch(struct ovni_emu *emu)
 			break;
 		default:
 			edie(emu, "unexpected value '%c' (expecting 'O' or 'I')\n",
-					emu->cur_ev->header.value);
+				emu->cur_ev->header.value);
 	}
 }
 
 void
 hook_pre_kernel(struct ovni_emu *emu)
 {
-	if(emu->cur_ev->header.model != 'K')
+	if (emu->cur_ev->header.model != 'K')
 		edie(emu, "hook_pre_kernel: unexpected event with model %c\n",
-				emu->cur_ev->header.model);
+			emu->cur_ev->header.model);
 
-	switch(emu->cur_ev->header.category)
-	{
+	switch (emu->cur_ev->header.category) {
 		case 'C':
 			context_switch(emu);
 			break;
 		default:
 			edie(emu, "hook_pre_kernel: unexpected event with category %c\n",
-					emu->cur_ev->header.category);
+				emu->cur_ev->header.category);
 	}
 }

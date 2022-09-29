@@ -36,25 +36,26 @@ do_run(void)
 	memset(handle, 0, ntasks * sizeof(void *));
 	atomic_store(&nhandles, 0);
 
-	for(int t = 0; t < ntasks; t++)
+	for (int t = 0; t < ntasks; t++)
 		do_task(t);
 
 	/* Wait for all tasks to fill the handle */
-	while (atomic_load(&nhandles) < ntasks);
+	while (atomic_load(&nhandles) < ntasks)
+		;
 
 	/* Is ok if we call unblock before the block happens */
-	for(int t = 0; t < ntasks; t++)
-	{
+	for (int t = 0; t < ntasks; t++) {
 		if (handle[t] == NULL)
 			abort();
 
 		nanos6_unblock_task(handle[t]);
 	}
 
-	#pragma oss taskwait
+#pragma oss taskwait
 }
 
-static int get_ncpus(void)
+static int
+get_ncpus(void)
 {
 	return (int) nanos6_get_num_cpus();
 }
@@ -66,13 +67,12 @@ main(void)
 
 	handle = calloc(ntasks, sizeof(void *));
 
-	if(handle == NULL)
-	{
+	if (handle == NULL) {
 		perror("calloc failed");
 		return -1;
 	}
 
-	for(int run = 0; run < nruns; run++)
+	for (int run = 0; run < nruns; run++)
 		do_run();
 
 	return 0;

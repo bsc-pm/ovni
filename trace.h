@@ -4,8 +4,8 @@
 #ifndef OVNI_TRACE_H
 #define OVNI_TRACE_H
 
-#include "ovni.h"
 #include "emu.h"
+#include "ovni.h"
 
 int ovni_load_next_event(struct ovni_stream *stream);
 

@@ -4,9 +4,9 @@
 #ifndef OVNI_PRV_H
 #define OVNI_PRV_H
 
-#include <stdint.h>
-#include "ovni.h"
 #include "emu.h"
+#include "ovni.h"
+#include <stdint.h>
 
 void
 prv_ev(FILE *f, int row, int64_t time, int type, int val);

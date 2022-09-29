@@ -8,16 +8,16 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
+#include <limits.h>
+#include <linux/limits.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <linux/limits.h>
 #include <sys/types.h>
-#include <limits.h>
 
 /* Hardcode the JSON_Value to avoid a dependency with janson */
-typedef struct json_value_t  JSON_Value;
+typedef struct json_value_t JSON_Value;
 
 #define OVNI_METADATA_VERSION 1
 
@@ -43,7 +43,6 @@ struct __attribute__((__packed__)) ovni_jumbo_payload {
 };
 
 union __attribute__((__packed__)) ovni_ev_payload {
-
 	int8_t i8[16];
 	int16_t i16[8];
 	int32_t i32[4];

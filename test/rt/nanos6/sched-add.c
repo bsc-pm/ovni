@@ -13,37 +13,42 @@
 
 static int ncpus = -1;
 static long nruns = 3L;
-static long ntasks = 1000L;
+static long ntasks = 200L;
 
-static atomic_int wait = 0;
+static atomic_int nhandles = 0;
 static void **handle;
 
 #pragma oss task
 static void
 do_task(int t)
 {
-	if(atomic_load(&wait))
-	{
-		handle[t] = nanos6_get_current_blocking_context();
-		nanos6_block_current_task(handle[t]);
-	}
+	handle[t] = nanos6_get_current_blocking_context();
+	if (handle[t] == NULL)
+		abort();
+
+	atomic_fetch_add(&nhandles, 1);
+	nanos6_block_current_task(handle[t]);
 }
 
 static void
 do_run(void)
 {
 	memset(handle, 0, ntasks * sizeof(void *));
-	atomic_fetch_add(&wait, 1);
+	atomic_store(&nhandles, 0);
 
 	for(int t = 0; t < ntasks; t++)
 		do_task(t);
 
-	atomic_fetch_sub(&wait, 1);
+	/* Wait for all tasks to fill the handle */
+	while (atomic_load(&nhandles) < ntasks);
 
+	/* Is ok if we call unblock before the block happens */
 	for(int t = 0; t < ntasks; t++)
 	{
-		if(handle[t])
-			nanos6_unblock_task(handle[t]);
+		if (handle[t] == NULL)
+			abort();
+
+		nanos6_unblock_task(handle[t]);
 	}
 
 	#pragma oss taskwait

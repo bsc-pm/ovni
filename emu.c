@@ -1137,8 +1137,7 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 
 	load_metadata(emu);
 
-	if(emu->clock_offset_file != NULL)
-		load_clock_offsets(emu);
+	load_clock_offsets(emu);
 
 	init_threads(emu);
 	init_cpus(emu);

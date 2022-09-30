@@ -468,7 +468,7 @@ emulate(struct ovni_emu *emu)
 
 		hook_post(emu);
 
-		if (i >= 50000) {
+		if (i >= 100000) {
 			print_progress(emu);
 			i = 0;
 		}

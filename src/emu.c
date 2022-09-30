@@ -452,15 +452,9 @@ static void
 emulate(struct ovni_emu *emu)
 {
 	emu->nev_processed = 0;
-
-	err("loading first events\n");
 	emu_load_first_events(emu);
-
-	err("emulation starts\n");
 	emu->start_emulation_time = get_time();
-
 	hook_init(emu);
-
 	emit_channels(emu);
 
 	/* Then process all events */
@@ -485,7 +479,6 @@ emulate(struct ovni_emu *emu)
 	}
 
 	hook_end(emu);
-
 	print_progress(emu);
 }
 
@@ -1040,6 +1033,9 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 	emu->global_size = 0;
 	emu->global_offset = 0;
 
+	for (size_t i = 0; i < emu->trace.nstreams; i++)
+		emu->global_offset += emu->trace.stream[i].offset;
+
 	err("loaded %ld cpus and %ld threads\n",
 			emu->total_ncpus,
 			emu->total_nthreads);
@@ -1119,16 +1115,12 @@ main(int argc, char *argv[])
 	}
 
 	emu_init(emu, argc, argv);
-
+	err("emulation starts\n");
 	emulate(emu);
-
 	emu_post(emu);
-
 	emu_destroy(emu);
-
+	err("emulation ends\n");
 	free(emu);
-
-	err("ovniemu finished\n");
 
 	return 0;
 }

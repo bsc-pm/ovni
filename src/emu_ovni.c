@@ -517,6 +517,20 @@ pre_affinity(struct ovni_emu *emu)
 	}
 }
 
+static int
+compare_int64(const void *a, const void *b)
+{
+	int64_t aa = *(const int64_t *) a;
+	int64_t bb = *(const int64_t *) b;
+
+	if (aa < bb)
+		return -1;
+	else if (aa > bb)
+		return +1;
+	else
+		return 0;
+}
+
 static void
 pre_burst(struct ovni_emu *emu)
 {
@@ -533,6 +547,14 @@ pre_burst(struct ovni_emu *emu)
 
 	th->burst_time[th->nbursts++] = emu->delta_time;
 	if (th->nbursts == MAX_BURSTS) {
+		int n = MAX_BURSTS - 1;
+		int64_t deltas[MAX_BURSTS - 1];
+		for (int i = 0; i < n; i++) {
+			deltas[i] = th->burst_time[i + 1] - th->burst_time[i];
+		}
+
+		qsort(deltas, n, sizeof(int64_t), compare_int64);
+
 		double avg = 0.0;
 		double maxdelta = 0;
 		for (int i = 1; i < th->nbursts; i++) {
@@ -543,8 +565,10 @@ pre_burst(struct ovni_emu *emu)
 		}
 
 		avg /= (double) th->nbursts;
+		double median = deltas[n / 2];
 
-		err("burst avg %.1f ns, max %.0f ns\n", avg, maxdelta);
+		err("%s burst stats: median %.0f ns, avg %.1f ns, max %.0f ns\n",
+				emu->cur_loom->dname, median, avg, maxdelta);
 
 		th->nbursts = 0;
 	}

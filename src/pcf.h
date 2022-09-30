@@ -53,10 +53,10 @@ void pcf_close(struct pcf_file *pcf);
 struct pcf_type *pcf_find_type(struct pcf_file *pcf, int type_id);
 
 struct pcf_type *pcf_add_type(struct pcf_file *pcf, int type_id,
-	const char *label);
+		const char *label);
 
 struct pcf_value *pcf_add_value(struct pcf_type *type, int value,
-	const char *label);
+		const char *label);
 
 struct pcf_value *pcf_find_value(struct pcf_type *type, int value);
 

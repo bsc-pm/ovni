@@ -40,15 +40,15 @@ mark_dirty(struct ovni_chan *chan, enum chan_dirty dirty)
 
 void
 chan_th_init(struct ovni_ethread *th,
-	struct ovni_chan **update_list,
-	enum chan id,
-	enum chan_track track,
-	int init_st,
-	int enabled,
-	int dirty,
-	int row,
-	FILE *prv,
-	int64_t *clock)
+		struct ovni_chan **update_list,
+		enum chan id,
+		enum chan_track track,
+		int init_st,
+		int enabled,
+		int dirty,
+		int row,
+		FILE *prv,
+		int64_t *clock)
 {
 	struct ovni_chan *chan = &th->chan[id];
 	int prvth = chan_to_prvtype[id];
@@ -66,15 +66,15 @@ chan_th_init(struct ovni_ethread *th,
 
 void
 chan_cpu_init(struct ovni_cpu *cpu,
-	struct ovni_chan **update_list,
-	enum chan id,
-	enum chan_track track,
-	int init_st,
-	int enabled,
-	int dirty,
-	int row,
-	FILE *prv,
-	int64_t *clock)
+		struct ovni_chan **update_list,
+		enum chan id,
+		enum chan_track track,
+		int init_st,
+		int enabled,
+		int dirty,
+		int row,
+		FILE *prv,
+		int64_t *clock)
 {
 	struct ovni_chan *chan = &cpu->chan[id];
 	int prvcpu = chan_to_prvtype[id];
@@ -120,7 +120,7 @@ chan_enable(struct ovni_chan *chan, int enabled)
 		mark_dirty(chan, CHAN_DIRTY_ACTIVE);
 	} else {
 		dbg("already dirty chan %d: skip update list\n",
-			chan->id);
+				chan->id);
 		chan_dump_update_list(chan);
 	}
 }
@@ -155,10 +155,10 @@ chan_set(struct ovni_chan *chan, int st)
 	 * just enabled; it may collide with a new state 0 set via chan_set()
 	 * used by the tracking channels */
 	if (chan->dirty != CHAN_DIRTY_ACTIVE
-		&& chan->lastst >= 0
-		&& chan->lastst == st) {
+			&& chan->lastst >= 0
+			&& chan->lastst == st) {
 		err("chan_set id=%d cannot emit the state %d twice\n",
-			chan->id, st);
+				chan->id, st);
 		abort();
 	}
 
@@ -173,7 +173,7 @@ chan_set(struct ovni_chan *chan, int st)
 		mark_dirty(chan, CHAN_DIRTY_VALUE);
 	} else {
 		dbg("already dirty chan %d: skip update list\n",
-			chan->id);
+				chan->id);
 		chan_dump_update_list(chan);
 	}
 }
@@ -197,7 +197,7 @@ chan_push(struct ovni_chan *chan, int st)
 
 	if (chan->lastst >= 0 && chan->lastst == st) {
 		err("chan_push id=%d cannot emit the state %d twice\n",
-			chan->id, st);
+				chan->id, st);
 		abort();
 	}
 
@@ -233,7 +233,7 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 
 	if (expected_st >= 0 && st != expected_st) {
 		err("chan_pop: unexpected channel state %d (expected %d)\n",
-			st, expected_st);
+				st, expected_st);
 		abort();
 	}
 
@@ -250,7 +250,7 @@ chan_pop(struct ovni_chan *chan, int expected_st)
 
 	if (chan->lastst >= 0 && chan->lastst == st) {
 		err("chan_pop id=%d cannot emit the state %d twice\n",
-			chan->id, st);
+				chan->id, st);
 		abort();
 	}
 
@@ -278,7 +278,7 @@ chan_ev(struct ovni_chan *chan, int ev)
 
 	if (chan->lastst >= 0 && chan->lastst == ev)
 		die("chan_ev id=%d cannot emit the state %d twice\n",
-			chan->id, ev);
+				chan->id, ev);
 
 	chan->ev = ev;
 	chan->t = *chan->clock;
@@ -311,11 +311,11 @@ emit(struct ovni_chan *chan, int64_t t, int state)
 	 * it has been enabled or disabled. Otherwise is a bug (ie. you have two
 	 * consecutive ovni events?) */
 	if (chan->lastst != -1
-		&& chan->dirty == CHAN_DIRTY_VALUE
-		&& chan->lastst == state) {
+			&& chan->dirty == CHAN_DIRTY_VALUE
+			&& chan->lastst == state) {
 		/* TODO: Print the raw clock of the offending event */
 		die("emit: chan %d cannot emit the same state %d twice\n",
-			chan->id, state);
+				chan->id, state);
 	}
 
 	if (chan->lastst != state) {

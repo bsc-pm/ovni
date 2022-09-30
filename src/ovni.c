@@ -30,11 +30,11 @@ create_trace_stream(void)
 	char path[PATH_MAX];
 
 	int written = snprintf(path, PATH_MAX, "%s/thread.%d",
-		rproc.procdir, rthread.tid);
+			rproc.procdir, rthread.tid);
 
 	if (written >= PATH_MAX)
 		die("thread trace path too long: %s/thread.%d\n",
-			rproc.procdir, rthread.tid);
+				rproc.procdir, rthread.tid);
 
 	rthread.streamfd = open(path, O_WRONLY | O_CREAT, 0644);
 
@@ -61,7 +61,7 @@ proc_metadata_store(JSON_Value *meta, const char *procdir)
 
 	if (snprintf(path, PATH_MAX, "%s/metadata.json", procdir) >= PATH_MAX)
 		die("metadata path too long: %s/metadata.json\n",
-			procdir);
+				procdir);
 
 	if (json_serialize_to_file_pretty(meta, path) != JSONSuccess)
 		die("failed to write process metadata\n");
@@ -293,20 +293,20 @@ move_procdir_to_final(const char *procdir, const char *procdir_final)
 
 		char thread[PATH_MAX];
 		if (snprintf(thread, PATH_MAX, "%s/%s", procdir,
-			    dirent->d_name)
-			>= PATH_MAX) {
+				    dirent->d_name)
+				>= PATH_MAX) {
 			err("snprintf: path too large: %s/%s\n", procdir,
-				dirent->d_name);
+					dirent->d_name);
 			err = 1;
 			continue;
 		}
 
 		char thread_final[PATH_MAX];
 		if (snprintf(thread_final, PATH_MAX, "%s/%s", procdir_final,
-			    dirent->d_name)
-			>= PATH_MAX) {
+				    dirent->d_name)
+				>= PATH_MAX) {
 			err("snprintf: path too large: %s/%s\n", procdir_final,
-				dirent->d_name);
+					dirent->d_name);
 			err = 1;
 			continue;
 		}
@@ -370,7 +370,7 @@ static void
 write_stream_header(void)
 {
 	struct ovni_stream_header *h =
-		(struct ovni_stream_header *) rthread.evbuf;
+			(struct ovni_stream_header *) rthread.evbuf;
 
 	memcpy(h->magic, OVNI_STREAM_MAGIC, 4);
 	h->version = OVNI_STREAM_VERSION;

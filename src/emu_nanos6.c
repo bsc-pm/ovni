@@ -89,7 +89,7 @@ chan_task_running(struct ovni_emu *emu, struct task *task)
 
 static void
 chan_task_switch(struct ovni_emu *emu,
-	struct task *prev, struct task *next)
+		struct task *prev, struct task *next)
 {
 	struct ovni_ethread *th = emu->cur_thread;
 
@@ -177,7 +177,7 @@ expand_transition_value(struct ovni_emu *emu, int was_running, int runs_now)
 
 static void
 update_task_channels(struct ovni_emu *emu,
-	char tr, struct task *prev, struct task *next)
+		char tr, struct task *prev, struct task *next)
 {
 	switch (tr) {
 		case 'x':
@@ -200,7 +200,7 @@ update_task_channels(struct ovni_emu *emu,
 
 static void
 enforce_task_rules(struct ovni_emu *emu,
-	char tr, struct task *prev, struct task *next)
+		char tr, struct task *prev, struct task *next)
 
 {
 	UNUSED(prev);
@@ -524,7 +524,7 @@ pre_ss(struct ovni_emu *emu, int st)
 			break;
 		default:
 			edie(emu, "unexpected value '%c' (expecting '[' or ']')\n",
-				emu->cur_ev->header.value);
+					emu->cur_ev->header.value);
 	}
 }
 
@@ -552,11 +552,11 @@ hook_pre_nanos6(struct ovni_emu *emu)
 {
 	if (emu->cur_ev->header.model != '6')
 		edie(emu, "hook_pre_nanos6: unexpected event with model %c\n",
-			emu->cur_ev->header.model);
+				emu->cur_ev->header.model);
 
 	if (!emu->cur_thread->is_active) {
 		edie(emu, "hook_pre_nanos6: current thread %d not active\n",
-			emu->cur_thread->tid);
+				emu->cur_thread->tid);
 	}
 
 	switch (emu->cur_ev->header.category) {
@@ -626,7 +626,7 @@ end_lint(struct ovni_emu *emu)
 			}
 
 			die("thread %d ended with %d extra stacked nanos6 subsystems, top=\"%s\"\n",
-				th->tid, ch->n - 1, name);
+					th->tid, ch->n - 1, name);
 		}
 	}
 }

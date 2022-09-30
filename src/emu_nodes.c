@@ -53,7 +53,7 @@ pre_subsystem(struct ovni_emu *emu, int st)
 			break;
 		default:
 			edie(emu, "unexpected value '%c' (expecting '[' or ']')\n",
-				emu->cur_ev->header.value);
+					emu->cur_ev->header.value);
 	}
 }
 
@@ -62,11 +62,11 @@ hook_pre_nodes(struct ovni_emu *emu)
 {
 	if (emu->cur_ev->header.model != 'D')
 		edie(emu, "hook_pre_nodes: unexpected event with model %c\n",
-			emu->cur_ev->header.model);
+				emu->cur_ev->header.model);
 
 	if (!emu->cur_thread->is_running)
 		edie(emu, "hook_pre_nodes: current thread %d not running\n",
-			emu->cur_thread->tid);
+				emu->cur_thread->tid);
 
 	switch (emu->cur_ev->header.category) {
 		case 'R':

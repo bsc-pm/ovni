@@ -378,7 +378,7 @@ create_type(struct pcf_file *pcf, enum chan c)
 
 	char label[MAX_PCF_LABEL];
 	int ret = snprintf(label, MAX_PCF_LABEL, "%s %s",
-		prefix, suffix);
+			prefix, suffix);
 
 	if (ret >= MAX_PCF_LABEL)
 		die("computed type label too long\n");
@@ -399,7 +399,7 @@ pcf_open(struct pcf_file *pcf, char *path, int chantype)
 
 	if (pcf->f == NULL) {
 		die("cannot open PCF file '%s': %s\n",
-			path, strerror(errno));
+				path, strerror(errno));
 	}
 
 	/* Create default types and values */

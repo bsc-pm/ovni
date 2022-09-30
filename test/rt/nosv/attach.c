@@ -15,8 +15,8 @@ main(void)
 
 	nosv_task_type_t type;
 	if (nosv_type_init(&type, NULL, NULL, NULL, "adopted", NULL,
-		    NULL, NOSV_TYPE_INIT_EXTERNAL)
-		!= 0)
+			    NULL, NOSV_TYPE_INIT_EXTERNAL)
+			!= 0)
 		die("nosv_type_init failed\n");
 
 	nosv_task_t task;

@@ -859,7 +859,7 @@ parse_object_value(const char **string, size_t nesting)
 	}
 	SKIP_WHITESPACES(string);
 	if (**string != '}' || /* Trim object after parsing is over */
-		json_object_resize(output_object, json_object_get_count(output_object)) == JSONFailure) {
+			json_object_resize(output_object, json_object_get_count(output_object)) == JSONFailure) {
 		json_value_free(output_value);
 		return NULL;
 	}
@@ -907,7 +907,7 @@ parse_array_value(const char **string, size_t nesting)
 	}
 	SKIP_WHITESPACES(string);
 	if (**string != ']' || /* Trim array after parsing is over */
-		json_array_resize(output_array, json_array_get_count(output_array)) == JSONFailure) {
+			json_array_resize(output_array, json_array_get_count(output_array)) == JSONFailure) {
 		json_value_free(output_value);
 		return NULL;
 	}
@@ -2470,7 +2470,7 @@ json_value_equals(const JSON_Value *a, const JSON_Value *b)
 			}
 			for (i = 0; i < a_count; i++) {
 				if (!json_value_equals(json_array_get_value(a_array, i),
-					    json_array_get_value(b_array, i))) {
+						    json_array_get_value(b_array, i))) {
 					return 0;
 				}
 			}
@@ -2486,7 +2486,7 @@ json_value_equals(const JSON_Value *a, const JSON_Value *b)
 			for (i = 0; i < a_count; i++) {
 				key = json_object_get_name(a_object, i);
 				if (!json_value_equals(json_object_get_value(a_object, key),
-					    json_object_get_value(b_object, key))) {
+						    json_object_get_value(b_object, key))) {
 					return 0;
 				}
 			}

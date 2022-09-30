@@ -17,7 +17,7 @@ BraceWrapping:
   AfterUnion: false
   BeforeElse: false
 ColumnLimit: 0
-ContinuationIndentWidth: 8
+ContinuationIndentWidth: 16
 IncludeBlocks: Preserve
 IndentCaseLabels: true
 IndentWidth: 8

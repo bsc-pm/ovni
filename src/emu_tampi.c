@@ -52,7 +52,7 @@ pre_tampi_mode(struct ovni_emu *emu, int state)
 			break;
 		default:
 			edie(emu, "unexpected event value %c for tampi mode\n",
-				emu->cur_ev->header.value);
+					emu->cur_ev->header.value);
 	}
 }
 
@@ -61,7 +61,7 @@ hook_pre_tampi(struct ovni_emu *emu)
 {
 	if (emu->cur_ev->header.model != 'T')
 		edie(emu, "hook_pre_tampi: unexpected event with model %c\n",
-			emu->cur_ev->header.model);
+				emu->cur_ev->header.model);
 
 	switch (emu->cur_ev->header.category) {
 		case 'S':

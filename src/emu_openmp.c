@@ -53,7 +53,7 @@ pre_mode(struct ovni_emu *emu, int st)
 			break;
 		default:
 			err("unexpected value '%c' (expecting '[' or ']')\n",
-				emu->cur_ev->header.value);
+					emu->cur_ev->header.value);
 			abort();
 	}
 }
@@ -63,11 +63,11 @@ hook_pre_openmp(struct ovni_emu *emu)
 {
 	if (emu->cur_ev->header.model != 'M')
 		die("hook_pre_openmp: unexpected event with model %c\n",
-			emu->cur_ev->header.model);
+				emu->cur_ev->header.model);
 
 	if (!emu->cur_thread->is_active)
 		die("hook_pre_openmp: current thread %d not active\n",
-			emu->cur_thread->tid);
+				emu->cur_thread->tid);
 
 	switch (emu->cur_ev->header.category) {
 		case 'T':

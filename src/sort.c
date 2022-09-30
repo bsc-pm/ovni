@@ -96,7 +96,7 @@ find_destination(struct ring *r, uint64_t clock)
 	for (ssize_t i = start; i != end; i = i - 1 < 0 ? r->size - 1 : i - 1) {
 		if (r->ev[i]->header.clock < clock) {
 			dbg("found suitable position %ld events backwards\n",
-				nback);
+					nback);
 			return i;
 		}
 		nback++;
@@ -121,7 +121,7 @@ ends_unsorted_region(struct ovni_ev *ev)
 
 static void
 sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
-	uint8_t *srcbad, uint8_t *srcnext)
+		uint8_t *srcbad, uint8_t *srcnext)
 {
 	int64_t injected = 0;
 
@@ -190,7 +190,7 @@ execute_sort_plan(struct sortplan *sp)
 	int64_t i0 = find_destination(sp->r, sp->bad0->header.clock);
 	if (i0 < 0) {
 		err("cannot find destination for region starting at clock %ld\n",
-			sp->bad0->header.clock);
+				sp->bad0->header.clock);
 
 		return -1;
 	}
@@ -209,7 +209,7 @@ execute_sort_plan(struct sortplan *sp)
 		die("malloc failed: %s\n", strerror(errno));
 
 	sort_buf((uint8_t *) first, buf, bufsize,
-		(uint8_t *) sp->bad0, (uint8_t *) sp->next);
+			(uint8_t *) sp->bad0, (uint8_t *) sp->next);
 
 	/* Copy the sorted events back into the stream buffer */
 	memcpy(first, buf, bufsize);
@@ -264,7 +264,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 				dbg("executing sort plan for stream tid=%d\n", stream->tid);
 				if (execute_sort_plan(&sp) < 0) {
 					err("sort failed for stream tid=%d\n",
-						stream->tid);
+							stream->tid);
 					return -1;
 				}
 
@@ -281,7 +281,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 
 	if (empty_regions > 0)
 		err("warning: stream %d contains %ld empty sort regions\n",
-			stream->tid, empty_regions);
+				stream->tid, empty_regions);
 
 	if (updated && fdatasync(fd) < 0)
 		die("fdatasync %s failed: %s\n", fn, strerror(errno));
@@ -308,7 +308,7 @@ stream_check(struct ovni_stream *stream)
 
 		if (cur_clock < last_clock) {
 			err("backwards jump in time %ld -> %ld for stream tid=%d\n",
-				last_clock, cur_clock, stream->tid);
+					last_clock, cur_clock, stream->tid);
 			ret = -1;
 		}
 
@@ -372,7 +372,7 @@ usage(void)
 	err("tracedir, so they are suitable for the emulator ovniemu.\n");
 	err("Only the events enclosed by OU[ OU] are sorted. At most a\n");
 	err("total of %ld events are looked back to insert the unsorted\n",
-		max_look_back);
+			max_look_back);
 	err("events, so the sort procedure can fail with an error.\n");
 	err("\n");
 	err("Options:\n");

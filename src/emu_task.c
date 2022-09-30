@@ -30,12 +30,12 @@ task_type_find(struct task_type *types, uint32_t type_id)
 
 void
 task_create(struct ovni_emu *emu, struct task_info *info,
-	uint32_t type_id, uint32_t task_id)
+		uint32_t type_id, uint32_t task_id)
 {
 	/* Ensure the task id is new */
 	if (task_find(info->tasks, task_id) != NULL)
 		edie(emu, "cannot create task: task_id %u already exists\n",
-			task_id);
+				task_id);
 
 	/* Ensure the type exists */
 	struct task_type *type = task_type_find(info->types, type_id);
@@ -60,7 +60,7 @@ task_create(struct ovni_emu *emu, struct task_info *info,
 
 void
 task_execute(struct ovni_emu *emu,
-	struct task_stack *stack, struct task *task)
+		struct task_stack *stack, struct task *task)
 {
 	if (task == NULL)
 		edie(emu, "cannot execute: task is NULL\n");
@@ -90,7 +90,7 @@ task_execute(struct ovni_emu *emu,
 
 void
 task_pause(struct ovni_emu *emu,
-	struct task_stack *stack, struct task *task)
+		struct task_stack *stack, struct task *task)
 {
 	if (task == NULL)
 		edie(emu, "cannot pause: task is NULL\n");
@@ -117,7 +117,7 @@ task_pause(struct ovni_emu *emu,
 
 void
 task_resume(struct ovni_emu *emu,
-	struct task_stack *stack, struct task *task)
+		struct task_stack *stack, struct task *task)
 {
 	if (task == NULL)
 		edie(emu, "cannot resume: task is NULL\n");
@@ -144,7 +144,7 @@ task_resume(struct ovni_emu *emu,
 
 void
 task_end(struct ovni_emu *emu,
-	struct task_stack *stack, struct task *task)
+		struct task_stack *stack, struct task *task)
 {
 	if (task == NULL)
 		edie(emu, "cannot end: task is NULL\n");
@@ -222,7 +222,7 @@ task_type_create(struct task_info *info, uint32_t type_id, const char *label)
 	HASH_ADD_INT(info->types, id, type);
 
 	dbg("new task type created id=%d label=%s\n", type->id,
-		type->label);
+			type->label);
 }
 
 void

@@ -27,13 +27,13 @@ emit(struct ovni_stream *stream, struct ovni_ev *ev)
 	uint64_t clock = ovni_ev_get_clock(ev);
 
 	printf("%s.%d.%d  %ld  %c%c%c",
-		stream->loom->hostname,
-		stream->proc->pid,
-		stream->thread->tid,
-		clock,
-		ev->header.model,
-		ev->header.category,
-		ev->header.value);
+			stream->loom->hostname,
+			stream->proc->pid,
+			stream->thread->tid,
+			clock,
+			ev->header.model,
+			ev->header.category,
+			ev->header.value);
 
 	int payloadsize = ovni_payload_size(ev);
 	if (payloadsize > 0) {
@@ -90,7 +90,7 @@ dump_events(struct ovni_trace *trace)
 
 		if (lastclock > ovni_ev_get_clock(stream->cur_ev)) {
 			fprintf(stdout, "warning: backwards jump in time %lu -> %lu\n",
-				lastclock, ovni_ev_get_clock(stream->cur_ev));
+					lastclock, ovni_ev_get_clock(stream->cur_ev));
 		}
 
 		/* Emit current event */

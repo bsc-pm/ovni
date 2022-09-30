@@ -127,29 +127,29 @@ check_metadata_version(struct ovni_eproc *proc)
 	JSON_Value *version_val = json_object_get_value(meta, "version");
 	if (version_val == NULL) {
 		die("process %d is missing attribute \"version\" in metadata\n",
-			proc->pid);
+				proc->pid);
 	}
 
 	int version = (int) json_number(version_val);
 
 	if (version != OVNI_METADATA_VERSION) {
 		die("pid %d: metadata version mismatch %d (expected %d)\n",
-			proc->pid, version,
-			OVNI_METADATA_VERSION);
+				proc->pid, version,
+				OVNI_METADATA_VERSION);
 	}
 
 	JSON_Value *mversion_val = json_object_get_value(meta, "model_version");
 	if (mversion_val == NULL) {
 		die("process %d is missing attribute \"model_version\" in metadata\n",
-			proc->pid);
+				proc->pid);
 	}
 
 	const char *mversion = json_string(mversion_val);
 
 	if (strcmp(mversion, OVNI_MODEL_VERSION) != 0) {
 		die("pid %d: metadata model version mismatch '%s' (expected '%s')\n",
-			proc->pid, mversion,
-			OVNI_MODEL_VERSION);
+				proc->pid, mversion,
+				OVNI_MODEL_VERSION);
 	}
 }
 
@@ -197,7 +197,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 	DIR *dir;
 	if ((dir = opendir(procdir)) == NULL) {
 		fprintf(stderr, "opendir %s failed: %s\n",
-			procdir, strerror(errno));
+				procdir, strerror(errno));
 		return -1;
 	}
 
@@ -205,7 +205,7 @@ load_proc(struct ovni_eproc *proc, struct ovni_loom *loom, int index, int pid, c
 
 	if (proc->nthreads <= 0) {
 		err("cannot find any thread for process %d\n",
-			proc->pid);
+				proc->pid);
 		return -1;
 	}
 
@@ -270,7 +270,7 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 
 	if ((dir = opendir(loomdir)) == NULL) {
 		fprintf(stderr, "opendir %s failed: %s\n",
-			loomdir, strerror(errno));
+				loomdir, strerror(errno));
 		return -1;
 	}
 
@@ -279,7 +279,7 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 
 	if (loom->nprocs <= 0) {
 		err("cannot find any process directory in loom %s\n",
-			loom->hostname);
+				loom->hostname);
 		return -1;
 	}
 
@@ -326,7 +326,7 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 			struct ovni_eproc *proc = &loom->proc[i];
 			if (proc->rank < 0) {
 				die("process %d is missing the rank\n",
-					proc->pid);
+						proc->pid);
 			}
 		}
 	}
@@ -415,7 +415,7 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 
 	/* Sort the looms, so we get the hostnames in alphanumeric order */
 	qsort(trace->loom, trace->nlooms, sizeof(struct ovni_loom),
-		compare_looms);
+			compare_looms);
 
 	for (size_t i = 0; i < trace->nlooms; i++) {
 		struct ovni_loom *loom = &trace->loom[i];
@@ -429,10 +429,10 @@ ovni_load_trace(struct ovni_trace *trace, char *tracedir)
 		loom_to_host(name, loom->hostname, sizeof(loom->hostname));
 
 		if (snprintf(loom->path, PATH_MAX, "%s/%s",
-			    tracedir, loom->dname)
-			>= PATH_MAX) {
+				    tracedir, loom->dname)
+				>= PATH_MAX) {
 			err("error: loom path %s/%s too long\n",
-				tracedir, loom->dname);
+					tracedir, loom->dname);
 			return -1;
 		}
 
@@ -450,25 +450,25 @@ check_stream_header(struct ovni_stream *stream)
 
 	if (stream->size < sizeof(struct ovni_stream_header)) {
 		err("stream %d: incomplete stream header\n",
-			stream->tid);
+				stream->tid);
 		return -1;
 	}
 
 	struct ovni_stream_header *h =
-		(struct ovni_stream_header *) stream->buf;
+			(struct ovni_stream_header *) stream->buf;
 
 	if (memcmp(h->magic, OVNI_STREAM_MAGIC, 4) != 0) {
 		char magic[5];
 		memcpy(magic, h->magic, 4);
 		magic[4] = '\0';
 		err("stream %d: wrong stream magic '%s' (expected '%s')\n",
-			stream->tid, magic, OVNI_STREAM_MAGIC);
+				stream->tid, magic, OVNI_STREAM_MAGIC);
 		ret = -1;
 	}
 
 	if (h->version != OVNI_STREAM_VERSION) {
 		err("stream %d: stream version mismatch %u (expected %u)\n",
-			stream->tid, h->version, OVNI_STREAM_VERSION);
+				stream->tid, h->version, OVNI_STREAM_VERSION);
 		ret = -1;
 	}
 

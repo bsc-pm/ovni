@@ -120,7 +120,7 @@ heap_get_move(size_t *node /*out*/)
 
 	// Round to previous po2
 	size_t base = (1ULL) << (sizeof(size_t) * 8
-				 - __builtin_clzll(aux_node) - 1);
+				      - __builtin_clzll(aux_node) - 1);
 
 	aux_node -= base / 2;
 

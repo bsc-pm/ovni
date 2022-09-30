@@ -127,297 +127,297 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define LL_SORT(list, cmp) \
 	LL_SORT2(list, cmp, next)
 
-#define LL_SORT2(list, cmp, next)                                                                     \
-	do {                                                                                          \
-		LDECLTYPE(list)                                                                       \
-		_ls_p;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_q;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_e;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_tail;                                                                             \
-		IF_NO_DECLTYPE(LDECLTYPE(list) _tmp;)                                                 \
-		int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;                \
-		if (list) {                                                                           \
-			_ls_insize = 1;                                                               \
-			_ls_looping = 1;                                                              \
-			while (_ls_looping) {                                                         \
-				UTLIST_CASTASGN(_ls_p, list);                                         \
-				(list) = NULL;                                                        \
-				_ls_tail = NULL;                                                      \
-				_ls_nmerges = 0;                                                      \
-				while (_ls_p) {                                                       \
-					_ls_nmerges++;                                                \
-					_ls_q = _ls_p;                                                \
-					_ls_psize = 0;                                                \
-					for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                \
-						_ls_psize++;                                          \
-						UTLIST_SV(_ls_q, list);                               \
-						_ls_q = UTLIST_NEXT(_ls_q, list, next);               \
-						UTLIST_RS(list);                                      \
-						if (!_ls_q)                                           \
-							break;                                        \
-					}                                                             \
-					_ls_qsize = _ls_insize;                                       \
-					while (_ls_psize > 0 || (_ls_qsize > 0 && _ls_q)) {           \
-						if (_ls_psize == 0) {                                 \
-							_ls_e = _ls_q;                                \
-							UTLIST_SV(_ls_q, list);                       \
-							_ls_q =                                       \
-								UTLIST_NEXT(_ls_q, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_qsize--;                                  \
-						} else if (_ls_qsize == 0 || !_ls_q) {                \
-							_ls_e = _ls_p;                                \
-							UTLIST_SV(_ls_p, list);                       \
-							_ls_p =                                       \
-								UTLIST_NEXT(_ls_p, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_psize--;                                  \
-						} else if (cmp(_ls_p, _ls_q) <= 0) {                  \
-							_ls_e = _ls_p;                                \
-							UTLIST_SV(_ls_p, list);                       \
-							_ls_p =                                       \
-								UTLIST_NEXT(_ls_p, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_psize--;                                  \
-						} else {                                              \
-							_ls_e = _ls_q;                                \
-							UTLIST_SV(_ls_q, list);                       \
-							_ls_q =                                       \
-								UTLIST_NEXT(_ls_q, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_qsize--;                                  \
-						}                                                     \
-						if (_ls_tail) {                                       \
-							UTLIST_SV(_ls_tail, list);                    \
-							UTLIST_NEXTASGN(_ls_tail, list, _ls_e, next); \
-							UTLIST_RS(list);                              \
-						} else {                                              \
-							UTLIST_CASTASGN(list, _ls_e);                 \
-						}                                                     \
-						_ls_tail = _ls_e;                                     \
-					}                                                             \
-					_ls_p = _ls_q;                                                \
-				}                                                                     \
-				if (_ls_tail) {                                                       \
-					UTLIST_SV(_ls_tail, list);                                    \
-					UTLIST_NEXTASGN(_ls_tail, list, NULL, next);                  \
-					UTLIST_RS(list);                                              \
-				}                                                                     \
-				if (_ls_nmerges <= 1) {                                               \
-					_ls_looping = 0;                                              \
-				}                                                                     \
-				_ls_insize *= 2;                                                      \
-			}                                                                             \
-		}                                                                                     \
+#define LL_SORT2(list, cmp, next)                                                                       \
+	do {                                                                                            \
+		LDECLTYPE(list)                                                                         \
+		_ls_p;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_q;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_e;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_tail;                                                                               \
+		IF_NO_DECLTYPE(LDECLTYPE(list) _tmp;)                                                   \
+		int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;                  \
+		if (list) {                                                                             \
+			_ls_insize = 1;                                                                 \
+			_ls_looping = 1;                                                                \
+			while (_ls_looping) {                                                           \
+				UTLIST_CASTASGN(_ls_p, list);                                           \
+				(list) = NULL;                                                          \
+				_ls_tail = NULL;                                                        \
+				_ls_nmerges = 0;                                                        \
+				while (_ls_p) {                                                         \
+					_ls_nmerges++;                                                  \
+					_ls_q = _ls_p;                                                  \
+					_ls_psize = 0;                                                  \
+					for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                  \
+						_ls_psize++;                                            \
+						UTLIST_SV(_ls_q, list);                                 \
+						_ls_q = UTLIST_NEXT(_ls_q, list, next);                 \
+						UTLIST_RS(list);                                        \
+						if (!_ls_q)                                             \
+							break;                                          \
+					}                                                               \
+					_ls_qsize = _ls_insize;                                         \
+					while (_ls_psize > 0 || (_ls_qsize > 0 && _ls_q)) {             \
+						if (_ls_psize == 0) {                                   \
+							_ls_e = _ls_q;                                  \
+							UTLIST_SV(_ls_q, list);                         \
+							_ls_q =                                         \
+									UTLIST_NEXT(_ls_q, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_qsize--;                                    \
+						} else if (_ls_qsize == 0 || !_ls_q) {                  \
+							_ls_e = _ls_p;                                  \
+							UTLIST_SV(_ls_p, list);                         \
+							_ls_p =                                         \
+									UTLIST_NEXT(_ls_p, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_psize--;                                    \
+						} else if (cmp(_ls_p, _ls_q) <= 0) {                    \
+							_ls_e = _ls_p;                                  \
+							UTLIST_SV(_ls_p, list);                         \
+							_ls_p =                                         \
+									UTLIST_NEXT(_ls_p, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_psize--;                                    \
+						} else {                                                \
+							_ls_e = _ls_q;                                  \
+							UTLIST_SV(_ls_q, list);                         \
+							_ls_q =                                         \
+									UTLIST_NEXT(_ls_q, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_qsize--;                                    \
+						}                                                       \
+						if (_ls_tail) {                                         \
+							UTLIST_SV(_ls_tail, list);                      \
+							UTLIST_NEXTASGN(_ls_tail, list, _ls_e, next);   \
+							UTLIST_RS(list);                                \
+						} else {                                                \
+							UTLIST_CASTASGN(list, _ls_e);                   \
+						}                                                       \
+						_ls_tail = _ls_e;                                       \
+					}                                                               \
+					_ls_p = _ls_q;                                                  \
+				}                                                                       \
+				if (_ls_tail) {                                                         \
+					UTLIST_SV(_ls_tail, list);                                      \
+					UTLIST_NEXTASGN(_ls_tail, list, NULL, next);                    \
+					UTLIST_RS(list);                                                \
+				}                                                                       \
+				if (_ls_nmerges <= 1) {                                                 \
+					_ls_looping = 0;                                                \
+				}                                                                       \
+				_ls_insize *= 2;                                                        \
+			}                                                                               \
+		}                                                                                       \
 	} while (0)
 
 
 #define DL_SORT(list, cmp) \
 	DL_SORT2(list, cmp, prev, next)
 
-#define DL_SORT2(list, cmp, prev, next)                                                               \
-	do {                                                                                          \
-		LDECLTYPE(list)                                                                       \
-		_ls_p;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_q;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_e;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_tail;                                                                             \
-		IF_NO_DECLTYPE(LDECLTYPE(list) _tmp;)                                                 \
-		int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;                \
-		if (list) {                                                                           \
-			_ls_insize = 1;                                                               \
-			_ls_looping = 1;                                                              \
-			while (_ls_looping) {                                                         \
-				UTLIST_CASTASGN(_ls_p, list);                                         \
-				(list) = NULL;                                                        \
-				_ls_tail = NULL;                                                      \
-				_ls_nmerges = 0;                                                      \
-				while (_ls_p) {                                                       \
-					_ls_nmerges++;                                                \
-					_ls_q = _ls_p;                                                \
-					_ls_psize = 0;                                                \
-					for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                \
-						_ls_psize++;                                          \
-						UTLIST_SV(_ls_q, list);                               \
-						_ls_q = UTLIST_NEXT(_ls_q, list, next);               \
-						UTLIST_RS(list);                                      \
-						if (!_ls_q)                                           \
-							break;                                        \
-					}                                                             \
-					_ls_qsize = _ls_insize;                                       \
-					while ((_ls_psize > 0) || ((_ls_qsize > 0) && _ls_q)) {       \
-						if (_ls_psize == 0) {                                 \
-							_ls_e = _ls_q;                                \
-							UTLIST_SV(_ls_q, list);                       \
-							_ls_q =                                       \
-								UTLIST_NEXT(_ls_q, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_qsize--;                                  \
-						} else if ((_ls_qsize == 0) || (!_ls_q)) {            \
-							_ls_e = _ls_p;                                \
-							UTLIST_SV(_ls_p, list);                       \
-							_ls_p =                                       \
-								UTLIST_NEXT(_ls_p, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_psize--;                                  \
-						} else if (cmp(_ls_p, _ls_q) <= 0) {                  \
-							_ls_e = _ls_p;                                \
-							UTLIST_SV(_ls_p, list);                       \
-							_ls_p =                                       \
-								UTLIST_NEXT(_ls_p, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_psize--;                                  \
-						} else {                                              \
-							_ls_e = _ls_q;                                \
-							UTLIST_SV(_ls_q, list);                       \
-							_ls_q =                                       \
-								UTLIST_NEXT(_ls_q, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_qsize--;                                  \
-						}                                                     \
-						if (_ls_tail) {                                       \
-							UTLIST_SV(_ls_tail, list);                    \
-							UTLIST_NEXTASGN(_ls_tail, list, _ls_e, next); \
-							UTLIST_RS(list);                              \
-						} else {                                              \
-							UTLIST_CASTASGN(list, _ls_e);                 \
-						}                                                     \
-						UTLIST_SV(_ls_e, list);                               \
-						UTLIST_PREVASGN(_ls_e, list, _ls_tail, prev);         \
-						UTLIST_RS(list);                                      \
-						_ls_tail = _ls_e;                                     \
-					}                                                             \
-					_ls_p = _ls_q;                                                \
-				}                                                                     \
-				UTLIST_CASTASGN((list)->prev, _ls_tail);                              \
-				UTLIST_SV(_ls_tail, list);                                            \
-				UTLIST_NEXTASGN(_ls_tail, list, NULL, next);                          \
-				UTLIST_RS(list);                                                      \
-				if (_ls_nmerges <= 1) {                                               \
-					_ls_looping = 0;                                              \
-				}                                                                     \
-				_ls_insize *= 2;                                                      \
-			}                                                                             \
-		}                                                                                     \
+#define DL_SORT2(list, cmp, prev, next)                                                                 \
+	do {                                                                                            \
+		LDECLTYPE(list)                                                                         \
+		_ls_p;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_q;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_e;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_tail;                                                                               \
+		IF_NO_DECLTYPE(LDECLTYPE(list) _tmp;)                                                   \
+		int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;                  \
+		if (list) {                                                                             \
+			_ls_insize = 1;                                                                 \
+			_ls_looping = 1;                                                                \
+			while (_ls_looping) {                                                           \
+				UTLIST_CASTASGN(_ls_p, list);                                           \
+				(list) = NULL;                                                          \
+				_ls_tail = NULL;                                                        \
+				_ls_nmerges = 0;                                                        \
+				while (_ls_p) {                                                         \
+					_ls_nmerges++;                                                  \
+					_ls_q = _ls_p;                                                  \
+					_ls_psize = 0;                                                  \
+					for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                  \
+						_ls_psize++;                                            \
+						UTLIST_SV(_ls_q, list);                                 \
+						_ls_q = UTLIST_NEXT(_ls_q, list, next);                 \
+						UTLIST_RS(list);                                        \
+						if (!_ls_q)                                             \
+							break;                                          \
+					}                                                               \
+					_ls_qsize = _ls_insize;                                         \
+					while ((_ls_psize > 0) || ((_ls_qsize > 0) && _ls_q)) {         \
+						if (_ls_psize == 0) {                                   \
+							_ls_e = _ls_q;                                  \
+							UTLIST_SV(_ls_q, list);                         \
+							_ls_q =                                         \
+									UTLIST_NEXT(_ls_q, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_qsize--;                                    \
+						} else if ((_ls_qsize == 0) || (!_ls_q)) {              \
+							_ls_e = _ls_p;                                  \
+							UTLIST_SV(_ls_p, list);                         \
+							_ls_p =                                         \
+									UTLIST_NEXT(_ls_p, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_psize--;                                    \
+						} else if (cmp(_ls_p, _ls_q) <= 0) {                    \
+							_ls_e = _ls_p;                                  \
+							UTLIST_SV(_ls_p, list);                         \
+							_ls_p =                                         \
+									UTLIST_NEXT(_ls_p, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_psize--;                                    \
+						} else {                                                \
+							_ls_e = _ls_q;                                  \
+							UTLIST_SV(_ls_q, list);                         \
+							_ls_q =                                         \
+									UTLIST_NEXT(_ls_q, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_qsize--;                                    \
+						}                                                       \
+						if (_ls_tail) {                                         \
+							UTLIST_SV(_ls_tail, list);                      \
+							UTLIST_NEXTASGN(_ls_tail, list, _ls_e, next);   \
+							UTLIST_RS(list);                                \
+						} else {                                                \
+							UTLIST_CASTASGN(list, _ls_e);                   \
+						}                                                       \
+						UTLIST_SV(_ls_e, list);                                 \
+						UTLIST_PREVASGN(_ls_e, list, _ls_tail, prev);           \
+						UTLIST_RS(list);                                        \
+						_ls_tail = _ls_e;                                       \
+					}                                                               \
+					_ls_p = _ls_q;                                                  \
+				}                                                                       \
+				UTLIST_CASTASGN((list)->prev, _ls_tail);                                \
+				UTLIST_SV(_ls_tail, list);                                              \
+				UTLIST_NEXTASGN(_ls_tail, list, NULL, next);                            \
+				UTLIST_RS(list);                                                        \
+				if (_ls_nmerges <= 1) {                                                 \
+					_ls_looping = 0;                                                \
+				}                                                                       \
+				_ls_insize *= 2;                                                        \
+			}                                                                               \
+		}                                                                                       \
 	} while (0)
 
 #define CDL_SORT(list, cmp) \
 	CDL_SORT2(list, cmp, prev, next)
 
-#define CDL_SORT2(list, cmp, prev, next)                                                              \
-	do {                                                                                          \
-		LDECLTYPE(list)                                                                       \
-		_ls_p;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_q;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_e;                                                                                \
-		LDECLTYPE(list)                                                                       \
-		_ls_tail;                                                                             \
-		LDECLTYPE(list)                                                                       \
-		_ls_oldhead;                                                                          \
-		LDECLTYPE(list)                                                                       \
-		_tmp;                                                                                 \
-		int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;                \
-		if (list) {                                                                           \
-			_ls_insize = 1;                                                               \
-			_ls_looping = 1;                                                              \
-			while (_ls_looping) {                                                         \
-				UTLIST_CASTASGN(_ls_p, list);                                         \
-				UTLIST_CASTASGN(_ls_oldhead, list);                                   \
-				(list) = NULL;                                                        \
-				_ls_tail = NULL;                                                      \
-				_ls_nmerges = 0;                                                      \
-				while (_ls_p) {                                                       \
-					_ls_nmerges++;                                                \
-					_ls_q = _ls_p;                                                \
-					_ls_psize = 0;                                                \
-					for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                \
-						_ls_psize++;                                          \
-						UTLIST_SV(_ls_q, list);                               \
-						if (UTLIST_NEXT(_ls_q, list, next) == _ls_oldhead) {  \
-							_ls_q = NULL;                                 \
-						} else {                                              \
-							_ls_q = UTLIST_NEXT(_ls_q, list, next);       \
-						}                                                     \
-						UTLIST_RS(list);                                      \
-						if (!_ls_q)                                           \
-							break;                                        \
-					}                                                             \
-					_ls_qsize = _ls_insize;                                       \
-					while (_ls_psize > 0 || (_ls_qsize > 0 && _ls_q)) {           \
-						if (_ls_psize == 0) {                                 \
-							_ls_e = _ls_q;                                \
-							UTLIST_SV(_ls_q, list);                       \
-							_ls_q =                                       \
-								UTLIST_NEXT(_ls_q, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_qsize--;                                  \
-							if (_ls_q == _ls_oldhead) {                   \
-								_ls_q = NULL;                         \
-							}                                             \
-						} else if (_ls_qsize == 0 || !_ls_q) {                \
-							_ls_e = _ls_p;                                \
-							UTLIST_SV(_ls_p, list);                       \
-							_ls_p =                                       \
-								UTLIST_NEXT(_ls_p, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_psize--;                                  \
-							if (_ls_p == _ls_oldhead) {                   \
-								_ls_p = NULL;                         \
-							}                                             \
-						} else if (cmp(_ls_p, _ls_q) <= 0) {                  \
-							_ls_e = _ls_p;                                \
-							UTLIST_SV(_ls_p, list);                       \
-							_ls_p =                                       \
-								UTLIST_NEXT(_ls_p, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_psize--;                                  \
-							if (_ls_p == _ls_oldhead) {                   \
-								_ls_p = NULL;                         \
-							}                                             \
-						} else {                                              \
-							_ls_e = _ls_q;                                \
-							UTLIST_SV(_ls_q, list);                       \
-							_ls_q =                                       \
-								UTLIST_NEXT(_ls_q, list, next);       \
-							UTLIST_RS(list);                              \
-							_ls_qsize--;                                  \
-							if (_ls_q == _ls_oldhead) {                   \
-								_ls_q = NULL;                         \
-							}                                             \
-						}                                                     \
-						if (_ls_tail) {                                       \
-							UTLIST_SV(_ls_tail, list);                    \
-							UTLIST_NEXTASGN(_ls_tail, list, _ls_e, next); \
-							UTLIST_RS(list);                              \
-						} else {                                              \
-							UTLIST_CASTASGN(list, _ls_e);                 \
-						}                                                     \
-						UTLIST_SV(_ls_e, list);                               \
-						UTLIST_PREVASGN(_ls_e, list, _ls_tail, prev);         \
-						UTLIST_RS(list);                                      \
-						_ls_tail = _ls_e;                                     \
-					}                                                             \
-					_ls_p = _ls_q;                                                \
-				}                                                                     \
-				UTLIST_CASTASGN((list)->prev, _ls_tail);                              \
-				UTLIST_CASTASGN(_tmp, list);                                          \
-				UTLIST_SV(_ls_tail, list);                                            \
-				UTLIST_NEXTASGN(_ls_tail, list, _tmp, next);                          \
-				UTLIST_RS(list);                                                      \
-				if (_ls_nmerges <= 1) {                                               \
-					_ls_looping = 0;                                              \
-				}                                                                     \
-				_ls_insize *= 2;                                                      \
-			}                                                                             \
-		}                                                                                     \
+#define CDL_SORT2(list, cmp, prev, next)                                                                \
+	do {                                                                                            \
+		LDECLTYPE(list)                                                                         \
+		_ls_p;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_q;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_e;                                                                                  \
+		LDECLTYPE(list)                                                                         \
+		_ls_tail;                                                                               \
+		LDECLTYPE(list)                                                                         \
+		_ls_oldhead;                                                                            \
+		LDECLTYPE(list)                                                                         \
+		_tmp;                                                                                   \
+		int _ls_insize, _ls_nmerges, _ls_psize, _ls_qsize, _ls_i, _ls_looping;                  \
+		if (list) {                                                                             \
+			_ls_insize = 1;                                                                 \
+			_ls_looping = 1;                                                                \
+			while (_ls_looping) {                                                           \
+				UTLIST_CASTASGN(_ls_p, list);                                           \
+				UTLIST_CASTASGN(_ls_oldhead, list);                                     \
+				(list) = NULL;                                                          \
+				_ls_tail = NULL;                                                        \
+				_ls_nmerges = 0;                                                        \
+				while (_ls_p) {                                                         \
+					_ls_nmerges++;                                                  \
+					_ls_q = _ls_p;                                                  \
+					_ls_psize = 0;                                                  \
+					for (_ls_i = 0; _ls_i < _ls_insize; _ls_i++) {                  \
+						_ls_psize++;                                            \
+						UTLIST_SV(_ls_q, list);                                 \
+						if (UTLIST_NEXT(_ls_q, list, next) == _ls_oldhead) {    \
+							_ls_q = NULL;                                   \
+						} else {                                                \
+							_ls_q = UTLIST_NEXT(_ls_q, list, next);         \
+						}                                                       \
+						UTLIST_RS(list);                                        \
+						if (!_ls_q)                                             \
+							break;                                          \
+					}                                                               \
+					_ls_qsize = _ls_insize;                                         \
+					while (_ls_psize > 0 || (_ls_qsize > 0 && _ls_q)) {             \
+						if (_ls_psize == 0) {                                   \
+							_ls_e = _ls_q;                                  \
+							UTLIST_SV(_ls_q, list);                         \
+							_ls_q =                                         \
+									UTLIST_NEXT(_ls_q, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_qsize--;                                    \
+							if (_ls_q == _ls_oldhead) {                     \
+								_ls_q = NULL;                           \
+							}                                               \
+						} else if (_ls_qsize == 0 || !_ls_q) {                  \
+							_ls_e = _ls_p;                                  \
+							UTLIST_SV(_ls_p, list);                         \
+							_ls_p =                                         \
+									UTLIST_NEXT(_ls_p, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_psize--;                                    \
+							if (_ls_p == _ls_oldhead) {                     \
+								_ls_p = NULL;                           \
+							}                                               \
+						} else if (cmp(_ls_p, _ls_q) <= 0) {                    \
+							_ls_e = _ls_p;                                  \
+							UTLIST_SV(_ls_p, list);                         \
+							_ls_p =                                         \
+									UTLIST_NEXT(_ls_p, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_psize--;                                    \
+							if (_ls_p == _ls_oldhead) {                     \
+								_ls_p = NULL;                           \
+							}                                               \
+						} else {                                                \
+							_ls_e = _ls_q;                                  \
+							UTLIST_SV(_ls_q, list);                         \
+							_ls_q =                                         \
+									UTLIST_NEXT(_ls_q, list, next); \
+							UTLIST_RS(list);                                \
+							_ls_qsize--;                                    \
+							if (_ls_q == _ls_oldhead) {                     \
+								_ls_q = NULL;                           \
+							}                                               \
+						}                                                       \
+						if (_ls_tail) {                                         \
+							UTLIST_SV(_ls_tail, list);                      \
+							UTLIST_NEXTASGN(_ls_tail, list, _ls_e, next);   \
+							UTLIST_RS(list);                                \
+						} else {                                                \
+							UTLIST_CASTASGN(list, _ls_e);                   \
+						}                                                       \
+						UTLIST_SV(_ls_e, list);                                 \
+						UTLIST_PREVASGN(_ls_e, list, _ls_tail, prev);           \
+						UTLIST_RS(list);                                        \
+						_ls_tail = _ls_e;                                       \
+					}                                                               \
+					_ls_p = _ls_q;                                                  \
+				}                                                                       \
+				UTLIST_CASTASGN((list)->prev, _ls_tail);                                \
+				UTLIST_CASTASGN(_tmp, list);                                            \
+				UTLIST_SV(_ls_tail, list);                                              \
+				UTLIST_NEXTASGN(_ls_tail, list, _tmp, next);                            \
+				UTLIST_RS(list);                                                        \
+				if (_ls_nmerges <= 1) {                                                 \
+					_ls_looping = 0;                                                \
+				}                                                                       \
+				_ls_insize *= 2;                                                        \
+			}                                                                               \
+		}                                                                                       \
 	} while (0)
 
 /******************************************************************************
@@ -1079,8 +1079,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define CDL_FOREACH_SAFE2(head, el, tmp1, tmp2, prev, next)        \
 	for ((el) = (head), (tmp1) = (head) ? (head)->prev : NULL; \
-		(el) && ((tmp2) = (el)->next, 1);                  \
-		(el) = ((el) == (tmp1) ? NULL : (tmp2)))
+			(el) && ((tmp2) = (el)->next, 1);          \
+			(el) = ((el) == (tmp1) ? NULL : (tmp2)))
 
 #define CDL_SEARCH_SCALAR(head, out, field, val) \
 	CDL_SEARCH_SCALAR2(head, out, field, val, next)

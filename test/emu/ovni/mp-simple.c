@@ -85,7 +85,7 @@ instr_start(int rank)
 		curcpu = -1;
 
 	fprintf(stderr, "thread %d has cpu %d (ncpus=%d)\n",
-		gettid(), curcpu, CPU_COUNT(&mask));
+			gettid(), curcpu, CPU_COUNT(&mask));
 
 	instr_thread_execute(curcpu, -1, 0);
 }

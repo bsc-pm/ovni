@@ -103,7 +103,7 @@ chan_task_running(struct ovni_emu *emu, struct task *task)
 
 static void
 chan_task_switch(struct ovni_emu *emu,
-	struct task *prev, struct task *next)
+		struct task *prev, struct task *next)
 {
 	struct ovni_ethread *th = emu->cur_thread;
 
@@ -168,7 +168,7 @@ update_task_state(struct ovni_emu *emu)
 			break;
 		default:
 			edie(emu, "unexpected Nanos6 task event value %c\n",
-				emu->cur_ev->header.value);
+					emu->cur_ev->header.value);
 	}
 }
 
@@ -192,7 +192,7 @@ expand_transition_value(struct ovni_emu *emu, int was_running, int runs_now)
 
 static void
 update_task_channels(struct ovni_emu *emu,
-	char tr, struct task *prev, struct task *next)
+		char tr, struct task *prev, struct task *next)
 {
 	switch (tr) {
 		case 'x':
@@ -269,7 +269,7 @@ pre_task(struct ovni_emu *emu)
 			break;
 		default:
 			edie(emu, "unexpected task event value %c\n",
-				emu->cur_ev->header.value);
+					emu->cur_ev->header.value);
 	}
 }
 
@@ -278,7 +278,7 @@ pre_type(struct ovni_emu *emu)
 {
 	if (emu->cur_ev->header.value != 'c')
 		edie(emu, "unexpected event value %c\n",
-			emu->cur_ev->header.value);
+				emu->cur_ev->header.value);
 
 	if ((emu->cur_ev->header.flags & OVNI_EV_JUMBO) == 0)
 		edie(emu, "expecting a jumbo event\n");
@@ -440,7 +440,7 @@ pre_ss(struct ovni_emu *emu, int st)
 			break;
 		default:
 			err("unexpected value '%c' (expecting '[' or ']')\n",
-				emu->cur_ev->header.value);
+					emu->cur_ev->header.value);
 			abort();
 	}
 }
@@ -459,7 +459,7 @@ check_affinity(struct ovni_emu *emu)
 
 	if (cpu->nrunning_threads > 1) {
 		edie(emu, "cpu %s has more than one thread running\n",
-			cpu->name);
+				cpu->name);
 	}
 }
 
@@ -468,11 +468,11 @@ hook_pre_nosv(struct ovni_emu *emu)
 {
 	if (emu->cur_ev->header.model != 'V')
 		edie(emu, "hook_pre_nosv: unexpected event with model %c\n",
-			emu->cur_ev->header.model);
+				emu->cur_ev->header.model);
 
 	if (!emu->cur_thread->is_active)
 		edie(emu, "hook_pre_nosv: current thread %d not active\n",
-			emu->cur_thread->tid);
+				emu->cur_thread->tid);
 
 	switch (emu->cur_ev->header.category) {
 		case 'T':

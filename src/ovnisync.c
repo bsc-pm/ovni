@@ -91,7 +91,7 @@ usage(void)
 	fprintf(stderr, "%s: clock synchronization utility\n", progname);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage: %s [-o outfile] [-d ndrift_samples] [-v] [-n nsamples] [-w drift_delay]\n",
-		progname);
+			progname);
 	exit(EXIT_FAILURE);
 }
 
@@ -229,9 +229,9 @@ offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int v
 		delta[i] = ref->clock_sample[i] - cur->clock_sample[i];
 		if (verbose) {
 			printf("rank=%d  sample=%d  delta=%f  ref=%f  cur=%f\n",
-				cur->rank, i, delta[i],
-				ref->clock_sample[i],
-				cur->clock_sample[i]);
+					cur->rank, i, delta[i],
+					ref->clock_sample[i],
+					cur->clock_sample[i]);
 		}
 	}
 
@@ -325,14 +325,14 @@ build_offset_table(int nsamples, int rank, int verbose)
 
 	/* Then collect all the offsets into the rank 0 */
 	MPI_Gather(sendbuf, offset_size(nsamples), MPI_CHAR,
-		offset, offset_size(nsamples), MPI_CHAR,
-		0, MPI_COMM_WORLD);
+			offset, offset_size(nsamples), MPI_CHAR,
+			0, MPI_COMM_WORLD);
 
 	/* Finish the offsets by computing the deltas on rank 0 */
 	if (rank == 0) {
 		for (int i = 0; i < table->nprocs; i++) {
 			offset_compute_delta(offset, table->offset[i],
-				nsamples, verbose);
+					nsamples, verbose);
 		}
 	}
 
@@ -369,13 +369,13 @@ static void
 print_table_detailed(FILE *out, struct offset_table *table)
 {
 	fprintf(out, "%-10s %-20s %-20s %-20s %-20s\n",
-		"rank", "hostname", "offset_median", "offset_mean", "offset_std");
+			"rank", "hostname", "offset_median", "offset_mean", "offset_std");
 
 	for (int i = 0; i < table->nprocs; i++) {
 		struct offset *offset = table->offset[i];
 		fprintf(out, "%-10d %-20s %-20ld %-20f %-20f\n",
-			i, offset->hostname, offset->offset,
-			offset->delta_mean, offset->delta_std);
+				i, offset->hostname, offset->offset,
+				offset->delta_mean, offset->delta_std);
 	}
 }
 
@@ -389,14 +389,14 @@ do_work(struct options *options, int rank)
 	if (rank == 0) {
 		if (mkpath(options->outpath, 0755) != 0) {
 			fprintf(stderr, "mkpath(%s) failed: %s\n",
-				options->outpath, strerror(errno));
+					options->outpath, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
 		out = fopen(options->outpath, "w");
 		if (out == NULL) {
 			fprintf(stderr, "fopen(%s) failed: %s\n",
-				options->outpath, strerror(errno));
+					options->outpath, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}

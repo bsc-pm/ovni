@@ -1,3 +1,6 @@
+# Reformat all source files from the root directory with:
+# clang-format -i $(find . -name '*.[ch]')
+---
 Language: Cpp
 BasedOnStyle: LLVM
 

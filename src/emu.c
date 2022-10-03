@@ -87,9 +87,7 @@ cpu_update_tracking_chan(struct ovni_chan *cpu_chan, struct ovni_ethread *th)
 	/* Copy the state from the thread channel if needed */
 	if (th_enabled && cpu_enabled) {
 		/* Both enabled: simply follow the same value */
-		int st = chan_get_st(th_chan);
-		if (chan_get_st(cpu_chan) != st)
-			chan_set(cpu_chan, st);
+		chan_copy(cpu_chan, th_chan);
 	} else if (th_enabled && !cpu_enabled) {
 		/* Only thread enabled: disable CPU */
 		if (chan_is_enabled(cpu_chan))

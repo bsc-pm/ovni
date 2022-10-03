@@ -37,7 +37,7 @@ void
 chan_disable(struct ovni_chan *chan);
 
 int
-chan_is_enabled(struct ovni_chan *chan);
+chan_is_enabled(const struct ovni_chan *chan);
 
 void
 chan_set(struct ovni_chan *chan, int st);
@@ -52,9 +52,12 @@ void
 chan_ev(struct ovni_chan *chan, int ev);
 
 int
-chan_get_st(struct ovni_chan *chan);
+chan_get_st(const struct ovni_chan *chan);
 
 void
 chan_emit(struct ovni_chan *chan);
+
+void
+chan_copy(struct ovni_chan *dst, const struct ovni_chan *src);
 
 #endif /* OVNI_CHAN_H */

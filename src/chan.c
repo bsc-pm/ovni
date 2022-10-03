@@ -132,7 +132,7 @@ chan_disable(struct ovni_chan *chan)
 }
 
 int
-chan_is_enabled(struct ovni_chan *chan)
+chan_is_enabled(const struct ovni_chan *chan)
 {
 	return chan->enabled;
 }
@@ -287,7 +287,7 @@ chan_ev(struct ovni_chan *chan, int ev)
 }
 
 int
-chan_get_st(struct ovni_chan *chan)
+chan_get_st(const struct ovni_chan *chan)
 {
 	if (chan->enabled == 0)
 		return chan->badst;
@@ -299,6 +299,27 @@ chan_get_st(struct ovni_chan *chan)
 		die("chan_get_st: chan %d has negative n\n", chan->id);
 
 	return chan->stack[chan->n - 1];
+}
+
+void
+chan_copy(struct ovni_chan *dst, const struct ovni_chan *src)
+{
+	if (!chan_is_enabled(src)) {
+		chan_disable(dst);
+		return;
+	}
+
+	if (!chan_is_enabled(dst))
+		chan_enable(dst, 1);
+
+	if (src->ev != -1) {
+		chan_ev(dst, src->ev);
+	} else {
+		int src_st = chan_get_st(src);
+		int dst_st = chan_get_st(dst);
+		if (src_st != dst_st)
+			chan_set(dst, src_st);
+	}
 }
 
 static void

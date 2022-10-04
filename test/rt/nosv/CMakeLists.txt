@@ -24,3 +24,5 @@ function(nosv_test)
 endfunction()
 
 nosv_test(attach.c)
+nosv_test(waitfor.c)
+nosv_test(several-tasks.c)

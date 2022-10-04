@@ -72,6 +72,19 @@ let
       };
     };
 
+    nodes = (prev.nanos6Git.override {
+      gitUrl = "ssh://git@gitlab-internal.bsc.es/nos-v/nodes.git";
+      gitBranch = "master";
+      #gitCommit = "8bfbc2dbd8b09b6578aa5c07e57bffedcf5568af";
+      extrae = null;
+    }).overrideAttrs (old: {
+      name = "nodes";
+      configureFlags = old.configureFlags ++ [
+        "--with-ovni=${last.ovniFixed}"
+        "--with-nosv=${last.nosv}"
+      ];
+    });
+
     # Now we rebuild ovni with the Nanos6 and nOS-V versions, which were
     # linked to the previous ovni. We need to be able to exit the chroot
     # to run Nanos6 tests, as they require access to /sys for hwloc
@@ -83,6 +96,7 @@ let
         pkgs.gdb
         last.nosv
         last.nanos6
+        last.nodes
         pkgs.strace
       ];
     });

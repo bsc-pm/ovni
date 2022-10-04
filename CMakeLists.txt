@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(OVNI LANGUAGES C)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
 add_compile_options(-Wall -Wextra -Wformat
   -Wmissing-prototypes -Wstrict-prototypes
   #-Wconversion -Wsign-conversion

@@ -47,7 +47,7 @@ function(ovni_test source)
     "OVNI_CURRENT_DIR=${CMAKE_CURRENT_BINARY_DIR}")
 
   add_executable("${OVNI_TEST_NAME}" "${OVNI_TEST_SOURCE}")
-  target_link_libraries("${OVNI_TEST_NAME}" ovni)
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni)
 
   set(driver "${OVNI_TEST_SOURCE_DIR}/ovni-driver.sh")
 

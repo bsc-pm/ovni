@@ -15,7 +15,7 @@ endif()
 
 function(nosv_test)
   ovni_test(${ARGN})
-  target_link_libraries("${OVNI_TEST_NAME}" nosv)
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE nosv)
   target_include_directories("${OVNI_TEST_NAME}"
     PUBLIC ${NOSV_INCLUDE_DIR})
   set_property(TEST "${OVNI_TEST_NAME}" APPEND

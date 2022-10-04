@@ -99,6 +99,9 @@ let
         last.nodes
         pkgs.strace
       ];
+      preConfigure = ''
+        export NODES_HOME="${last.nodes}"
+      '';
     });
   });
 

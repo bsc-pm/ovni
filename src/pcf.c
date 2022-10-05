@@ -294,8 +294,8 @@ int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
 	[CHAN_NANOS6_TASKID]    = { RUN_TH, RUN_TH },
 	[CHAN_NANOS6_TYPE]      = { RUN_TH, RUN_TH },
 	[CHAN_NANOS6_SUBSYSTEM] = { ACT_TH, RUN_TH },
-	[CHAN_NANOS6_RANK]   	= { RUN_TH, RUN_TH },
-	[CHAN_NANOS6_THREAD]   	= { ACT_TH, NONE },
+	[CHAN_NANOS6_RANK]      = { RUN_TH, RUN_TH },
+	[CHAN_NANOS6_THREAD]    = { RUN_TH, NONE   },
 
 	[CHAN_KERNEL_CS]        = { RUN_TH, ACT_TH },
 };

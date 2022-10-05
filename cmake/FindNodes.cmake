@@ -7,7 +7,6 @@ else()
 endif()
 
 find_library(NODES_LIBRARY NAMES nanos6 PATHS "${NODES_HOME}/lib" NO_DEFAULT_PATH)
-#find_path(NODES_WRAPPER nanos6-main-wrapper.o  PATHS "${NODES_HOME}/lib" NO_DEFAULT_PATH)
 find_file(NODES_WRAPPER NAMES nanos6-main-wrapper.o PATHS "${NODES_HOME}/lib" NO_DEFAULT_PATH)
 find_path(NODES_INCLUDE_DIR nanos6.h PATHS "${NODES_HOME}/include" NO_DEFAULT_PATH)
 

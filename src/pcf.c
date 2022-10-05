@@ -273,8 +273,8 @@ char *pcf_suffix_name[SUFFIX_MAX] = {
 
 int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
 	                        /*  Thread  CPU  */
-	[CHAN_OVNI_PID]         = { CUR_TH, CUR_TH },
-	[CHAN_OVNI_TID]         = { CUR_TH, CUR_TH },
+	[CHAN_OVNI_PID]         = { RUN_TH, RUN_TH },
+	[CHAN_OVNI_TID]         = { RUN_TH, RUN_TH },
 	[CHAN_OVNI_NRTHREADS]   = { NONE,   NONE   },
 	[CHAN_OVNI_STATE]       = { CUR_TH, NONE   },
 	[CHAN_OVNI_APPID]       = { NONE,   RUN_TH },

@@ -30,10 +30,14 @@ function(nodes_rt_test)
   target_link_libraries("${OVNI_TEST_NAME}" PRIVATE Nodes::nodes Nodes::wrapper)
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "NANOS6_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nodes/nanos6.toml")
+
+  set_property(TEST "${OVNI_TEST_NAME}" APPEND
+    PROPERTY
+      ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nodes/nosv.toml")
 endfunction()
 
-nodes_rt_test(../nanos6/simple-task.c NAME simple-task)
-nodes_rt_test(../nanos6/nested-task.c NAME nested-task)
-nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks)
-nodes_rt_test(../nanos6/if0.c NAME if0)
-nodes_rt_test(../nanos6/sched-add.c NAME sched-add)
+nodes_rt_test(../nanos6/simple-task.c NAME simple-task SORT)
+nodes_rt_test(../nanos6/nested-task.c NAME nested-task SORT)
+nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks SORT)
+nodes_rt_test(../nanos6/if0.c NAME if0 SORT)
+nodes_rt_test(../nanos6/sched-add.c NAME sched-add SORT)

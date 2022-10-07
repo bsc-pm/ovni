@@ -4,7 +4,7 @@
 include(CMakeParseArguments)
 
 function(ovni_test source)
-  set(switches MP SHOULD_FAIL)
+  set(switches MP SHOULD_FAIL SORT)
   set(single NPROC REGEX NAME)
   set(multi ENV)
 
@@ -45,6 +45,10 @@ function(ovni_test source)
 
   list(APPEND OVNI_TEST_ENV
     "OVNI_CURRENT_DIR=${CMAKE_CURRENT_BINARY_DIR}")
+
+  if(OVNI_TEST_SORT)
+    list(APPEND OVNI_TEST_ENV "OVNI_DO_SORT=1")
+  endif()
 
   add_executable("${OVNI_TEST_NAME}" "${OVNI_TEST_SOURCE}")
   target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni)

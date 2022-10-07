@@ -87,13 +87,14 @@ static ssize_t
 find_destination(struct ring *r, uint64_t clock)
 {
 	ssize_t nback = 0;
+	ssize_t i = 0;
 
 	UNUSED(nback);
 
 	ssize_t start = r->tail - 1 >= 0 ? r->tail - 1 : r->size - 1;
 	ssize_t end = r->head - 1 >= 0 ? r->head - 1 : r->size - 1;
 
-	for (ssize_t i = start; i != end; i = i - 1 < 0 ? r->size - 1 : i - 1) {
+	for (i = start; i != end; i = i - 1 < 0 ? r->size - 1 : i - 1) {
 		if (r->ev[i]->header.clock < clock) {
 			dbg("found suitable position %ld events backwards\n",
 					nback);
@@ -103,6 +104,7 @@ find_destination(struct ring *r, uint64_t clock)
 	}
 
 	err("cannot find a event previous to clock %lu\n", clock);
+	err("nback = %ld, last clock=%lu\n", nback, r->ev[i]->header.clock);
 
 	return -1;
 }

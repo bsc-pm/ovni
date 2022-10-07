@@ -557,14 +557,13 @@ pre_burst(struct ovni_emu *emu)
 
 		double avg = 0.0;
 		double maxdelta = 0;
-		for (int i = 1; i < th->nbursts; i++) {
-			double delta = th->burst_time[i] - th->burst_time[i - 1];
-			if (delta > maxdelta)
-				maxdelta = delta;
-			avg += delta;
+		for (int i = 0; i < n; i++) {
+			if (deltas[i] > maxdelta)
+				maxdelta = deltas[i];
+			avg += deltas[i];
 		}
 
-		avg /= (double) th->nbursts;
+		avg /= (double) n;
 		double median = deltas[n / 2];
 
 		err("%s burst stats: median %.0f ns, avg %.1f ns, max %.0f ns\n",

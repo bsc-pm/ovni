@@ -111,7 +111,7 @@ find_destination(struct ring *r, uint64_t clock)
 		if (r->head != 0)
 			die("ring head expected to be 0\n");
 		if (r->tail >= r->size - 1)
-			die("ring tail=%d expected to be less than %d\n", r->tail, r->size - 1);
+			die("ring tail=%ld expected to be less than %ld\n", r->tail, r->size - 1);
 
 		dbg("starting of ring with nback=%ld\n", nback);
 		return r->head;

@@ -11,5 +11,6 @@ ovni_test(sort.c SORT)
 ovni_test(empty-sort.c SORT)
 ovni_test(sort-first-and-full-ring.c SORT
   SHOULD_FAIL REGEX "cannot find a event previous to clock")
+ovni_test(burst-stats.c REGEX "burst stats: median 33 ns, avg 33\.0 ns, max 33 ns")
 ovni_test(mp-simple.c MP)
 ovni_test(mp-rank.c MP)

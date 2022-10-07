@@ -7,5 +7,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 ovni_test(flush.c)
+ovni_test(sort.c SORT)
+ovni_test(empty-sort.c SORT)
 ovni_test(mp-simple.c MP)
 ovni_test(mp-rank.c MP)

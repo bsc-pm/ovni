@@ -4,11 +4,16 @@
 
 set -e
 
+if [ -n "$OVNI_TEST_VERBOSE" ]; then
+  set -x
+fi
+
 dir=$(readlink -f "${OVNI_CURRENT_DIR}")
 testname="$dir/$1"
 workdir="${testname}.trace"
 tracedir="${workdir}/ovni"
 emubin="${OVNI_BUILD_DIR}/ovniemu"
+sortbin="${OVNI_BUILD_DIR}/ovnisort"
 
 mkdir -p "${workdir}"
 cd "${workdir}"
@@ -27,6 +32,10 @@ if [ "$OVNI_NPROCS" -gt 1 ]; then
   wait
 else
   "$testname"
+fi
+
+if [ -n "$OVNI_DO_SORT" ]; then
+  "$sortbin" "$tracedir"
 fi
 
 # Then launch the emulator in lint mode

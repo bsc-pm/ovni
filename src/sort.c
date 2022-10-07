@@ -295,13 +295,14 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 static int
 stream_check(struct ovni_stream *stream)
 {
-	ovni_load_next_event(stream);
+	if (ovni_load_next_event(stream) != 0)
+		return 0;
+
 	struct ovni_ev *ev = stream->cur_ev;
 	uint64_t last_clock = ev->header.clock;
 	int ret = 0;
 
-	while (stream->active) {
-		ovni_load_next_event(stream);
+	while (ovni_load_next_event(stream) == 0) {
 		ev = stream->cur_ev;
 		uint64_t cur_clock = ovni_ev_get_clock(ev);
 

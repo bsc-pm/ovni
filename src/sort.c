@@ -107,11 +107,13 @@ find_destination(struct ring *r, uint64_t clock)
 	/* If there is no event with a lower clock and we haven't fill the ring
 	 * yet, then we are at the beginning and no other event has be emitted
 	 * before the sort window. So simply return the first marker. */
-	if (nback < (ssize_t) max_look_back) {
+	if (nback < (ssize_t) r->size - 1) {
 		if (r->head != 0)
 			die("ring head expected to be 0\n");
 		if (r->tail >= r->size - 1)
 			die("ring tail=%d expected to be less than %d\n", r->tail, r->size - 1);
+
+		dbg("starting of ring with nback=%ld\n", nback);
 		return r->head;
 	}
 

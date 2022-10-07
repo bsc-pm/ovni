@@ -2,7 +2,7 @@
 [shared_memory]
 	# Name of the shared memory section. This can be leveraged to create two separate nOS-V instances
 	# in the same system. Generally this has to remain unchanged
-	name = "nosv"
+	name = "nosv-ovni"
 	# Size of the shared memory section. Choose powers of two
 	size = "2G"
 	# Start of the shared memory mapping

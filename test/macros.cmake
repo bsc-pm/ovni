@@ -68,11 +68,22 @@ function(ovni_test source)
         "${OVNI_TEST_NAME}"
       WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
   else()
-    add_test(NAME "${OVNI_TEST_NAME}"
-      COMMAND
-        "${driver}"
-        "${OVNI_TEST_NAME}"
-      WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
+    if(OVNI_TEST_REGEX)
+      # Custom error handler for ok too
+      add_test(NAME "${OVNI_TEST_NAME}"
+        COMMAND
+          "${OVNI_TEST_SOURCE_DIR}/match-ok.sh"
+          "${OVNI_TEST_REGEX}"
+          "${driver}"
+          "${OVNI_TEST_NAME}"
+        WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
+    else()
+      add_test(NAME "${OVNI_TEST_NAME}"
+        COMMAND
+          "${driver}"
+          "${OVNI_TEST_NAME}"
+        WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
+    endif()
   endif()
 
   set_tests_properties("${OVNI_TEST_NAME}"

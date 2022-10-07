@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* This program is a really bad idea. It attempts to sort streams by using a
@@ -241,8 +241,7 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 	size_t updated = 0;
 	char st = 'S';
 
-	while (stream->active) {
-		ovni_load_next_event(stream);
+	while (ovni_load_next_event(stream) == 0) {
 		struct ovni_ev *ev = stream->cur_ev;
 
 		if (st == 'S' && starts_unsorted_region(ev)) {

@@ -62,6 +62,10 @@ main(void)
 
 	emit_jumbo(buf, BUFSIZE, t);
 
+	/* Sleep a bit to prevent early OU] */
+	while ((int64_t) ovni_clock_now() < t)
+		usleep(10);
+
 	emit("OU]", ovni_clock_now());
 
 	instr_end();

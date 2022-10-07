@@ -9,5 +9,7 @@ endif()
 ovni_test(flush.c)
 ovni_test(sort.c SORT)
 ovni_test(empty-sort.c SORT)
+ovni_test(sort-first-and-full-ring.c SORT
+  SHOULD_FAIL REGEX "cannot find a event previous to clock")
 ovni_test(mp-simple.c MP)
 ovni_test(mp-rank.c MP)

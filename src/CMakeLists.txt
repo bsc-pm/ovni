@@ -8,6 +8,9 @@ add_library(ovni SHARED
 
 target_include_directories(ovni PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+configure_file("config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h" )
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(ovniemu
   chan.c
   emu.c

@@ -28,6 +28,10 @@ if(NOT CMAKE_BUILD_TYPE)
     "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel Asan UBsan." FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+include(GNUInstallDirs)
+set(OVNI_CONFIG_RELDIR "${CMAKE_INSTALL_DATADIR}/ovni")
+set(OVNI_CONFIG_DIR "${CMAKE_INSTALL_PREFIX}/${OVNI_CONFIG_RELDIR}")
+
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_available OUTPUT error LANGUAGES C)
 
@@ -70,4 +74,4 @@ if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
 
-install(DIRECTORY cfg/ DESTINATION share/ovni)
+install(DIRECTORY cfg/ DESTINATION "${OVNI_CONFIG_RELDIR}")

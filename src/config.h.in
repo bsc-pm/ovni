@@ -1,0 +1,9 @@
+/* Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+#ifndef OVNI_CONFIG_H
+#define OVNI_CONFIG_H
+
+#cmakedefine OVNI_CONFIG_DIR "@OVNI_CONFIG_DIR@"
+
+#endif /* OVNI_CONFIG_H */

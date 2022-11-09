@@ -39,5 +39,5 @@ To start a trace follow these steps:
   directory containing the runtime trace.
 - Finally run the `ovniemu ovni` command to generate the Paraver traces.
 - Use the command `wxparaver ovni/cpu.prv` to load the CPU trace.
-- Load the configurations from the `cfg/` directory that you are
+- Load the configurations from the `ovni/cfg/` directory that you are
   interested in, to open a timeline view.

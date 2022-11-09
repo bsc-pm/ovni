@@ -13,9 +13,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "chan.h"
 #include "emu.h"
 #include "ovni.h"
@@ -1039,6 +1041,149 @@ emu_init(struct ovni_emu *emu, int argc, char *argv[])
 			emu->total_nthreads);
 }
 
+static int
+copy_file(const char *src, const char *dst)
+{
+	char buffer[1024];
+
+	FILE *infile = fopen(src, "r");
+
+	if (infile == NULL) {
+		err("fopen(%s) failed: %s\n", src, strerror(errno));
+		return -1;
+	}
+
+	FILE *outfile = fopen(dst, "w");
+
+	if (outfile == NULL) {
+		err("fopen(%s) failed: %s\n", src, strerror(errno));
+		return -1;
+	}
+
+	size_t bytes;
+	while ((bytes = fread(buffer, 1, sizeof(buffer), infile)) > 0)
+		fwrite(buffer, 1, bytes, outfile);
+
+	fclose(outfile);
+	fclose(infile);
+
+	return 0;
+}
+
+static int
+copy_recursive(const char *src, const char *dst)
+{
+	DIR *dir;
+	int failed = 0;
+
+	if ((dir = opendir(src)) == NULL) {
+		err("opendir \"%s\" failed: %s\n", src, strerror(errno));
+		failed = 1;
+		goto bay;
+	}
+
+	if (mkdir(dst, 0755) != 0) {
+		err("mkdir \"%s\" failed: %s\n", src, strerror(errno));
+		failed = 1;
+		goto bay;
+	}
+
+	/* Use the heap, as the recursion may exhaust the stack */
+	char *newsrc = calloc(1, PATH_MAX);
+	if (newsrc == NULL)
+		die("calloc failed\n");
+
+	char *newdst = calloc(1, PATH_MAX);
+	if (newdst == NULL)
+		die("calloc failed\n");
+
+	struct dirent *dirent;
+	while ((dirent = readdir(dir)) != NULL) {
+		struct stat st;
+		sprintf(newsrc, "%s/%s", src, dirent->d_name);
+
+		if (strcmp(dirent->d_name, ".") == 0)
+			continue;
+
+		if (strcmp(dirent->d_name, "..") == 0)
+			continue;
+
+		int n = snprintf(newsrc, PATH_MAX, "%s/%s",
+				src, dirent->d_name);
+
+		if (n >= PATH_MAX) {
+			err("path too long \"%s/%s\"\n", src, dirent->d_name);
+			failed = 1;
+			continue;
+		}
+
+		int m = snprintf(newdst, PATH_MAX, "%s/%s",
+				dst, dirent->d_name);
+
+		if (m >= PATH_MAX) {
+			err("path too long \"%s/%s\"\n", dst, dirent->d_name);
+			failed = 1;
+			continue;
+		}
+
+		if (stat(newsrc, &st) != 0) {
+			err("stat \"%s\" failed: %s\n", newsrc,
+					strerror(errno));
+			failed = 1;
+			continue;
+		}
+
+		if (S_ISDIR(st.st_mode)) {
+			if (copy_recursive(newsrc, newdst) != 0) {
+				failed = 1;
+			}
+		} else {
+			if (copy_file(newsrc, newdst) != 0) {
+				failed = 1;
+			}
+		}
+	}
+
+	closedir(dir);
+
+	free(newsrc);
+	free(newdst);
+
+bay:
+	return -failed;
+}
+
+static void
+copy_configs(struct ovni_emu *emu)
+{
+	/* Allow override so we can run the tests without install */
+	char *src = getenv("OVNI_CONFIG_DIR");
+
+	if (src == NULL)
+		src = OVNI_CONFIG_DIR;
+
+	char dst[PATH_MAX];
+	if (snprintf(dst, PATH_MAX, "%s/cfg", emu->tracedir) >= PATH_MAX) {
+		err("cannot copy config files: path too long \"%s/cfg\"\n",
+				emu->tracedir);
+		return;
+	}
+
+	struct stat st;
+	if (stat(dst, &st) == 0) {
+		err("existing cfg directory \"%s\", skipping config copy\n", dst);
+		if (emu->enable_linter)
+			die("cannot continue in linter mode\n");
+		return;
+	}
+
+	if (copy_recursive(src, dst) != 0) {
+		err("warning: cannot copy config files: recursive copy failed\n");
+		if (emu->enable_linter)
+			die("cannot continue in linter mode\n");
+	}
+}
+
 static void
 emu_post(struct ovni_emu *emu)
 {
@@ -1048,6 +1193,8 @@ emu_post(struct ovni_emu *emu)
 
 	write_row_cpu(emu);
 	write_row_thread(emu);
+
+	copy_configs(emu);
 }
 
 static void

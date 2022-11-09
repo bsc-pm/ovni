@@ -46,6 +46,9 @@ function(ovni_test source)
   list(APPEND OVNI_TEST_ENV
     "OVNI_CURRENT_DIR=${CMAKE_CURRENT_BINARY_DIR}")
 
+  list(APPEND OVNI_TEST_ENV
+    "OVNI_CONFIG_DIR=${CMAKE_SOURCE_DIR}/cfg")
+
   if(OVNI_TEST_SORT)
     list(APPEND OVNI_TEST_ENV "OVNI_DO_SORT=1")
   endif()

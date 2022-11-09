@@ -11,7 +11,7 @@
 regex="$1"
 shift
 
-"${@}" 2>&1 | stdbuf -i0 -o0 tee /dev/stderr | grep -q "${regex}"
+"${@}" 2>&1 | stdbuf -i0 -o0 tee /dev/stderr | grep "${regex}" >/dev/null
 
 rcprog=${PIPESTATUS[0]} rcgrep=${PIPESTATUS[2]}
 

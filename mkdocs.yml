@@ -20,6 +20,7 @@ markdown_extensions:
 nav:
   - index.md
   - concepts.md
+  - installation.md
   - 'Runtime':
     - runtime/tracing.md
     - runtime/distributed.md

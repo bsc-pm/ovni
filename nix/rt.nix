@@ -26,8 +26,10 @@ let
     });
 
     nanos6 = (prev.nanos6Git.override {
-      gitUrl = "ssh://git@bscpm03.bsc.es/nanos6/forks/nanos6-extern-001.git";
-      gitBranch = "ovni_instr";
+      gitUrl = "ssh://git@bscpm03.bsc.es/nanos6/nanos6.git";
+      gitBranch = "master";
+      # Master at 2022-11-14
+      #gitCommit = "a6f88173b7d849a453f35029cb0fbee73e8685da";
       extrae = null;
     }).overrideAttrs (old: {
       buildInputs = old.buildInputs ++ [ last.ovniFixed ];
@@ -45,11 +47,11 @@ let
             type = "git";
             url = "ssh://git@bscpm03.bsc.es/llvm-ompss/llvm-mono.git";
             ref = "master";
-            # Master at 2022-07-26
-            rev = "d3d4f2bf231b9461a5881c5bf56659516d45e670";
+            # Master at 2022-11-14
+            rev = "58f311bf028d344ebd6072268bd21d33867d1466";
             shallow = true;
           };
-          version = "d3d4f2bf";
+          version = "58f311bf";
         }
       );
 

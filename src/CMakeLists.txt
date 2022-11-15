@@ -50,6 +50,13 @@ if(POLICY CMP0074)
 endif()
 
 find_package(MPI REQUIRED)
+
+if(NOT MPI_USE_RUNPATH)
+  # Ensure we use RPATH (not RUNPATH) to link with MPI library, so we are
+  # protected against LD_LIBRARY_PATH overrides.
+  target_link_options(MPI::MPI_C INTERFACE "LINKER:--disable-new-dtags")
+endif()
+
 add_executable(ovnisync ovnisync.c)
 target_link_libraries(ovnisync m MPI::MPI_C)
 

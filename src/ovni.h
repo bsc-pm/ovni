@@ -31,6 +31,9 @@ typedef struct json_value_t JSON_Value;
 #define OVNI_STREAM_VERSION 1
 #define OVNI_MODEL_VERSION "O1 V1 T1 M1 D1 K1 61"
 
+/* Follow https://semver.org rules for versioning */
+#define OVNI_LIB_VERSION "1.0.0"
+
 /* ----------------------- common ------------------------ */
 
 enum ovni_ev_flags {
@@ -119,6 +122,9 @@ struct ovni_rproc {
 
 	JSON_Value *meta;
 };
+
+#define ovni_version_check() ovni_version_check_str(OVNI_LIB_VERSION)
+void ovni_version_check_str(const char *version);
 
 void ovni_proc_init(int app, const char *loom, int pid);
 

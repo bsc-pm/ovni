@@ -86,6 +86,7 @@ instr_start(int rank, int nranks)
 
 	sprintf(rankname, "%s.%d", hostname, rank);
 
+	ovni_version_check();
 	ovni_proc_init(1, rankname, getpid());
 	ovni_proc_set_rank(rank, nranks);
 	ovni_thread_init(gettid());

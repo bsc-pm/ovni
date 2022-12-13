@@ -6,6 +6,10 @@ add_library(ovni SHARED
   parson.c
 )
 
+set_target_properties(ovni PROPERTIES
+  VERSION 1.0.0
+  SOVERSION 1)
+
 target_include_directories(ovni PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 configure_file("config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h" )

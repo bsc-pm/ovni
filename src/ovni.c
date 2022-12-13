@@ -24,6 +24,88 @@ struct ovni_rproc rproc = {0};
 /* Data per thread */
 _Thread_local struct ovni_rthread rthread = {0};
 
+static int
+parse_version(const char *version, int tuple[3])
+{
+	char buf[64];
+
+	if (strlen(version) >= 64) {
+		err("parse_version: version too long: %s\n", version);
+		return -1;
+	}
+
+	strcpy(buf, version);
+
+	char *str = buf;
+	char *which[] = { "major", "minor", "patch" };
+	char *delim[] = { ".", ".", ".-" };
+	char *save = NULL;
+
+	for (int i = 0; i < 3; i++) {
+		char *num = strtok_r(str, delim[i], &save);
+
+		/* Subsequent calls need NULL as string */
+		str = NULL;
+
+		if (num == NULL) {
+			err("parse_version: missing %s number: %s\n",
+					which[i], version);
+			return -1;
+		}
+
+		errno = 0;
+		char *endptr = NULL;
+		int v = (int) strtol(num, &endptr, 10);
+
+		if (errno != 0 || endptr == num || endptr[0] != '\0') {
+			err("parse_version: failed to parse %s number: %s\n",
+					which[i], version);
+			return -1;
+		}
+
+		if (v < 0) {
+			err("parse_version: invalid negative %s number: %s\n",
+					which[i], version);
+			return -1;
+		}
+
+		tuple[i] = v;
+	}
+
+	return 0;
+}
+
+void ovni_version_check_str(const char *version)
+{
+	if (version == NULL)
+		die("ovni version string is NULL\n");
+
+	int provided[3];
+	int expected[3];
+
+	if (parse_version(version, provided) != 0)
+		die("failed to parse provided version \"%s\"\n", version);
+
+	if (parse_version(OVNI_LIB_VERSION, expected) != 0)
+		die("failed to parse expected version \"%s\"\n", OVNI_LIB_VERSION);
+
+	/* Match the major */
+	if (provided[0] != expected[0]) {
+		die("ovni major version mismatch: found %d (%s), expected %d (%s)\n",
+				provided[0], version,
+				expected[0], OVNI_LIB_VERSION);
+	}
+
+	/* Only fail if the minor is older */
+	if (provided[1] < expected[1]) {
+		die("ovni minor version too old: found %d (%s), expected %d (%s)\n",
+				provided[1], version,
+				expected[1], OVNI_LIB_VERSION);
+	}
+
+	/* Ignore the patch number */
+}
+
 static void
 create_trace_stream(void)
 {

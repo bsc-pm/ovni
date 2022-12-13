@@ -14,3 +14,5 @@ ovni_test(sort-first-and-full-ring.c SORT
 ovni_test(burst-stats.c REGEX "burst stats: median 33 ns, avg 33\.0 ns, max 33 ns")
 ovni_test(mp-simple.c MP)
 ovni_test(mp-rank.c MP)
+ovni_test(version-good.c)
+ovni_test(version-bad.c SHOULD_FAIL REGEX "version mismatch")

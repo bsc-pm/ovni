@@ -6,6 +6,8 @@ trace is correct.
 
 ## Trace processes and threads
 
+- Call `ovni_version_check()` once before calling any ovni function.
+
 - Call `ovni_proc_init()` when a new process begins the execution.
 
 - Call `ovni_thread_init()` when a new thread begins the execution

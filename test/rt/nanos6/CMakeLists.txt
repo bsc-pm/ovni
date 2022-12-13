@@ -40,7 +40,7 @@ nanos6_rt_test(nested-task.c)
 nanos6_rt_test(several-tasks.c)
 nanos6_rt_test(sched-add.c)
 nanos6_rt_test(if0.c)
-nanos6_rt_test(taskfor.c)
+#nanos6_rt_test(taskfor.c) #Taskfor no longer supported
 
 # Test multiple instrumentation levels
 nanos6_rt_test(simple-task.c NAME simple-task-level-1 LEVEL 1)

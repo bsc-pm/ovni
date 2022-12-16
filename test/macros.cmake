@@ -41,7 +41,7 @@ function(ovni_test source)
     "OVNI_NPROCS=${OVNI_TEST_NPROC}")
 
   list(APPEND OVNI_TEST_ENV
-    "OVNI_BUILD_DIR=${CMAKE_BINARY_DIR}/src")
+    "OVNI_BUILD_DIR=${CMAKE_BINARY_DIR}/src/emu")
 
   list(APPEND OVNI_TEST_ENV
     "OVNI_CURRENT_DIR=${CMAKE_CURRENT_BINARY_DIR}")
@@ -53,6 +53,11 @@ function(ovni_test source)
     list(APPEND OVNI_TEST_ENV "OVNI_DO_SORT=1")
   endif()
 
+  include_directories(
+    "${CMAKE_SOURCE_DIR}/src/include"
+    "${CMAKE_SOURCE_DIR}/src"
+    "${CMAKE_SOURCE_DIR}/include"
+  )
   add_executable("${OVNI_TEST_NAME}" "${OVNI_TEST_SOURCE}")
   target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni)
 

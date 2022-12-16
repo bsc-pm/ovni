@@ -6,7 +6,7 @@
 
 #include "chan.h"
 #include "emu.h"
-#include "emu_task.h"
+#include "task.h"
 #include "ovni.h"
 #include "prv.h"
 

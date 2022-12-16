@@ -67,6 +67,7 @@ if (NOT HAVE_CLOCK_GETTIME)
   endif()
 endif()
 
+add_subdirectory(include)
 add_subdirectory(src)
 
 include(CTest)

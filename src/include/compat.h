@@ -19,4 +19,4 @@ gettid(void)
 #endif /* !__GLIBC_PREREQ(2, 30) */
 #endif /* defined(__GLIBC__) */
 
-#endif// COMPAT_H
+#endif /* COMPAT_H */

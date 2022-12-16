@@ -448,8 +448,8 @@ emu_load_first_events(struct ovni_emu *emu)
 	}
 }
 
-static void
-emulate(struct ovni_emu *emu)
+void
+emu_run(struct ovni_emu *emu)
 {
 	emu->nev_processed = 0;
 	emu_load_first_events(emu);
@@ -1001,7 +1001,7 @@ create_pcf_cpus(struct ovni_emu *emu)
 	}
 }
 
-static void
+void
 emu_init(struct ovni_emu *emu, int argc, char *argv[])
 {
 	memset(emu, 0, sizeof(*emu));
@@ -1184,7 +1184,7 @@ copy_configs(struct ovni_emu *emu)
 	}
 }
 
-static void
+void
 emu_post(struct ovni_emu *emu)
 {
 	/* Write the PCF files */
@@ -1197,7 +1197,7 @@ emu_post(struct ovni_emu *emu)
 	copy_configs(emu);
 }
 
-static void
+void
 emu_destroy(struct ovni_emu *emu)
 {
 	fix_prv_headers(emu);
@@ -1247,25 +1247,4 @@ eerr(struct ovni_emu *emu, const char *fmt, ...)
 			emu->cur_ev->header.value,
 			emu->cur_ev->header.clock,
 			emu->cur_thread->tid);
-}
-
-int
-main(int argc, char *argv[])
-{
-	struct ovni_emu *emu = malloc(sizeof(struct ovni_emu));
-
-	if (emu == NULL) {
-		perror("malloc");
-		return 1;
-	}
-
-	emu_init(emu, argc, argv);
-	err("emulation starts\n");
-	emulate(emu);
-	emu_post(emu);
-	emu_destroy(emu);
-	err("emulation ends\n");
-	free(emu);
-
-	return 0;
 }

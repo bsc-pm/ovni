@@ -578,4 +578,9 @@ struct ovni_ethread *emu_get_thread(struct ovni_eproc *proc, int tid);
 
 void emu_cpu_update_chan(struct ovni_cpu *cpu, struct ovni_chan *cpu_chan);
 
+void emu_init(struct ovni_emu *emu, int argc, char *argv[]);
+void emu_run(struct ovni_emu *emu);
+void emu_post(struct ovni_emu *emu);
+void emu_destroy(struct ovni_emu *emu);
+
 #endif /* OVNI_EMU_H */

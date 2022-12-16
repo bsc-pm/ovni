@@ -20,8 +20,8 @@ let
     ovniFixed = last.ovni.overrideAttrs (old: {
       src = builtins.fetchGit {
         url = "ssh://git@bscpm03.bsc.es/rarias/ovni.git";
-        ref = "nanos6-emu-with-tests";
-        rev = "3d39b8cc544140727c83a066a8fca785aff21965";
+        ref = "master";
+        rev = "e47cf8fe22f79d9315e057376b4166013c2217a4";
       };
     });
 

@@ -21,6 +21,7 @@ int main(void)
 		{ -1, "1",		{ 0, 0, 0 } },
 		{ -1, "1.O.O",		{ 0, 0, 0 } },
 		{ -1, "1.2.3rc",	{ 0, 0, 0 } },
+		{ -1, NULL,		{ 0, 0, 0 } },
 	};
 
 	int n = sizeof(cases) / sizeof(cases[0]);

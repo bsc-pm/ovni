@@ -14,6 +14,11 @@ version_parse(const char *version, int tuple[3])
 {
 	char buf[64];
 
+	if (version == NULL) {
+		err("parse_version: version is NULL\n");
+		return -1;
+	}
+
 	if (strlen(version) >= 64) {
 		err("parse_version: version too long: %s\n", version);
 		return -1;

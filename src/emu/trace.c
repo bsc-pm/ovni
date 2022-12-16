@@ -299,15 +299,16 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 		if (find_dir_prefix_int(dirent->d_name, "proc", &pid) != 0)
 			continue;
 
-		char path[PATH_MAX];
-		sprintf(path, "%s/%s", loomdir, dirent->d_name);
-
 		if (i >= loom->nprocs) {
 			err("more process than expected\n");
 			abort();
 		}
 
-		if (load_proc(&loom->proc[i], loom, i, pid, path) != 0)
+		struct ovni_eproc *proc = &loom->proc[i];
+
+		sprintf(proc->dir, "%s/%s", loomdir, dirent->d_name);
+
+		if (load_proc(&loom->proc[i], loom, i, pid, proc->dir) != 0)
 			return -1;
 
 		i++;

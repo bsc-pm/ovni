@@ -3,8 +3,52 @@
 
 include(CMakeParseArguments)
 
+function(unit_test source)
+  set(switches "")
+  set(single "" NAME)
+  set(multi "")
+
+  cmake_parse_arguments(
+    OVNI_TEST "${switches}" "${single}" "${multi}" ${ARGN})
+
+  if(OVNI_TEST_NAME)
+    set(test_name "${OVNI_TEST_NAME}")
+  else()
+    set(test_name "${source}")
+  endif()
+
+  # Compute the test name from the source and path
+  cmake_path(RELATIVE_PATH CMAKE_CURRENT_SOURCE_DIR
+    BASE_DIRECTORY "${OVNI_TEST_SOURCE_DIR}"
+          OUTPUT_VARIABLE name_prefix)
+  set(full_path "${name_prefix}/${test_name}")
+  string(REGEX REPLACE "\.c$" "" full_path_noext "${full_path}")
+  string(REPLACE "/" "-" name "${full_path_noext}")
+
+  set(OVNI_TEST_NAME ${name})
+  set(OVNI_TEST_NAME ${OVNI_TEST_NAME} PARENT_SCOPE)
+  set(OVNI_TEST_SOURCE ${source})
+
+  include_directories(
+    "${CMAKE_SOURCE_DIR}/src/include"
+    "${CMAKE_SOURCE_DIR}/src"
+    "${CMAKE_SOURCE_DIR}/include"
+  )
+  add_executable("${OVNI_TEST_NAME}" "${OVNI_TEST_SOURCE}")
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni emu)
+
+  add_test(NAME "${OVNI_TEST_NAME}"
+    COMMAND "${OVNI_TEST_NAME}"
+    WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
+
+  set_tests_properties("${OVNI_TEST_NAME}"
+    PROPERTIES
+      RUN_SERIAL TRUE
+      WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
+endfunction(unit_test)
+
 function(ovni_test source)
-  set(switches MP SHOULD_FAIL SORT)
+	set(switches MP SHOULD_FAIL SORT UNIT)
   set(single NPROC REGEX NAME)
   set(multi ENV)
 

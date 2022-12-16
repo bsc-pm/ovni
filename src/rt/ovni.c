@@ -17,63 +17,13 @@
 #include "compat.h"
 #include "ovni.h"
 #include "parson.h"
+#include "version.h"
 
 /* Data per process */
 struct ovni_rproc rproc = {0};
 
 /* Data per thread */
 _Thread_local struct ovni_rthread rthread = {0};
-
-static int
-parse_version(const char *version, int tuple[3])
-{
-	char buf[64];
-
-	if (strlen(version) >= 64) {
-		err("parse_version: version too long: %s\n", version);
-		return -1;
-	}
-
-	strcpy(buf, version);
-
-	char *str = buf;
-	char *which[] = { "major", "minor", "patch" };
-	char *delim[] = { ".", ".", ".-" };
-	char *save = NULL;
-
-	for (int i = 0; i < 3; i++) {
-		char *num = strtok_r(str, delim[i], &save);
-
-		/* Subsequent calls need NULL as string */
-		str = NULL;
-
-		if (num == NULL) {
-			err("parse_version: missing %s number: %s\n",
-					which[i], version);
-			return -1;
-		}
-
-		errno = 0;
-		char *endptr = NULL;
-		int v = (int) strtol(num, &endptr, 10);
-
-		if (errno != 0 || endptr == num || endptr[0] != '\0') {
-			err("parse_version: failed to parse %s number: %s\n",
-					which[i], version);
-			return -1;
-		}
-
-		if (v < 0) {
-			err("parse_version: invalid negative %s number: %s\n",
-					which[i], version);
-			return -1;
-		}
-
-		tuple[i] = v;
-	}
-
-	return 0;
-}
 
 void ovni_version_check_str(const char *version)
 {
@@ -83,10 +33,10 @@ void ovni_version_check_str(const char *version)
 	int provided[3];
 	int expected[3];
 
-	if (parse_version(version, provided) != 0)
+	if (version_parse(version, provided) != 0)
 		die("failed to parse provided version \"%s\"\n", version);
 
-	if (parse_version(OVNI_LIB_VERSION, expected) != 0)
+	if (version_parse(OVNI_LIB_VERSION, expected) != 0)
 		die("failed to parse expected version \"%s\"\n", OVNI_LIB_VERSION);
 
 	/* Match the major */

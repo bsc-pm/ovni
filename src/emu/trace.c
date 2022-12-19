@@ -306,7 +306,10 @@ load_loom(struct ovni_loom *loom, char *loomdir)
 
 		struct ovni_eproc *proc = &loom->proc[i];
 
-		sprintf(proc->dir, "%s/%s", loomdir, dirent->d_name);
+		if (snprintf(proc->dir, PATH_MAX, "%s/%s", loomdir, dirent->d_name) >= PATH_MAX) {
+			err("error: process dir name %s too long\n", dirent->d_name);
+			return -1;
+		}
 
 		if (load_proc(&loom->proc[i], loom, i, pid, proc->dir) != 0)
 			return -1;

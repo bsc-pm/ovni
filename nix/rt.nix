@@ -98,7 +98,7 @@ let
     });
 
     oldCompilers = [
-      #pkgs.gcc49Stdenv
+      #pkgs.gcc49Stdenv # broken
       pkgs.gcc6Stdenv
       pkgs.gcc7Stdenv
       pkgs.gcc8Stdenv
@@ -117,6 +117,12 @@ let
     });
 
     oldOvnisNoLTO = map last.genOldOvniNoLTO last.oldCompilers;
+
+    genOldOvniRelease = stdenv: (last.genOldOvni stdenv).overrideAttrs (old: {
+      cmakeBuildType = "Release";
+    });
+
+    oldOvnisRelease = map last.genOldOvniRelease last.oldCompilers;
 
     # Now we rebuild ovni with the Nanos6 and nOS-V versions, which were
     # linked to the previous ovni. We need to be able to exit the chroot

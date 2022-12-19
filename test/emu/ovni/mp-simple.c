@@ -56,7 +56,7 @@ instr_start(int rank)
 	cpu_set_t mask;
 	char hostname[HOST_NAME_MAX];
 	int i, j = 0, curcpu = -1;
-	int last_phy;
+	int last_phy = 0;
 
 	if (gethostname(hostname, HOST_NAME_MAX) != 0)
 		fail("gethostname failed");

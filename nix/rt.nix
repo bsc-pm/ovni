@@ -87,6 +87,26 @@ let
       ];
     });
 
+    # Build ovni with old gcc versions
+    genOldOvni = stdenv: (last.ovni.override {
+      stdenv = stdenv;
+    }).overrideAttrs (old: {
+      pname = old.name + "@" + stdenv.cc.cc.version;
+    });
+
+    oldCompilers = [
+      #pkgs.gcc49Stdenv
+      pkgs.gcc6Stdenv
+      pkgs.gcc7Stdenv
+      pkgs.gcc8Stdenv
+      pkgs.gcc9Stdenv
+      pkgs.gcc10Stdenv
+      pkgs.gcc11Stdenv
+      pkgs.gcc12Stdenv
+    ];
+
+    oldOvnis = map last.genOldOvni last.oldCompilers;
+
     # Now we rebuild ovni with the Nanos6 and nOS-V versions, which were
     # linked to the previous ovni. We need to be able to exit the chroot
     # to run Nanos6 tests, as they require access to /sys for hwloc
@@ -108,4 +128,4 @@ let
   });
 
 in
-  bsc.ovni-rt
+  pkgs // { bsc = bsc; }

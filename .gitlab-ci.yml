@@ -15,9 +15,16 @@ build:debian-testing:
     paths:
       - install/
 
+build:old-gcc:
+  stage: build
+  tags:
+    - nix
+  script: 
+    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnis
+
 build:rt-tests:
   stage: build
   tags:
     - nix
   script: 
-    - nix build -L --tarball-ttl 0 --file nix/rt.nix
+    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.ovni-rt

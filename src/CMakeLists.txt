@@ -5,6 +5,10 @@ add_subdirectory(include)
 
 add_library(parson STATIC parson.c)
 target_include_directories(parson PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+set_property(TARGET parson PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+add_library(parson-static STATIC parson.c)
+target_include_directories(parson-static PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 configure_file("config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h" )
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

@@ -27,6 +27,7 @@ stdenv.mkDerivation rec {
   dontStrip = true;
   doCheck = true;
   checkTarget = "test";
+  hardeningDisable = [ "all" ];
 
   src = ../.;
 }

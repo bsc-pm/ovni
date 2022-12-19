@@ -46,12 +46,14 @@ main(void)
 {
 	init();
 
-	/* Leave some room to prevent clashes */
-	usleep(100); /* 100000 us */
-
 	int64_t t0 = ovni_clock_now();
 
-	emit("OU[", t0);
+	/* Leave some room to prevent clashes */
+	usleep(10000); /* 10000000 ns */
+
+	int64_t t1 = ovni_clock_now();
+
+	emit("OU[", t1);
 
 	/* Fill the ring buffer */
 	long n = 100000 + 10;
@@ -59,18 +61,17 @@ main(void)
 	err("using n=%ld events\n", n);
 
 	/* Go back 100 ns for each event (with some space) */
-	int64_t t = t0 - (n + 10) * 100;
+	int64_t delta = 10000;
+	int64_t t = t0 + delta;
 
 	for (long i = 0; i < n; i++) {
+		if (t <= t0 || t >= t1)
+			die("bad time\n");
 		emit("OB.", t);
 		t += 33;
 	}
 
 	emit("OU]", ovni_clock_now());
-	t += 33;
-
-	if (t >= t0)
-		die("bad timming\n");
 
 	ovni_flush();
 	ovni_proc_fini();

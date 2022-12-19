@@ -36,10 +36,16 @@ include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_available OUTPUT error LANGUAGES C)
 
 # Enable IPO by default, if available
-if(ipo_available)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-else()
-  message(WARNING "IPO is not supported, expect performance penalty")
+if(NOT DEFINED CMAKE_INTERPROCEDURAL_OPTIMIZATION)
+  if(ipo_available)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(WARNING "IPO is not supported, disabling")
+  endif()
+endif()
+
+if(NOT CMAKE_INTERPROCEDURAL_OPTIMIZATION)
+  message(WARNING "IPO is not enabled, expect performance penalty")
 endif()
 
 # Extra build type for AddressSanitizer (Asan)

@@ -92,6 +92,9 @@ let
       stdenv = stdenv;
     }).overrideAttrs (old: {
       pname = old.name + "@" + stdenv.cc.cc.version;
+      cmakeFlags = old.cmakeFlags ++ [
+        "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF"
+      ];
     });
 
     oldCompilers = [

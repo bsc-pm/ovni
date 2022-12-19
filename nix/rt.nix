@@ -110,6 +110,14 @@ let
 
     oldOvnis = map last.genOldOvni last.oldCompilers;
 
+    genOldOvniNoLTO = stdenv: (last.genOldOvni stdenv).overrideAttrs (old: {
+      cmakeFlags = old.cmakeFlags ++ [
+        "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF"
+      ];
+    });
+
+    oldOvnisNoLTO = map last.genOldOvniNoLTO last.oldCompilers;
+
     # Now we rebuild ovni with the Nanos6 and nOS-V versions, which were
     # linked to the previous ovni. We need to be able to exit the chroot
     # to run Nanos6 tests, as they require access to /sys for hwloc

@@ -2,7 +2,46 @@
 #include "common.h"
 
 static void
-check_single(void)
+test_dirty(void)
+{
+	struct chan chan;
+	chan_init(&chan, CHAN_SINGLE, "testchan");
+
+	if (chan_set(&chan, value_int64(1)) != 0)
+		die("chan_set failed\n");
+
+	/* Now channel is dirty */
+
+	if (chan_set(&chan, value_int64(2)) == 0)
+		die("chan_set didn't fail\n");
+
+	if (chan_flush(&chan) != 0)
+		die("chan_flush failed\n");
+
+	chan_dirty_write(&chan, 1);
+
+	if (chan_set(&chan, value_int64(3)) != 0)
+		die("chan_set failed\n");
+
+	/* Now is dirty, but it should allow multiple writes */
+	if (chan_set(&chan, value_int64(4)) != 0)
+		die("chan_set failed\n");
+
+	struct value value;
+	struct value four = value_int64(4);
+
+	if (chan_read(&chan, &value) != 0)
+		die("chan_read failed\n");
+
+	if (!value_is_equal(&value, &four))
+		die("chan_read returned unexpected value\n");
+
+	if (chan_flush(&chan) != 0)
+		die("chan_flush failed\n");
+}
+
+static void
+test_single(void)
 {
 	struct chan chan;
 	struct value one = { .type = VALUE_INT64, .i = 1 };
@@ -33,7 +72,7 @@ check_single(void)
 }
 
 //static void
-//check_stack(void)
+//test_stack(void)
 //{
 //	struct chan chan;
 //
@@ -91,7 +130,8 @@ check_single(void)
 
 int main(void)
 {
-	check_single();
-	//check_stack();
+	test_single();
+	test_dirty();
+	//test_stack();
 	return 0;
 }

@@ -64,7 +64,8 @@ cb_select(struct chan *sel_chan, void *ptr)
 		return -1;
 	}
 
-	dbg("selecting mux input %p\n", (void *) input);
+	dbg("mux selects input key=%s chan=%s\n",
+			value_str(sel_value, buf), input->chan->name);
 
 	/* Set to null by default */
 	struct value out_value = value_null();
@@ -102,8 +103,11 @@ cb_input(struct chan *in_chan, void *ptr)
 	}
 
 	/* Nothing to do, the input is not selected */
-	if (input == NULL || input->chan != in_chan)
+	if (input == NULL || input->chan != in_chan) {
+		dbg("mux: input channel %s changed but not selected\n",
+				in_chan->name);
 		return 0;
+	}
 
 	dbg("selected mux input %s changed\n", in_chan->name);
 
@@ -134,6 +138,11 @@ mux_init(struct mux *mux,
 		err("mux_init: output channel must be of type single\n");
 		return -1;
 	}
+
+	/* The output channel must accept multiple writes in the same
+	 * propagation phase, as we may write to the input and select
+	 * channel at the same time. */
+	chan_dirty_write(output, 1);
 
 	memset(mux, 0, sizeof(struct mux_input));
 	mux->select = select;

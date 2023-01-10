@@ -36,6 +36,10 @@ static int
 set_dirty(struct chan *chan)
 {
 	if (chan->is_dirty) {
+		/* Already dirty and allowed, no need to do anything */
+		if (chan->allow_dirty_write)
+			return 0;
+
 		err("channel %s already dirty\n", chan->name);
 		return -1;
 	}
@@ -44,7 +48,8 @@ set_dirty(struct chan *chan)
 
 	if (chan->dirty_cb != NULL) {
 		if (chan->dirty_cb(chan, chan->dirty_arg) != 0) {
-			err("dirty callback failed\n");
+			err("set_dirty %s: dirty callback failed\n",
+					chan->name);
 			return -1;
 		}
 	}
@@ -60,7 +65,8 @@ check_duplicates(struct chan *chan, struct value *v)
 	//	return 0;
 
 	if (value_is_equal(&chan->last_value, v)) {
-		err("check_duplicates: same value as last_value\n");
+		err("check_duplicates %s: same value as last_value\n",
+				chan->name);
 		return -1;
 	}
 
@@ -71,27 +77,30 @@ int
 chan_set(struct chan *chan, struct value value)
 {
 	if (chan->type != CHAN_SINGLE) {
-		err("chan_set: cannot set on non-single channel\n");
+		err("chan_set %s: cannot set on non-single channel\n",
+				chan->name);
 		return -1;
 	}
 
-	if (chan->is_dirty) {
-		err("chan_set: cannot modify dirty channel\n");
+	if (chan->is_dirty && !chan->allow_dirty_write) {
+		err("chan_set %s: cannot modify dirty channel\n",
+				chan->name);
 		return -1;
 	}
 
 	if (check_duplicates(chan, &value) != 0) {
-		err("chan_set: cannot set a duplicated value\n");
+		err("chan_set %s: cannot set a duplicated value\n",
+				chan->name);
 		return -1;
 	}
 
 	char buf[128];
-	dbg("chan_set: channel %p sets value %s\n", (void *) chan,
-			value_str(value, buf));
+	dbg("chan_set %s: sets value to %s\n",
+			chan->name, value_str(value, buf));
 	chan->data.value = value;
 
 	if (set_dirty(chan) != 0) {
-		err("chan_set: set_dirty failed\n");
+		err("chan_set %s: set_dirty failed\n", chan->name);
 		return -1;
 	}
 
@@ -108,31 +117,34 @@ int
 chan_push(struct chan *chan, struct value value)
 {
 	if (chan->type != CHAN_STACK) {
-		err("chan_push: cannot push on non-stack channel\n");
+		err("chan_push %s: cannot push on non-stack channel\n",
+				chan->name);
 		return -1;
 	}
 
-	if (chan->is_dirty) {
-		err("chan_push: cannot modify dirty channel\n");
+	if (chan->is_dirty && !chan->allow_dirty_write) {
+		err("chan_push %s: cannot modify dirty channel\n",
+				chan->name);
 		return -1;
 	}
 
 	if (check_duplicates(chan, &value) != 0) {
-		err("chan_push: cannot push a duplicated value\n");
+		err("chan_push %s: cannot push a duplicated value\n",
+				chan->name);
 		return -1;
 	}
 
 	struct chan_stack *stack = &chan->data.stack;
 
 	if (stack->n >= MAX_CHAN_STACK) {
-		err("chan_push: channel stack full\n");
-		abort();
+		err("chan_push %s: channel stack full\n", chan->name);
+		return -1;
 	}
 
 	stack->values[stack->n++] = value;
 
 	if (set_dirty(chan) != 0) {
-		err("chan_set: set_dirty failed\n");
+		err("chan_push %s: set_dirty failed\n", chan->name);
 		return -1;
 	}
 
@@ -150,34 +162,36 @@ int
 chan_pop(struct chan *chan, struct value evalue)
 {
 	if (chan->type != CHAN_STACK) {
-		err("chan_pop: cannot pop on non-stack channel\n");
+		err("chan_pop %s: cannot pop on non-stack channel\n",
+				chan->name);
 		return -1;
 	}
 
-	if (chan->is_dirty) {
-		err("chan_pop: cannot modify dirty channel\n");
+	if (chan->is_dirty && !chan->allow_dirty_write) {
+		err("chan_pop %s: cannot modify dirty channel\n",
+				chan->name);
 		return -1;
 	}
 
 	struct chan_stack *stack = &chan->data.stack;
 
 	if (stack->n <= 0) {
-		err("chan_pop: channel stack empty\n");
+		err("chan_pop %s: channel stack empty\n", chan->name);
 		return -1;
 	}
 
 	struct value *value = &stack->values[stack->n - 1];
 
 	if (!value_is_equal(value, &evalue)) {
-		err("chan_pop: unexpected value %ld (expected %ld)\n",
-				value->i, evalue.i);
+		err("chan_pop %s: unexpected value %ld (expected %ld)\n",
+				chan->name, value->i, evalue.i);
 		return -1;
 	}
 
 	stack->n--;
 
 	if (set_dirty(chan) != 0) {
-		err("chan_set: set_dirty failed\n");
+		err("chan_pop %s: set_dirty failed\n", chan->name);
 		return -1;
 	}
 
@@ -194,7 +208,7 @@ get_value(struct chan *chan, struct value *value)
 
 	struct chan_stack *stack = &chan->data.stack;
 	if (stack->n <= 0) {
-		err("get_value: channel stack empty\n");
+		err("get_value %s: channel stack empty\n", chan->name);
 		return -1;
 	}
 
@@ -208,9 +222,29 @@ int
 chan_read(struct chan *chan, struct value *value)
 {
 	if (get_value(chan, value) != 0) {
-		err("chan_read: get_value failed\n");
+		err("chan_read %s: get_value failed\n", chan->name);
 		return -1;
 	}
 
 	return 0;
+}
+
+/** Remove the dirty state */
+int
+chan_flush(struct chan *chan)
+{
+	if (!chan->is_dirty) {
+		err("chan_flush %s: channel is not dirty\n", chan->name);
+		return -1;
+	}
+
+	chan->is_dirty = 0;
+
+	return 0;
+}
+
+void
+chan_dirty_write(struct chan *chan, int allow)
+{
+	chan->allow_dirty_write = allow;
 }

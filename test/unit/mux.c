@@ -1,7 +1,7 @@
 #include "emu/mux.h"
 #include "common.h"
 
-#define N 4
+#define N 6
 
 //static int
 //select_active_thread(struct mux *mux,
@@ -38,6 +38,132 @@
 //
 //	return 0;
 //}
+
+static void
+check_output(struct mux *mux, struct value expected)
+{
+	struct value out_value = value_null();
+	if (chan_read(mux->output, &out_value) != 0)
+		die("chan_read() failed for output channel\n");
+
+	if (!value_is_equal(&out_value, &expected)) {
+		char buf1[128];
+		char buf2[128];
+		die("unexpected value found %s in output (expected %s)\n",
+				value_str(out_value, buf1),
+				value_str(expected, buf2));
+	}
+
+	err("----- output ok -----\n");
+}
+
+static void
+test_select(struct mux *mux, int key)
+{
+	if (chan_set(mux->select, value_int64(key)) != 0)
+		die("chan_set failed\n");
+
+	if (bay_propagate(mux->bay) != 0)
+		die("bay_propagate failed\n");
+
+	check_output(mux, value_int64(1000 + key));
+}
+
+static void
+test_input(struct mux *mux, int key)
+{
+	/* Set the select channel to the selected key */
+	test_select(mux, key);
+
+	int new_value = 2000 + key;
+
+	/* Then change that channel */
+	struct mux_input *mi = mux_find_input(mux, value_int64(key));
+	if (mi == NULL)
+		die("mux_find_input failed to locate input %d\n", key);
+
+	if (chan_set(mi->chan, value_int64(new_value)) != 0)
+		die("chan_set failed\n");
+
+	if (bay_propagate(mux->bay) != 0)
+		die("bay_propagate failed\n");
+
+	check_output(mux, value_int64(new_value));
+}
+
+static void
+test_select_and_input(struct mux *mux, int key)
+{
+	/* Set the select channel to the selected key, but don't
+	 * propagate the changes yet */
+	if (chan_set(mux->select, value_int64(key)) != 0)
+		die("chan_set failed\n");
+
+	int new_value = 2000 + key;
+
+	/* Also change that channel */
+	struct mux_input *mi = mux_find_input(mux, value_int64(key));
+	if (mi == NULL)
+		die("mux_find_input failed to locate input %d\n", key);
+
+	if (chan_set(mi->chan, value_int64(new_value)) != 0)
+		die("chan_set failed\n");
+
+	/* Write twice to the output */
+	if (bay_propagate(mux->bay) != 0)
+		die("bay_propagate failed\n");
+
+	check_output(mux, value_int64(new_value));
+}
+
+static void
+test_input_and_select(struct mux *mux, int key)
+{
+	int new_value = 2000 + key;
+
+	/* First change the input */
+	struct mux_input *mi = mux_find_input(mux, value_int64(key));
+	if (mi == NULL)
+		die("mux_find_input failed to locate input %d\n", key);
+
+	if (chan_set(mi->chan, value_int64(new_value)) != 0)
+		die("chan_set failed\n");
+
+	/* Then change select */
+	if (chan_set(mux->select, value_int64(key)) != 0)
+		die("chan_set failed\n");
+
+	/* Write twice to the output */
+	if (bay_propagate(mux->bay) != 0)
+		die("bay_propagate failed\n");
+
+	check_output(mux, value_int64(new_value));
+}
+
+static void
+test_mid_propagate(struct mux *mux, int key)
+{
+	int new_value = 2000 + key;
+
+	struct mux_input *mi = mux_find_input(mux, value_int64(key));
+	if (mi == NULL)
+		die("mux_find_input failed to locate input %d\n", key);
+
+	if (chan_set(mi->chan, value_int64(new_value)) != 0)
+		die("chan_set failed\n");
+
+	if (bay_propagate(mux->bay) != 0)
+		die("bay_propagate failed\n");
+
+	if (chan_set(mux->select, value_int64(key)) != 0)
+		die("chan_set failed\n");
+
+	if (bay_propagate(mux->bay) != 0)
+		die("bay_propagate failed\n");
+
+	check_output(mux, value_int64(new_value));
+}
+
 
 int
 main(void)
@@ -81,27 +207,11 @@ main(void)
 	if (bay_propagate(&bay) != 0)
 		die("bay_propagate failed\n");
 
-
-	/* Change select channel */
-	if (chan_set(&select, value_int64(2)) != 0)
-		die("chan_set failed\n");
-
-	/* Propagate values and call the callbacks */
-	if (bay_propagate(&bay) != 0)
-		die("bay_propagate failed\n");
-
-	struct value out_value = value_null();
-	if (chan_read(&output, &out_value) != 0)
-		die("chan_read() failed for output channel\n");
-
-	struct value expected_value = value_int64(1002);
-	if (!value_is_equal(&out_value, &expected_value)) {
-		char buf1[128];
-		char buf2[128];
-		die("unexpected value found %s in output (expected %s)\n",
-				value_str(out_value, buf1),
-				value_str(expected_value, buf2));
-	}
+	test_select(&mux, 1);
+	test_input(&mux, 2);
+	test_select_and_input(&mux, 3);
+	test_input_and_select(&mux, 4);
+	test_mid_propagate(&mux, 5);
 
 	err("OK\n");
 

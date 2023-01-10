@@ -35,6 +35,7 @@ struct chan {
 	enum chan_type type;
 	union chan_data data;
 	int is_dirty;
+	int allow_dirty_write;
 	struct value err_value;
 	struct value last_value;
 	chan_cb_t dirty_cb;
@@ -51,6 +52,8 @@ int chan_push(struct chan *chan, struct value value);
 int chan_pop(struct chan *chan, struct value expected);
 int chan_read(struct chan *chan, struct value *value);
 enum chan_type chan_get_type(struct chan *chan);
+int chan_flush(struct chan *chan);
+void chan_dirty_write(struct chan *chan, int allow);
 
 /* Called when it becomes dirty */
 void chan_set_dirty_cb(struct chan *chan, chan_cb_t func, void *arg);

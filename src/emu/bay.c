@@ -106,7 +106,7 @@ bay_init(struct bay *bay)
 static int
 propagate_chan(struct bay_chan *bchan)
 {
-	dbg("propagating dirty channel %p\n", (void *) bchan);
+	dbg("- propagating dirty channel %s\n", bchan->chan->name);
 
 	struct bay_cb *cur = NULL;
 	struct bay_cb *tmp = NULL;
@@ -123,7 +123,7 @@ propagate_chan(struct bay_chan *bchan)
 int
 bay_propagate(struct bay *bay)
 {
-	dbg("propagating channels\n");
+	dbg("-- propagating channels begins\n");
 	struct bay_chan *cur = NULL;
 	struct bay_chan *tmp = NULL;
 	DL_FOREACH_SAFE(bay->dirty, cur, tmp) {
@@ -134,7 +134,19 @@ bay_propagate(struct bay *bay)
 		}
 	}
 
+	/* Flush channels after running all the dirty callbacks, so we
+	 * capture any potential double write when running the
+	 * callbacks */
+	DL_FOREACH_SAFE(bay->dirty, cur, tmp) {
+		if (chan_flush(cur->chan) != 0) {
+			err("bay_propagate: chan_flush failed\n");
+			return -1;
+		}
+	}
+
 	bay->dirty = NULL;
+
+	dbg("-- propagating channels ends\n");
 
 	return 0;
 }

@@ -12,7 +12,9 @@ enum value_type {
 	VALUE_DOUBLE
 };
 
-struct value {
+/* Packed allows the struct to be hashable, as we don't have any
+ * unitialized data */
+struct __attribute__((packed)) value {
 	enum value_type type;
 	union {
 		int64_t i;
@@ -44,7 +46,7 @@ value_int64(int64_t i)
 static inline struct value
 value_null(void)
 {
-	struct value v = { .type = VALUE_NULL };
+	struct value v = { .type = VALUE_NULL, .i = 0 };
 	return v;
 }
 

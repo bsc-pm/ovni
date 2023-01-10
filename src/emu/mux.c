@@ -157,11 +157,8 @@ struct mux_input *
 mux_find_input(struct mux *mux, struct value value)
 {
 	struct mux_input *input = NULL;
-	/* Only int64 due to garbage */
-	if (value.type != VALUE_INT64)
-		die("bad value type\n");
 
-	HASH_FIND(hh, mux->input, &value.i, sizeof(value.i), input);
+	HASH_FIND(hh, mux->input, &value, sizeof(value), input);
 	return input;
 }
 
@@ -185,7 +182,7 @@ mux_add_input(struct mux *mux, struct value key, struct chan *chan)
 	input->key = key;
 	input->chan = chan;
 
-	HASH_ADD_KEYPTR(hh, mux->input, &input->key.i, sizeof(input->key.i), input);
+	HASH_ADD_KEYPTR(hh, mux->input, &input->key, sizeof(input->key), input);
 
 	if (bay_add_cb(mux->bay, chan, cb_input, mux) != 0) {
 		err("mux_add_input: bay_add_cb failed\n");

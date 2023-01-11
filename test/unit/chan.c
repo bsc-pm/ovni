@@ -18,7 +18,7 @@ test_dirty(void)
 	if (chan_flush(&chan) != 0)
 		die("chan_flush failed\n");
 
-	chan_dirty_write(&chan, 1);
+	chan_prop_set(&chan, CHAN_DIRTY_WRITE, 1);
 
 	if (chan_set(&chan, value_int64(3)) != 0)
 		die("chan_set failed\n");
@@ -69,6 +69,30 @@ test_single(void)
 
 	if (!value_is_equal(&value, &one))
 		die("chan_read returned unexpected value\n");
+}
+
+static void
+test_duplicate(void)
+{
+	struct chan chan;
+	chan_init(&chan, CHAN_SINGLE, "testchan");
+
+	if (chan_set(&chan, value_int64(1)) != 0)
+		die("chan_set failed\n");
+
+	if (chan_flush(&chan) != 0)
+		die("chan_flush failed\n");
+
+	/* Attempt to write the same value again */
+	if (chan_set(&chan, value_int64(1)) == 0)
+		die("chan_set didn't fail\n");
+
+	/* Now enable duplicates */
+	chan_prop_set(&chan, CHAN_DUPLICATES, 1);
+
+	/* Then it should allow writting the same value */
+	if (chan_set(&chan, value_int64(1)) != 0)
+		die("chan_set failed\n");
 }
 
 //static void
@@ -132,6 +156,7 @@ int main(void)
 {
 	test_single();
 	test_dirty();
+	test_duplicate();
 	//test_stack();
 	return 0;
 }

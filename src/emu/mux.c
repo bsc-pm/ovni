@@ -140,9 +140,9 @@ mux_init(struct mux *mux,
 	}
 
 	/* The output channel must accept multiple writes in the same
-	 * propagation phase, as we may write to the input and select
-	 * channel at the same time. */
-	chan_dirty_write(output, 1);
+	 * propagation phase while the channel is dirty, as we may write to the
+	 * input and select channel at the same time. */
+	chan_prop_set(output, CHAN_DIRTY_WRITE, 1);
 
 	memset(mux, 0, sizeof(struct mux_input));
 	mux->select = select;

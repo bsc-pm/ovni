@@ -37,7 +37,7 @@ set_dirty(struct chan *chan)
 {
 	if (chan->is_dirty) {
 		/* Already dirty and allowed, no need to do anything */
-		if (chan->allow_dirty_write)
+		if (chan->prop[CHAN_DIRTY_WRITE])
 			return 0;
 
 		err("channel %s already dirty\n", chan->name);
@@ -61,8 +61,8 @@ static int
 check_duplicates(struct chan *chan, struct value *v)
 {
 	/* If duplicates are allowed just skip the check */
-	//if (chan->oflags & CHAN_DUP)
-	//	return 0;
+	if (chan->prop[CHAN_DUPLICATES])
+		return 0;
 
 	if (value_is_equal(&chan->last_value, v)) {
 		err("check_duplicates %s: same value as last_value\n",
@@ -82,7 +82,7 @@ chan_set(struct chan *chan, struct value value)
 		return -1;
 	}
 
-	if (chan->is_dirty && !chan->allow_dirty_write) {
+	if (chan->is_dirty && !chan->prop[CHAN_DIRTY_WRITE]) {
 		err("chan_set %s: cannot modify dirty channel\n",
 				chan->name);
 		return -1;
@@ -122,7 +122,7 @@ chan_push(struct chan *chan, struct value value)
 		return -1;
 	}
 
-	if (chan->is_dirty && !chan->allow_dirty_write) {
+	if (chan->is_dirty && !chan->prop[CHAN_DIRTY_WRITE]) {
 		err("chan_push %s: cannot modify dirty channel\n",
 				chan->name);
 		return -1;
@@ -167,7 +167,7 @@ chan_pop(struct chan *chan, struct value evalue)
 		return -1;
 	}
 
-	if (chan->is_dirty && !chan->allow_dirty_write) {
+	if (chan->is_dirty && !chan->prop[CHAN_DIRTY_WRITE]) {
 		err("chan_pop %s: cannot modify dirty channel\n",
 				chan->name);
 		return -1;
@@ -198,33 +198,25 @@ chan_pop(struct chan *chan, struct value evalue)
 	return 0;
 }
 
-static int
+static void
 get_value(struct chan *chan, struct value *value)
 {
 	if (chan->type == CHAN_SINGLE) {
 		 *value = chan->data.value;
-		 return 0;
+	} else {
+		struct chan_stack *stack = &chan->data.stack;
+		if (stack->n > 0)
+			*value = stack->values[stack->n - 1];
+		else
+			*value = value_null();
 	}
-
-	struct chan_stack *stack = &chan->data.stack;
-	if (stack->n <= 0) {
-		err("get_value %s: channel stack empty\n", chan->name);
-		return -1;
-	}
-
-	*value = stack->values[stack->n - 1];
-
-	return 0;
 }
 
 /** Reads the current value of a channel */
 int
 chan_read(struct chan *chan, struct value *value)
 {
-	if (get_value(chan, value) != 0) {
-		err("chan_read %s: get_value failed\n", chan->name);
-		return -1;
-	}
+	get_value(chan, value);
 
 	return 0;
 }
@@ -238,13 +230,21 @@ chan_flush(struct chan *chan)
 		return -1;
 	}
 
+	get_value(chan, &chan->last_value);
+
 	chan->is_dirty = 0;
 
 	return 0;
 }
 
 void
-chan_dirty_write(struct chan *chan, int allow)
+chan_prop_set(struct chan *chan, enum chan_prop prop, int value)
 {
-	chan->allow_dirty_write = allow;
+	chan->prop[prop] = value;
+}
+
+int
+chan_prop_get(struct chan *chan, enum chan_prop prop)
+{
+	return chan->prop[prop];
 }

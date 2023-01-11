@@ -16,6 +16,12 @@ enum chan_type {
 	CHAN_MAXTYPE,
 };
 
+enum chan_prop {
+	CHAN_DIRTY_WRITE = 0,
+	CHAN_DUPLICATES,
+	CHAN_MAXPROP,
+};
+
 struct chan_stack {
 	int n;
 	struct value values[MAX_CHAN_STACK];
@@ -35,8 +41,7 @@ struct chan {
 	enum chan_type type;
 	union chan_data data;
 	int is_dirty;
-	int allow_dirty_write;
-	struct value err_value;
+	int prop[CHAN_MAXPROP];
 	struct value last_value;
 	chan_cb_t dirty_cb;
 	void *dirty_arg;
@@ -53,7 +58,9 @@ int chan_pop(struct chan *chan, struct value expected);
 int chan_read(struct chan *chan, struct value *value);
 enum chan_type chan_get_type(struct chan *chan);
 int chan_flush(struct chan *chan);
-void chan_dirty_write(struct chan *chan, int allow);
+
+void chan_prop_set(struct chan *chan, enum chan_prop prop, int value);
+int chan_prop_get(struct chan *chan, enum chan_prop prop);
 
 /* Called when it becomes dirty */
 void chan_set_dirty_cb(struct chan *chan, chan_cb_t func, void *arg);

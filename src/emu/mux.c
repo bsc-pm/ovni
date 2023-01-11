@@ -144,6 +144,10 @@ mux_init(struct mux *mux,
 	 * input and select channel at the same time. */
 	chan_prop_set(output, CHAN_DIRTY_WRITE, 1);
 
+	/* Similarly, we may switch to an input channel that has the same value
+	 * as the last output value, so we allow duplicates too */
+	chan_prop_set(output, CHAN_DUPLICATES, 1);
+
 	memset(mux, 0, sizeof(struct mux_input));
 	mux->select = select;
 	mux->output = output;

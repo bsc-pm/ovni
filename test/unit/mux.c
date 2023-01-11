@@ -1,7 +1,7 @@
 #include "emu/mux.h"
 #include "common.h"
 
-#define N 6
+#define N 10
 
 //static int
 //select_active_thread(struct mux *mux,
@@ -164,6 +164,44 @@ test_mid_propagate(struct mux *mux, int key)
 	check_output(mux, value_int64(new_value));
 }
 
+static void
+test_duplicate_output(struct mux *mux, int key1, int key2)
+{
+	int new_value = 2000 + key1;
+
+	struct mux_input *in1 = mux_find_input(mux, value_int64(key1));
+	if (in1 == NULL)
+		die("mux_find_input failed to locate input1 %d\n", key1);
+
+	struct mux_input *in2 = mux_find_input(mux, value_int64(key2));
+	if (in2 == NULL)
+		die("mux_find_input failed to locate input2 %d\n", key2);
+
+	if (chan_set(in1->chan, value_int64(new_value)) != 0)
+		die("chan_set failed\n");
+
+	if (chan_set(in2->chan, value_int64(new_value)) != 0)
+		die("chan_set failed\n");
+
+	/* Select input 1 */
+	if (chan_set(mux->select, value_int64(key1)) != 0)
+		die("chan_set failed\n");
+
+	if (bay_propagate(mux->bay) != 0)
+		die("bay_propagate failed\n");
+
+	check_output(mux, value_int64(new_value));
+
+	/* Now switch to input 2, which has the same value */
+	if (chan_set(mux->select, value_int64(key2)) != 0)
+		die("chan_set failed\n");
+
+	if (bay_propagate(mux->bay) != 0)
+		die("bay_propagate failed\n");
+
+	check_output(mux, value_int64(new_value));
+}
+
 
 int
 main(void)
@@ -212,6 +250,7 @@ main(void)
 	test_select_and_input(&mux, 3);
 	test_input_and_select(&mux, 4);
 	test_mid_propagate(&mux, 5);
+	test_duplicate_output(&mux, 6, 7);
 
 	err("OK\n");
 

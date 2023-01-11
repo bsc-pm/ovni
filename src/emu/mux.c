@@ -88,8 +88,6 @@ cb_input(struct chan *in_chan, void *ptr)
 {
 	struct mux *mux = ptr;
 
-	/* TODO: We may need to cache the last read value from select to avoid
-	 * problems reading the select channel too soon */
 	struct value sel_value;
 	if (chan_read(mux->select, &sel_value) != 0) {
 		err("cb_input: chan_read(select) failed\n");
@@ -139,6 +137,11 @@ mux_init(struct mux *mux,
 		return -1;
 	}
 
+	if (select == output) {
+		err("mux_init: cannot use same channel as select and output\n");
+		return -1;
+	}
+
 	/* The output channel must accept multiple writes in the same
 	 * propagation phase while the channel is dirty, as we may write to the
 	 * input and select channel at the same time. */
@@ -178,6 +181,16 @@ mux_find_input(struct mux *mux, struct value value)
 int
 mux_add_input(struct mux *mux, struct value key, struct chan *chan)
 {
+	if (chan == mux->output) {
+		err("mux_init: cannot use same input channel as output\n");
+		return -1;
+	}
+
+	if (chan == mux->select) {
+		err("mux_init: cannot use same input channel as select\n");
+		return -1;
+	}
+
 	if (mux_find_input(mux, key) != NULL) {
 		char buf[128];
 		err("mux_add_input: input key %s already in mux\n",

@@ -14,7 +14,11 @@ cb_chan_is_dirty(struct chan *chan, void *arg)
 	struct bay_chan *bchan = arg;
 	struct bay *bay = bchan->bay;
 
-	/* TODO: check duplicate? */
+	if (bchan->is_dirty) {
+		err("channel %s already on dirty list\n", chan->name);
+		return -1;
+	}
+
 	DL_APPEND(bay->dirty, bchan);
 	return 0;
 }
@@ -94,8 +98,6 @@ bay_add_cb(struct bay *bay, struct chan *chan, bay_cb_func_t func, void *arg)
 	return 0;
 }
 
-
-
 void
 bay_init(struct bay *bay)
 {
@@ -142,6 +144,7 @@ bay_propagate(struct bay *bay)
 			err("bay_propagate: chan_flush failed\n");
 			return -1;
 		}
+		cur->is_dirty = 0;
 	}
 
 	bay->dirty = NULL;

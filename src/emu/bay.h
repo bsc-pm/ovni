@@ -28,6 +28,7 @@ struct bay_chan {
 	int ncallbacks;
 	struct bay_cb *cb;
 	struct bay *bay;
+	int is_dirty;
 
 	/* Global hash table with all channels in bay */
 	UT_hash_handle hh;

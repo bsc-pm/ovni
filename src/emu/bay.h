@@ -54,6 +54,7 @@ struct bay {
 };
 
 int bay_register(struct bay *bay, struct chan *chan);
+int bay_remove(struct bay *bay, struct chan *chan);
 struct chan *bay_find(struct bay *bay, const char *name);
 int bay_add_cb(struct bay *bay, struct chan *chan, bay_cb_func_t func, void *arg);
 void bay_init(struct bay *bay);

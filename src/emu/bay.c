@@ -70,6 +70,30 @@ bay_register(struct bay *bay, struct chan *chan)
 }
 
 int
+bay_remove(struct bay *bay, struct chan *chan)
+{
+	struct bay_chan *bchan = find_bay_chan(bay, chan->name);
+	if (bchan == NULL) {
+		err("bay_remove: channel %s not registered\n",
+				chan->name);
+		return -1;
+	}
+
+	if (bchan->is_dirty) {
+		err("bay_remove: cannot remote bay channel %s in dirty state\n",
+				chan->name);
+		return -1;
+	}
+
+	chan_set_dirty_cb(chan, NULL, NULL);
+
+	HASH_DEL(bay->channels, bchan);
+	free(bchan);
+
+	return 0;
+}
+
+int
 bay_add_cb(struct bay *bay, struct chan *chan, bay_cb_func_t func, void *arg)
 {
 	if (func == NULL) {

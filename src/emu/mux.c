@@ -142,6 +142,18 @@ mux_init(struct mux *mux,
 		return -1;
 	}
 
+	/* Ensure both channels are registered */
+	if (bay_find(bay, select->name) == NULL) {
+		err("mux_init: select channel %s not registered in bay\n",
+				select->name);
+		return -1;
+	}
+	if (bay_find(bay, output->name) == NULL) {
+		err("mux_init: output channel %s not registered in bay\n",
+				output->name);
+		return -1;
+	}
+
 	/* The output channel must accept multiple writes in the same
 	 * propagation phase while the channel is dirty, as we may write to the
 	 * input and select channel at the same time. */

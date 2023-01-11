@@ -223,14 +223,24 @@ main(void)
 	}
 
 	/* Register all channels in the bay */
-	bay_register(&bay, &output);
-	bay_register(&bay, &select);
+	if (bay_register(&bay, &select) != 0)
+		die("bay_register failed\n");
+
 	for (int i = 0; i < N; i++) {
-		bay_register(&bay, &inputs[i]);
+		if(bay_register(&bay, &inputs[i]) != 0)
+			die("bay_register failed\n");
 	}
 
 	struct mux mux;
-	mux_init(&mux, &bay, &select, &output, NULL);
+	/* Attempt to init the mux without registering the output */
+	if (mux_init(&mux, &bay, &select, &output, NULL) == 0)
+		die("mux_init didn't fail\n");
+
+	if (bay_register(&bay, &output) != 0)
+		die("bay_register failed\n");
+
+	if (mux_init(&mux, &bay, &select, &output, NULL) != 0)
+		die("mux_init failed\n");
 
 	for (int i = 0; i < N; i++)
 		mux_add_input(&mux, value_int64(i), &inputs[i]);

@@ -1,402 +1,216 @@
-/* Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#define ENABLE_DEBUG
+
 #include "chan.h"
+#include "common.h"
+#include <string.h>
 
-#include "emu.h"
-#include "prv.h"
-#include "utlist.h"
-
-static void
-chan_init(struct ovni_chan *chan, enum chan_track track, int row, int type, FILE *prv, int64_t *clock)
+void
+chan_init(struct chan *chan, enum chan_type type, const char *name)
 {
-	chan->n = 0;
+	int len = strlen(name);
+	if (len >= MAX_CHAN_NAME)
+		die("chan_init: name '%s' too long\n", name);
+
+	memset(chan, 0, sizeof(*chan));
+	memcpy(chan->name, name, len + 1);
 	chan->type = type;
-	chan->enabled = 0;
-	chan->badst = ST_NULL;
-	chan->ev = -1;
-	chan->prv = prv;
-	chan->clock = clock;
-	chan->t = *clock;
-	chan->row = row;
-	chan->dirty = 0;
-	chan->track = track;
-	chan->lastst = -1;
-}
-
-static void
-mark_dirty(struct ovni_chan *chan, enum chan_dirty dirty)
-{
-	if (chan->dirty != CHAN_CLEAN)
-		die("mark_dirty: chan %d already dirty\n", chan->id);
-
-	if (dirty == CHAN_CLEAN)
-		die("mark_dirty: cannot use CHAN_CLEAN\n");
-
-	dbg("adding dirty chan %d to list\n", chan->id);
-	chan->dirty = dirty;
-	DL_APPEND(*chan->update_list, chan);
 }
 
 void
-chan_th_init(struct ovni_ethread *th,
-		struct ovni_chan **update_list,
-		enum chan id,
-		enum chan_track track,
-		int init_st,
-		int enabled,
-		int dirty,
-		int row,
-		FILE *prv,
-		int64_t *clock)
+chan_set_dirty_cb(struct chan *chan, chan_cb_t func, void *arg)
 {
-	struct ovni_chan *chan = &th->chan[id];
-	int prvth = chan_to_prvtype[id];
-
-	chan_init(chan, track, row, prvth, prv, clock);
-
-	chan->id = id;
-	chan->thread = th;
-	chan->update_list = update_list;
-	chan->enabled = enabled;
-	chan->stack[chan->n++] = init_st;
-	if (dirty)
-		mark_dirty(chan, CHAN_DIRTY_ACTIVE);
+	chan->dirty_cb = func;
+	chan->dirty_arg = arg;
 }
 
-void
-chan_cpu_init(struct ovni_cpu *cpu,
-		struct ovni_chan **update_list,
-		enum chan id,
-		enum chan_track track,
-		int init_st,
-		int enabled,
-		int dirty,
-		int row,
-		FILE *prv,
-		int64_t *clock)
+enum chan_type
+chan_get_type(struct chan *chan)
 {
-	struct ovni_chan *chan = &cpu->chan[id];
-	int prvcpu = chan_to_prvtype[id];
-
-	chan_init(chan, track, row, prvcpu, prv, clock);
-
-	chan->id = id;
-	chan->cpu = cpu;
-	chan->update_list = update_list;
-	chan->enabled = enabled;
-	chan->stack[chan->n++] = init_st;
-	if (dirty)
-		mark_dirty(chan, CHAN_DIRTY_ACTIVE);
+	return chan->type;
 }
 
-static void
-chan_dump_update_list(struct ovni_chan *chan)
+static int
+set_dirty(struct chan *chan)
 {
-	dbg("update list for chan %d at %p:\n", chan->id, (void *) chan);
-
-	for (struct ovni_chan *c = *chan->update_list; c; c = c->next) {
-		dbg(" chan %d at %p\n", c->id, (void *) c);
-	}
-}
-
-void
-chan_enable(struct ovni_chan *chan, int enabled)
-{
-	/* Can be dirty */
-
-	dbg("chan_enable chan=%d enabled=%d\n", chan->id, enabled);
-
-	if (chan->enabled == enabled) {
-		err("chan_enable: chan already in enabled=%d\n", enabled);
-		abort();
+	if (chan->is_dirty) {
+		err("channel %s already dirty\n", chan->name);
+		return -1;
 	}
 
-	chan->enabled = enabled;
-	chan->t = *chan->clock;
+	chan->is_dirty = 1;
 
-	/* Only append if not dirty */
-	if (!chan->dirty) {
-		mark_dirty(chan, CHAN_DIRTY_ACTIVE);
-	} else {
-		dbg("already dirty chan %d: skip update list\n",
-				chan->id);
-		chan_dump_update_list(chan);
+	if (chan->dirty_cb != NULL) {
+		if (chan->dirty_cb(chan, chan->dirty_arg) != 0) {
+			err("dirty callback failed\n");
+			return -1;
+		}
 	}
+
+	return 0;
 }
 
-void
-chan_disable(struct ovni_chan *chan)
+static int
+check_duplicates(struct chan *chan, struct value *v)
 {
-	chan_enable(chan, 0);
+	/* If duplicates are allowed just skip the check */
+	//if (chan->oflags & CHAN_DUP)
+	//	return 0;
+
+	if (value_is_equal(&chan->last_value, v)) {
+		err("check_duplicates: same value as last_value\n");
+		return -1;
+	}
+
+	return 0;
 }
 
 int
-chan_is_enabled(const struct ovni_chan *chan)
+chan_set(struct chan *chan, struct value value)
 {
-	return chan->enabled;
+	if (chan->type != CHAN_SINGLE) {
+		err("chan_set: cannot set on non-single channel\n");
+		return -1;
+	}
+
+	if (chan->is_dirty) {
+		err("chan_set: cannot modify dirty channel\n");
+		return -1;
+	}
+
+	if (check_duplicates(chan, &value) != 0) {
+		err("chan_set: cannot set a duplicated value\n");
+		return -1;
+	}
+
+	char buf[128];
+	dbg("chan_set: channel %p sets value %s\n", (void *) chan,
+			value_str(value, buf));
+	chan->data.value = value;
+
+	if (set_dirty(chan) != 0) {
+		err("chan_set: set_dirty failed\n");
+		return -1;
+	}
+
+	return 0;
 }
 
-void
-chan_set(struct ovni_chan *chan, int st)
+/** Adds one value to the stack. Fails if the stack is full.
+ *
+ *  @param ivalue The new integer value to be added on the stack.
+ *
+ *  @return On success returns 0, otherwise returns -1.
+ */
+int
+chan_push(struct chan *chan, struct value value)
 {
-	/* Can be dirty */
-
-	dbg("chan_set chan %d st=%d\n", chan->id, st);
-
-	if (!chan->enabled)
-		die("chan_set: chan %d not enabled\n", chan->id);
-
-	/* Only chan_set can set the 0 state */
-	if (st < 0)
-		die("chan_set: cannot set a negative state %d\n", st);
-
-	/* Don't enforce this check if we are dirty because the channel was
-	 * just enabled; it may collide with a new state 0 set via chan_set()
-	 * used by the tracking channels */
-	if (chan->dirty != CHAN_DIRTY_ACTIVE
-			&& chan->lastst >= 0
-			&& chan->lastst == st) {
-		err("chan_set id=%d cannot emit the state %d twice\n",
-				chan->id, st);
-		abort();
+	if (chan->type != CHAN_STACK) {
+		err("chan_push: cannot push on non-stack channel\n");
+		return -1;
 	}
 
-	if (chan->n == 0)
-		chan->n = 1;
-
-	chan->stack[chan->n - 1] = st;
-	chan->t = *chan->clock;
-
-	/* Only append if not dirty */
-	if (!chan->dirty) {
-		mark_dirty(chan, CHAN_DIRTY_VALUE);
-	} else {
-		dbg("already dirty chan %d: skip update list\n",
-				chan->id);
-		chan_dump_update_list(chan);
-	}
-}
-
-void
-chan_push(struct ovni_chan *chan, int st)
-{
-	dbg("chan_push chan %d st=%d\n", chan->id, st);
-
-	if (!chan->enabled)
-		die("chan_push: chan %d not enabled\n", chan->id);
-
-	if (st <= 0) {
-		err("chan_push: cannot push a non-positive state %d\n", st);
-		abort();
+	if (chan->is_dirty) {
+		err("chan_push: cannot modify dirty channel\n");
+		return -1;
 	}
 
-	/* Cannot be dirty */
-	if (chan->dirty != CHAN_CLEAN)
-		die("chan_push: chan %d not clean", chan->id);
-
-	if (chan->lastst >= 0 && chan->lastst == st) {
-		err("chan_push id=%d cannot emit the state %d twice\n",
-				chan->id, st);
-		abort();
+	if (check_duplicates(chan, &value) != 0) {
+		err("chan_push: cannot push a duplicated value\n");
+		return -1;
 	}
 
-	if (chan->n >= MAX_CHAN_STACK) {
+	struct chan_stack *stack = &chan->data.stack;
+
+	if (stack->n >= MAX_CHAN_STACK) {
 		err("chan_push: channel stack full\n");
 		abort();
 	}
 
-	chan->stack[chan->n++] = st;
-	chan->t = *chan->clock;
+	stack->values[stack->n++] = value;
 
-	mark_dirty(chan, CHAN_DIRTY_VALUE);
+	if (set_dirty(chan) != 0) {
+		err("chan_set: set_dirty failed\n");
+		return -1;
+	}
+
+	return 0;
 }
 
+/** Remove one value from the stack. Fails if the top of the stack
+ * doesn't match the expected value.
+ *
+ *  @param expected The expected value on the top of the stack.
+ *
+ *  @return On success returns 0, otherwise returns -1.
+ */
 int
-chan_pop(struct ovni_chan *chan, int expected_st)
+chan_pop(struct chan *chan, struct value evalue)
 {
-	dbg("chan_pop chan %d expected_st=%d\n", chan->id, expected_st);
-
-	if (!chan->enabled)
-		die("chan_pop: chan %d not enabled\n", chan->id);
-
-	/* Cannot be dirty */
-	if (chan->dirty != CHAN_CLEAN)
-		die("chan_pop: chan %d not clean", chan->id);
-
-	if (chan->n <= 0) {
-		err("chan_pop: channel empty\n");
-		abort();
+	if (chan->type != CHAN_STACK) {
+		err("chan_pop: cannot pop on non-stack channel\n");
+		return -1;
 	}
 
-	int st = chan->stack[chan->n - 1];
-
-	if (expected_st >= 0 && st != expected_st) {
-		err("chan_pop: unexpected channel state %d (expected %d)\n",
-				st, expected_st);
-		abort();
+	if (chan->is_dirty) {
+		err("chan_pop: cannot modify dirty channel\n");
+		return -1;
 	}
 
-	chan->n--;
+	struct chan_stack *stack = &chan->data.stack;
 
-	/* Take the current stack value */
-	st = chan_get_st(chan);
-
-	/* A st == 0 can be obtained when returning to the initial state */
-	if (st < 0) {
-		err("chan_pop: obtained negative state %d from the stack\n", st);
-		abort();
+	if (stack->n <= 0) {
+		err("chan_pop: channel stack empty\n");
+		return -1;
 	}
 
-	if (chan->lastst >= 0 && chan->lastst == st) {
-		err("chan_pop id=%d cannot emit the state %d twice\n",
-				chan->id, st);
-		abort();
+	struct value *value = &stack->values[stack->n - 1];
+
+	if (!value_is_equal(value, &evalue)) {
+		err("chan_pop: unexpected value %ld (expected %ld)\n",
+				value->i, evalue.i);
+		return -1;
 	}
 
-	chan->t = *chan->clock;
+	stack->n--;
 
-	mark_dirty(chan, CHAN_DIRTY_VALUE);
+	if (set_dirty(chan) != 0) {
+		err("chan_set: set_dirty failed\n");
+		return -1;
+	}
 
-	return st;
+	return 0;
 }
 
-void
-chan_ev(struct ovni_chan *chan, int ev)
+static int
+get_value(struct chan *chan, struct value *value)
 {
-	dbg("chan_ev chan %d ev=%d\n", chan->id, ev);
+	if (chan->type == CHAN_SINGLE) {
+		 *value = chan->data.value;
+		 return 0;
+	}
 
-	if (!chan->enabled)
-		die("chan_ev: chan %d not enabled\n", chan->id);
+	struct chan_stack *stack = &chan->data.stack;
+	if (stack->n <= 0) {
+		err("get_value: channel stack empty\n");
+		return -1;
+	}
 
-	/* Cannot be dirty */
-	if (chan->dirty != CHAN_CLEAN)
-		die("chan_ev: chan %d is dirty\n", chan->id);
+	*value = stack->values[stack->n - 1];
 
-	if (ev <= 0)
-		die("chan_ev: cannot emit non-positive state %d\n", ev);
-
-	if (chan->lastst >= 0 && chan->lastst == ev)
-		die("chan_ev id=%d cannot emit the state %d twice\n",
-				chan->id, ev);
-
-	chan->ev = ev;
-	chan->t = *chan->clock;
-
-	mark_dirty(chan, CHAN_DIRTY_VALUE);
+	return 0;
 }
 
+/** Reads the current value of a channel */
 int
-chan_get_st(const struct ovni_chan *chan)
+chan_read(struct chan *chan, struct value *value)
 {
-	if (chan->enabled == 0)
-		return chan->badst;
-
-	if (chan->n == 0)
-		return 0;
-
-	if (chan->n < 0)
-		die("chan_get_st: chan %d has negative n\n", chan->id);
-
-	return chan->stack[chan->n - 1];
-}
-
-void
-chan_copy(struct ovni_chan *dst, const struct ovni_chan *src)
-{
-	if (!chan_is_enabled(src)) {
-		chan_disable(dst);
-		return;
+	if (get_value(chan, value) != 0) {
+		err("chan_read: get_value failed\n");
+		return -1;
 	}
 
-	if (!chan_is_enabled(dst))
-		chan_enable(dst, 1);
-
-	if (src->ev != -1) {
-		chan_ev(dst, src->ev);
-	} else {
-		int src_st = chan_get_st(src);
-		int dst_st = chan_get_st(dst);
-		if (src_st != dst_st)
-			chan_set(dst, src_st);
-	}
-}
-
-static void
-emit(struct ovni_chan *chan, int64_t t, int state)
-{
-	if (chan->dirty == CHAN_CLEAN)
-		die("emit: chan %d is not dirty\n", chan->id);
-
-	/* A channel can only emit the same state as lastst if is dirty because
-	 * it has been enabled or disabled. Otherwise is a bug (ie. you have two
-	 * consecutive ovni events?) */
-	if (chan->lastst != -1
-			&& chan->dirty == CHAN_DIRTY_VALUE
-			&& chan->lastst == state) {
-		/* TODO: Print the raw clock of the offending event */
-		die("emit: chan %d cannot emit the same state %d twice\n",
-				chan->id, state);
-	}
-
-	if (chan->lastst != state) {
-		prv_ev(chan->prv, chan->row, t, chan->type, state);
-
-		chan->lastst = state;
-	}
-}
-
-static void
-emit_ev(struct ovni_chan *chan)
-{
-	if (!chan->enabled)
-		die("emit_ev: chan %d is not enabled\n", chan->id);
-
-	if (chan->ev == -1)
-		die("emit_ev: chan %d cannot emit -1 ev\n", chan->id);
-
-	int new = chan->ev;
-	int last = chan_get_st(chan);
-
-	emit(chan, chan->t - 1, new);
-	emit(chan, chan->t, last);
-
-	chan->ev = -1;
-}
-
-static void
-emit_st(struct ovni_chan *chan)
-{
-	int st = chan_get_st(chan);
-
-	emit(chan, chan->t, st);
-}
-
-/* Emits either the current state or punctual event in the PRV file */
-void
-chan_emit(struct ovni_chan *chan)
-{
-	if (likely(chan->dirty == 0))
-		return;
-
-	dbg("chan_emit chan %d\n", chan->id);
-
-	/* Emit badst if disabled */
-	if (chan->enabled == 0) {
-		/* No punctual events allowed when disabled */
-		if (chan->ev != -1)
-			die("chan_emit: no punctual event allowed when disabled\n");
-
-		emit_st(chan);
-		goto shower;
-	}
-
-	/* Otherwise, emit punctual event if any or the state */
-	if (chan->ev != -1)
-		emit_ev(chan);
-	else
-		emit_st(chan);
-
-shower:
-	chan->dirty = 0;
+	return 0;
 }

@@ -35,7 +35,7 @@ function(unit_test source)
     "${CMAKE_SOURCE_DIR}/include"
   )
   add_executable("${OVNI_TEST_NAME}" "${OVNI_TEST_SOURCE}")
-  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni emu)
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni chan)
 
   add_test(NAME "${OVNI_TEST_NAME}"
     COMMAND "${OVNI_TEST_NAME}"

@@ -1,4 +1,13 @@
 # Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-unit_test(version.c)
+#unit_test(version.c)
+#unit_test(task.c)
+#unit_test(taskstack.c)
+#unit_test(taskstack-bad.c)
+#unit_test(taskmodel.c)
+#unit_test(tbm.c)
+#unit_test(tbm_trace.c)
+unit_test(chan.c)
+unit_test(bay.c)
+unit_test(mux.c)

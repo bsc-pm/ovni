@@ -1,63 +1,58 @@
-/* Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#ifndef OVNI_CHAN_H
-#define OVNI_CHAN_H
+#ifndef CHAN_H
+#define CHAN_H
 
-#include "emu.h"
+#include <stdint.h>
+#include "value.h"
 
-void
-chan_th_init(struct ovni_ethread *th,
-		struct ovni_chan **update_list,
-		enum chan id,
-		enum chan_track track,
-		int init_st,
-		int enabled,
-		int dirty,
-		int row,
-		FILE *prv,
-		int64_t *clock);
+#define MAX_CHAN_STACK 512
+#define MAX_CHAN_NAME 512
 
-void
-chan_cpu_init(struct ovni_cpu *cpu,
-		struct ovni_chan **update_list,
-		enum chan id,
-		enum chan_track track,
-		int row,
-		int init_st,
-		int enabled,
-		int dirty,
-		FILE *prv,
-		int64_t *clock);
+enum chan_type {
+	CHAN_SINGLE = 0,
+	CHAN_STACK = 1,
+	CHAN_MAXTYPE,
+};
 
-void
-chan_enable(struct ovni_chan *chan, int enabled);
+struct chan_stack {
+	int n;
+	struct value values[MAX_CHAN_STACK];
+};
 
-void
-chan_disable(struct ovni_chan *chan);
+union chan_data {
+	struct chan_stack stack;
+	struct value value;
+};
 
-int
-chan_is_enabled(const struct ovni_chan *chan);
+struct chan;
 
-void
-chan_set(struct ovni_chan *chan, int st);
+typedef int (*chan_cb_t)(struct chan *chan, void *ptr);
 
-void
-chan_push(struct ovni_chan *chan, int st);
+struct chan {
+	char name[MAX_CHAN_NAME];
+	enum chan_type type;
+	union chan_data data;
+	int is_dirty;
+	struct value err_value;
+	struct value last_value;
+	chan_cb_t dirty_cb;
+	void *dirty_arg;
+};
 
-int
-chan_pop(struct ovni_chan *chan, int expected_st);
+//int chan_enable(struct chan *chan);
+//int chan_disable(struct chan *chan);
+//int chan_is_enabled(const struct chan *chan);
 
-void
-chan_ev(struct ovni_chan *chan, int ev);
+void chan_init(struct chan *chan, enum chan_type type, const char *name);
+int chan_set(struct chan *chan, struct value value);
+int chan_push(struct chan *chan, struct value value);
+int chan_pop(struct chan *chan, struct value expected);
+int chan_read(struct chan *chan, struct value *value);
+enum chan_type chan_get_type(struct chan *chan);
 
-int
-chan_get_st(const struct ovni_chan *chan);
+/* Called when it becomes dirty */
+void chan_set_dirty_cb(struct chan *chan, chan_cb_t func, void *arg);
 
-void
-chan_emit(struct ovni_chan *chan);
-
-void
-chan_copy(struct ovni_chan *dst, const struct ovni_chan *src);
-
-#endif /* OVNI_CHAN_H */
+#endif /* CHAN_H */

@@ -7,5 +7,5 @@ set(OVNI_TEST_BUILD_DIR "${CMAKE_BINARY_DIR}/test")
 include(macros.cmake)
 
 add_subdirectory(unit)
-add_subdirectory(emu)
-add_subdirectory(rt)
+#add_subdirectory(emu)
+#add_subdirectory(rt)

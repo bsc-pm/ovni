@@ -10,5 +10,6 @@
 #unit_test(tbm_trace.c)
 unit_test(chan.c)
 unit_test(bay.c)
+unit_test(bay-hash-speed.c)
 unit_test(mux.c)
 unit_test(value.c)

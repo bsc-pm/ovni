@@ -1,8 +1,6 @@
 /* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define ENABLE_DEBUG
-
 #include "chan.h"
 #include "common.h"
 #include <string.h>
@@ -94,9 +92,9 @@ chan_set(struct chan *chan, struct value value)
 		return -1;
 	}
 
-	char buf[128];
-	dbg("chan_set %s: sets value to %s\n",
-			chan->name, value_str(value, buf));
+	//char buf[128];
+	//dbg("chan_set %s: sets value to %s\n",
+	//		chan->name, value_str(value, buf));
 	chan->data.value = value;
 
 	if (set_dirty(chan) != 0) {

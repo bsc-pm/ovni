@@ -27,6 +27,8 @@
 /* Poison assert */
 #pragma GCC poison assert
 
+#define USE_RET __attribute__((warn_unused_result))
+
 /* clang-format on */
 
 #endif /* COMMON_H */

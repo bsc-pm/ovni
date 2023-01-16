@@ -10,6 +10,12 @@ struct bay;
 struct bay_cb;
 struct bay_chan;
 
+enum bay_cb_type {
+	BAY_CB_DIRTY = 0,
+	BAY_CB_EMIT,
+	BAY_CB_MAX,
+};
+
 typedef int (*bay_cb_func_t)(struct chan *chan, void *ptr);
 
 struct bay_cb {
@@ -25,8 +31,8 @@ struct bay_cb {
 
 struct bay_chan {
 	struct chan *chan;
-	int ncallbacks;
-	struct bay_cb *cb;
+	int ncallbacks[BAY_CB_MAX];
+	struct bay_cb *cb[BAY_CB_MAX];
 	struct bay *bay;
 	int is_dirty;
 
@@ -39,12 +45,11 @@ struct bay_chan {
 };
 
 enum bay_state {
-	BAY_CONFIG = 1,
+	BAY_UKNOWN = 0,
 	BAY_READY,
 	BAY_PROPAGATING,
-	BAY_PROPAGATED,
 	BAY_EMITTING,
-	BAY_EMITTED
+	BAY_FLUSHING
 };
 
 struct bay {
@@ -53,11 +58,11 @@ struct bay {
 	struct bay_chan *dirty;
 };
 
+void bay_init(struct bay *bay);
 int bay_register(struct bay *bay, struct chan *chan);
 int bay_remove(struct bay *bay, struct chan *chan);
 struct chan *bay_find(struct bay *bay, const char *name);
-int bay_add_cb(struct bay *bay, struct chan *chan, bay_cb_func_t func, void *arg);
-void bay_init(struct bay *bay);
+int bay_add_cb(struct bay *bay, enum bay_cb_type type, struct chan *chan, bay_cb_func_t func, void *arg);
 int bay_propagate(struct bay *bay);
 
 #endif /* BAY_H */

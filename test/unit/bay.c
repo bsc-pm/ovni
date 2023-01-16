@@ -62,7 +62,7 @@ test_callback(struct bay *bay)
 		die("bay_register failed\n");
 
 	int64_t data = 0;
-	if (bay_add_cb(bay, &chan, callback, &data) != 0)
+	if (bay_add_cb(bay, BAY_CB_DIRTY, &chan, callback, &data) != 0)
 		die("bay_add_cb failed\n");
 
 	if (data != 0)

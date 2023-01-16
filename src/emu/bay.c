@@ -6,6 +6,11 @@
 #include "uthash.h"
 #include "utlist.h"
 
+static char *propname[BAY_CB_MAX] = {
+	[BAY_CB_DIRTY] = "dirty",
+	[BAY_CB_EMIT] = "emit"
+};
+
 /* Called from the channel when it becomes dirty */
 static int
 cb_chan_is_dirty(struct chan *chan, void *arg)
@@ -13,6 +18,12 @@ cb_chan_is_dirty(struct chan *chan, void *arg)
 	UNUSED(chan);
 	struct bay_chan *bchan = arg;
 	struct bay *bay = bchan->bay;
+
+	if (bay->state != BAY_READY && bay->state != BAY_PROPAGATING) {
+		err("cannot add dirty channel %s in current bay state\n",
+				chan->name);
+		return -1;
+	}
 
 	if (bchan->is_dirty) {
 		err("channel %s already on dirty list\n", chan->name);
@@ -94,7 +105,8 @@ bay_remove(struct bay *bay, struct chan *chan)
 }
 
 int
-bay_add_cb(struct bay *bay, struct chan *chan, bay_cb_func_t func, void *arg)
+bay_add_cb(struct bay *bay, enum bay_cb_type type,
+		struct chan *chan, bay_cb_func_t func, void *arg)
 {
 	if (func == NULL) {
 		err("bay_add_cb: func is NULL\n");
@@ -117,8 +129,8 @@ bay_add_cb(struct bay *bay, struct chan *chan, bay_cb_func_t func, void *arg)
 	cb->func = func;
 	cb->arg = arg;
 
-	DL_APPEND(bchan->cb, cb);
-	bchan->ncallbacks++;
+	DL_APPEND(bchan->cb[type], cb);
+	bchan->ncallbacks[type]++;
 	return 0;
 }
 
@@ -130,13 +142,14 @@ bay_init(struct bay *bay)
 }
 
 static int
-propagate_chan(struct bay_chan *bchan)
+propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 {
-	dbg("- propagating dirty channel %s\n", bchan->chan->name);
+	dbg("- propagating channel '%s' phase %s\n",
+			bchan->chan->name, propname[type]);
 
 	struct bay_cb *cur = NULL;
 	struct bay_cb *tmp = NULL;
-	DL_FOREACH_SAFE(bchan->cb, cur, tmp) {
+	DL_FOREACH_SAFE(bchan->cb[type], cur, tmp) {
 		if (cur->func(bchan->chan, cur->arg) != 0) {
 			err("propagate_chan: callback failed\n");
 			return -1;
@@ -149,20 +162,31 @@ propagate_chan(struct bay_chan *bchan)
 int
 bay_propagate(struct bay *bay)
 {
-	dbg("-- propagating channels begins\n");
-	struct bay_chan *cur = NULL;
-	struct bay_chan *tmp = NULL;
+	struct bay_chan *cur, *tmp;
+	bay->state = BAY_PROPAGATING;
 	DL_FOREACH_SAFE(bay->dirty, cur, tmp) {
 		/* May add more dirty channels */
-		if (propagate_chan(cur) != 0) {
+		if (propagate_chan(cur, BAY_CB_DIRTY) != 0) {
 			err("bay_propagate: propagate_chan failed\n");
 			return -1;
 		}
 	}
 
-	/* Flush channels after running all the dirty callbacks, so we
-	 * capture any potential double write when running the
-	 * callbacks */
+	/* Once the dirty callbacks have been propagated,
+	 * begin the emit stage */
+	bay->state = BAY_EMITTING;
+	DL_FOREACH_SAFE(bay->dirty, cur, tmp) {
+		/* May add more dirty channels */
+		if (propagate_chan(cur, BAY_CB_EMIT) != 0) {
+			err("bay_propagate: propagate_chan failed\n");
+			return -1;
+		}
+	}
+
+	/* Flush channels after running all the dirty and emit
+	 * callbacks, so we capture any potential double write when
+	 * running the callbacks */
+	bay->state = BAY_FLUSHING;
 	DL_FOREACH_SAFE(bay->dirty, cur, tmp) {
 		if (chan_flush(cur->chan) != 0) {
 			err("bay_propagate: chan_flush failed\n");
@@ -172,19 +196,7 @@ bay_propagate(struct bay *bay)
 	}
 
 	bay->dirty = NULL;
-
-	dbg("-- propagating channels ends\n");
+	bay->state = BAY_READY;
 
 	return 0;
 }
-
-//int
-//bay_emit(struct bay *bay)
-//{
-//	for (chan in dirty channels) {
-//		/* May add more dirty channels */
-//		emit_chan(chan);
-//	}
-//
-//	return 0;
-//}

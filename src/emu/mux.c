@@ -173,7 +173,7 @@ mux_init(struct mux *mux,
 	mux->select_func = select_func;
 	mux->bay = bay;
 
-	if (bay_add_cb(bay, select, cb_select, mux) != 0) {
+	if (bay_add_cb(bay, BAY_CB_DIRTY, select, cb_select, mux) != 0) {
 		err("mux_init: bay_add_cb failed\n");
 		return -1;
 	}
@@ -222,7 +222,7 @@ mux_add_input(struct mux *mux, struct value key, struct chan *chan)
 
 	HASH_ADD_KEYPTR(hh, mux->input, &input->key, sizeof(input->key), input);
 
-	if (bay_add_cb(mux->bay, chan, cb_input, mux) != 0) {
+	if (bay_add_cb(mux->bay, BAY_CB_DIRTY, chan, cb_input, mux) != 0) {
 		err("mux_add_input: bay_add_cb failed\n");
 		return -1;
 	}

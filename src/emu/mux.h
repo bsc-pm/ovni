@@ -17,15 +17,6 @@ typedef int (* mux_select_func_t)(struct mux *mux,
 		struct value value,
 		struct mux_input **input);
 
-/* MUX logic:
- *
- * select		input	output
- * ---------------------------
- * null			-		null
- * input		x		x
- *
- */
-
 struct mux {
 	struct bay *bay;
 	int64_t ninputs;

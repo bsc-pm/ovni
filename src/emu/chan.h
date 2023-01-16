@@ -19,6 +19,7 @@ enum chan_type {
 enum chan_prop {
 	CHAN_DIRTY_WRITE = 0,
 	CHAN_DUPLICATES,
+	CHAN_ROW,
 	CHAN_MAXPROP,
 };
 
@@ -47,22 +48,15 @@ struct chan {
 	void *dirty_arg;
 };
 
-//int chan_enable(struct chan *chan);
-//int chan_disable(struct chan *chan);
-//int chan_is_enabled(const struct chan *chan);
-
-void chan_init(struct chan *chan, enum chan_type type, const char *name);
-int chan_set(struct chan *chan, struct value value);
-int chan_push(struct chan *chan, struct value value);
-int chan_pop(struct chan *chan, struct value expected);
-int chan_read(struct chan *chan, struct value *value);
-enum chan_type chan_get_type(struct chan *chan);
-int chan_flush(struct chan *chan);
-
-void chan_prop_set(struct chan *chan, enum chan_prop prop, int value);
-int chan_prop_get(struct chan *chan, enum chan_prop prop);
-
-/* Called when it becomes dirty */
-void chan_set_dirty_cb(struct chan *chan, chan_cb_t func, void *arg);
+        void chan_init(struct chan *chan, enum chan_type type, const char *name);
+USE_RET int chan_set(struct chan *chan, struct value value);
+USE_RET int chan_push(struct chan *chan, struct value value);
+USE_RET int chan_pop(struct chan *chan, struct value expected);
+USE_RET int chan_read(struct chan *chan, struct value *value);
+USE_RET enum chan_type chan_get_type(struct chan *chan);
+USE_RET int chan_flush(struct chan *chan);
+        void chan_prop_set(struct chan *chan, enum chan_prop prop, int value);
+USE_RET int chan_prop_get(struct chan *chan, enum chan_prop prop);
+        void chan_set_dirty_cb(struct chan *chan, chan_cb_t func, void *arg);
 
 #endif /* CHAN_H */

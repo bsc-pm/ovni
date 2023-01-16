@@ -242,8 +242,10 @@ main(void)
 	if (mux_init(&mux, &bay, &select, &output, NULL) != 0)
 		die("mux_init failed\n");
 
-	for (int i = 0; i < N; i++)
-		mux_add_input(&mux, value_int64(i), &inputs[i]);
+	for (int i = 0; i < N; i++) {
+		if (mux_add_input(&mux, value_int64(i), &inputs[i]) != 0)
+			die("mux_add_input failed\n");
+	}
 
 	/* Write something to the input channels */
 	for (int i = 0; i < N; i++) {

@@ -30,20 +30,20 @@ void mux_input_init(struct mux_input *mux,
 		struct value key,
 		struct chan *chan);
 
-int mux_init(struct mux *mux,
+USE_RET int mux_init(struct mux *mux,
 		struct bay *bay,
 		struct chan *select,
 		struct chan *output,
 		mux_select_func_t select_func);
 
-struct mux_input *mux_find_input(struct mux *mux,
+USE_RET struct mux_input *mux_find_input(struct mux *mux,
 		struct value key);
 
-int mux_add_input(struct mux *mux,
+USE_RET int mux_add_input(struct mux *mux,
 		struct value key,
 		struct chan *input);
 
-int mux_register(struct mux *mux,
+USE_RET int mux_register(struct mux *mux,
 		struct bay *bay);
 
 #endif /* MUX_H */

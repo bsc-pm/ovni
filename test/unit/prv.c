@@ -19,7 +19,7 @@ test_emit(const char *path)
 	bay_init(&bay);
 
 	struct prv prv;
-	prv_open(&prv, &bay, NROWS, path);
+	prv_open(&prv, NROWS, path);
 
 	for (int i = 0; i < NROWS; i++) {
 		char buf[MAX_CHAN_NAME];
@@ -31,7 +31,7 @@ test_emit(const char *path)
 	}
 
 	for (int i = 0; i < NROWS; i++)
-		if (prv_register(&prv, i, type, &chan[i]) != 0)
+		if (prv_register(&prv, i, type, &bay, &chan[i]) != 0)
 			die("prv_register failed\n");
 
 	for (int i = 0; i < NROWS; i++)
@@ -69,7 +69,7 @@ test_duplicate(const char *path)
 	bay_init(&bay);
 
 	struct prv prv;
-	prv_open(&prv, &bay, NROWS, path);
+	prv_open(&prv, NROWS, path);
 
 	struct chan chan;
 	chan_init(&chan, CHAN_SINGLE, "testchan");
@@ -80,7 +80,7 @@ test_duplicate(const char *path)
 	if (bay_register(&bay, &chan) != 0)
 		die("bay_register failed\n");
 
-	if (prv_register(&prv, 0, type, &chan) != 0)
+	if (prv_register(&prv, 0, type, &bay, &chan) != 0)
 		die("prv_register failed\n");
 
 	if (chan_set(&chan, value_int64(1000)) != 0)

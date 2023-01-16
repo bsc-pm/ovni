@@ -13,12 +13,11 @@ write_header(FILE *f, long long duration, int nrows)
 }
 
 int
-prv_open_file(struct prv *prv, struct bay *bay, long nrows, FILE *file)
+prv_open_file(struct prv *prv, long nrows, FILE *file)
 {
 	memset(prv, 0, sizeof(struct prv));
 
 	prv->nrows = nrows;
-	prv->bay = bay;
 	prv->file = file;
 
 	/* Write fake header to allocate the space */
@@ -28,7 +27,7 @@ prv_open_file(struct prv *prv, struct bay *bay, long nrows, FILE *file)
 }
 
 int
-prv_open(struct prv *prv, struct bay *bay, long nrows, const char *path)
+prv_open(struct prv *prv, long nrows, const char *path)
 {
 	FILE *f = fopen(path, "w");
 
@@ -38,7 +37,7 @@ prv_open(struct prv *prv, struct bay *bay, long nrows, const char *path)
 		return -1;
 	}
 
-	return prv_open_file(prv, bay, nrows, f);
+	return prv_open_file(prv, nrows, f);
 }
 
 void
@@ -121,7 +120,7 @@ cb_prv(struct chan *chan, void *ptr)
 }
 
 int
-prv_register(struct prv *prv, long row, long type, struct chan *chan)
+prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan)
 {
 	struct prv_chan *rchan = find_prv_chan(prv, chan->name);
 	if (rchan != NULL) {
@@ -144,7 +143,7 @@ prv_register(struct prv *prv, long row, long type, struct chan *chan)
 	rchan->last_value_set = 0;
 
 	/* Add emit callback */
-	if (bay_add_cb(prv->bay, BAY_CB_EMIT, chan, cb_prv, rchan) != 0) {
+	if (bay_add_cb(bay, BAY_CB_EMIT, chan, cb_prv, rchan) != 0) {
 		err("prv_register: bay_add_cb failed\n");
 		return -1;
 	}

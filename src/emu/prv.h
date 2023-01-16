@@ -23,15 +23,14 @@ struct prv_chan {
 
 struct prv {
 	FILE *file;
-	struct bay *bay;
 	int64_t time;
 	long nrows;
 	struct prv_chan *channels;
 };
 
-int prv_open(struct prv *prv, struct bay *bay, long nrows, const char *path);
-int prv_open_file(struct prv *prv, struct bay *bay, long nrows, FILE *file);
-int prv_register(struct prv *prv, long row, long type, struct chan *c);
+int prv_open(struct prv *prv, long nrows, const char *path);
+int prv_open_file(struct prv *prv, long nrows, FILE *file);
+int prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *c);
 int prv_advance(struct prv *prv, int64_t time);
 void prv_close(struct prv *prv);
 

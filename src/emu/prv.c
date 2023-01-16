@@ -1,80 +1,168 @@
-/* Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#include <stdio.h>
-
-#include "emu.h"
-#include "ovni.h"
 #include "prv.h"
-
-void
-prv_ev(FILE *f, int row, int64_t time, int type, int val)
-{
-	dbg("<<< 2:0:1:1:%d:%ld:%d:%d\n", row, time, type, val);
-	fprintf(f, "2:0:1:1:%d:%ld:%d:%d\n", row, time, type, val);
-}
-
-void
-prv_ev_thread_raw(struct ovni_emu *emu, int row, int64_t time, int type, int val)
-{
-	prv_ev(emu->prv_thread, row, time, type, val);
-}
-
-void
-prv_ev_thread(struct ovni_emu *emu, int row, int type, int val)
-{
-	prv_ev_thread_raw(emu, row, emu->delta_time, type, val);
-}
+#include <stdio.h>
+#include <errno.h>
 
 static void
-prv_ev_cpu_raw(struct ovni_emu *emu, int row, int64_t time, int type, int val)
+write_header(FILE *f, long long duration, int nrows)
 {
-	prv_ev(emu->prv_cpu, row, time, type, val);
+	fprintf(f, "#Paraver (19/01/38 at 03:14):%020lld_ns:0:1:1(%d:1)\n",
+			duration, nrows);
+}
+
+int
+prv_open_file(struct prv *prv, struct bay *bay, long nrows, FILE *file)
+{
+	memset(prv, 0, sizeof(struct prv));
+
+	prv->nrows = nrows;
+	prv->bay = bay;
+	prv->file = file;
+
+	/* Write fake header to allocate the space */
+	write_header(file, 0LL, nrows);
+
+	return 0;
+}
+
+int
+prv_open(struct prv *prv, struct bay *bay, long nrows, const char *path)
+{
+	FILE *f = fopen(path, "w");
+
+	if (f == NULL) {
+		die("prv_open: cannot open file '%s' for writting: %s\n",
+				path, strerror(errno));
+		return -1;
+	}
+
+	return prv_open_file(prv, bay, nrows, f);
 }
 
 void
-prv_ev_cpu(struct ovni_emu *emu, int row, int type, int val)
+prv_close(struct prv *prv)
 {
-	prv_ev_cpu_raw(emu, row, emu->delta_time, type, val);
+	/* Fix the header with the current duration */
+	fseek(prv->file, 0, SEEK_SET);
+	write_header(prv->file, prv->time, prv->nrows);
+	fclose(prv->file);
 }
 
-void
-prv_ev_autocpu_raw(struct ovni_emu *emu, int64_t time, int type, int val)
+static struct prv_chan *
+find_prv_chan(struct prv *prv, const char *name)
 {
-	if (emu->cur_thread == NULL)
-		die("prv_ev_autocpu_raw: current thread is NULL\n");
+	struct prv_chan *rchan = NULL;
+	HASH_FIND_STR(prv->channels, name, rchan);
 
-	struct ovni_cpu *cpu = emu->cur_thread->cpu;
-
-	if (cpu == NULL)
-		die("prv_ev_autocpu_raw: current thread CPU is NULL\n");
-
-	/* FIXME: Use the global index of the CPUs */
-	if (cpu->i < 0)
-		die("prv_ev_autocpu_raw: CPU index is negative\n");
-
-	/* Begin at 1 */
-	int row = emu->cur_loom->offset_ncpus + cpu->i + 1;
-
-	prv_ev_cpu_raw(emu, row, time, type, val);
+	return rchan;
 }
 
-void
-prv_ev_autocpu(struct ovni_emu *emu, int type, int val)
+static int
+write_line(struct prv *prv, long row_base1, long type, long value)
 {
-	prv_ev_autocpu_raw(emu, emu->delta_time, type, val);
+	int ret = fprintf(prv->file, "2:0:1:1:%ld:%ld:%ld:%ld\n",
+			row_base1, prv->time, type, value);
+
+	if (ret < 0)
+		return -1;
+	else
+		return 0;
 }
 
-void
-prv_header(FILE *f, int nrows)
+static int
+emit(struct prv *prv, struct prv_chan *rchan)
 {
-	fprintf(f, "#Paraver (19/01/38 at 03:14):%020ld_ns:0:1:1(%d:1)\n", 0LU, nrows);
+	struct value value;
+	struct chan *chan = rchan->chan;
+	if (chan_read(chan, &value) != 0) {
+		err("prv_emit: chan_read %s failed\n", chan->name);
+		return -1;
+	}
+
+	/* Ensure we don't emit the same value twice */
+	if (rchan->last_value_set) {
+		if (value_is_equal(&value, &rchan->last_value)) {
+			char buf[128];
+			err("prv_emit: cannot emit value %s twice for channel %s\n",
+					value_str(value, buf), chan->name);
+			return -1;
+		}
+	}
+
+	if (value.type != VALUE_INT64) {
+		char buf[128];
+		err("prv_emit: chan_read %s only int64 supported: %s\n",
+				chan->name, value_str(value, buf));
+		return -1;
+	}
+
+	if (write_line(prv, rchan->row_base1, rchan->type, value.i) != 0) {
+		err("prv_emit: write_line failed for channel %s\n",
+				chan->name);
+		return -1;
+	}
+
+	rchan->last_value = value;
+	rchan->last_value_set = 1;
+
+	return 0;
 }
 
-void
-prv_fix_header(FILE *f, uint64_t duration, int nrows)
+static int
+cb_prv(struct chan *chan, void *ptr)
 {
-	/* Go to the first byte */
-	fseek(f, 0, SEEK_SET);
-	fprintf(f, "#Paraver (19/01/38 at 03:14):%020ld_ns:0:1:1(%d:1)\n", duration, nrows);
+	UNUSED(chan);
+	struct prv_chan *rchan = ptr;
+	struct prv *prv = rchan->prv;
+
+	return emit(prv, rchan);
+}
+
+int
+prv_register(struct prv *prv, long row, long type, struct chan *chan)
+{
+	struct prv_chan *rchan = find_prv_chan(prv, chan->name);
+	if (rchan != NULL) {
+		err("prv_register: channel %s already registered\n",
+				chan->name);
+		return -1;
+	}
+
+	rchan = calloc(1, sizeof(struct prv_chan));
+	if (rchan == NULL) {
+		err("prv_register: calloc failed\n");
+		return -1;
+	}
+
+	rchan->chan = chan;
+	rchan->row_base1 = row + 1;
+	rchan->type = type;
+	rchan->prv = prv;
+	rchan->last_value = value_null();
+	rchan->last_value_set = 0;
+
+	/* Add emit callback */
+	if (bay_add_cb(prv->bay, BAY_CB_EMIT, chan, cb_prv, rchan) != 0) {
+		err("prv_register: bay_add_cb failed\n");
+		return -1;
+	}
+
+	/* Add to hash table */
+	HASH_ADD_STR(prv->channels, chan->name, rchan);
+
+	return 0;
+}
+
+int
+prv_advance(struct prv *prv, int64_t time)
+{
+	if (time < prv->time) {
+		err("prv_advance: cannot move to previous time\n");
+		return -1;
+	}
+
+	prv->time = time;
+	return 0;
 }

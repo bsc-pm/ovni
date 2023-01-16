@@ -1,35 +1,38 @@
-/* Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#ifndef OVNI_PRV_H
-#define OVNI_PRV_H
+#ifndef PRV_H
+#define PRV_H
 
-#include "emu.h"
-#include "ovni.h"
-#include <stdint.h>
+#include "chan.h"
+#include "bay.h"
+#include "uthash.h"
+#include <stdio.h>
 
-void
-prv_ev(FILE *f, int row, int64_t time, int type, int val);
+struct prv;
 
-void
-prv_ev_thread_raw(struct ovni_emu *emu, int row, int64_t time, int type, int val);
+struct prv_chan {
+	struct prv *prv;
+	struct chan *chan;
+	long row_base1;
+	long type;
+	int last_value_set;
+	struct value last_value;
+	UT_hash_handle hh; /* Indexed by chan->name */
+};
 
-void
-prv_ev_thread(struct ovni_emu *emu, int row, int type, int val);
+struct prv {
+	FILE *file;
+	struct bay *bay;
+	int64_t time;
+	long nrows;
+	struct prv_chan *channels;
+};
 
-void
-prv_ev_cpu(struct ovni_emu *emu, int row, int type, int val);
+int prv_open(struct prv *prv, struct bay *bay, long nrows, const char *path);
+int prv_open_file(struct prv *prv, struct bay *bay, long nrows, FILE *file);
+int prv_register(struct prv *prv, long row, long type, struct chan *c);
+int prv_advance(struct prv *prv, int64_t time);
+void prv_close(struct prv *prv);
 
-void
-prv_ev_autocpu(struct ovni_emu *emu, int type, int val);
-
-void
-prv_ev_autocpu_raw(struct ovni_emu *emu, int64_t time, int type, int val);
-
-void
-prv_header(FILE *f, int nrows);
-
-void
-prv_fix_header(FILE *f, uint64_t duration, int nrows);
-
-#endif /* OVNI_PRV_H */
+#endif /* PRV_H */

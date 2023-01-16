@@ -14,6 +14,7 @@ add_library(chan STATIC
   chan.c
   bay.c
   mux.c
+  prv.c
 )
 
 #add_library(emu STATIC

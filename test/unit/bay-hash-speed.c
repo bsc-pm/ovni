@@ -45,10 +45,9 @@ dummy_work(struct chan *c)
 }
 
 static double
-measure_hash(struct bay *bay)
+measure_hash(struct bay *bay, double T)
 {
 	double t0 = get_time();
-	double T = 5.0;
 	double t1 = t0 + T;
 
 	char name[MAX_CHAN_NAME];
@@ -72,10 +71,9 @@ measure_hash(struct bay *bay)
 }
 
 static double
-measure_direct(void)
+measure_direct(double T)
 {
 	double t0 = get_time();
-	double T = 5.0;
 	double t1 = t0 + T;
 
 	long nlookups = 0;
@@ -96,8 +94,9 @@ measure_direct(void)
 static void
 test_speed(struct bay *bay)
 {
-	double hash = measure_hash(bay);
-	double direct = measure_direct();
+	double T = 0.200;
+	double hash = measure_hash(bay, T);
+	double direct = measure_direct(T);
 	double slowdown = hash / direct;
 	err("slowdown speed_hash/speed_direct = %f\n", slowdown);
 

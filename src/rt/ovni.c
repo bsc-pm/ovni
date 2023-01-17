@@ -61,11 +61,11 @@ create_trace_stream(void)
 {
 	char path[PATH_MAX];
 
-	int written = snprintf(path, PATH_MAX, "%s/thread.%d",
+	int written = snprintf(path, PATH_MAX, "%s/thread.%d.ovnistream",
 			rproc.procdir, rthread.tid);
 
 	if (written >= PATH_MAX)
-		die("thread trace path too long: %s/thread.%d\n",
+		die("thread trace path too long: %s/thread.%d.ovnistream\n",
 				rproc.procdir, rthread.tid);
 
 	rthread.streamfd = open(path, O_WRONLY | O_CREAT, 0644);

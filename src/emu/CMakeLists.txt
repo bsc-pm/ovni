@@ -3,19 +3,26 @@
 
 include_directories(
   "${CMAKE_SOURCE_DIR}/src/include"
+  "${CMAKE_SOURCE_DIR}/src/emu"
   "${CMAKE_SOURCE_DIR}/src"
   "${CMAKE_SOURCE_DIR}/include"
 )
 
-add_library(trace STATIC trace.c)
-target_link_libraries(trace parson ovni-static)
+#add_library(trace STATIC trace.c)
+#target_link_libraries(trace parson ovni-static)
 
-add_library(chan STATIC
+add_library(emu STATIC
+  emu.c
+  emu_stream.c
+  emu_trace.c
+  emu_system.c
   chan.c
   bay.c
   mux.c
   prv.c
 )
+
+add_subdirectory(ovni)
 
 #add_library(emu STATIC
 #  chan.c

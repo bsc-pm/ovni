@@ -29,6 +29,8 @@
 
 #define USE_RET __attribute__((warn_unused_result))
 
+#define ARRAYLEN(x) (sizeof(x)/sizeof((x)[0]))
+
 /* clang-format on */
 
 #endif /* COMMON_H */

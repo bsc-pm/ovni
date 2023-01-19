@@ -88,6 +88,9 @@ struct emu_thread {
 	int is_running;
 	int is_active;
 
+	/* Stream linked to this thread */
+	struct emu_stream *stream;
+
 	/* Current cpu, NULL if not unique affinity */
 	struct emu_cpu *cpu;
 

@@ -15,7 +15,7 @@ has_prefix(const char *path, const char *prefix)
 }
 
 static struct emu_thread *
-new_thread(struct emu_proc *proc, const char *tracedir, const char *name, const char *relpath)
+new_thread(struct emu_proc *proc, const char *tracedir, const char *name, struct emu_stream *stream)
 {
 	struct emu_thread *thread = calloc(1, sizeof(struct emu_thread));
 
@@ -25,13 +25,14 @@ new_thread(struct emu_proc *proc, const char *tracedir, const char *name, const 
 	if (snprintf(thread->name, PATH_MAX, "%s", name) >= PATH_MAX)
 		die("new_thread: name too long: %s\n", name);
 
-	if (snprintf(thread->path, PATH_MAX, "%s/%s", tracedir, relpath) >= PATH_MAX)
-		die("new_thread: path too long: %s/%s\n", tracedir, relpath);
+	if (snprintf(thread->path, PATH_MAX, "%s/%s", tracedir, stream->relpath) >= PATH_MAX)
+		die("new_thread: path too long: %s/%s\n", tracedir, stream->relpath);
 
-	if (snprintf(thread->relpath, PATH_MAX, "%s", relpath) >= PATH_MAX)
-		die("new_thread: relative path too long: %s\n", relpath);
+	if (snprintf(thread->relpath, PATH_MAX, "%s", stream->relpath) >= PATH_MAX)
+		die("new_thread: relative path too long: %s\n", stream->relpath);
 
 	thread->proc = proc;
+	thread->stream = stream;
 
 	err("new thread '%s'\n", thread->name);
 
@@ -48,46 +49,50 @@ find_thread(struct emu_proc *proc, const char *name)
 	return NULL;
 }
 
-static int
-create_thread(struct emu_proc *proc, const char *tracedir, const char *relpath)
+static struct emu_thread *
+create_thread(struct emu_proc *proc, const char *tracedir, struct emu_stream *stream)
 {
 	char name[PATH_MAX];
-	if (snprintf(name, PATH_MAX, "%s", relpath) >= PATH_MAX) {
-		err("create_thread: path too long: %s\n", relpath);
-		return -1;
+	if (snprintf(name, PATH_MAX, "%s", stream->relpath) >= PATH_MAX) {
+		err("create_thread: path too long: %s\n",
+				stream->relpath);
+		return NULL;
 	}
 
 	if (strtok(name, "/") == NULL) {
 		err("missing first slash\n");
-		return -1;
+		return NULL;
 	}
 
 	if (strtok(NULL, "/") == NULL) {
 		err("missing second slash\n");
-		return -1;
+		return NULL;
 	}
 
 	char *threadname = strtok(NULL, "/");
 	if (threadname == NULL) {
 		err("missing thread name\n");
-		return -1;
+		return NULL;
 	}
 
 	if (!has_prefix(threadname, "thread")) {
-		err("warning: ignoring unknown thread stream %s\n",
-				relpath);
-		return 0;
+		err("unknown thread stream prefix %s\n",
+				stream->relpath);
+		return NULL;
 	}
 
 	struct emu_thread *thread = find_thread(proc, threadname);
 
-	if (thread == NULL) {
-		thread = new_thread(proc, tracedir, threadname, relpath);
-		DL_APPEND2(proc->threads, thread, lprev, lnext);
-		proc->nthreads++;
+	if (thread != NULL) {
+		err("create_thread: thread already exists: %s\n", threadname);
+		return NULL;
 	}
 
-	return 0;
+	thread = new_thread(proc, tracedir, threadname, stream);
+	DL_APPEND2(proc->threads, thread, lprev, lnext);
+	proc->nthreads++;
+
+	return thread;
 }
 
 static struct emu_proc *
@@ -124,30 +129,30 @@ find_proc(struct emu_loom *loom, const char *name)
 	return NULL;
 }
 
-static int
+static struct emu_proc *
 create_proc(struct emu_loom *loom, const char *tracedir, const char *relpath)
 {
 	char name[PATH_MAX];
 	if (snprintf(name, PATH_MAX, "%s", relpath) >= PATH_MAX) {
 		err("create_proc: path too long: %s\n", relpath);
-		return -1;
+		return NULL;
 	}
 
 	if (strtok(name, "/") == NULL) {
 		err("missing first slash\n");
-		return -1;
+		return NULL;
 	}
 
 	char *procname = strtok(NULL, "/");
 	if (procname == NULL) {
 		err("missing proc name\n");
-		return -1;
+		return NULL;
 	}
 
 	if (!has_prefix(procname, "proc")) {
-		err("warning: ignoring unknown proc stream %s\n",
+		err("unknown proc stream prefix %s\n",
 				relpath);
-		return 0;
+		return NULL;
 	}
 
 	struct emu_proc *proc = find_proc(loom, procname);
@@ -158,7 +163,7 @@ create_proc(struct emu_loom *loom, const char *tracedir, const char *relpath)
 		loom->nprocs++;
 	}
 
-	return create_thread(proc, tracedir, relpath);
+	return proc;
 }
 
 static struct emu_loom *
@@ -193,19 +198,19 @@ new_loom(const char *tracedir, const char *name)
 	return loom;
 }
 
-static int
+static struct emu_loom *
 create_loom(struct emu_system *sys, const char *tracedir, const char *relpath)
 {
 	char name[PATH_MAX];
 	if (snprintf(name, PATH_MAX, "%s", relpath) >= PATH_MAX) {
 		err("create_loom: path too long: %s\n", relpath);
-		return -1;
+		return NULL;
 	}
 
 	if (strtok(name, "/") == NULL) {
 		err("create_looms: cannot find first '/': %s\n",
 				relpath);
-		return -1;
+		return NULL;
 	}
 	
 	struct emu_loom *loom = find_loom(sys, name);
@@ -216,12 +221,13 @@ create_loom(struct emu_system *sys, const char *tracedir, const char *relpath)
 		sys->nlooms++;
 	}
 
-	return create_proc(loom, tracedir, relpath);
+	return loom;
 }
 
 static int
 create_system(struct emu_system *sys, struct emu_trace *trace)
 {
+	const char *dir = trace->tracedir;
 	for (struct emu_stream *s = trace->streams; s ; s = s->next) {
 		if (!has_prefix(s->relpath, "loom")) {
 			err("warning: ignoring unknown steam %s\n",
@@ -229,8 +235,22 @@ create_system(struct emu_system *sys, struct emu_trace *trace)
 			continue;
 		}
 
-		if (create_loom(sys, trace->tracedir, s->relpath) != 0) {
-			err("create loom failed\n");
+		struct emu_loom *loom = create_loom(sys, dir, s->relpath);
+		if (loom == NULL) {
+			err("create_system: create_loom failed\n");
+			return -1;
+		}
+
+		struct emu_proc *proc = create_proc(loom, dir, s->relpath);
+		if (proc == NULL) {
+			err("create_system: create_proc failed\n");
+			return -1;
+		}
+
+		/* The thread sets the stream */
+		struct emu_thread *thread = create_thread(proc, dir, s);
+		if (thread == NULL) {
+			err("create_system: create_thread failed\n");
 			return -1;
 		}
 	}
@@ -697,6 +717,13 @@ init_cpu_names(struct emu_system *sys)
 	return 0;
 }
 
+static void
+link_streams_to_threads(struct emu_system *sys)
+{
+	for (struct emu_thread *th = sys->threads; th; th = th->gnext)
+		emu_stream_data_set(th->stream, th);
+}
+
 int
 emu_system_load(struct emu_system *sys, struct emu_trace *trace)
 {
@@ -733,6 +760,8 @@ emu_system_load(struct emu_system *sys, struct emu_trace *trace)
 		err("emu_system_load: init_cpu_names() failed\n");
 		return -1;
 	}
+
+	link_streams_to_threads(sys);
 
 	/* Finaly dump the system */
 	print_system(sys);

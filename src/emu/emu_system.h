@@ -29,14 +29,14 @@ struct model_ctx {
 };
 
 struct emu_cpu {
+	size_t gindex; /* In the system */
+	char name[PATH_MAX];
+
 	/* Logical index: 0 to ncpus - 1 */
 	int i;
 
 	/* Physical id: as reported by lscpu(1) */
 	int phyid;
-
-	/* Global index for all CPUs */
-	int gindex;
 
 	enum emu_cpu_state state;
 
@@ -52,8 +52,7 @@ struct emu_cpu {
 	size_t nactive_threads;
 	struct emu_thread *th_active;
 
-	/* Is this a virtual CPU? */
-	int virtual;
+	int is_virtual;
 
 	/* Global list */
 	struct emu_cpu *next;
@@ -73,12 +72,14 @@ enum emu_thread_state {
 };
 
 struct emu_thread {
+	size_t gindex; /* In the system */
+
 	char name[PATH_MAX];
+	char path[PATH_MAX];
 	char relpath[PATH_MAX];
 
 	int tid;
 	int index; /* In loom */
-	int gindex; /* In emu */
 
 	/* The process associated with this thread */
 	struct emu_proc *proc;
@@ -107,12 +108,14 @@ struct emu_thread {
 
 /* State of each emulated process */
 struct emu_proc {
+	size_t gindex;
+
 	char name[PATH_MAX]; /* Proc directory name */
+	char path[PATH_MAX];
 	char relpath[PATH_MAX];
 
 	int pid;
 	int index;
-	int gindex;
 	int appid;
 	int rank;
 
@@ -135,9 +138,13 @@ struct emu_proc {
 };
 
 struct emu_loom {
-	char hostname[OVNI_MAX_HOSTNAME];
+	size_t gindex;
+
 	char name[PATH_MAX]; /* Loom directory name */
+	char path[PATH_MAX];
 	char relpath[PATH_MAX];  /* Relative to tracedir */
+
+	char hostname[OVNI_MAX_HOSTNAME];
 
 	size_t max_ncpus;
 	size_t max_phyid;
@@ -163,6 +170,7 @@ struct emu_loom {
 };
 
 struct emu_system {
+	/* Total counters */
 	size_t nlooms;
 	size_t nthreads;
 	size_t nprocs;

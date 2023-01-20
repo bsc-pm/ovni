@@ -106,19 +106,23 @@ cindex(struct clkoff *table)
 	return 0;
 }
 
-int
-clkoff_init(struct clkoff *table, FILE *file)
+void
+clkoff_init(struct clkoff *table)
 {
 	memset(table, 0, sizeof(struct clkoff));
+}
 
+int
+clkoff_load(struct clkoff *table, FILE *file)
+{
 	if (cparse(table, file) != 0) {
-		err("clkoff_init: failed parsing clock table\n");
+		err("clkoff_load: failed parsing clock table\n");
 		return -1;
 	}
 
 	/* Create index array */
 	if (cindex(table) != 0) {
-		err("clkoff_init: failed indexing table\n");
+		err("clkoff_load: failed indexing table\n");
 		return -1;
 	}
 

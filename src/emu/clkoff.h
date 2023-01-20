@@ -24,7 +24,8 @@ struct clkoff {
 	struct clkoff_entry **index;
 };
 
-int clkoff_init(struct clkoff *table, FILE *file);
+void clkoff_init(struct clkoff *table);
+int clkoff_load(struct clkoff *table, FILE *file);
 int clkoff_count(struct clkoff *table);
 struct clkoff_entry *clkoff_get(struct clkoff *table, int i);
 

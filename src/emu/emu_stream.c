@@ -130,3 +130,9 @@ emu_stream_data_get(struct emu_stream *stream)
 {
 	return stream->data;
 }
+
+void
+emu_stream_clkoff(struct emu_stream *stream, int64_t clkoff)
+{
+	stream->clock_offset = clkoff;
+}

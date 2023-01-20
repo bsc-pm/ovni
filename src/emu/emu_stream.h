@@ -35,6 +35,8 @@ struct emu_stream {
 int emu_stream_load(struct emu_stream *stream,
 		const char *tracedir, const char *relpath);
 
+void emu_stream_clkoff(struct emu_stream *stream, int64_t clock_offset);
+
 void emu_stream_data_set(struct emu_stream *stream, void *data);
 void *emu_stream_data_get(struct emu_stream *stream);
 

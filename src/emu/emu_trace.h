@@ -13,8 +13,6 @@ struct emu_trace {
 
 	long nstreams;
 	struct emu_stream *streams;
-
-	heap_head_t sorted_stream;
 };
 
 int emu_trace_load(struct emu_trace *trace, const char *tracedir);

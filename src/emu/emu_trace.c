@@ -14,7 +14,7 @@
 static struct emu_trace *cur_trace = NULL;
 
 static void
-trace_add(struct emu_trace *trace, struct emu_stream *stream)
+add_stream(struct emu_trace *trace, struct emu_stream *stream)
 {
 	DL_APPEND(trace->streams, stream);
 	trace->nstreams++;
@@ -41,7 +41,7 @@ load_stream(struct emu_trace *trace, const char *path)
 		return -1;
 	}
 
-	trace_add(trace, stream);
+	add_stream(trace, stream);
 
 	return 0;
 }
@@ -84,6 +84,8 @@ cb_nftw(const char *fpath, const struct stat *sb,
 int
 emu_trace_load(struct emu_trace *trace, const char *tracedir)
 {
+	memset(trace, 0, sizeof(struct emu_trace));
+
 	cur_trace = trace;
 
 	if (snprintf(trace->tracedir, PATH_MAX, "%s", tracedir) >= PATH_MAX) {

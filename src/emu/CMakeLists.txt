@@ -13,13 +13,15 @@ include_directories(
 
 add_library(emu STATIC
   emu.c
+  emu_system.c
+  emu_args.c
   emu_stream.c
   emu_trace.c
-  emu_system.c
   chan.c
   bay.c
   mux.c
   prv.c
+  clkoff.c
 )
 
 add_subdirectory(ovni)

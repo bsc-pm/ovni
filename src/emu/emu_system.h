@@ -4,9 +4,12 @@
 #ifndef EMU_SYSTEM_H
 #define EMU_SYSTEM_H
 
+#include "emu_args.h"
 #include "emu_trace.h"
+#include "emu_stream.h"
 #include "parson.h"
 #include "ovni.h"
+#include "clkoff.h"
 #include <stddef.h>
 
 #define MAX_CPU_NAME 32
@@ -146,8 +149,7 @@ struct emu_loom {
 	char name[PATH_MAX]; /* Loom directory name */
 	char path[PATH_MAX];
 	char relpath[PATH_MAX];  /* Relative to tracedir */
-
-	char hostname[OVNI_MAX_HOSTNAME];
+	char hostname[PATH_MAX];
 
 	size_t max_ncpus;
 	size_t max_phyid;
@@ -189,10 +191,13 @@ struct emu_system {
 	struct emu_proc *cur_proc;
 	struct emu_thread *cur_thread;
 
+	struct clkoff clkoff;
+	struct emu_args *args;
+
 	struct model_ctx ctx;
 };
 
-int emu_system_load(struct emu_system *system, struct emu_trace *trace);
+int emu_system_init(struct emu_system *sys, struct emu_args *args, struct emu_trace *trace);
 
 int model_ctx_set(struct model_ctx *ctx, int model, void *data);
 int model_ctx_get(struct model_ctx *ctx, int model, void *data);

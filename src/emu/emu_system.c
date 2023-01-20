@@ -176,6 +176,21 @@ find_loom(struct emu_system *sys, const char *name)
 	return NULL;
 }
 
+static void
+set_loom_hostname(char host[PATH_MAX], const char loom_name[PATH_MAX])
+{
+	/* Copy until dot or end */
+	int i;
+	for (i = 0; i < PATH_MAX - 1; i++) {
+		if (loom_name[i] == '.' || loom_name[i] == '\0')
+			break;
+
+		host[i] = loom_name[i];
+	}
+
+	host[i] = '\0';
+}
+
 static struct emu_loom *
 new_loom(const char *tracedir, const char *name)
 {
@@ -192,6 +207,8 @@ new_loom(const char *tracedir, const char *name)
 
 	if (snprintf(loom->path, PATH_MAX, "%s/%s", tracedir, loom->relpath) >= PATH_MAX)
 		die("new_loom: path too long: %s/%s\n", tracedir, loom->relpath);
+
+	set_loom_hostname(loom->hostname, loom->name);
 
 	err("new loom '%s'\n", loom->name);
 
@@ -212,7 +229,7 @@ create_loom(struct emu_system *sys, const char *tracedir, const char *relpath)
 				relpath);
 		return NULL;
 	}
-	
+
 	struct emu_loom *loom = find_loom(sys, name);
 
 	if (loom == NULL) {
@@ -225,7 +242,7 @@ create_loom(struct emu_system *sys, const char *tracedir, const char *relpath)
 }
 
 static int
-create_system(struct emu_system *sys, struct emu_trace *trace)
+create_lpt(struct emu_system *sys, struct emu_trace *trace)
 {
 	const char *dir = trace->tracedir;
 	for (struct emu_stream *s = trace->streams; s ; s = s->next) {
@@ -237,20 +254,20 @@ create_system(struct emu_system *sys, struct emu_trace *trace)
 
 		struct emu_loom *loom = create_loom(sys, dir, s->relpath);
 		if (loom == NULL) {
-			err("create_system: create_loom failed\n");
+			err("create_lpt: create_loom failed\n");
 			return -1;
 		}
 
 		struct emu_proc *proc = create_proc(loom, dir, s->relpath);
 		if (proc == NULL) {
-			err("create_system: create_proc failed\n");
+			err("create_lpt: create_proc failed\n");
 			return -1;
 		}
 
 		/* The thread sets the stream */
 		struct emu_thread *thread = create_thread(proc, dir, s);
 		if (thread == NULL) {
-			err("create_system: create_thread failed\n");
+			err("create_lpt: create_thread failed\n");
 			return -1;
 		}
 	}
@@ -292,7 +309,7 @@ cmp_loom(struct emu_loom *a, struct emu_loom *b)
 }
 
 static void
-sort_system(struct emu_system *sys)
+sort_lpt(struct emu_system *sys)
 {
 	DL_SORT(sys->looms, cmp_loom);
 
@@ -724,30 +741,148 @@ link_streams_to_threads(struct emu_system *sys)
 		emu_stream_data_set(th->stream, th);
 }
 
-int
-emu_system_load(struct emu_system *sys, struct emu_trace *trace)
+static int
+load_clock_offsets(struct clkoff *clkoff, struct emu_args *args)
 {
-	/* Parse the emu_trace and create the looms, procs and threads */
-	if (create_system(sys, trace) != 0) {
-		err("emu_system_load: create system failed\n");
+	const char *tracedir = args->tracedir;
+	char def_file[PATH_MAX];
+	char def_name[] = "clock-offsets.txt";
+
+	clkoff_init(clkoff);
+
+	if (snprintf(def_file, PATH_MAX, "%s/%s",
+				tracedir, def_name) >= PATH_MAX) {
+		err("load_clock_offsets: path too long\n");
+		return -1;
+	}
+
+	const char *offset_file = args->clock_offset_file;
+	int is_optional = 0;
+
+	/* Use the default path if not given */
+	if (offset_file == NULL) {
+		offset_file = def_file;
+		is_optional = 1;
+	}
+
+	FILE *f = fopen(offset_file, "r");
+
+	if (f == NULL) {
+		if (is_optional) {
+			return 0;
+		}
+
+		err("load_clock_offsets: fopen %s failed: %s\n",
+				offset_file, strerror(errno));
+		return -1;
+	}
+
+	if (clkoff_load(clkoff, f) != 0) {
+		err("load_clock_offsets: clkoff_load failed\n");
+	}
+
+	err("loaded clock offset table from '%s' with %d entries\n",
+			offset_file, clkoff_count(clkoff));
+
+	fclose(f);
+	return 0;
+}
+
+static int
+parse_clkoff_entry(struct emu_loom *looms, struct clkoff_entry *entry)
+{
+	size_t matches = 0;
+
+	/* Use the median as the offset */
+	size_t offset = entry->median;
+	const char *host = entry->name;
+
+	struct emu_loom *loom;
+	DL_FOREACH(looms, loom) {
+		/* Match the hostname exactly */
+		if (strcmp(loom->hostname, host) != 0)
+			continue;
+
+		if (loom->clock_offset != 0) {
+			err("parse_clkoff_entry: loom %s already has a clock offset\n",
+					loom->name);
+			return -1;
+		}
+
+		loom->clock_offset = offset;
+		matches++;
+	}
+
+	if (matches == 0) {
+		err("parse_clkoff_entry: cannot find any loom with hostname '%s'\n",
+				host);
+		return -1;
+	}
+
+	return 0;
+}
+
+static int
+init_offsets(struct emu_system *sys)
+{
+	struct clkoff *table = &sys->clkoff;
+	int n = clkoff_count(table);
+
+	/* If we have more than one hostname and no offset table has been found,
+	 * we won't be able to synchronize the clocks */
+	if (n == 0 && sys->nlooms > 1) {
+		err("warning: no clock offset file loaded with %ld looms\n",
+				sys->nlooms);
+
+		if (sys->args->linter_mode)
+			abort();
+	}
+
+	for (int i = 0; i < n; i++) {
+		struct clkoff_entry *entry = clkoff_get(table, i);
+		if (parse_clkoff_entry(sys->looms, entry) != 0) {
+			err("init_offsets: cannot parse clock offset entry %d\n", i);
+			return -1;
+		}
+	}
+
+	/* Set the stream clock offsets too */
+	struct emu_thread *thread;
+	DL_FOREACH2(sys->threads, thread, gnext) {
+		struct emu_loom *loom = thread->proc->loom;
+		emu_stream_clkoff(thread->stream, loom->clock_offset);
+	}
+
+	return 0;
+}
+
+int
+emu_system_init(struct emu_system *sys, struct emu_args *args, struct emu_trace *trace)
+{
+	memset(sys, 0, sizeof(struct emu_system));
+	sys->args = args;
+
+	/* Parse the trace and create the looms, procs and threads */
+	if (create_lpt(sys, trace) != 0) {
+		err("emu_system_init: create system failed\n");
 		return -1;
 	}
 
 	/* Ensure they are sorted so they are easier to read */
-	sort_system(sys);
+	sort_lpt(sys);
 
-	/* Init global lists build after sorting */
+	/* Init global lists after sorting */
 	init_global_lpt_lists(sys);
 
 	/* Now load all process metadata and set attributes */
 	if (load_metadata(sys) != 0) {
-		err("emu_system_load: load_metadata() failed\n");
+		err("emu_system_init: load_metadata() failed\n");
 		return -1;
 	}
 
 	/* From the metadata extract the CPUs too */
 	if (init_cpus(sys) != 0) {
-		err("emu_system_load: load_cpus() failed\n");
+		err("emu_system_init: load_cpus() failed\n");
 		return -1;
 	}
 
@@ -756,12 +891,26 @@ emu_system_load(struct emu_system *sys, struct emu_trace *trace)
 	/* Now that we have loaded all resources, populate the indices */
 	init_global_indices(sys);
 
+	/* Set CPU names like "CPU 1.34" */
 	if (init_cpu_names(sys) != 0) {
-		err("emu_system_load: init_cpu_names() failed\n");
+		err("emu_system_init: init_cpu_names() failed\n");
 		return -1;
 	}
 
+	/* We need to retrieve the thread from the stream too */
 	link_streams_to_threads(sys);
+
+	/* Load the clock offsets table */
+	if (load_clock_offsets(&sys->clkoff, args) != 0) {
+		err("emu_system_init: load_clock_offsets() failed\n");
+		return -1;
+	}
+
+	/* Set the offsets of the looms and streams */
+	if (init_offsets(sys) != 0) {
+		err("emu_system_init: init_offsets() failed\n");
+		return -1;
+	}
 
 	/* Finaly dump the system */
 	print_system(sys);

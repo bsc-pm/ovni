@@ -7,6 +7,7 @@
 #include "bay.h"
 #include "pvtrace.h"
 #include "emu_trace.h"
+#include "emu_args.h"
 #include "emu_system.h"
 
 enum error_values {
@@ -31,10 +32,8 @@ struct model_spec {
 struct emu {
 	struct bay *bay;
 	struct pvman *pvman;
-	char *tracedir;
-	int enable_linter;
-	char *clock_offset_file;
 
+	struct emu_args args;
 	struct emu_trace trace;
 	struct emu_system system;
 

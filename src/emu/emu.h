@@ -9,6 +9,7 @@
 #include "emu_trace.h"
 #include "emu_args.h"
 #include "emu_system.h"
+#include "emu_player.h"
 
 enum error_values {
 	ST_BAD = 666,
@@ -36,12 +37,14 @@ struct emu {
 	struct emu_args args;
 	struct emu_trace trace;
 	struct emu_system system;
+	struct emu_player player;
 
 	struct model_spec *model[256];
 	void *model_ctx[256];
 };
 
 int emu_init(struct emu *emu, int argc, char *argv[]);
+int emu_step(struct emu *emu);
 int emu_model_register(struct emu *emu, struct model_spec *spec, void *ctx);
 void *emu_model_get_context(struct emu *emu, struct model_spec *spec, int model);
 

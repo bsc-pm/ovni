@@ -28,6 +28,9 @@ test_ok(char *fname)
 	const char *relpath = &fname[5];
 	if (emu_stream_load(&stream, "/tmp", relpath) != 0)
 		die("emu_stream_load failed");
+
+	if (stream.active)
+		die("stream is active\n");
 }
 
 static void

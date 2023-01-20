@@ -850,7 +850,11 @@ init_offsets(struct emu_system *sys)
 	struct emu_thread *thread;
 	DL_FOREACH2(sys->threads, thread, gnext) {
 		struct emu_loom *loom = thread->proc->loom;
-		emu_stream_clkoff(thread->stream, loom->clock_offset);
+		int64_t offset = loom->clock_offset;
+		if (emu_stream_clkoff_set(thread->stream, offset) != 0) {
+			err("init_offsets: cannot set clock offset\n");
+			return -1;
+		}
 	}
 
 	return 0;

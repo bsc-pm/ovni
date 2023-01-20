@@ -43,7 +43,13 @@ emu_init(struct emu *emu, int argc, char *argv[])
 
 	/* Parse the trace and build the emu_system */
 	if (emu_system_init(&emu->system, &emu->args, &emu->trace) != 0) {
-		err("emu_init: cannot parse trace '%s'\n",
+		err("emu_init: cannot init system for trace '%s'\n",
+				emu->args.tracedir);
+		return -1;
+	}
+
+	if (emu_player_init(&emu->player, &emu->trace) != 0) {
+		err("emu_init: cannot init player for trace '%s'\n",
 				emu->args.tracedir);
 		return -1;
 	}
@@ -51,5 +57,24 @@ emu_init(struct emu *emu, int argc, char *argv[])
 	/* Register all the models */
 	//emu_model_register(emu, ovni_model_spec, ctx);
 
+	return 0;
+}
+
+int
+emu_step(struct emu *emu)
+{
+	int ret = emu_player_step(&emu->player);
+
+	/* No more events */
+	if (ret > 0)
+		return +1;
+
+	/* Error happened */
+	if (ret < 0) {
+		err("emu_step: emu_player_step failed\n");
+		return -1;
+	}
+
+	/* Otherwise progress */
 	return 0;
 }

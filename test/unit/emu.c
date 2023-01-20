@@ -16,5 +16,14 @@ int main(void)
 	if (emu_init(&emu, argc, argv) != 0)
 		die("emu_init failed\n");
 
+	int ret = 0;
+
+	while ((ret = emu_step(&emu)) == 0) {
+		err("event clock %ld\n", emu.player.deltaclock);
+	}
+
+	if (ret < 0)
+		die("emu_step failed\n");
+
 	return 0;
 }

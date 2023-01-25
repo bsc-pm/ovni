@@ -12,17 +12,27 @@ include_directories(
 #target_link_libraries(trace parson ovni-static)
 
 add_library(emu STATIC
+  ../common.c
+  cpu.c
+  thread.c
   emu.c
   emu_system.c
+  emu_system_thread.c
   emu_args.c
   emu_stream.c
   emu_trace.c
   emu_player.c
+  emu_model.c
+  emu_ev.c
   chan.c
   bay.c
   mux.c
   prv.c
   clkoff.c
+  ovni/probe.c
+  ovni/create.c
+  ovni/connect.c
+  ovni/event.c
 )
 
 add_subdirectory(ovni)

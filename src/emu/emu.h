@@ -4,48 +4,47 @@
 #ifndef EMU_H
 #define EMU_H
 
+struct emu;
+
 #include "bay.h"
 #include "pvtrace.h"
 #include "emu_trace.h"
 #include "emu_args.h"
 #include "emu_system.h"
 #include "emu_player.h"
+#include "emu_model.h"
+#include "emu_ev.h"
 
 enum error_values {
 	ST_BAD = 666,
 	ST_TOO_MANY_TH = 777,
 };
 
-struct emu;
-
-typedef int (emu_hook_t)(struct emu *emu);
-
-struct model_spec {
-	char *name;
-	int model;
-	char *depends;
-	emu_hook_t *probe;
-	emu_hook_t *create;
-	emu_hook_t *connect;
-	emu_hook_t *event;
-};
-
 struct emu {
-	struct bay *bay;
+	struct bay bay;
 	struct pvman *pvman;
 
 	struct emu_args args;
 	struct emu_trace trace;
 	struct emu_system system;
 	struct emu_player player;
+	struct emu_model model;
 
-	struct model_spec *model[256];
-	void *model_ctx[256];
+	/* Quick access */
+	struct emu_stream *stream;
+	struct emu_ev *ev;
+	struct emu_thread *thread;
+	struct emu_proc *proc;
+	struct emu_loom *loom;
 };
 
 int emu_init(struct emu *emu, int argc, char *argv[]);
 int emu_step(struct emu *emu);
-int emu_model_register(struct emu *emu, struct model_spec *spec, void *ctx);
-void *emu_model_get_context(struct emu *emu, struct model_spec *spec, int model);
+
+static inline struct emu *
+emu_get(void *ptr)
+{
+	return (struct emu *) ptr;
+}
 
 #endif /* EMU_H */

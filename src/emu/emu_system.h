@@ -20,48 +20,10 @@ struct emu_proc;
 struct emu_loom;
 struct emu_system;
 
-enum emu_cpu_state {
-	CPU_ST_UNKNOWN,
-	CPU_ST_READY,
-};
-
 #define MAX_MODELS 256
 
 struct model_ctx {
 	void *data[MAX_MODELS];
-};
-
-struct emu_cpu {
-	size_t gindex; /* In the system */
-	char name[PATH_MAX];
-
-	/* Logical index: 0 to ncpus - 1 */
-	int i;
-
-	/* Physical id: as reported by lscpu(1) */
-	int phyid;
-
-	enum emu_cpu_state state;
-
-	/* The loom of the CPU */
-	struct emu_loom *loom;
-
-	size_t nthreads;
-	struct emu_thread *thread; /* List of threads assigned to this CPU */
-
-	size_t nrunning_threads;
-	struct emu_thread *th_running; /* One */
-
-	size_t nactive_threads;
-	struct emu_thread *th_active;
-
-	int is_virtual;
-
-	/* Global list */
-	struct emu_cpu *next;
-	struct emu_cpu *prev;
-
-	struct model_ctx ctx;
 };
 
 /* Emulated thread runtime status */
@@ -161,7 +123,7 @@ struct emu_loom {
 	int64_t clock_offset;
 
 	/* Virtual CPU */
-	struct emu_cpu vcpu;
+	struct emu_cpu *vcpu;
 
 	/* Local list */
 	size_t nprocs;
@@ -198,6 +160,8 @@ struct emu_system {
 };
 
 int emu_system_init(struct emu_system *sys, struct emu_args *args, struct emu_trace *trace);
+struct emu_thread *emu_system_get_thread(struct emu_stream *stream);
+struct emu_cpu *emu_system_find_cpu(struct emu_loom *loom, int cpuid);
 
 int model_ctx_set(struct model_ctx *ctx, int model, void *data);
 int model_ctx_get(struct model_ctx *ctx, int model, void *data);

@@ -48,7 +48,7 @@ struct chan {
 	void *dirty_arg;
 };
 
-        void chan_init(struct chan *chan, enum chan_type type, const char *name);
+        void chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...);
 USE_RET int chan_set(struct chan *chan, struct value value);
 USE_RET int chan_push(struct chan *chan, struct value value);
 USE_RET int chan_pop(struct chan *chan, struct value expected);

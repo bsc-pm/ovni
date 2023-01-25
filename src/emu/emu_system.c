@@ -337,7 +337,7 @@ init_global_cpus_list(struct emu_system *sys)
 {
 	for (struct emu_loom *l = sys->looms; l; l = l->next) {
 		for (size_t i = 0; i < l->ncpus; i++) {
-			struct emu_cpu *cpu = &l->cpu[i];
+			struct cpu *cpu = &l->cpu[i];
 			DL_APPEND2(sys->cpus, cpu, prev, next);
 		}
 
@@ -371,14 +371,14 @@ print_system(struct emu_system *sys)
 		}
 		err("- cpus:\n");
 		for (size_t i = 0; i < l->ncpus; i++) {
-			struct emu_cpu *cpu = &l->cpu[i];
+			struct cpu *cpu = &l->cpu[i];
 			err("  %s\n", cpu->name);
 			err("  - i %d\n", cpu->i);
 			err("  - phyid %d\n", cpu->phyid);
 			err("  - gindex %ld\n", cpu->gindex);
 		}
 
-		struct emu_cpu *cpu = &l->vcpu;
+		struct cpu *cpu = &l->vcpu;
 		err("- %s\n", cpu->name);
 		err("  - i %d\n", cpu->i);
 		err("  - phyid %d\n", cpu->phyid);
@@ -521,27 +521,17 @@ has_cpus_array(JSON_Value *metadata)
 }
 
 static int
-add_new_cpu(struct emu_loom *loom, int i, int phyid)
+add_new_cpu(struct emu_loom *loom, int i, int phyid, int ncpus)
 {
-	struct emu_cpu *cpu = &loom->cpu[i];
+	struct cpu *cpu = &loom->cpu[i];
 
-	if (i < 0 || i >= (int) loom->ncpus) {
+	if (i < 0 || i >= ncpus) {
 		err("add_new_cpu: new CPU i=%d out of bounds in %s\n",
 				i, loom->relpath);
 		return -1;
 	}
 
-	if (cpu->state != CPU_ST_UNKNOWN) {
-		die("add_new_cpu: new CPU i=%d in unexpected in %s\n",
-				i, loom->relpath);
-		return -1;
-	}
-
-	cpu->state = CPU_ST_READY;
-	cpu->i = i;
-	cpu->phyid = phyid;
-	cpu->loom = loom;
-	cpu->is_virtual = 0;
+	cpu_init(cpu, loom, i, phyid, 0);
 
 	return 0;
 }
@@ -571,8 +561,7 @@ load_proc_cpus(struct emu_proc *proc)
 	}
 
 	struct emu_loom *loom = proc->loom;
-	loom->ncpus = ncpus;
-	loom->cpu = calloc(ncpus, sizeof(struct emu_cpu));
+	struct cpu *cpus = calloc(ncpus, sizeof(struct cpu));
 
 	if (loom->cpu == NULL) {
 		err("load_proc_cpus: calloc failed: %s\n", strerror(errno));
@@ -596,29 +585,10 @@ load_proc_cpus(struct emu_proc *proc)
 		}
 	}
 
-	return 0;
-}
-
-static int
-init_virtual_cpu(struct emu_loom *loom)
-{
-	struct emu_cpu *vcpu = &loom->vcpu;
-
-	if (vcpu->state != CPU_ST_UNKNOWN) {
-		err("init_virtual_cpu: unexpected virtual CPU state in %s\n",
-				loom->relpath);
-		return -1;
-	}
-
-	vcpu->state = CPU_ST_READY;
-	vcpu->i = -1;
-	vcpu->phyid = -1;
-	vcpu->loom = loom;
-	vcpu->is_virtual = 1;
+	loom_set_cpus(loom, cpus, ncpus);
 
 	return 0;
 }
-
 
 static int
 load_loom_cpus(struct emu_loom *loom)
@@ -661,6 +631,9 @@ load_loom_cpus(struct emu_loom *loom)
 		return -1;
 	}
 
+	/* Init virtual CPU too */
+	cpu_init(&l->vcpu, l, -1, -1, 1);
+
 	return 0;
 }
 
@@ -673,11 +646,6 @@ init_cpus(struct emu_system *sys)
 			err("init_cpus: load_loom_cpus() failed\n");
 			return -1;
 		}
-
-		if (init_virtual_cpu(l) != 0) {
-			err("init_cpus: init_virtual_cpu() failed\n");
-			return -1;
-		}
 	}
 
 	return 0;
@@ -688,7 +656,7 @@ init_global_indices(struct emu_system *sys)
 {
 	size_t iloom = 0;
 	for (struct emu_loom *l = sys->looms; l; l = l->next)
-		l->gindex = iloom++;
+		loom_set_gindex(l, iloom++);
 
 	sys->nprocs = 0;
 	for (struct emu_proc *p = sys->procs; p; p = p->gnext)
@@ -699,12 +667,12 @@ init_global_indices(struct emu_system *sys)
 		t->gindex = sys->nprocs++;
 
 	sys->ncpus = 0;
-	for (struct emu_cpu *c = sys->cpus; c; c = c->next)
-		c->gindex = sys->ncpus++;
+	for (struct cpu *c = sys->cpus; c; c = c->next)
+		cpu_set_gindex(c, sys->ncpus++);
 }
 
 static int
-init_cpu_name(struct emu_cpu *cpu)
+init_cpu_name(struct cpu *cpu)
 {
 	size_t i = cpu->loom->gindex;
 	size_t j = cpu->i;
@@ -726,7 +694,7 @@ init_cpu_name(struct emu_cpu *cpu)
 static int
 init_cpu_names(struct emu_system *sys)
 {
-	for (struct emu_cpu *cpu = sys->cpus; cpu; cpu = cpu->next) {
+	for (struct cpu *cpu = sys->cpus; cpu; cpu = cpu->next) {
 		if (init_cpu_name(cpu) != 0)
 			return -1;
 	}

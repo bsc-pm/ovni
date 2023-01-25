@@ -6,26 +6,7 @@
 #include "emu.h"
 
 #include <unistd.h>
-
-int
-emu_model_register(struct emu *emu, struct model_spec *spec, void *ctx)
-{
-	emu->model_ctx[spec->model] = ctx;
-	emu->model[spec->model] = spec;
-	return 0;
-}
-
-void *
-emu_model_get_context(struct emu *emu, struct model_spec *spec, int model)
-{
-	for (int i = 0; spec->depends[i]; i++) {
-		if (spec->depends[i] == model)
-			return emu->model_ctx[model];
-	}
-
-	/* Not allowed */
-	return NULL;
-}
+#include "ovni/ovni_model.h"
 
 int
 emu_init(struct emu *emu, int argc, char *argv[])
@@ -54,8 +35,26 @@ emu_init(struct emu *emu, int argc, char *argv[])
 		return -1;
 	}
 
+	/* Initialize the bay */
+	bay_init(&emu->bay);
+
 	/* Register all the models */
-	//emu_model_register(emu, ovni_model_spec, ctx);
+	emu_model_register(&emu->model, &ovni_model_spec, emu);
+
+	if (ovni_model_spec.probe(emu) != 0) {
+		err("emu_init: ovni probe failed\n");
+		return -1;
+	}
+
+	if (ovni_model_spec.create(emu) != 0) {
+		err("emu_init: ovni create failed\n");
+		return -1;
+	}
+
+	if (ovni_model_spec.connect(emu) != 0) {
+		err("emu_init: ovni connect failed\n");
+		return -1;
+	}
 
 	return 0;
 }
@@ -75,6 +74,17 @@ emu_step(struct emu *emu)
 		return -1;
 	}
 
+	emu->ev = emu_player_ev(&emu->player);
+	emu->stream = emu_player_stream(&emu->player);
+	emu->thread = emu_system_get_thread(emu->stream);
+	emu->proc = emu->thread->proc;
+	emu->loom = emu->proc->loom;
+
 	/* Otherwise progress */
+	if (ovni_model_spec.event(emu) != 0) {
+		err("emu_init: ovni event failed\n");
+		return -1;
+	}
+
 	return 0;
 }

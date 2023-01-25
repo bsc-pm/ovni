@@ -79,31 +79,9 @@ emu_player_init(struct emu_player *player, struct emu_trace *trace)
 	return 0;
 }
 
-/* Returns -1 on error, +1 if there are no more events and 0 if next event
- * loaded properly */
-int
-emu_player_step(struct emu_player *player)
+static int
+update_clocks(struct emu_player *player, struct emu_stream *stream)
 {
-	/* Add the stream back if still active */
-	if (player->stream != NULL && step_stream(player, player->stream) < 0) {
-		err("player_step: step_stream() failed\n");
-		return -1;
-	}
-
-	/* Extract the next stream based on the lastclock */
-	heap_node_t *node = heap_pop_max(&player->heap, stream_cmp);
-
-	/* No more streams */
-	if (node == NULL)
-		return +1;
-
-	struct emu_stream *stream = heap_elem(node, struct emu_stream, hh);
-
-	if (stream == NULL) {
-		err("player_step: heap_elem() returned NULL\n");
-		return -1;
-	}
-
 	/* This can happen if two events are not ordered in the stream, but the
 	 * emulator picks other events in the middle. Example:
 	 *
@@ -126,14 +104,64 @@ emu_player_step(struct emu_player *player)
 	}
 
 	if (sclock < player->lastclock) {
-		err("emu_player_step: backwards jump in time %ld -> %ld in stream '%s'\n",
+		err("backwards jump in time %ld -> %ld in stream '%s'\n",
 				player->lastclock, sclock, stream->relpath);
 		return -1;
 	}
 
-	player->stream = stream;
 	player->lastclock = sclock;
 	player->deltaclock = player->lastclock - player->firstclock;
 
 	return 0;
+}
+
+/* Returns -1 on error, +1 if there are no more events and 0 if next event
+ * loaded properly */
+int
+emu_player_step(struct emu_player *player)
+{
+	/* Add the stream back if still active */
+	if (player->stream != NULL && step_stream(player, player->stream) < 0) {
+		err("player_step: step_stream() failed\n");
+		return -1;
+	}
+
+	/* Extract the next stream based on the lastclock */
+	heap_node_t *node = heap_pop_max(&player->heap, stream_cmp);
+
+	/* No more streams */
+	if (node == NULL)
+		return +1;
+
+	struct emu_stream *stream = heap_elem(node, struct emu_stream, hh);
+
+	if (stream == NULL) {
+		err("emu_player_step: heap_elem() returned NULL\n");
+		return -1;
+	}
+
+	if (update_clocks(player, stream) != 0) {
+		err("emu_player_step: update_clocks() failed\n");
+		return -1;
+	}
+
+	player->stream = stream;
+
+	struct ovni_ev *oev = emu_stream_ev(stream);
+	int64_t sclock = emu_stream_evclock(stream, oev);
+	emu_ev(&player->ev, oev, sclock, player->deltaclock);
+
+	return 0;
+}
+
+struct emu_ev *
+emu_player_ev(struct emu_player *player)
+{
+	return &player->ev;
+}
+
+struct emu_stream *
+emu_player_stream(struct emu_player *player)
+{
+	return player->stream;
 }

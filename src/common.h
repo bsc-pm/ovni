@@ -9,6 +9,10 @@
 
 /* Debug macros */
 
+void progname_set(char *name);
+void verr(const char *func, const char *errstr, ...);
+void vdie(const char *func, const char *errstr, ...);
+
 /* clang-format off */
 
 #ifdef ENABLE_DEBUG
@@ -17,8 +21,8 @@
 # define dbg(...)
 #endif
 
-#define err(...) fprintf(stderr, __VA_ARGS__);
-#define die(...) do { err("fatal: " __VA_ARGS__); abort(); } while (0)
+#define err(...) verr(__func__, __VA_ARGS__);
+#define die(...) vdie(__func__, __VA_ARGS__);
 
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
@@ -32,5 +36,7 @@
 #define ARRAYLEN(x) (sizeof(x)/sizeof((x)[0]))
 
 /* clang-format on */
+
+
 
 #endif /* COMMON_H */

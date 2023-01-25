@@ -6,14 +6,19 @@
 #include <string.h>
 
 void
-chan_init(struct chan *chan, enum chan_type type, const char *name)
+chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...)
 {
-	int len = strlen(name);
-	if (len >= MAX_CHAN_NAME)
-		die("chan_init: name '%s' too long\n", name);
+	memset(chan, 0, sizeof(struct chan));
 
-	memset(chan, 0, sizeof(*chan));
-	memcpy(chan->name, name, len + 1);
+	va_list ap;
+	va_start(ap, fmt);
+
+	int n = ARRAYLEN(chan->name);
+	int ret = vsnprintf(chan->name, n, fmt, ap);
+	if (ret >= n)
+		die("channel name too long\n");
+	va_end(ap);
+
 	chan->type = type;
 }
 

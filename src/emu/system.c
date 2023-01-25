@@ -1,7 +1,7 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#include "emu_system.h"
+#include "system.h"
 #include "utlist.h"
 #include <errno.h>
 
@@ -14,10 +14,10 @@ has_prefix(const char *path, const char *prefix)
 	return 1;
 }
 
-static struct emu_thread *
-new_thread(struct emu_proc *proc, const char *tracedir, const char *name, struct emu_stream *stream)
+static struct thread *
+new_thread(struct proc *proc, const char *tracedir, const char *name, struct emu_stream *stream)
 {
-	struct emu_thread *thread = calloc(1, sizeof(struct emu_thread));
+	struct thread *thread = calloc(1, sizeof(struct thread));
 
 	if (thread == NULL)
 		die("calloc failed\n");
@@ -39,18 +39,18 @@ new_thread(struct emu_proc *proc, const char *tracedir, const char *name, struct
 	return thread;
 }
 
-static struct emu_thread *
-find_thread(struct emu_proc *proc, const char *name)
+static struct thread *
+find_thread(struct proc *proc, const char *name)
 {
-	for (struct emu_thread *t = proc->threads; t; t = t->lnext) {
+	for (struct thread *t = proc->threads; t; t = t->lnext) {
 		if (strcmp(t->name, name) == 0)
 			return t;
 	}
 	return NULL;
 }
 
-static struct emu_thread *
-create_thread(struct emu_proc *proc, const char *tracedir, struct emu_stream *stream)
+static struct thread *
+create_thread(struct proc *proc, const char *tracedir, struct emu_stream *stream)
 {
 	char name[PATH_MAX];
 	if (snprintf(name, PATH_MAX, "%s", stream->relpath) >= PATH_MAX) {
@@ -81,7 +81,7 @@ create_thread(struct emu_proc *proc, const char *tracedir, struct emu_stream *st
 		return NULL;
 	}
 
-	struct emu_thread *thread = find_thread(proc, threadname);
+	struct thread *thread = find_thread(proc, threadname);
 
 	if (thread != NULL) {
 		err("create_thread: thread already exists: %s\n", threadname);
@@ -95,10 +95,10 @@ create_thread(struct emu_proc *proc, const char *tracedir, struct emu_stream *st
 	return thread;
 }
 
-static struct emu_proc *
-new_proc(struct emu_loom *loom, const char *tracedir, const char *name)
+static struct proc *
+new_proc(struct loom *loom, const char *tracedir, const char *name)
 {
-	struct emu_proc *proc = calloc(1, sizeof(struct emu_proc));
+	struct proc *proc = calloc(1, sizeof(struct proc));
 
 	if (proc == NULL)
 		die("calloc failed\n");
@@ -119,18 +119,18 @@ new_proc(struct emu_loom *loom, const char *tracedir, const char *name)
 	return proc;
 }
 
-static struct emu_proc *
-find_proc(struct emu_loom *loom, const char *name)
+static struct proc *
+find_proc(struct loom *loom, const char *name)
 {
-	for (struct emu_proc *proc = loom->procs; proc; proc = proc->lnext) {
+	for (struct proc *proc = loom->procs; proc; proc = proc->lnext) {
 		if (strcmp(proc->name, name) == 0)
 			return proc;
 	}
 	return NULL;
 }
 
-static struct emu_proc *
-create_proc(struct emu_loom *loom, const char *tracedir, const char *relpath)
+static struct proc *
+create_proc(struct loom *loom, const char *tracedir, const char *relpath)
 {
 	char name[PATH_MAX];
 	if (snprintf(name, PATH_MAX, "%s", relpath) >= PATH_MAX) {
@@ -155,7 +155,7 @@ create_proc(struct emu_loom *loom, const char *tracedir, const char *relpath)
 		return NULL;
 	}
 
-	struct emu_proc *proc = find_proc(loom, procname);
+	struct proc *proc = find_proc(loom, procname);
 
 	if (proc == NULL) {
 		proc = new_proc(loom, tracedir, procname);
@@ -166,11 +166,11 @@ create_proc(struct emu_loom *loom, const char *tracedir, const char *relpath)
 	return proc;
 }
 
-static struct emu_loom *
-find_loom(struct emu_system *sys, const char *name)
+static struct loom *
+find_loom(struct system *sys, const char *id)
 {
-	for (struct emu_loom *loom = sys->looms; loom; loom = loom->next) {
-		if (strcmp(loom->name, name) == 0)
+	for (struct loom *loom = sys->looms; loom; loom = loom->next) {
+		if (strcmp(loom->id, id) == 0)
 			return loom;
 	}
 	return NULL;
@@ -191,13 +191,16 @@ set_loom_hostname(char host[PATH_MAX], const char loom_name[PATH_MAX])
 	host[i] = '\0';
 }
 
-static struct emu_loom *
+static struct loom *
 new_loom(const char *tracedir, const char *name)
 {
-	struct emu_loom *loom = calloc(1, sizeof(struct emu_loom));
+	struct loom *loom = calloc(1, sizeof(struct loom));
 
 	if (loom == NULL)
 		die("calloc failed\n");
+
+	if (loom_init_begin(loom, name) != 0)
+		re
 
 	if (snprintf(loom->name, PATH_MAX, "%s", name) >= PATH_MAX)
 		die("new_loom: name too long: %s\n", name);
@@ -215,25 +218,35 @@ new_loom(const char *tracedir, const char *name)
 	return loom;
 }
 
-static struct emu_loom *
-create_loom(struct emu_system *sys, const char *tracedir, const char *relpath)
+static struct loom *
+create_loom(struct system *sys, const char *tracedir, const char *relpath)
 {
 	char name[PATH_MAX];
 	if (snprintf(name, PATH_MAX, "%s", relpath) >= PATH_MAX) {
-		err("create_loom: path too long: %s\n", relpath);
+		err("path too long: %s", relpath);
 		return NULL;
 	}
 
 	if (strtok(name, "/") == NULL) {
-		err("create_looms: cannot find first '/': %s\n",
-				relpath);
+		err("cannot find first '/': %s", relpath);
 		return NULL;
 	}
 
-	struct emu_loom *loom = find_loom(sys, name);
+	struct loom *loom = find_loom(sys, name);
 
 	if (loom == NULL) {
-		loom = new_loom(tracedir, name);
+		loom = malloc(sizeof(struct loom));
+
+		if (loom == NULL) {
+			err("calloc failed:");
+			return NULL;
+		}
+
+		if (loom_init_begin(loom, name) != 0) {
+			err("loom_init_begin failed");
+			return NULL;
+		}
+
 		DL_APPEND(sys->looms, loom);
 		sys->nlooms++;
 	}
@@ -242,32 +255,31 @@ create_loom(struct emu_system *sys, const char *tracedir, const char *relpath)
 }
 
 static int
-create_lpt(struct emu_system *sys, struct emu_trace *trace)
+create_lpt(struct system *sys, struct emu_trace *trace)
 {
 	const char *dir = trace->tracedir;
 	for (struct emu_stream *s = trace->streams; s ; s = s->next) {
-		if (!has_prefix(s->relpath, "loom")) {
-			err("warning: ignoring unknown steam %s\n",
-					s->relpath);
+		if (!loom_matches(s->relpath)) {
+			err("warning: ignoring unknown stream %s", s->relpath);
 			continue;
 		}
 
-		struct emu_loom *loom = create_loom(sys, dir, s->relpath);
+		struct loom *loom = create_loom(sys, dir, s->relpath);
 		if (loom == NULL) {
-			err("create_lpt: create_loom failed\n");
+			err("create_loom failed");
 			return -1;
 		}
 
-		struct emu_proc *proc = create_proc(loom, dir, s->relpath);
+		struct proc *proc = create_proc(loom, dir, s->relpath);
 		if (proc == NULL) {
-			err("create_lpt: create_proc failed\n");
+			err("create_proc failed");
 			return -1;
 		}
 
 		/* The thread sets the stream */
-		struct emu_thread *thread = create_thread(proc, dir, s);
+		struct thread *thread = create_thread(proc, dir, s);
 		if (thread == NULL) {
-			err("create_lpt: create_thread failed\n");
+			err("create_thread failed");
 			return -1;
 		}
 	}
@@ -276,53 +288,53 @@ create_lpt(struct emu_system *sys, struct emu_trace *trace)
 }
 
 static int
-cmp_thread(struct emu_thread *a, struct emu_thread *b)
+cmp_thread(struct thread *a, struct thread *b)
 {
 	return strcmp(a->name, b->name);
 }
 
 static void
-sort_proc(struct emu_proc *proc)
+sort_proc(struct proc *proc)
 {
 	DL_SORT2(proc->threads, cmp_thread, lprev, lnext);
 }
 
 static int
-cmp_proc(struct emu_proc *a, struct emu_proc *b)
+cmp_proc(struct proc *a, struct proc *b)
 {
 	return strcmp(a->name, b->name);
 }
 
 static void
-sort_loom(struct emu_loom *loom)
+sort_loom(struct loom *loom)
 {
 	DL_SORT2(loom->procs, cmp_proc, lprev, lnext);
 
-	for (struct emu_proc *p = loom->procs; p; p = p->gnext)
+	for (struct proc *p = loom->procs; p; p = p->gnext)
 		sort_proc(p);
 }
 
 static int
-cmp_loom(struct emu_loom *a, struct emu_loom *b)
+cmp_loom(struct loom *a, struct loom *b)
 {
 	return strcmp(a->name, b->name);
 }
 
 static void
-sort_lpt(struct emu_system *sys)
+sort_lpt(struct system *sys)
 {
 	DL_SORT(sys->looms, cmp_loom);
 
-	for (struct emu_loom *l = sys->looms; l; l = l->next)
+	for (struct loom *l = sys->looms; l; l = l->next)
 		sort_loom(l);
 }
 
 static void
-init_global_lpt_lists(struct emu_system *sys)
+init_global_lpt_lists(struct system *sys)
 {
-	for (struct emu_loom *l = sys->looms; l; l = l->next) {
-		for (struct emu_proc *p = l->procs; p; p = p->lnext) {
-			for (struct emu_thread *t = p->threads; t; t = t->lnext) {
+	for (struct loom *l = sys->looms; l; l = l->next) {
+		for (struct proc *p = l->procs; p; p = p->lnext) {
+			for (struct thread *t = p->threads; t; t = t->lnext) {
 				DL_APPEND2(sys->threads, t, gprev, gnext);
 			}
 			DL_APPEND2(sys->procs, p, gprev, gnext);
@@ -333,9 +345,9 @@ init_global_lpt_lists(struct emu_system *sys)
 }
 
 static void
-init_global_cpus_list(struct emu_system *sys)
+init_global_cpus_list(struct system *sys)
 {
-	for (struct emu_loom *l = sys->looms; l; l = l->next) {
+	for (struct loom *l = sys->looms; l; l = l->next) {
 		for (size_t i = 0; i < l->ncpus; i++) {
 			struct cpu *cpu = &l->cpu[i];
 			DL_APPEND2(sys->cpus, cpu, prev, next);
@@ -347,22 +359,22 @@ init_global_cpus_list(struct emu_system *sys)
 }
 
 static void
-print_system(struct emu_system *sys)
+print_system(struct system *sys)
 {
 	err("content of system:\n");
-	for (struct emu_loom *l = sys->looms; l; l = l->next) {
+	for (struct loom *l = sys->looms; l; l = l->next) {
 		err("%s\n", l->name);
 		err("- gindex %ld\n", l->gindex);
 		err("- path %s\n", l->path);
 		err("- relpath %s\n", l->relpath);
 		err("- processes:\n");
-		for (struct emu_proc *p = l->procs; p; p = p->lnext) {
+		for (struct proc *p = l->procs; p; p = p->lnext) {
 			err("  %s\n", p->name);
 			err("  - gindex %ld\n", p->gindex);
 			err("  - path %s\n", p->path);
 			err("  - relpath %s\n", p->relpath);
 			err("  - threads:\n");
-			for (struct emu_thread *t = p->threads; t; t = t->lnext) {
+			for (struct thread *t = p->threads; t; t = t->lnext) {
 				err("    %s\n", t->name);
 				err("    - gindex %ld\n", t->gindex);
 				err("    - path %s\n", t->path);
@@ -387,7 +399,7 @@ print_system(struct emu_system *sys)
 }
 
 static int
-load_proc_attributes(struct emu_proc *proc, const char *path)
+load_proc_attributes(struct proc *proc, const char *path)
 {
 	JSON_Object *meta = json_value_get_object(proc->meta);
 	if (meta == NULL) {
@@ -458,7 +470,7 @@ check_proc_metadata(JSON_Value *pmeta, const char *path)
 }
 
 static int
-load_proc_metadata(struct emu_proc *proc)
+load_proc_metadata(struct proc *proc)
 {
 	char path[PATH_MAX];
 	if (snprintf(path, PATH_MAX, "%s/%s", proc->path, "metadata.json") >= PATH_MAX) {
@@ -489,9 +501,9 @@ load_proc_metadata(struct emu_proc *proc)
 }
 
 static int
-load_metadata(struct emu_system *sys)
+load_metadata(struct system *sys)
 {
-	for (struct emu_proc *p = sys->procs; p; p = p->gnext) {
+	for (struct proc *p = sys->procs; p; p = p->gnext) {
 		if (load_proc_metadata(p) != 0) {
 			err("error loading metadata for %s\n", p->relpath);
 			return -1;
@@ -521,27 +533,11 @@ has_cpus_array(JSON_Value *metadata)
 }
 
 static int
-add_new_cpu(struct emu_loom *loom, int i, int phyid, int ncpus)
-{
-	struct cpu *cpu = &loom->cpu[i];
-
-	if (i < 0 || i >= ncpus) {
-		err("add_new_cpu: new CPU i=%d out of bounds in %s\n",
-				i, loom->relpath);
-		return -1;
-	}
-
-	cpu_init(cpu, loom, i, phyid, 0);
-
-	return 0;
-}
-
-static int
-load_proc_cpus(struct emu_proc *proc)
+load_proc_cpus(struct proc *proc)
 {
 	JSON_Object *meta = json_value_get_object(proc->meta);
 	if (meta == NULL) {
-		err("load_proc_cpus: json_value_get_object() failed\n");
+		err("json_value_get_object() failed");
 		return -1;
 	}
 
@@ -549,69 +545,65 @@ load_proc_cpus(struct emu_proc *proc)
 
 	/* This process doesn't have the cpu list, but it should */
 	if (cpuarray == NULL) {
-		err("load_proc_cpus: json_object_get_array() failed\n");
+		err("json_object_get_array() failed");
 		return -1;
 	}
 
 	size_t ncpus = json_array_get_count(cpuarray);
 	if (ncpus == 0) {
-		err("load_proc_cpus: the 'cpus' array is empty in metadata of %s\n",
-				proc->relpath);
+		err("empty cpus array in metadata of %s", proc->id);
 		return -1;
 	}
 
-	struct emu_loom *loom = proc->loom;
-	struct cpu *cpus = calloc(ncpus, sizeof(struct cpu));
-
-	if (loom->cpu == NULL) {
-		err("load_proc_cpus: calloc failed: %s\n", strerror(errno));
-		return -1;
-	}
-
+	struct loom *loom = proc->loom;
 	for (size_t i = 0; i < ncpus; i++) {
-		JSON_Object *cpu = json_array_get_object(cpuarray, i);
-
-		if (cpu == NULL) {
-			err("proc_load_cpus: json_array_get_object() failed for cpu\n");
+		JSON_Object *jcpu = json_array_get_object(cpuarray, i);
+		if (jcpu == NULL) {
+			err("json_array_get_object() failed for cpu");
 			return -1;
 		}
 
-		int index = (int) json_object_get_number(cpu, "index");
-		int phyid = (int) json_object_get_number(cpu, "phyid");
+		/* Cast from double */
+		int index = (int) json_object_get_number(jcpu, "index");
+		int phyid = (int) json_object_get_number(jcpu, "phyid");
 
-		if (add_new_cpu(loom, index, phyid) != 0) {
-			err("proc_load_cpus: add_new_cpu() failed\n");
+		struct cpu *cpu = calloc(1, sizeof(struct cpu));
+		if (cpu == NULL) {
+			err("calloc failed:");
+			return -1;
+		}
+
+		cpu_init(cpu, i, phyid, 0);
+		if (loom_add_cpu(loom, cpu) != 0) {
+			err("loom_add_cpu() failed");
 			return -1;
 		}
 	}
-
-	loom_set_cpus(loom, cpus, ncpus);
 
 	return 0;
 }
 
 static int
-load_loom_cpus(struct emu_loom *loom)
+load_loom_cpus(struct loom *loom)
 {
 	/* The process that contains the CPU list */
-	struct emu_proc *proc_cpus = NULL;
+	struct proc *proc_cpus = NULL;
 
 	/* Search for the cpu list in all processes.
 	 * Only one should contain it. */
-	for (struct emu_proc *p = loom->procs; p; p = p->lnext) {
+	for (struct proc *p = loom->procs; p; p = p->lnext) {
 		if (!has_cpus_array(p->meta))
 			continue;
 
 		if (proc_cpus != NULL) {
-			err("load_loom_cpus: duplicated cpu list provided in '%s' and '%s'\n",
+			err("duplicated cpu list provided in '%s' and '%s'",
 					proc_cpus->relpath,
 					p->relpath);
 			return -1;
 		}
 
 		if (load_proc_cpus(p) != 0) {
-			err("load_loom_cpus: load_proc_cpus failed: %s\n",
-					p->relpath);
+			err("load_proc_cpus failed: %s", p->id);
 			return -1;
 		}
 
@@ -639,9 +631,9 @@ load_loom_cpus(struct emu_loom *loom)
 
 /* Obtain CPUs in the metadata files and other data */
 static int
-init_cpus(struct emu_system *sys)
+init_cpus(struct system *sys)
 {
-	for (struct emu_loom *l = sys->looms; l; l = l->next) {
+	for (struct loom *l = sys->looms; l; l = l->next) {
 		if (load_loom_cpus(l) != 0) {
 			err("init_cpus: load_loom_cpus() failed\n");
 			return -1;
@@ -652,18 +644,18 @@ init_cpus(struct emu_system *sys)
 }
 
 static void
-init_global_indices(struct emu_system *sys)
+init_global_indices(struct system *sys)
 {
 	size_t iloom = 0;
-	for (struct emu_loom *l = sys->looms; l; l = l->next)
+	for (struct loom *l = sys->looms; l; l = l->next)
 		loom_set_gindex(l, iloom++);
 
 	sys->nprocs = 0;
-	for (struct emu_proc *p = sys->procs; p; p = p->gnext)
+	for (struct proc *p = sys->procs; p; p = p->gnext)
 		p->gindex = sys->nprocs++;
 
 	sys->nthreads = 0;
-	for (struct emu_thread *t = sys->threads; t; t = t->gnext)
+	for (struct thread *t = sys->threads; t; t = t->gnext)
 		t->gindex = sys->nprocs++;
 
 	sys->ncpus = 0;
@@ -692,7 +684,7 @@ init_cpu_name(struct cpu *cpu)
 }
 
 static int
-init_cpu_names(struct emu_system *sys)
+init_cpu_names(struct system *sys)
 {
 	for (struct cpu *cpu = sys->cpus; cpu; cpu = cpu->next) {
 		if (init_cpu_name(cpu) != 0)
@@ -703,9 +695,9 @@ init_cpu_names(struct emu_system *sys)
 }
 
 static void
-link_streams_to_threads(struct emu_system *sys)
+link_streams_to_threads(struct system *sys)
 {
-	for (struct emu_thread *th = sys->threads; th; th = th->gnext)
+	for (struct thread *th = sys->threads; th; th = th->gnext)
 		emu_stream_data_set(th->stream, th);
 }
 
@@ -757,7 +749,7 @@ load_clock_offsets(struct clkoff *clkoff, struct emu_args *args)
 }
 
 static int
-parse_clkoff_entry(struct emu_loom *looms, struct clkoff_entry *entry)
+parse_clkoff_entry(struct loom *looms, struct clkoff_entry *entry)
 {
 	size_t matches = 0;
 
@@ -765,7 +757,7 @@ parse_clkoff_entry(struct emu_loom *looms, struct clkoff_entry *entry)
 	size_t offset = entry->median;
 	const char *host = entry->name;
 
-	struct emu_loom *loom;
+	struct loom *loom;
 	DL_FOREACH(looms, loom) {
 		/* Match the hostname exactly */
 		if (strcmp(loom->hostname, host) != 0)
@@ -791,7 +783,7 @@ parse_clkoff_entry(struct emu_loom *looms, struct clkoff_entry *entry)
 }
 
 static int
-init_offsets(struct emu_system *sys)
+init_offsets(struct system *sys)
 {
 	struct clkoff *table = &sys->clkoff;
 	int n = clkoff_count(table);
@@ -815,9 +807,9 @@ init_offsets(struct emu_system *sys)
 	}
 
 	/* Set the stream clock offsets too */
-	struct emu_thread *thread;
+	struct thread *thread;
 	DL_FOREACH2(sys->threads, thread, gnext) {
-		struct emu_loom *loom = thread->proc->loom;
+		struct loom *loom = thread->proc->loom;
 		int64_t offset = loom->clock_offset;
 		if (emu_stream_clkoff_set(thread->stream, offset) != 0) {
 			err("init_offsets: cannot set clock offset\n");
@@ -829,63 +821,70 @@ init_offsets(struct emu_system *sys)
 }
 
 int
-emu_system_init(struct emu_system *sys, struct emu_args *args, struct emu_trace *trace)
+system_init(struct system *sys, struct emu_args *args, struct emu_trace *trace)
 {
-	memset(sys, 0, sizeof(struct emu_system));
+	memset(sys, 0, sizeof(struct system));
 	sys->args = args;
 
 	/* Parse the trace and create the looms, procs and threads */
 	if (create_lpt(sys, trace) != 0) {
-		err("emu_system_init: create system failed\n");
+		err("system_init: create system failed\n");
 		return -1;
 	}
 
-	/* Ensure they are sorted so they are easier to read */
-	sort_lpt(sys);
 
-	/* Init global lists after sorting */
-	init_global_lpt_lists(sys);
+	/* Create global lists and indices */
 
-	/* Now load all process metadata and set attributes */
-	if (load_metadata(sys) != 0) {
-		err("emu_system_init: load_metadata() failed\n");
-		return -1;
-	}
 
-	/* From the metadata extract the CPUs too */
-	if (init_cpus(sys) != 0) {
-		err("emu_system_init: load_cpus() failed\n");
-		return -1;
-	}
+	/* Setup names */
 
-	init_global_cpus_list(sys);
 
-	/* Now that we have loaded all resources, populate the indices */
-	init_global_indices(sys);
-
-	/* Set CPU names like "CPU 1.34" */
-	if (init_cpu_names(sys) != 0) {
-		err("emu_system_init: init_cpu_names() failed\n");
-		return -1;
-	}
-
-	/* We need to retrieve the thread from the stream too */
-	link_streams_to_threads(sys);
-
-	/* Load the clock offsets table */
-	if (load_clock_offsets(&sys->clkoff, args) != 0) {
-		err("emu_system_init: load_clock_offsets() failed\n");
-		return -1;
-	}
-
-	/* Set the offsets of the looms and streams */
-	if (init_offsets(sys) != 0) {
-		err("emu_system_init: init_offsets() failed\n");
-		return -1;
-	}
-
-	/* Finaly dump the system */
-	print_system(sys);
+//	/* Ensure they are sorted so they are easier to read */
+//	sort_lpt(sys);
+//
+//	/* Init global lists after sorting */
+//	init_global_lpt_lists(sys);
+//
+//	/* Now load all process metadata and set attributes */
+//	if (load_metadata(sys) != 0) {
+//		err("system_init: load_metadata() failed\n");
+//		return -1;
+//	}
+//
+//	/* From the metadata extract the CPUs too */
+//	if (init_cpus(sys) != 0) {
+//		err("system_init: load_cpus() failed\n");
+//		return -1;
+//	}
+//
+//	init_global_cpus_list(sys);
+//
+//	/* Now that we have loaded all resources, populate the indices */
+//	init_global_indices(sys);
+//
+//	/* Set CPU names like "CPU 1.34" */
+//	if (init_cpu_names(sys) != 0) {
+//		err("system_init: init_cpu_names() failed\n");
+//		return -1;
+//	}
+//
+//	/* We need to retrieve the thread from the stream too */
+//	link_streams_to_threads(sys);
+//
+//	/* Load the clock offsets table */
+//	if (load_clock_offsets(&sys->clkoff, args) != 0) {
+//		err("system_init: load_clock_offsets() failed\n");
+//		return -1;
+//	}
+//
+//	/* Set the offsets of the looms and streams */
+//	if (init_offsets(sys) != 0) {
+//		err("system_init: init_offsets() failed\n");
+//		return -1;
+//	}
+//
+//	/* Finaly dump the system */
+//	print_system(sys);
 
 	return 0;
 }

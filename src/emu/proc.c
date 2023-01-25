@@ -1,67 +1,39 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#include "emu_system.h"
+#include "proc.h"
+
 #include "utlist.h"
+#include "path.h"
 #include <errno.h>
 
-void
-proc_init(struct proc *proc, struct loom *loom, pid_t pid)
-{
-	memset(proc, 0, sizeof(struct proc));
-
-	if (snprintf(proc->name, PATH_MAX, "%s", name) >= PATH_MAX)
-		die("new_proc: name too long: %s\n", name);
-
-	if (snprintf(proc->relpath, PATH_MAX, "%s/%s", loom->name, proc->name) >= PATH_MAX)
-		die("new_proc: relative path too long: %s/%s", loom->name, proc->name);
-
-	if (snprintf(proc->path, PATH_MAX, "%s/%s", tracedir, proc->relpath) >= PATH_MAX)
-		die("new_proc: path too long: %s/%s", tracedir, proc->relpath);
-
-	proc->pid = pid;
-	proc->loom = loom;
-	proc->id = proc->relpath;
-
-	err("new proc '%s'\n", proc->id);
-}
+static const char prefix[] = "proc.";
 
 static int
-check_proc_metadata(JSON_Value *meta_val, const char *path)
+set_id(struct proc *proc, const char *id)
 {
-	JSON_Object *meta = json_value_get_object(meta_val);
-	if (meta == NULL) {
-		err("check_proc_metadata: json_value_get_object() failed: %s\n",
-				path);
+	/* The id must be like "loom.123/proc.345" */
+
+	const char *p = strchr(id, '/');
+	if (p == NULL) {
+		err("proc relpath missing '/': %s", id);
 		return -1;
 	}
 
-	JSON_Value *version_val = json_object_get_value(meta, "version");
-	if (version_val == NULL) {
-		err("check_proc_metadata: missing attribute \"version\": %s\n",
-				path);
+	p++; /* Skip slash */
+	if (strchr(p, '/') != NULL) {
+		err("proc id contains multiple '/': %s", id);
 		return -1;
 	}
 
-	int version = (int) json_number(version_val);
-
-	if (version != OVNI_METADATA_VERSION) {
-		err("check_proc_metadata: metadata version mismatch %d (expected %d) in %s\n",
-				version, OVNI_METADATA_VERSION, path);
+	/* Ensure the prefix is ok */
+	if (!path_has_prefix(p, prefix)) {
+		err("proc name must start with '%s': %s", prefix, id);
 		return -1;
 	}
 
-	JSON_Value *mversion_val = json_object_get_value(meta, "model_version");
-	if (mversion_val == NULL) {
-		err("check_proc_metadata: missing attribute \"model_version\" in %s\n",
-				path);
-		return -1;
-	}
-
-	const char *mversion = json_string(mversion_val);
-	if (strcmp(mversion, OVNI_MODEL_VERSION) != 0) {
-		err("check_proc_metadata: model version mismatch '%s' (expected '%s') in %s\n",
-				mversion, OVNI_MODEL_VERSION, path);
+	if (snprintf(proc->id, PATH_MAX, "%s", id) >= PATH_MAX) {
+		err("proc id too long: %s", id);
 		return -1;
 	}
 
@@ -69,44 +41,105 @@ check_proc_metadata(JSON_Value *meta_val, const char *path)
 }
 
 int
-proc_load_metadata(struct emu_proc *proc, char *metadata_file)
+proc_init(struct proc *proc, const char *id, int pid)
 {
-	if (proc->meta != NULL) {
-		err("proc_load_metadata: process '%s' already has metadata\n",
-				proc->id);
+	memset(proc, 0, sizeof(struct proc));
+
+	if (set_id(proc, id) != 0) {
+		err("cannot set process id");
 		return -1;
 	}
 
-	proc->meta = json_parse_file_with_comments(metadata_file);
-	if (proc->meta == NULL) {
-		err("proc_load_metadata: failed to load metadata: %s\n",
-				metadata_file);
+	proc->pid = pid;
+
+	return 0;
+}
+
+static int
+check_metadata_version(JSON_Object *meta)
+{
+	JSON_Value *version_val = json_object_get_value(meta, "version");
+	if (version_val == NULL) {
+		err("missing attribute \"version\"");
 		return -1;
 	}
 
-	if (check_proc_metadata(proc->meta, path) != 0) {
-		err("load_proc_metadata: invalid metadata: %s\n",
-				metadata_file);
+	int version = (int) json_number(version_val);
+
+	if (version != OVNI_METADATA_VERSION) {
+		err("metadata version mismatch %d (expected %d)",
+				version, OVNI_METADATA_VERSION);
 		return -1;
 	}
 
-	/* The appid is populated from the metadata */
-	if (load_proc_attributes(proc, path) != 0) {
-		err("load_proc_metadata: invalid attributes: %s\n",
-				metadata_file);
+	JSON_Value *mversion_val = json_object_get_value(meta, "model_version");
+	if (mversion_val == NULL) {
+		err("missing attribute \"model_version\"");
+		return -1;
+	}
+
+	const char *mversion = json_string(mversion_val);
+	if (strcmp(mversion, OVNI_MODEL_VERSION) != 0) {
+		err("model version mismatch '%s' (expected '%s')",
+				mversion, OVNI_MODEL_VERSION);
 		return -1;
 	}
 
 	return 0;
 }
 
+static int
+load_attributes(struct proc *proc, JSON_Object *meta)
+{
+	JSON_Value *appid_val = json_object_get_value(meta, "app_id");
+	if (appid_val == NULL) {
+		err("missing attribute 'app_id' in metadata\n");
+		return -1;
+	}
+
+	proc->appid = (int) json_number(appid_val);
+
+	JSON_Value *rank_val = json_object_get_value(meta, "rank");
+
+	if (rank_val != NULL)
+		proc->rank = (int) json_number(rank_val);
+	else
+		proc->rank = -1;
+
+	return 0;
+}
+
+int
+proc_load_metadata(struct proc *proc, JSON_Object *meta)
+{
+	if (proc->metadata_loaded) {
+		err("process %s already loaded metadata", proc->id);
+		return -1;
+	}
+
+	if (load_attributes(proc, meta) != 0) {
+		err("cannot load attributes for process %s", proc->id);
+		return -1;
+	}
+
+	proc->metadata_loaded = 1;
+
+	return 0;
+}
+
 struct thread *
-proc_find_thread(struct proc *proc, pid_t tid)
+proc_find_thread(struct proc *proc, int tid)
 {
 	struct thread *th;
 	DL_FOREACH2(proc->threads, th, lnext) {
-		if (t->tid == tid)
-			return t;
+		if (th->tid == tid)
+			return th;
 	}
 	return NULL;
+}
+
+int
+proc_get_pid(struct proc *proc)
+{
+	return proc->pid;
 }

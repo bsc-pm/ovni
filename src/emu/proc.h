@@ -6,32 +6,24 @@
 
 struct proc;
 
-#include "loom.h"
 #include "thread.h"
 #include "parson.h"
 #include <stddef.h>
 
 struct proc {
 	size_t gindex;
+	char id[PATH_MAX];
 
-	char name[PATH_MAX]; /* Proc directory name */
-	char fullpath[PATH_MAX];
-	char relpath[PATH_MAX];
-	char *id; /* Points to relpath */
-
-	pid_t pid;
+	int metadata_loaded;
+	int pid;
 	int index;
 	int appid;
 	int rank;
 
-	struct loom *loom;
-
-	JSON_Value *meta;
-
 	int nthreads;
 	struct thread *threads;
 
-	/* Local list */
+	/* Loom list */
 	struct proc *lnext;
 	struct proc *lprev;
 
@@ -40,8 +32,12 @@ struct proc {
 	struct proc *gprev;
 
 	//struct model_ctx ctx;
+	UT_hash_handle hh; /* procs in the loom */
 };
 
-void proc_init(struct proc *proc);
+int proc_init(struct proc *proc, const char *id, int pid);
+int proc_get_pid(struct proc *proc);
+int proc_load_metadata(struct proc *proc, JSON_Object *meta);
+struct thread *proc_find_thread(struct proc *proc, int tid);
 
 #endif /* PROC_H */

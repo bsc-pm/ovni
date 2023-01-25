@@ -4,6 +4,7 @@
 #include "chan.h"
 #include "common.h"
 #include <string.h>
+#include <stdarg.h>
 
 void
 chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...)

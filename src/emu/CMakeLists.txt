@@ -14,10 +14,14 @@ include_directories(
 add_library(emu STATIC
   ../common.c
   cpu.c
+  loom.c
+  proc.c
   thread.c
+  path.c
+  metadata.c
   emu.c
-  emu_system.c
-  emu_system_thread.c
+  #emu_system.c
+  #emu_system_thread.c
   emu_args.c
   emu_stream.c
   emu_trace.c
@@ -29,10 +33,10 @@ add_library(emu STATIC
   mux.c
   prv.c
   clkoff.c
-  ovni/probe.c
-  ovni/create.c
-  ovni/connect.c
-  ovni/event.c
+  #ovni/probe.c
+  #ovni/create.c
+  #ovni/connect.c
+  #ovni/event.c
 )
 
 add_subdirectory(ovni)

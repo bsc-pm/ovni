@@ -6,9 +6,10 @@
 
 struct cpu;
 
-#include "loom.h"
 #include "thread.h"
 #include "chan.h"
+#include "uthash.h"
+#include <linux/limits.h>
 
 struct cpu_chan {
 	struct chan pid_running;
@@ -21,7 +22,7 @@ struct cpu {
 	char name[PATH_MAX];
 
 	/* Logical index: 0 to ncpus - 1 */
-	int i;
+	//int index;
 
 	/* Physical id: as reported by lscpu(1) */
 	int phyid;
@@ -35,6 +36,10 @@ struct cpu {
 
 	int is_virtual;
 
+	/* Loom list sorted by phyid */
+	struct cpu *lnext;
+	struct cpu *lprev;
+
 	/* Global list */
 	struct cpu *next;
 	struct cpu *prev;
@@ -43,11 +48,15 @@ struct cpu {
 	struct cpu_chan chan;
 
 	//struct model_ctx ctx;
+
+	UT_hash_handle hh; /* CPUs in the loom */
 };
 
-void cpu_init(struct cpu *cpu, int i, int phyid, int is_virtual);
+void cpu_init(struct cpu *cpu, int phyid);
+int cpu_get_phyid(struct cpu *cpu);
+//int cpu_get_index(struct cpu *cpu);
 void cpu_set_gindex(struct cpu *cpu, int64_t gindex);
-void cpu_set_name(struct cpu *cpu, int64_t loom);
+void cpu_set_name(struct cpu *cpu, const char *name);
 int cpu_add_thread(struct cpu *cpu, struct thread *thread);
 
 #endif /* CPU_H */

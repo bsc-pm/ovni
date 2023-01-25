@@ -8,13 +8,17 @@
 #include "utlist.h"
 
 void
-cpu_init(struct cpu *cpu, int i, int phyid, int is_virtual)
+cpu_init(struct cpu *cpu, int phyid)
 {
 	memset(cpu, 0, sizeof(struct cpu));
 
-	cpu->i = i;
 	cpu->phyid = phyid;
-	cpu->is_virtual = is_virtual;
+}
+
+int
+cpu_get_phyid(struct cpu *cpu)
+{
+	return cpu->phyid;
 }
 
 void
@@ -24,17 +28,10 @@ cpu_set_gindex(struct cpu *cpu, int64_t gindex)
 }
 
 void
-cpu_set_name(struct cpu *cpu, int64_t loom)
+cpu_set_name(struct cpu *cpu, const char *name)
 {
-	int n;
-	if (cpu->is_virtual)
-		n = snprintf(cpu->name, PATH_MAX, "vCPU %ld.*", loom);
-	else
-		n = snprintf(cpu->name, PATH_MAX, "CPU %ld.%d", loom, cpu->i);
-
-	/* Unlikely */
-	if (n >= PATH_MAX)
-		die("cpu_set_name: cpu name too long\n");
+	if (snprintf(cpu->name, PATH_MAX, "%s", name) >= PATH_MAX)
+		die("cpu name too long");
 }
 
 static struct thread *

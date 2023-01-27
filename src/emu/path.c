@@ -3,6 +3,7 @@
 
 #include "path.h"
 
+#include "common.h"
 #include <string.h>
 
 int
@@ -12,4 +13,81 @@ path_has_prefix(const char *path, const char *prefix)
 		return 0;
 
 	return 1;
+}
+
+/* Counts occurences of c in path */
+int
+path_count(const char *path, char c)
+{
+	int n = 0;
+
+	for (int i = 0; path[i] != '\0'; i++) {
+		if (path[i] == c)
+			n++;
+	}
+
+	return n;
+}
+
+/* Given the "a/b/c" path and '/' as sep, returns "b/c" */
+int
+path_next(const char *path, char sep, const char (**next))
+{
+	const char *p = strchr(path, sep);
+	if (p == NULL) {
+		err("missing '%c' in path %s", sep, path);
+		return -1;
+	}
+
+	p++; /* Skip sep */
+	*next = p;
+
+	return 0;
+}
+
+/* Removes n components from the beginning.
+ *
+ * Examples:
+ *
+ *   path="a/b/c/d" and n=2 -> "c/d"
+ *   path="a/b/c/d" and n=3 -> "d"
+ */
+int
+path_strip(const char *path, int n, const char (**next))
+{
+	const char *p = path;
+	for (; n>0; n--) {
+		const char *q;
+		if (path_next(p, '/', &q) != 0) {
+			err("missing %d '/' in path %s", n, path);
+			return -1;
+		}
+		p = q;
+	}
+
+	*next = p;
+
+	return 0;
+}
+
+/* Given the "a/b/c" path 2 as n, trims the path as "a/b" */
+int
+path_keep(char *path, int n)
+{
+	for (int i = 0; path[i] != '\0'; i++) {
+		if (path[i] == '/')
+			n--;
+
+		if (n == 0) {
+			path[i] = '\0';
+			return 0;
+		}
+	}
+
+	/* if we ask path=a/b n=2, is ok */
+	if (n == 1)
+		return 0;
+
+	err("missing %d components", n);
+	return -1;
 }

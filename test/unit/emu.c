@@ -19,7 +19,7 @@ int main(void)
 	int ret = 0;
 
 	while ((ret = emu_step(&emu)) == 0) {
-		err("event clock %ld\n", emu.player.deltaclock);
+		//err("event clock %ld\n", emu.player.deltaclock);
 	}
 
 	if (ret < 0)

@@ -3,30 +3,135 @@
 
 #include "thread.h"
 
-static void
-init_chans(struct thread *th)
+#include "path.h"
+#include "bay.h"
+
+static const char chan_fmt[] = "thread%lu.%s";
+static const char *chan_name[] = {
+	[TH_CHAN_CPU] = "cpu_gindex",
+	[TH_CHAN_TID] = "tid_active",
+	[TH_CHAN_STATE] = "state",
+	[TH_CHAN_FLUSH] = "flush",
+};
+
+static const int chan_stack[] = {
+	[TH_CHAN_FLUSH] = 1,
+};
+
+static int
+get_tid(const char *id, int *tid)
 {
-	struct thread_chan *c = &th->chan;
-	char prefix[128];
+	/* The id must be like "loom.host01.123/proc.345/thread.567" */
+	if (path_count(id, '/') != 2) {
+		err("proc id can only contain two '/': %s", id);
+		return -1;
+	}
 
-	if (snprintf(prefix, 128, "sys.thread%lu", th->gindex) >= 128)
-		die("snprintf too long");
+	/* Get the thread.567 part */
+	const char *thname;
+	if (path_strip(id, 2, &thname) != 0) {
+		err("cannot get thread name");
+		return -1;
+	}
 
-	chan_init(&c->cpu_gindex, CHAN_SINGLE, "%s.cpu_gindex", prefix);
-	chan_init(&c->tid_active, CHAN_SINGLE, "%s.tid_active", prefix);
-	chan_init(&c->nth_active, CHAN_SINGLE, "%s.nth_active", prefix);
-	chan_init(&c->state, CHAN_SINGLE, "%s.state", prefix);
+	/* Ensure the prefix is ok */
+	const char prefix[] = "thread.";
+	if (!path_has_prefix(thname, prefix)) {
+		err("thread name must start with '%s': %s", prefix, thname);
+		return -1;
+	}
+
+	/* Get the 567 part */
+	const char *tidstr;
+	if (path_next(thname, '.', &tidstr) != 0) {
+		err("cannot find thread dot in '%s'", id);
+		return -1;
+	}
+
+	*tid = atoi(tidstr);
+
+	return 0;
 }
 
-void
-thread_init(struct thread *thread, struct proc *proc)
+int
+thread_relpath_get_tid(const char *relpath, int *tid)
+{
+	return get_tid(relpath, tid);
+}
+
+int
+thread_init_begin(struct thread *thread, const char *relpath)
 {
 	memset(thread, 0, sizeof(struct thread));
 
 	thread->state = TH_ST_UNKNOWN;
-	thread->proc = proc;
+	thread->gindex = -1;
 
-	init_chans(thread);
+	if (snprintf(thread->id, PATH_MAX, "%s", relpath) >= PATH_MAX) {
+		err("relpath too long");
+		return -1;
+	}
+
+	if (get_tid(thread->id, &thread->tid) != 0) {
+		err("cannot parse thread tid");
+		return -1;
+	}
+
+	return 0;
+}
+
+void
+thread_set_gindex(struct thread *th, int64_t gindex)
+{
+	th->gindex = gindex;
+}
+
+int
+thread_init_end(struct thread *th)
+{
+	if (th->gindex < 0) {
+		err("gindex not set");
+		return -1;
+	}
+
+	for (int i = 0; i < TH_CHAN_MAX; i++) {
+		enum chan_type type = CHAN_SINGLE;
+
+		if (chan_stack[i])
+			type = CHAN_STACK;
+
+		chan_init(&th->chan[i], type,
+				chan_fmt, th->gindex, chan_name[i]);
+	}
+
+	chan_prop_set(&th->chan[TH_CHAN_TID], CHAN_DUPLICATES, 1);
+
+	th->is_init = 1;
+	return 0;
+}
+
+int
+thread_connect(struct thread *th, struct bay *bay)
+{
+	if (!th->is_init) {
+		err("thread is not initialized");
+		return -1;
+	}
+
+	for (int i = 0; i < TH_CHAN_MAX; i++) {
+		if (bay_register(bay, &th->chan[i]) != 0) {
+			err("bay_register failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+int
+thread_get_tid(struct thread *thread)
+{
+	return thread->tid;
 }
 
 /* Sets the state of the thread and updates the thread tracking channels */
@@ -35,7 +140,7 @@ thread_set_state(struct thread *th, enum thread_state state)
 {
 	/* The state must be updated when a cpu is set */
 	if (th->cpu == NULL) {
-		die("thread_set_state: thread %d doesn't have a CPU\n", th->tid);
+		die("thread %d doesn't have a CPU", th->tid);
 		return -1;
 	}
 
@@ -47,9 +152,19 @@ thread_set_state(struct thread *th, enum thread_state state)
 					? 1
 					: 0;
 
-	struct thread_chan *chan = &th->chan;
-	if (chan_set(&chan->state, value_int64(th->state)) != 0) {
+	struct chan *st = &th->chan[TH_CHAN_STATE];
+	if (chan_set(st, value_int64(th->state)) != 0) {
 		err("thread_set_cpu: chan_set() failed");
+		return -1;
+	}
+
+	struct value tid_active = value_null();
+
+	if (th->is_active)
+		tid_active = value_int64(th->tid);
+
+	if (chan_set(&th->chan[TH_CHAN_TID], tid_active) != 0) {
+		err("chan_set() failed");
 		return -1;
 	}
 
@@ -72,8 +187,8 @@ thread_set_cpu(struct thread *th, struct cpu *cpu)
 	th->cpu = cpu;
 
 	/* Update cpu channel */
-	struct thread_chan *chan = &th->chan;
-	if (chan_set(&chan->cpu_gindex, value_int64(cpu->gindex)) != 0) {
+	struct chan *c = &th->chan[TH_CHAN_CPU];
+	if (chan_set(c, value_int64(cpu->gindex)) != 0) {
 		err("thread_set_cpu: chan_set failed\n");
 		return -1;
 	}
@@ -91,9 +206,9 @@ thread_unset_cpu(struct thread *th)
 
 	th->cpu = NULL;
 
-	struct thread_chan *chan = &th->chan;
-	if (chan_set(&chan->cpu_gindex, value_null()) != 0) {
-		err("thread_unset_cpu: chan_set failed\n");
+	struct chan *c = &th->chan[TH_CHAN_CPU];
+	if (chan_set(c, value_null()) != 0) {
+		err("thread_set_cpu: chan_set failed\n");
 		return -1;
 	}
 
@@ -110,9 +225,9 @@ thread_migrate_cpu(struct thread *th, struct cpu *cpu)
 
 	th->cpu = cpu;
 
-	struct thread_chan *chan = &th->chan;
-	if (chan_set(&chan->cpu_gindex, value_int64(cpu->gindex)) != 0) {
-		err("thread_migrate_cpu: chan_set failed\n");
+	struct chan *c = &th->chan[TH_CHAN_CPU];
+	if (chan_set(c, value_int64(cpu->gindex)) != 0) {
+		err("thread_set_cpu: chan_set failed\n");
 		return -1;
 	}
 

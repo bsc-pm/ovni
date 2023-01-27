@@ -42,5 +42,7 @@ int main(void)
 		}
 	}
 
+	err("ok");
+
 	return 0;
 }

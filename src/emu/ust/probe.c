@@ -10,5 +10,8 @@ ovni_model_probe(void *ptr)
 {
 	struct emu *emu = emu_get(ptr);
 
-	return emu->system.nthreads > 0;
+	if (emu->system.nthreads == 0)
+		return -1;
+
+	return 0;
 }

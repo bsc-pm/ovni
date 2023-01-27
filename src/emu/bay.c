@@ -1,4 +1,4 @@
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 #include "bay.h"
 
@@ -6,10 +6,10 @@
 #include "uthash.h"
 #include "utlist.h"
 
-static char *propname[BAY_CB_MAX] = {
-	[BAY_CB_DIRTY] = "dirty",
-	[BAY_CB_EMIT] = "emit"
-};
+//static char *propname[BAY_CB_MAX] = {
+//	[BAY_CB_DIRTY] = "dirty",
+//	[BAY_CB_EMIT] = "emit"
+//};
 
 /* Called from the channel when it becomes dirty */
 static int
@@ -76,6 +76,8 @@ bay_register(struct bay *bay, struct chan *chan)
 
 	/* Add to hash table */
 	HASH_ADD_STR(bay->channels, chan->name, bchan);
+
+	dbg("registered %s", chan->name);
 
 	return 0;
 }

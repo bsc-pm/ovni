@@ -10,7 +10,7 @@ struct emu;
 #include "pvtrace.h"
 #include "emu_trace.h"
 #include "emu_args.h"
-#include "emu_system.h"
+#include "system.h"
 #include "emu_player.h"
 #include "emu_model.h"
 #include "emu_ev.h"
@@ -26,16 +26,16 @@ struct emu {
 
 	struct emu_args args;
 	struct emu_trace trace;
-	struct emu_system system;
+	struct system system;
 	struct emu_player player;
 	struct emu_model model;
 
 	/* Quick access */
 	struct emu_stream *stream;
 	struct emu_ev *ev;
-	struct emu_thread *thread;
-	struct emu_proc *proc;
-	struct emu_loom *loom;
+	struct thread *thread;
+	struct proc *proc;
+	struct loom *loom;
 };
 
 int emu_init(struct emu *emu, int argc, char *argv[]);

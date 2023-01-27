@@ -3,6 +3,7 @@
 
 #include "metadata.h"
 
+#include "ovni.h"
 #include "parson.h"
 
 static JSON_Object *
@@ -20,7 +21,7 @@ load_json(const char *path)
 		return NULL;
 	}
 
-	return 0;
+	return meta;
 }
 
 static int
@@ -104,7 +105,7 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 			return -1;
 		}
 
-		cpu_init(cpu, phyid);
+		cpu_init_begin(cpu, phyid);
 
 		if (loom_add_cpu(loom, cpu) != 0) {
 			err("loom_add_cpu() failed");

@@ -4,12 +4,14 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-struct thread;
+struct thread; /* Needed for cpu */
 
 #include "cpu.h"
 #include "chan.h"
-#include "emu_stream.h"
+#include "bay.h"
+#include "uthash.h"
 #include <stddef.h>
+#include <linux/limits.h>
 
 /* Emulated thread runtime status */
 enum thread_state {
@@ -21,19 +23,19 @@ enum thread_state {
 	TH_ST_WARMING,
 };
 
-struct thread_chan {
-	struct chan cpu_gindex;
-	struct chan tid_active;
-	struct chan nth_active;
-	struct chan state;
+enum thread_chan {
+	TH_CHAN_CPU = 0,
+	TH_CHAN_TID,
+	TH_CHAN_STATE,
+	TH_CHAN_FLUSH,
+	TH_CHAN_MAX,
 };
 
 struct thread {
-	size_t gindex; /* In the system */
+	int64_t gindex; /* In the system */
+	char id[PATH_MAX];
 
-	char name[PATH_MAX];
-	char path[PATH_MAX];
-	char relpath[PATH_MAX];
+	int is_init;
 
 	int tid;
 	size_t index; /* In loom */
@@ -44,9 +46,6 @@ struct thread {
 	enum thread_state state;
 	int is_running;
 	int is_active;
-
-	/* Stream linked to this thread */
-	struct emu_stream *stream;
 
 	/* Current cpu, NULL if not unique affinity */
 	struct cpu *cpu;
@@ -63,15 +62,21 @@ struct thread {
 	struct thread *gnext;
 	struct thread *gprev;
 
-	struct thread_chan chan;
+	struct chan chan[TH_CHAN_MAX];
 
 	//struct model_ctx ctx;
+	UT_hash_handle hh; /* threads in the process */
 };
 
-void thread_init(struct thread *thread, struct proc *proc);
+int thread_relpath_get_tid(const char *relpath, int *tid);
+int thread_init_begin(struct thread *thread, const char *relpath);
+int thread_init_end(struct thread *thread);
 int thread_set_state(struct thread *th, enum thread_state state);
 int thread_set_cpu(struct thread *th, struct cpu *cpu);
 int thread_unset_cpu(struct thread *th);
 int thread_migrate_cpu(struct thread *th, struct cpu *cpu);
+int thread_get_tid(struct thread *thread);
+void thread_set_gindex(struct thread *th, int64_t gindex);
+int thread_connect(struct thread *th, struct bay *bay);
 
 #endif /* THREAD_H */

@@ -14,6 +14,14 @@
 #include "clkoff.h"
 #include <stddef.h>
 
+/* Map from stream to lpt */
+struct lpt {
+	struct emu_stream *stream; /* Redundancy */
+	struct loom *loom;
+	struct proc *proc;
+	struct thread *thread;
+};
+
 struct system {
 	/* Total counters */
 	size_t nlooms;
@@ -29,11 +37,14 @@ struct system {
 	struct clkoff clkoff;
 	struct emu_args *args;
 
+	struct lpt *lpt;
+
 	//struct model_ctx ctx;
 };
 
 int system_init(struct system *sys, struct emu_args *args, struct emu_trace *trace);
-//struct emu_thread *system_get_thread(struct emu_stream *stream);
+int system_connect(struct system *sys, struct bay *bay);
+struct lpt *system_get_lpt(struct emu_stream *stream);
 //struct emu_cpu *system_find_cpu(struct emu_loom *loom, int cpuid);
 //int model_ctx_set(struct model_ctx *ctx, int model, void *data);
 //int model_ctx_get(struct model_ctx *ctx, int model, void *data);

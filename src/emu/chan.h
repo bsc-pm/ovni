@@ -23,6 +23,12 @@ enum chan_prop {
 	CHAN_MAXPROP,
 };
 
+struct chan_spec {
+	enum chan_type type;
+	const char *suffix;
+	const char *desc;
+};
+
 struct chan_stack {
 	int n;
 	struct value values[MAX_CHAN_STACK];

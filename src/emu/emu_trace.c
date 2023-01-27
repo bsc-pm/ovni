@@ -81,6 +81,12 @@ cb_nftw(const char *fpath, const struct stat *sb,
 	return load_stream(cur_trace, fpath);
 }
 
+static int
+cmp_streams(struct emu_stream *a, struct emu_stream *b)
+{
+	return strcmp(a->relpath, b->relpath);
+}
+
 int
 emu_trace_load(struct emu_trace *trace, const char *tracedir)
 {
@@ -100,6 +106,9 @@ emu_trace_load(struct emu_trace *trace, const char *tracedir)
 	}
 
 	cur_trace = NULL;
+
+	/* Sort the streams */
+	DL_SORT(trace->streams, cmp_streams);
 
 	err("emu_trace_load: loaded %ld streams\n", trace->nstreams);
 

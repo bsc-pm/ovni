@@ -6,6 +6,7 @@
 #include <string.h>
 #include "cpu.h"
 #include "proc.h"
+#include "thread.h"
 #include "uthash.h"
 #include "utlist.h"
 
@@ -62,7 +63,10 @@ loom_init_begin(struct loom *loom, const char *name)
 
 	set_hostname(loom->hostname, loom->name);
 	loom->id = loom->name;
-	loom->is_ready = 0;
+
+	cpu_init_begin(&loom->vcpu, -1);
+
+	err("creating new loom %s", loom->id);
 
 	return 0;
 }
@@ -73,11 +77,17 @@ loom_set_gindex(struct loom *loom, int64_t gindex)
 	loom->gindex = gindex;
 }
 
+int64_t
+loom_get_gindex(struct loom *loom)
+{
+	return loom->gindex;
+}
+
 struct cpu *
 loom_find_cpu(struct loom *loom, int phyid)
 {
 	if (phyid == -1)
-		return loom->vcpu;
+		return &loom->vcpu;
 
 	struct cpu *cpu = NULL;
 	HASH_FIND_INT(loom->cpus, &phyid, cpu);
@@ -99,8 +109,8 @@ loom_add_cpu(struct loom *loom, struct cpu *cpu)
 		return -1;
 	}
 
-	if (loom->is_ready) {
-		err("cannot modify CPUs of ready loom");
+	if (loom->is_init) {
+		err("cannot modify CPUs of initialized loom");
 		return -1;
 	}
 
@@ -111,14 +121,28 @@ loom_add_cpu(struct loom *loom, struct cpu *cpu)
 	return 0;
 }
 
-void
-loom_set_vcpu(struct loom *loom, struct cpu *vcpu)
+struct cpu *
+loom_get_vcpu(struct loom *loom)
 {
-	loom->vcpu = vcpu;
+	return &loom->vcpu;
 }
 
 static int
-cmp_cpus(struct cpu *c1, struct cpu *c2)
+by_pid(struct proc *p1, struct proc *p2)
+{
+	int id1 = proc_get_pid(p1);
+	int id2 = proc_get_pid(p2);
+
+	if (id1 < id2)
+		return -1;
+	if (id1 > id2)
+		return +1;
+	else
+		return 0;
+}
+
+static int
+by_phyid(struct cpu *c1, struct cpu *c2)
 {
 	int id1 = cpu_get_phyid(c1);
 	int id2 = cpu_get_phyid(c2);
@@ -131,12 +155,20 @@ cmp_cpus(struct cpu *c1, struct cpu *c2)
 		return 0;
 }
 
+void
+loom_sort(struct loom *loom)
+{
+	HASH_SORT(loom->procs, by_pid);
+	HASH_SORT(loom->cpus, by_phyid);
+
+	for (struct proc *p = loom->procs; p; p = p->hh.next) {
+		proc_sort(p);
+	}
+}
+
 int
 loom_init_end(struct loom *loom)
 {
-	/* Sort CPUs by phyid */
-	DL_SORT2(loom->scpus, cmp_cpus, lprev, lnext);
-
 	/* Set rank enabled */
 	for (struct proc *p = loom->procs; p; p = p->hh.next) {
 		if (p->rank >= 0) {
@@ -145,7 +177,7 @@ loom_init_end(struct loom *loom)
 		}
 	}
 
-	loom->is_ready = 1;
+	loom->is_init = 1;
 
 	return 0;
 }
@@ -158,6 +190,18 @@ loom_find_proc(struct loom *loom, int pid)
 	return proc;
 }
 
+struct thread *
+loom_find_thread(struct loom *loom, int tid)
+{
+	for (struct proc *p = loom->procs; p; p = p->hh.next) {
+		struct thread *thread = proc_find_thread(p, tid);
+		if (thread != NULL)
+			return thread;
+	}
+
+	return NULL;
+}
+
 int
 loom_add_proc(struct loom *loom, struct proc *proc)
 {
@@ -168,8 +212,8 @@ loom_add_proc(struct loom *loom, struct proc *proc)
 		return -1;
 	}
 
-	if (loom->is_ready) {
-		err("cannot modify procs of ready loom");
+	if (loom->is_init) {
+		err("cannot modify procs of loom initialized");
 		return -1;
 	}
 

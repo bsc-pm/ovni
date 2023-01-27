@@ -4,15 +4,15 @@
 #ifndef PROC_H
 #define PROC_H
 
-struct proc;
-
+/* No loom dependency here */
 #include "thread.h"
 #include "parson.h"
 #include <stddef.h>
 
 struct proc {
-	size_t gindex;
+	int64_t gindex;
 	char id[PATH_MAX];
+	int is_init;
 
 	int metadata_loaded;
 	int pid;
@@ -35,9 +35,15 @@ struct proc {
 	UT_hash_handle hh; /* procs in the loom */
 };
 
-int proc_init(struct proc *proc, const char *id, int pid);
+int proc_relpath_get_pid(const char *relpath, int *pid);
+int proc_init_begin(struct proc *proc, const char *id);
+int proc_init_end(struct proc *proc);
 int proc_get_pid(struct proc *proc);
+void proc_set_gindex(struct proc *proc, int64_t gindex);
+void proc_sort(struct proc *proc);
 int proc_load_metadata(struct proc *proc, JSON_Object *meta);
 struct thread *proc_find_thread(struct proc *proc, int tid);
+int proc_add_thread(struct proc *proc, struct thread *thread);
+void proc_sort(struct proc *proc);
 
 #endif /* PROC_H */

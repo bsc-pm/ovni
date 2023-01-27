@@ -15,14 +15,14 @@ void vdie(const char *func, const char *errstr, ...);
 
 /* clang-format off */
 
+#define err(...) verr(__func__, __VA_ARGS__);
+#define die(...) vdie(__func__, __VA_ARGS__);
+
 #ifdef ENABLE_DEBUG
-# define dbg(...) fprintf(stderr, __VA_ARGS__);
+# define dbg(...) verr(__func__, __VA_ARGS__);
 #else
 # define dbg(...)
 #endif
-
-#define err(...) verr(__func__, __VA_ARGS__);
-#define die(...) vdie(__func__, __VA_ARGS__);
 
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)

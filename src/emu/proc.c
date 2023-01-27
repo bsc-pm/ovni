@@ -7,90 +7,102 @@
 #include "path.h"
 #include <errno.h>
 
-static const char prefix[] = "proc.";
-
 static int
-set_id(struct proc *proc, const char *id)
+get_pid(const char *id, int *pid)
 {
-	/* The id must be like "loom.123/proc.345" */
+	/* TODO: Store the PID the metadata.json instead */
 
-	const char *p = strchr(id, '/');
-	if (p == NULL) {
-		err("proc relpath missing '/': %s", id);
+	/* The id must be like "loom.host01.123/proc.345" */
+	if (path_count(id, '/') != 1) {
+		err("proc id can only contain one '/': %s", id);
 		return -1;
 	}
 
-	p++; /* Skip slash */
-	if (strchr(p, '/') != NULL) {
-		err("proc id contains multiple '/': %s", id);
+	/* Get the proc.345 part */
+	const char *procname;
+	if (path_next(id, '/', &procname) != 0) {
+		err("cannot get proc name");
 		return -1;
 	}
 
 	/* Ensure the prefix is ok */
-	if (!path_has_prefix(p, prefix)) {
+	const char prefix[] = "proc.";
+	if (!path_has_prefix(procname, prefix)) {
 		err("proc name must start with '%s': %s", prefix, id);
 		return -1;
 	}
 
-	if (snprintf(proc->id, PATH_MAX, "%s", id) >= PATH_MAX) {
-		err("proc id too long: %s", id);
+	/* Get the 345 part */
+	const char *pidstr;
+	if (path_next(procname, '.', &pidstr) != 0) {
+		err("cannot find proc dot in '%s'", id);
 		return -1;
 	}
+
+	*pid = atoi(pidstr);
 
 	return 0;
 }
 
 int
-proc_init(struct proc *proc, const char *id, int pid)
+proc_relpath_get_pid(const char *relpath, int *pid)
+{
+	char id[PATH_MAX];
+
+	if (snprintf(id, PATH_MAX, "%s", relpath) >= PATH_MAX) {
+		err("path too long");
+		return -1;
+	}
+
+	if (path_keep(id, 2) != 0) {
+		err("cannot delimite proc dir");
+		return -1;
+	}
+
+	return get_pid(id, pid);
+}
+
+int
+proc_init_begin(struct proc *proc, const char *relpath)
 {
 	memset(proc, 0, sizeof(struct proc));
 
-	if (set_id(proc, id) != 0) {
-		err("cannot set process id");
+	proc->gindex = -1;
+
+	if (snprintf(proc->id, PATH_MAX, "%s", relpath) >= PATH_MAX) {
+		err("path too long");
 		return -1;
 	}
 
-	proc->pid = pid;
+	if (path_keep(proc->id, 2) != 0) {
+		err("cannot delimite proc dir");
+		return -1;
+	}
+
+	if (get_pid(proc->id, &proc->pid) != 0) {
+		err("cannot parse proc pid");
+		return -1;
+	}
+
+	err("created proc %s", proc->id);
 
 	return 0;
 }
 
-static int
-check_metadata_version(JSON_Object *meta)
+void
+proc_set_gindex(struct proc *proc, int64_t gindex)
 {
-	JSON_Value *version_val = json_object_get_value(meta, "version");
-	if (version_val == NULL) {
-		err("missing attribute \"version\"");
-		return -1;
-	}
-
-	int version = (int) json_number(version_val);
-
-	if (version != OVNI_METADATA_VERSION) {
-		err("metadata version mismatch %d (expected %d)",
-				version, OVNI_METADATA_VERSION);
-		return -1;
-	}
-
-	JSON_Value *mversion_val = json_object_get_value(meta, "model_version");
-	if (mversion_val == NULL) {
-		err("missing attribute \"model_version\"");
-		return -1;
-	}
-
-	const char *mversion = json_string(mversion_val);
-	if (strcmp(mversion, OVNI_MODEL_VERSION) != 0) {
-		err("model version mismatch '%s' (expected '%s')",
-				mversion, OVNI_MODEL_VERSION);
-		return -1;
-	}
-
-	return 0;
+	proc->gindex = gindex;
 }
 
-static int
-load_attributes(struct proc *proc, JSON_Object *meta)
+int
+proc_load_metadata(struct proc *proc, JSON_Object *meta)
 {
+	if (proc->metadata_loaded) {
+		err("process %s already loaded metadata", proc->id);
+		return -1;
+	}
+
 	JSON_Value *appid_val = json_object_get_value(meta, "app_id");
 	if (appid_val == NULL) {
 		err("missing attribute 'app_id' in metadata\n");
@@ -106,22 +118,6 @@ load_attributes(struct proc *proc, JSON_Object *meta)
 	else
 		proc->rank = -1;
 
-	return 0;
-}
-
-int
-proc_load_metadata(struct proc *proc, JSON_Object *meta)
-{
-	if (proc->metadata_loaded) {
-		err("process %s already loaded metadata", proc->id);
-		return -1;
-	}
-
-	if (load_attributes(proc, meta) != 0) {
-		err("cannot load attributes for process %s", proc->id);
-		return -1;
-	}
-
 	proc->metadata_loaded = 1;
 
 	return 0;
@@ -130,12 +126,67 @@ proc_load_metadata(struct proc *proc, JSON_Object *meta)
 struct thread *
 proc_find_thread(struct proc *proc, int tid)
 {
-	struct thread *th;
-	DL_FOREACH2(proc->threads, th, lnext) {
-		if (th->tid == tid)
-			return th;
+	struct thread *thread = NULL;
+	HASH_FIND_INT(proc->threads, &tid, thread);
+	return thread;
+}
+
+int
+proc_add_thread(struct proc *proc, struct thread *thread)
+{
+	if (proc->is_init) {
+		err("cannot modify threads of initialized proc");
+		return -1;
 	}
-	return NULL;
+
+	int tid = thread_get_tid(thread);
+
+	if (proc_find_thread(proc, tid) != NULL) {
+		err("thread with tid %d already in proc %s", tid, proc->id);
+		return -1;
+	}
+
+	HASH_ADD_INT(proc->threads, tid, thread);
+	proc->nthreads++;
+
+	return 0;
+}
+
+static int
+by_tid(struct thread *t1, struct thread *t2)
+{
+	int id1 = thread_get_tid(t1);
+	int id2 = thread_get_tid(t2);
+
+	if (id1 < id2)
+		return -1;
+	if (id1 > id2)
+		return +1;
+	else
+		return 0;
+}
+
+void
+proc_sort(struct proc *proc)
+{
+	HASH_SORT(proc->threads, by_tid);
+}
+
+int
+proc_init_end(struct proc *proc)
+{
+	if (proc->gindex < 0) {
+		err("gindex not set");
+		return -1;
+	}
+
+	if (!proc->metadata_loaded) {
+		err("metadata not loaded");
+		return -1;
+	}
+
+	proc->is_init = 1;
+	return 0;
 }
 
 int

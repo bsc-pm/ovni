@@ -20,7 +20,7 @@ add_library(emu STATIC
   path.c
   metadata.c
   emu.c
-  #emu_system.c
+  system.c
   #emu_system_thread.c
   emu_args.c
   emu_stream.c
@@ -33,13 +33,8 @@ add_library(emu STATIC
   mux.c
   prv.c
   clkoff.c
-  #ovni/probe.c
-  #ovni/create.c
-  #ovni/connect.c
-  #ovni/event.c
+  model_ust.c
 )
-
-add_subdirectory(ovni)
 
 #add_library(emu STATIC
 #  chan.c

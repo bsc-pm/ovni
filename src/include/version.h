@@ -15,12 +15,12 @@ version_parse(const char *version, int tuple[3])
 	char buf[64];
 
 	if (version == NULL) {
-		err("parse_version: version is NULL\n");
+		err("version is NULL");
 		return -1;
 	}
 
 	if (strlen(version) >= 64) {
-		err("parse_version: version too long: %s\n", version);
+		err("version too long: %s", version);
 		return -1;
 	}
 
@@ -38,7 +38,7 @@ version_parse(const char *version, int tuple[3])
 		str = NULL;
 
 		if (num == NULL) {
-			err("parse_version: missing %s number: %s\n",
+			err("missing %s number: %s",
 					which[i], version);
 			return -1;
 		}
@@ -48,13 +48,13 @@ version_parse(const char *version, int tuple[3])
 		int v = (int) strtol(num, &endptr, 10);
 
 		if (errno != 0 || endptr == num || endptr[0] != '\0') {
-			err("parse_version: failed to parse %s number: %s\n",
+			err("failed to parse %s number: %s",
 					which[i], version);
 			return -1;
 		}
 
 		if (v < 0) {
-			err("parse_version: invalid negative %s number: %s\n",
+			err("invalid negative %s number: %s",
 					which[i], version);
 			return -1;
 		}

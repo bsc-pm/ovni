@@ -6,6 +6,8 @@
 #include "chan.h"
 #include "value.h"
 #include "utlist.h"
+#include "pvt.h"
+#include "prv.h"
 
 static const char chan_fmt[] = "cpu%ld.%s";
 static const char *chan_name[] = {
@@ -14,6 +16,14 @@ static const char *chan_name[] = {
 	[CPU_CHAN_TID] = "tid_running",
 	[CPU_CHAN_APPID] = "appid_running",
 	[CPU_CHAN_FLUSH] = "flush_running",
+};
+
+static int chan_type[] = {
+	[CPU_CHAN_PID] = 1,
+	[CPU_CHAN_TID] = 2,
+	[CPU_CHAN_NRUN] = 3,
+	[CPU_CHAN_APPID] = 5,
+	[CPU_CHAN_FLUSH] = 7,
 };
 
 void
@@ -71,16 +81,32 @@ cpu_init_end(struct cpu *cpu)
 }
 
 int
-cpu_connect(struct cpu *cpu, struct bay *bay)
+cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec)
 {
 	if (!cpu->is_init) {
 		err("cpu not initialized");
 		return -1;
 	}
 
+	/* Get cpu prv */
+	struct pvt *pvt = recorder_find_pvt(rec, "cpu");
+	if (pvt == NULL) {
+		err("cannot find cpu pvt");
+		return -1;
+	}
+	struct prv *prv = pvt_get_prv(pvt);
+
 	for (int i = 0; i < CPU_CHAN_MAX; i++) {
-		if (bay_register(bay, &cpu->chan[i]) != 0) {
+		struct chan *c = &cpu->chan[i];
+		if (bay_register(bay, c) != 0) {
 			err("bay_register failed");
+			return -1;
+		}
+
+		long type = chan_type[i];
+		long row = cpu->gindex;
+		if (prv_register(prv, row, type, bay, c)) {
+			err("prv_register failed");
 			return -1;
 		}
 	}
@@ -127,10 +153,26 @@ cpu_update(struct cpu *cpu)
 	cpu->nth_running = running;
 	cpu->nth_active = active;
 
-	if (running == 1)
+	struct value tid_running;
+	struct value pid_running;
+	if (running == 1) {
 		cpu->th_running = th_running;
-	else
+		tid_running = value_int64(th_running->tid);
+		pid_running = value_int64(th_running->proc->pid);
+	} else {
 		cpu->th_running = NULL;
+		tid_running = value_null();
+		pid_running = value_null();
+	}
+
+	if (chan_set(&cpu->chan[CPU_CHAN_TID], tid_running) != 0) {
+		err("chan_set tid failed");
+		return -1;
+	}
+	if (chan_set(&cpu->chan[CPU_CHAN_PID], pid_running) != 0) {
+		err("chan_set pid failed");
+		return -1;
+	}
 
 	if (active == 1)
 		cpu->th_active = th_active;
@@ -138,8 +180,7 @@ cpu_update(struct cpu *cpu)
 		cpu->th_active = NULL;
 
 	/* Update nth_running number in the channel */
-	struct chan *nrun = &cpu->chan[CPU_CHAN_NRUN];
-	if (chan_set(nrun, value_int64(cpu->nth_running)) != 0) {
+	if (chan_set(&cpu->chan[CPU_CHAN_NRUN], value_int64(running)) != 0) {
 		err("chan_set nth_running failed");
 		return -1;
 	}

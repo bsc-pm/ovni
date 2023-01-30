@@ -10,6 +10,8 @@ struct cpu; /* Needed for thread */
 #include "chan.h"
 #include "bay.h"
 #include "uthash.h"
+#include "recorder.h"
+#include "extend.h"
 #include <linux/limits.h>
 
 enum cpu_chan {
@@ -52,7 +54,7 @@ struct cpu {
 	/* Channels */
 	struct chan chan[CPU_CHAN_MAX];
 
-	//struct model_ctx ctx;
+	struct extend ext;
 
 	UT_hash_handle hh; /* CPUs in the loom */
 };
@@ -63,7 +65,7 @@ int cpu_get_phyid(struct cpu *cpu);
 void cpu_set_gindex(struct cpu *cpu, int64_t gindex);
 void cpu_set_name(struct cpu *cpu, const char *name);
 int cpu_init_end(struct cpu *cpu);
-int cpu_connect(struct cpu *cpu, struct bay *bay);
+int cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec);
 
 int cpu_update(struct cpu *cpu);
 int cpu_add_thread(struct cpu *cpu, struct thread *thread);

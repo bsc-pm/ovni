@@ -7,7 +7,10 @@
 /* No loom dependency here */
 #include "thread.h"
 #include "parson.h"
+#include "uthash.h"
 #include <stddef.h>
+#include <stdint.h>
+#include <linux/limits.h>
 
 struct proc {
 	int64_t gindex;

@@ -4,16 +4,14 @@
 #ifndef EMU_H
 #define EMU_H
 
-struct emu;
-
 #include "bay.h"
-#include "pvtrace.h"
 #include "emu_trace.h"
 #include "emu_args.h"
 #include "system.h"
 #include "emu_player.h"
 #include "emu_model.h"
 #include "emu_ev.h"
+#include "recorder.h"
 
 enum error_values {
 	ST_BAD = 666,
@@ -22,13 +20,13 @@ enum error_values {
 
 struct emu {
 	struct bay bay;
-	struct pvman *pvman;
 
 	struct emu_args args;
 	struct emu_trace trace;
 	struct system system;
 	struct emu_player player;
 	struct emu_model model;
+	struct recorder recorder;
 
 	/* Quick access */
 	struct emu_stream *stream;
@@ -39,6 +37,7 @@ struct emu {
 };
 
 int emu_init(struct emu *emu, int argc, char *argv[]);
+int emu_connect(struct emu *emu);
 int emu_step(struct emu *emu);
 
 static inline struct emu *

@@ -1,6 +1,8 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#define ENABLE_DEBUG
+
 #include "prv.h"
 #include <stdio.h>
 #include <errno.h>
@@ -32,7 +34,7 @@ prv_open(struct prv *prv, long nrows, const char *path)
 	FILE *f = fopen(path, "w");
 
 	if (f == NULL) {
-		die("prv_open: cannot open file '%s' for writting: %s\n",
+		die("cannot open file '%s' for writting: %s\n",
 				path, strerror(errno));
 		return -1;
 	}
@@ -75,33 +77,50 @@ emit(struct prv *prv, struct prv_chan *rchan)
 {
 	struct value value;
 	struct chan *chan = rchan->chan;
+	char buf[128];
 	if (chan_read(chan, &value) != 0) {
-		err("prv_emit: chan_read %s failed\n", chan->name);
+		err("chan_read %s failed\n", chan->name);
 		return -1;
 	}
 
 	/* Ensure we don't emit the same value twice */
 	if (rchan->last_value_set) {
+		/* TODO: skip optionally */
 		if (value_is_equal(&value, &rchan->last_value)) {
 			char buf[128];
-			err("prv_emit: cannot emit value %s twice for channel %s\n",
+			err("skipping duplicated value %s for channel %s\n",
 					value_str(value, buf), chan->name);
-			return -1;
+			return 0;
 		}
 	}
 
-	if (value.type != VALUE_INT64) {
-		char buf[128];
-		err("prv_emit: chan_read %s only int64 supported: %s\n",
-				chan->name, value_str(value, buf));
-		return -1;
+	long val = 0;
+	switch (value.type) {
+		case VALUE_INT64:
+			val = value.i;
+			//if (val == 0) {
+			//	err("forbidden value 0 in %s: %s\n",
+			//			chan->name,
+			//			value_str(value, buf));
+			//	return -1;
+			//}
+			break;
+		case VALUE_NULL:
+			val = 0;
+			break;
+		default:
+			err("chan_read %s only int64 and null supported: %s\n",
+					chan->name, value_str(value, buf));
+			return -1;
 	}
 
-	if (write_line(prv, rchan->row_base1, rchan->type, value.i) != 0) {
-		err("prv_emit: write_line failed for channel %s\n",
+	if (write_line(prv, rchan->row_base1, rchan->type, val) != 0) {
+		err("write_line failed for channel %s\n",
 				chan->name);
 		return -1;
 	}
+
+	dbg("written %s for chan %s", value_str(value, buf), chan->name);
 
 	rchan->last_value = value;
 	rchan->last_value_set = 1;
@@ -122,16 +141,16 @@ cb_prv(struct chan *chan, void *ptr)
 int
 prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan)
 {
+	/* FIXME: use the type instead of channel name as key */
 	struct prv_chan *rchan = find_prv_chan(prv, chan->name);
 	if (rchan != NULL) {
-		err("prv_register: channel %s already registered\n",
-				chan->name);
+		err("channel %s already registered", chan->name);
 		return -1;
 	}
 
 	rchan = calloc(1, sizeof(struct prv_chan));
 	if (rchan == NULL) {
-		err("prv_register: calloc failed\n");
+		err("calloc failed:");
 		return -1;
 	}
 
@@ -144,7 +163,7 @@ prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan 
 
 	/* Add emit callback */
 	if (bay_add_cb(bay, BAY_CB_EMIT, chan, cb_prv, rchan) != 0) {
-		err("prv_register: bay_add_cb failed\n");
+		err("bay_add_cb failed");
 		return -1;
 	}
 
@@ -158,7 +177,7 @@ int
 prv_advance(struct prv *prv, int64_t time)
 {
 	if (time < prv->time) {
-		err("prv_advance: cannot move to previous time\n");
+		err("cannot move to previous time");
 		return -1;
 	}
 

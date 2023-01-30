@@ -13,27 +13,31 @@ include_directories(
 
 add_library(emu STATIC
   ../common.c
+  bay.c
+  chan.c
+  clkoff.c
   cpu.c
-  loom.c
-  proc.c
-  thread.c
-  path.c
-  metadata.c
   emu.c
-  system.c
-  #emu_system_thread.c
   emu_args.c
+  emu_ev.c
+  emu_model.c
+  emu_player.c
   emu_stream.c
   emu_trace.c
-  emu_player.c
-  emu_model.c
-  emu_ev.c
-  chan.c
-  bay.c
-  mux.c
-  prv.c
-  clkoff.c
+  loom.c
+  metadata.c
+  model_nanos6.c
   model_ust.c
+  mux.c
+  path.c
+  proc.c
+  prv.c
+  pvt.c
+  recorder.c
+  system.c
+  task.c
+  thread.c
+  extend.c
 )
 
 #add_library(emu STATIC

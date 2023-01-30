@@ -18,6 +18,13 @@ static const int chan_stack[] = {
 	[TH_CHAN_FLUSH] = 1,
 };
 
+static const int chan_type[] = {
+	[TH_CHAN_TID] = 2,
+	[TH_CHAN_STATE] = 4,
+	[TH_CHAN_CPU] = 6,
+	[TH_CHAN_FLUSH] = 7,
+};
+
 static int
 get_tid(const char *id, int *tid)
 {
@@ -60,12 +67,13 @@ thread_relpath_get_tid(const char *relpath, int *tid)
 }
 
 int
-thread_init_begin(struct thread *thread, const char *relpath)
+thread_init_begin(struct thread *thread, struct proc *proc, const char *relpath)
 {
 	memset(thread, 0, sizeof(struct thread));
 
 	thread->state = TH_ST_UNKNOWN;
 	thread->gindex = -1;
+	thread->proc = proc;
 
 	if (snprintf(thread->id, PATH_MAX, "%s", relpath) >= PATH_MAX) {
 		err("relpath too long");
@@ -111,16 +119,32 @@ thread_init_end(struct thread *th)
 }
 
 int
-thread_connect(struct thread *th, struct bay *bay)
+thread_connect(struct thread *th, struct bay *bay, struct recorder *rec)
 {
 	if (!th->is_init) {
 		err("thread is not initialized");
 		return -1;
 	}
 
+	/* Get thread prv */
+	struct pvt *pvt = recorder_find_pvt(rec, "thread");
+	if (pvt == NULL) {
+		err("cannot find thread pvt");
+		return -1;
+	}
+	struct prv *prv = pvt_get_prv(pvt);
+
 	for (int i = 0; i < TH_CHAN_MAX; i++) {
-		if (bay_register(bay, &th->chan[i]) != 0) {
+		struct chan *c = &th->chan[i];
+		if (bay_register(bay, c) != 0) {
 			err("bay_register failed");
+			return -1;
+		}
+
+		long type = chan_type[i];
+		long row = th->gindex;
+		if (prv_register(prv, row, type, bay, c)) {
+			err("prv_register failed");
 			return -1;
 		}
 	}
@@ -170,6 +194,78 @@ thread_set_state(struct thread *th, enum thread_state state)
 
 	return 0;
 }
+
+int
+thread_select_active(struct mux *mux,
+		struct value value,
+		struct mux_input **input)
+{
+	if (value.type == VALUE_NULL) {
+		*input = NULL;
+		return 0;
+	}
+
+	if (value.type != VALUE_INT64) {
+		err("expecting NULL or INT64 channel value");
+		return -1;
+	}
+
+	enum thread_state state = (enum thread_state) value.i;
+
+	if (mux->ninputs != 1) {
+		err("expecting NULL or INT64 channel value");
+		return -1;
+	}
+
+	switch (state) {
+		case TH_ST_RUNNING:
+		case TH_ST_COOLING:
+		case TH_ST_WARMING:
+			*input = mux->input;
+			break;
+		default:
+			*input = NULL;
+			break;
+	}
+
+	return 0;
+}
+
+int
+thread_select_running(struct mux *mux,
+		struct value value,
+		struct mux_input **input)
+{
+	if (value.type == VALUE_NULL) {
+		*input = NULL;
+		return 0;
+	}
+
+	if (value.type != VALUE_INT64) {
+		err("expecting NULL or INT64 channel value");
+		return -1;
+	}
+
+	enum thread_state state = (enum thread_state) value.i;
+
+	if (mux->ninputs != 1) {
+		err("mux doesn't have one input but %d", mux->ninputs);
+		return -1;
+	}
+
+	switch (state) {
+		case TH_ST_RUNNING:
+			*input = mux->input;
+			break;
+		default:
+			*input = NULL;
+			break;
+	}
+
+	return 0;
+}
+
+
 
 int
 thread_set_cpu(struct thread *th, struct cpu *cpu)

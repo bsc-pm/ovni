@@ -1,15 +1,10 @@
-//#define ENABLE_DEBUG
+#define ENABLE_DEBUG
 
 #include "bay.h"
 
 #include "common.h"
 #include "uthash.h"
 #include "utlist.h"
-
-//static char *propname[BAY_CB_MAX] = {
-//	[BAY_CB_DIRTY] = "dirty",
-//	[BAY_CB_EMIT] = "emit"
-//};
 
 /* Called from the channel when it becomes dirty */
 static int
@@ -146,6 +141,13 @@ bay_init(struct bay *bay)
 static int
 propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 {
+	char *propname[BAY_CB_MAX] = {
+		[BAY_CB_DIRTY] = "dirty",
+		[BAY_CB_EMIT] = "emit"
+	};
+
+	UNUSED(propname);
+
 	dbg("- propagating channel '%s' phase %s\n",
 			bchan->chan->name, propname[type]);
 

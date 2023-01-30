@@ -12,6 +12,7 @@
 #include "thread.h"
 #include "cpu.h"
 #include "clkoff.h"
+#include "recorder.h"
 #include <stddef.h>
 
 /* Map from stream to lpt */
@@ -27,7 +28,7 @@ struct system {
 	size_t nlooms;
 	size_t nthreads;
 	size_t nprocs;
-	size_t ncpus; /* Physical */
+	size_t ncpus; /* Including virtual cpus */
 
 	struct loom *looms;
 	struct proc *procs;
@@ -43,7 +44,7 @@ struct system {
 };
 
 int system_init(struct system *sys, struct emu_args *args, struct emu_trace *trace);
-int system_connect(struct system *sys, struct bay *bay);
+int system_connect(struct system *sys, struct bay *bay, struct recorder *rec);
 struct lpt *system_get_lpt(struct emu_stream *stream);
 //struct emu_cpu *system_find_cpu(struct emu_loom *loom, int cpuid);
 //int model_ctx_set(struct model_ctx *ctx, int model, void *data);

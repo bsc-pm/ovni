@@ -413,10 +413,8 @@ process_ev(struct emu *emu)
 }
 
 static int
-ust_probe(void *p)
+ust_probe(struct emu *emu)
 {
-	struct emu *emu = emu_get(p);
-
 	if (emu->system.nthreads == 0)
 		return -1;
 
@@ -424,9 +422,8 @@ ust_probe(void *p)
 }
 
 static int
-ust_event(void *ptr)
+ust_event(struct emu *emu)
 {
-	struct emu *emu = emu_get(ptr);
 	if (emu->ev->m != model_ust.model) {
 		err("unexpected event model %c\n", emu->ev->m);
 		return -1;

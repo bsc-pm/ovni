@@ -28,7 +28,7 @@ create_thread(struct proc *proc, const char *relpath)
 		return NULL;
 	}
 
-	if (thread_init_begin(thread, relpath) != 0) {
+	if (thread_init_begin(thread, proc, relpath) != 0) {
 		err("cannot init thread");
 		return NULL;
 	}
@@ -532,17 +532,27 @@ system_get_lpt(struct emu_stream *stream)
 }
 
 int
-system_connect(struct system *sys, struct bay *bay)
+system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 {
+	/* Create Paraver traces */
+	if (recorder_add_pvt(rec, "cpu", sys->ncpus) == NULL) {
+		err("recorder_add_pvt failed");
+		return -1;
+	}
+	if (recorder_add_pvt(rec, "thread", sys->nthreads) == NULL) {
+		err("recorder_add_pvt failed");
+		return -1;
+	}
+
 	for (struct thread *th = sys->threads; th; th = th->gnext) {
-		if (thread_connect(th, bay) != 0) {
+		if (thread_connect(th, bay, rec) != 0) {
 			err("thread_connect failed\n");
 			return -1;
 		}
 	}
 
 	for (struct cpu *cpu = sys->cpus; cpu; cpu = cpu->next) {
-		if (cpu_connect(cpu, bay) != 0) {
+		if (cpu_connect(cpu, bay, rec) != 0) {
 			err("cpu_connect failed\n");
 			return -1;
 		}

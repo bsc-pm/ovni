@@ -16,6 +16,9 @@ int main(void)
 	if (emu_init(&emu, argc, argv) != 0)
 		die("emu_init failed\n");
 
+	if (emu_connect(&emu) != 0)
+		die("emu_connect failed\n");
+
 	int ret = 0;
 
 	while ((ret = emu_step(&emu)) == 0) {

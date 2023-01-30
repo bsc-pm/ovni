@@ -4,7 +4,7 @@
 #ifndef EMU_MODEL_H
 #define EMU_MODEL_H
 
-typedef int (emu_hook_t)(void *ptr);
+#include "emu_hook.h"
 
 struct model_spec {
 	char *name;

@@ -7,9 +7,13 @@
 struct thread; /* Needed for cpu */
 
 #include "cpu.h"
+#include "proc.h"
 #include "chan.h"
 #include "bay.h"
 #include "uthash.h"
+#include "recorder.h"
+#include "extend.h"
+#include "mux.h"
 #include <stddef.h>
 #include <linux/limits.h>
 
@@ -64,12 +68,13 @@ struct thread {
 
 	struct chan chan[TH_CHAN_MAX];
 
-	//struct model_ctx ctx;
+	struct extend ext;
+
 	UT_hash_handle hh; /* threads in the process */
 };
 
 int thread_relpath_get_tid(const char *relpath, int *tid);
-int thread_init_begin(struct thread *thread, const char *relpath);
+int thread_init_begin(struct thread *thread, struct proc *proc, const char *relpath);
 int thread_init_end(struct thread *thread);
 int thread_set_state(struct thread *th, enum thread_state state);
 int thread_set_cpu(struct thread *th, struct cpu *cpu);
@@ -77,6 +82,9 @@ int thread_unset_cpu(struct thread *th);
 int thread_migrate_cpu(struct thread *th, struct cpu *cpu);
 int thread_get_tid(struct thread *thread);
 void thread_set_gindex(struct thread *th, int64_t gindex);
-int thread_connect(struct thread *th, struct bay *bay);
+int thread_connect(struct thread *th, struct bay *bay, struct recorder *rec);
+
+int thread_select_active(struct mux *mux, struct value value, struct mux_input **input);
+int thread_select_running(struct mux *mux, struct value value, struct mux_input **input);
 
 #endif /* THREAD_H */

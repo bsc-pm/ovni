@@ -64,8 +64,10 @@ cb_select(struct chan *sel_chan, void *ptr)
 		return -1;
 	}
 
-	dbg("mux selects input key=%s chan=%s\n",
-			value_str(sel_value, buf), input->chan->name);
+	if (input) {
+		dbg("mux selects input key=%s chan=%s\n",
+				value_str(sel_value, buf), input->chan->name);
+	}
 
 	/* Set to null by default */
 	struct value out_value = value_null();
@@ -226,6 +228,8 @@ mux_add_input(struct mux *mux, struct value key, struct chan *chan)
 		err("mux_add_input: bay_add_cb failed\n");
 		return -1;
 	}
+
+	mux->ninputs++;
 
 	return 0;
 }

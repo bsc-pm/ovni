@@ -11,11 +11,16 @@
 
 struct prv;
 
+enum prv_flags {
+	PRV_DUP = 1,
+};
+
 struct prv_chan {
 	struct prv *prv;
 	struct chan *chan;
 	long row_base1;
 	long type;
+	long flags;
 	int last_value_set;
 	struct value last_value;
 	UT_hash_handle hh; /* Indexed by chan->name */
@@ -30,7 +35,7 @@ struct prv {
 
 int prv_open(struct prv *prv, long nrows, const char *path);
 int prv_open_file(struct prv *prv, long nrows, FILE *file);
-int prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *c);
+int prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan, long flags);
 int prv_advance(struct prv *prv, int64_t time);
 void prv_close(struct prv *prv);
 

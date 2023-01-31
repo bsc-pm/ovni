@@ -143,7 +143,7 @@ thread_connect(struct thread *th, struct bay *bay, struct recorder *rec)
 
 		long type = chan_type[i];
 		long row = th->gindex;
-		if (prv_register(prv, row, type, bay, c)) {
+		if (prv_register(prv, row, type, bay, c, PRV_DUP)) {
 			err("prv_register failed");
 			return -1;
 		}
@@ -213,7 +213,7 @@ thread_select_active(struct mux *mux,
 	enum thread_state state = (enum thread_state) value.i;
 
 	if (mux->ninputs != 1) {
-		err("expecting NULL or INT64 channel value");
+		err("mux doesn't have one input but %d", mux->ninputs);
 		return -1;
 	}
 

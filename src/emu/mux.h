@@ -39,6 +39,7 @@ USE_RET int mux_init(struct mux *mux,
 USE_RET struct mux_input *mux_find_input(struct mux *mux,
 		struct value key);
 
+/* TODO: use an index to select the input in O(1) */
 USE_RET int mux_add_input(struct mux *mux,
 		struct value key,
 		struct chan *input);

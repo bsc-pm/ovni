@@ -1,7 +1,7 @@
 /* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-//#define ENABLE_DEBUG
+#define ENABLE_DEBUG
 
 #include "chan.h"
 #include "common.h"
@@ -53,6 +53,7 @@ set_dirty(struct chan *chan)
 	chan->is_dirty = 1;
 
 	if (chan->dirty_cb != NULL) {
+		dbg("%s: calling dirty callback", chan->name);
 		if (chan->dirty_cb(chan, chan->dirty_arg) != 0) {
 			err("%s: dirty callback failed", chan->name);
 			return -1;

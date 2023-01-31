@@ -160,6 +160,7 @@ emu_step(struct emu *emu)
 
 	if (bay_propagate(&emu->bay) != 0) {
 		err("bay_propagate failed");
+		panic(emu);
 		return -1;
 	}
 

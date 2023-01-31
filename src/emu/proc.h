@@ -8,6 +8,7 @@
 #include "thread.h"
 #include "parson.h"
 #include "uthash.h"
+#include "extend.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <linux/limits.h>
@@ -36,6 +37,7 @@ struct proc {
 
 	//struct model_ctx ctx;
 	UT_hash_handle hh; /* procs in the loom */
+	struct extend ext;
 };
 
 int proc_relpath_get_pid(const char *relpath, int *pid);

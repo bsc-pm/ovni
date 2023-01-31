@@ -84,13 +84,16 @@ emit(struct prv *prv, struct prv_chan *rchan)
 	}
 
 	/* Ensure we don't emit the same value twice */
-	if (rchan->last_value_set) {
-		/* TODO: skip optionally */
-		if (value_is_equal(&value, &rchan->last_value)) {
-			char buf[128];
-			err("skipping duplicated value %s for channel %s\n",
+	if (rchan->last_value_set && value_is_equal(&value, &rchan->last_value)) {
+		char buf[128];
+		if (rchan->flags & PRV_DUP) {
+			dbg("skipping duplicated value %s for channel %s\n",
 					value_str(value, buf), chan->name);
 			return 0;
+		} else {
+			err("error duplicated value %s for channel %s\n",
+					value_str(value, buf), chan->name);
+			return -1;
 		}
 	}
 
@@ -139,7 +142,7 @@ cb_prv(struct chan *chan, void *ptr)
 }
 
 int
-prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan)
+prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan, long flags)
 {
 	/* FIXME: use the type instead of channel name as key */
 	struct prv_chan *rchan = find_prv_chan(prv, chan->name);
@@ -160,6 +163,7 @@ prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan 
 	rchan->prv = prv;
 	rchan->last_value = value_null();
 	rchan->last_value_set = 0;
+	rchan->flags = flags;
 
 	/* Add emit callback */
 	if (bay_add_cb(bay, BAY_CB_EMIT, chan, cb_prv, rchan) != 0) {

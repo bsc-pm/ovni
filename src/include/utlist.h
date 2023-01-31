@@ -861,7 +861,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DL_FOREACH2(head, el, next) \
 	for ((el) = (head); el; (el) = (el)->next)
 
-/* this version is safe for deleting the elements during iteration */
+/* this version is safe for deleting the elements during iteration (not for
+ * appending!) */
 #define DL_FOREACH_SAFE(head, el, tmp) \
 	DL_FOREACH_SAFE2(head, el, tmp, next)
 

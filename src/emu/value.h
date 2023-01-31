@@ -32,6 +32,8 @@ value_is_equal(struct value *a, struct value *b)
 		return 1;
 	else if (a->type == VALUE_DOUBLE && a->d == b->d)
 		return 1;
+	else if (a->type == VALUE_NULL && b->type == VALUE_NULL)
+		return 1;
 	else
 		return 0;
 }

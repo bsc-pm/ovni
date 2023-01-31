@@ -48,6 +48,8 @@ cb_select(struct chan *sel_chan, void *ptr)
 {
 	struct mux *mux = ptr;
 
+	dbg("selecting input for output chan chan=%s", mux->output->name);
+
 	struct value sel_value;
 	if (chan_read(sel_chan, &sel_value) != 0) {
 		err("cb_select: chan_read(select) failed\n");
@@ -104,8 +106,8 @@ cb_input(struct chan *in_chan, void *ptr)
 
 	/* Nothing to do, the input is not selected */
 	if (input == NULL || input->chan != in_chan) {
-		dbg("mux: input channel %s changed but not selected\n",
-				in_chan->name);
+		//dbg("input channel %s changed but not selected\n",
+		//		in_chan->name);
 		return 0;
 	}
 
@@ -118,6 +120,11 @@ cb_input(struct chan *in_chan, void *ptr)
 		err("cb_input: chan_read() failed\n");
 		return -1;
 	}
+
+	char buf[128];
+	UNUSED(buf);
+	dbg("setting output chan %s to value %s",
+			mux->output->name, value_str(out_value, buf));
 
 	if (chan_set(mux->output, out_value) != 0) {
 		err("cb_input: chan_set() failed\n");
@@ -165,7 +172,7 @@ mux_init(struct mux *mux,
 	 * as the last output value, so we allow duplicates too */
 	chan_prop_set(output, CHAN_DUPLICATES, 1);
 
-	memset(mux, 0, sizeof(struct mux_input));
+	memset(mux, 0, sizeof(struct mux));
 	mux->select = select;
 	mux->output = output;
 

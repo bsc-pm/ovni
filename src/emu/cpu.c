@@ -16,6 +16,8 @@ static const char *chan_name[] = {
 	[CPU_CHAN_TID] = "tid_running",
 	[CPU_CHAN_APPID] = "appid_running",
 	[CPU_CHAN_FLUSH] = "flush_running",
+	[CPU_CHAN_THRUN] = "th_running",
+	[CPU_CHAN_THACT] = "th_active",
 };
 
 static int chan_type[] = {
@@ -24,6 +26,8 @@ static int chan_type[] = {
 	[CPU_CHAN_NRUN] = 3,
 	[CPU_CHAN_APPID] = 5,
 	[CPU_CHAN_FLUSH] = 7,
+	[CPU_CHAN_THRUN] = -1,
+	[CPU_CHAN_THACT] = -1,
 };
 
 void
@@ -69,11 +73,18 @@ cpu_init_end(struct cpu *cpu)
 	}
 
 	for (int i = 0; i < CPU_CHAN_MAX; i++) {
+		if (chan_name[i] == NULL)
+			die("chan_name is null");
+
 		chan_init(&cpu->chan[i], CHAN_SINGLE,
 				chan_fmt, cpu->gindex, chan_name[i]);
 	}
 
 	chan_prop_set(&cpu->chan[CPU_CHAN_NRUN], CHAN_DUPLICATES, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_TID], CHAN_DUPLICATES, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_PID], CHAN_DUPLICATES, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_THRUN], CHAN_DUPLICATES, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_THACT], CHAN_DUPLICATES, 1);
 
 	cpu->is_init = 1;
 
@@ -104,8 +115,11 @@ cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec)
 		}
 
 		long type = chan_type[i];
+		if (type < 0)
+			continue;
+
 		long row = cpu->gindex;
-		if (prv_register(prv, row, type, bay, c)) {
+		if (prv_register(prv, row, type, bay, c, PRV_DUP)) {
 			err("prv_register failed");
 			return -1;
 		}
@@ -155,14 +169,17 @@ cpu_update(struct cpu *cpu)
 
 	struct value tid_running;
 	struct value pid_running;
+	struct value gid_running;
 	if (running == 1) {
 		cpu->th_running = th_running;
 		tid_running = value_int64(th_running->tid);
 		pid_running = value_int64(th_running->proc->pid);
+		gid_running = value_int64(th_running->gindex);
 	} else {
 		cpu->th_running = NULL;
 		tid_running = value_null();
 		pid_running = value_null();
+		gid_running = value_null();
 	}
 
 	if (chan_set(&cpu->chan[CPU_CHAN_TID], tid_running) != 0) {
@@ -173,15 +190,27 @@ cpu_update(struct cpu *cpu)
 		err("chan_set pid failed");
 		return -1;
 	}
+	if (chan_set(&cpu->chan[CPU_CHAN_THRUN], gid_running) != 0) {
+		err("chan_set gid_running failed");
+		return -1;
+	}
 
-	if (active == 1)
+	struct value gid_active;
+	if (active == 1) {
 		cpu->th_active = th_active;
-	else
+		gid_active = value_int64(th_active->gindex);
+	} else {
 		cpu->th_active = NULL;
+		gid_active = value_null();
+	}
 
 	/* Update nth_running number in the channel */
 	if (chan_set(&cpu->chan[CPU_CHAN_NRUN], value_int64(running)) != 0) {
 		err("chan_set nth_running failed");
+		return -1;
+	}
+	if (chan_set(&cpu->chan[CPU_CHAN_THACT], gid_active) != 0) {
+		err("chan_set gid_active failed");
 		return -1;
 	}
 

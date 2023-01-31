@@ -25,7 +25,9 @@ cb_chan_is_dirty(struct chan *chan, void *arg)
 		return -1;
 	}
 
+	dbg("adding dirty chan %s", chan->name)
 	DL_APPEND(bay->dirty, bchan);
+
 	return 0;
 }
 
@@ -152,8 +154,7 @@ propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 			bchan->chan->name, propname[type]);
 
 	struct bay_cb *cur = NULL;
-	struct bay_cb *tmp = NULL;
-	DL_FOREACH_SAFE(bchan->cb[type], cur, tmp) {
+	DL_FOREACH(bchan->cb[type], cur) {
 		if (cur->func(bchan->chan, cur->arg) != 0) {
 			err("propagate_chan: callback failed\n");
 			return -1;
@@ -166,9 +167,9 @@ propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 int
 bay_propagate(struct bay *bay)
 {
-	struct bay_chan *cur, *tmp;
+	struct bay_chan *cur;
 	bay->state = BAY_PROPAGATING;
-	DL_FOREACH_SAFE(bay->dirty, cur, tmp) {
+	DL_FOREACH(bay->dirty, cur) {
 		/* May add more dirty channels */
 		if (propagate_chan(cur, BAY_CB_DIRTY) != 0) {
 			err("bay_propagate: propagate_chan failed\n");
@@ -176,10 +177,12 @@ bay_propagate(struct bay *bay)
 		}
 	}
 
+	dbg("<> dirty phase complete");
+
 	/* Once the dirty callbacks have been propagated,
 	 * begin the emit stage */
 	bay->state = BAY_EMITTING;
-	DL_FOREACH_SAFE(bay->dirty, cur, tmp) {
+	DL_FOREACH(bay->dirty, cur) {
 		/* May add more dirty channels */
 		if (propagate_chan(cur, BAY_CB_EMIT) != 0) {
 			err("bay_propagate: propagate_chan failed\n");
@@ -187,11 +190,13 @@ bay_propagate(struct bay *bay)
 		}
 	}
 
+	dbg("<> emit phase complete");
+
 	/* Flush channels after running all the dirty and emit
 	 * callbacks, so we capture any potential double write when
 	 * running the callbacks */
 	bay->state = BAY_FLUSHING;
-	DL_FOREACH_SAFE(bay->dirty, cur, tmp) {
+	DL_FOREACH(bay->dirty, cur) {
 		if (chan_flush(cur->chan) != 0) {
 			err("bay_propagate: chan_flush failed\n");
 			return -1;

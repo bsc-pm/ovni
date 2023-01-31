@@ -19,5 +19,11 @@ main(void)
 
 	err("OK\n");
 
+	a = value_null();
+	b = value_null();
+
+	if (!value_is_equal(&a, &b))
+		die("null not equal");
+
 	return 0;
 }

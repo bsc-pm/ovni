@@ -10,7 +10,7 @@ static const int *cpu_type = th_type;
 static int
 connect_thread_mux(struct emu *emu, struct thread *thread)
 {
-	struct ovni_thread *th = extend_get(&thread->ext, 'O');
+	struct ovni_thread *th = EXT(thread, 'O');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct chan *inp = &th->ch[i];
 		struct chan *sel = &thread->chan[TH_CHAN_STATE];
@@ -33,7 +33,7 @@ connect_thread_mux(struct emu *emu, struct thread *thread)
 static int
 connect_thread_prv(struct emu *emu, struct thread *thread, struct prv *prv)
 {
-	struct ovni_thread *th = extend_get(&thread->ext, 'O');
+	struct ovni_thread *th = EXT(thread, 'O');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct chan *out = th->ch_out[i];
 		long type = th_type[i];
@@ -51,7 +51,7 @@ static int
 add_inputs_cpu_mux(struct emu *emu, struct mux *mux, int i)
 {
 	for (struct thread *t = emu->system.threads; t; t = t->gnext) {
-		struct ovni_thread *th = extend_get(&t->ext, 'O');
+		struct ovni_thread *th = EXT(t, 'O');
 		struct chan *inp = &th->ch_run[i];
 		if (mux_add_input(mux, value_int64(t->gindex), inp) != 0) {
 			err("mux_add_input failed");
@@ -65,7 +65,7 @@ add_inputs_cpu_mux(struct emu *emu, struct mux *mux, int i)
 static int
 connect_cpu_mux(struct emu *emu, struct cpu *scpu)
 {
-	struct ovni_cpu *cpu = extend_get(&scpu->ext, 'O');
+	struct ovni_cpu *cpu = EXT(scpu, 'O');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct mux *mux = &cpu->mux[i];
 		struct chan *out = &cpu->ch[i];
@@ -119,7 +119,7 @@ connect_threads(struct emu *emu)
 static int
 connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 {
-	struct ovni_cpu *cpu = extend_get(&scpu->ext, 'O');
+	struct ovni_cpu *cpu = EXT(scpu, 'O');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct chan *out = &cpu->ch[i];
 		long type = cpu_type[i];

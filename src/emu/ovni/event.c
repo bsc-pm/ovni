@@ -365,7 +365,7 @@ pre_burst(struct emu *emu)
 static int
 pre_flush(struct emu *emu)
 {
-	struct ovni_thread *th = extend_get(&emu->thread->ext, 'O');
+	struct ovni_thread *th = EXT(emu->thread, 'O');
 	struct chan *flush = &th->ch[CH_FLUSH];
 
 	switch (emu->ev->v) {

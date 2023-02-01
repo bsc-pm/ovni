@@ -30,7 +30,7 @@ static const int *cpu_type = th_type;
 static int
 connect_thread_mux(struct emu *emu, struct thread *thread)
 {
-	struct nanos6_thread *th = extend_get(&thread->ext, '6');
+	struct nanos6_thread *th = EXT(thread, '6');
 	for (int i = 0; i < CH_MAX; i++) {
 
 		/* TODO: Let the thread take the select channel
@@ -82,7 +82,7 @@ connect_thread_mux(struct emu *emu, struct thread *thread)
 static int
 connect_thread_prv(struct emu *emu, struct thread *thread, struct prv *prv)
 {
-	struct nanos6_thread *th = extend_get(&thread->ext, '6');
+	struct nanos6_thread *th = EXT(thread, '6');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct chan *out = th->ch_out[i];
 		long type = th_type[i];
@@ -100,7 +100,7 @@ static int
 add_inputs_cpu_mux(struct emu *emu, struct mux *mux, int i)
 {
 	for (struct thread *t = emu->system.threads; t; t = t->gnext) {
-		struct nanos6_thread *th = extend_get(&t->ext, '6');
+		struct nanos6_thread *th = EXT(t, '6');
 
 		/* Choose input thread channel based on tracking mode */
 		struct chan *inp = NULL;
@@ -123,7 +123,7 @@ add_inputs_cpu_mux(struct emu *emu, struct mux *mux, int i)
 static int
 connect_cpu_mux(struct emu *emu, struct cpu *scpu)
 {
-	struct nanos6_cpu *cpu = extend_get(&scpu->ext, '6');
+	struct nanos6_cpu *cpu = EXT(scpu, '6');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct mux *mux = &cpu->mux[i];
 		struct chan *out = &cpu->ch[i];
@@ -185,7 +185,7 @@ connect_threads(struct emu *emu)
 static int
 connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 {
-	struct nanos6_cpu *cpu = extend_get(&scpu->ext, '6');
+	struct nanos6_cpu *cpu = EXT(scpu, '6');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct chan *out = &cpu->ch[i];
 		long type = cpu_type[i];

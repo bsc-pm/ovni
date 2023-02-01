@@ -94,7 +94,7 @@ simple(struct emu *emu)
 	int action = entry[1];
 	int st = entry[2];
 
-	struct nanos6_thread *th = extend_get(&emu->thread->ext, '6');
+	struct nanos6_thread *th = EXT(emu->thread, '6');
 	struct chan *ch = &th->ch[chind];
 
 	if (action == PUSH) {
@@ -114,7 +114,7 @@ simple(struct emu *emu)
 static int
 chan_task_stopped(struct emu *emu)
 {
-	struct nanos6_thread *th = extend_get(&emu->thread->ext, '6');
+	struct nanos6_thread *th = EXT(emu->thread, '6');
 
 	struct value null = value_null();
 	if (chan_set(&th->ch[CH_TASKID], null) != 0) {
@@ -141,7 +141,7 @@ chan_task_stopped(struct emu *emu)
 static int
 chan_task_running(struct emu *emu, struct task *task)
 {
-	struct nanos6_thread *th = extend_get(&emu->thread->ext, '6');
+	struct nanos6_thread *th = EXT(emu->thread, '6');
 	struct proc *proc = emu->proc;
 
 	if (task->id == 0) {
@@ -176,7 +176,7 @@ static int
 chan_task_switch(struct emu *emu,
 		struct task *prev, struct task *next)
 {
-	struct nanos6_thread *th = extend_get(&emu->thread->ext, '6');
+	struct nanos6_thread *th = EXT(emu->thread, '6');
 
 	if (!prev || !next) {
 		err("cannot switch to or from a NULL task");
@@ -230,8 +230,8 @@ update_task_state(struct emu *emu)
 
 	uint32_t task_id = emu->ev->payload->u32[0];
 
-	struct nanos6_thread *th = extend_get(&emu->thread->ext, '6');
-	struct nanos6_proc *proc = extend_get(&emu->proc->ext, '6');
+	struct nanos6_thread *th = EXT(emu->thread, '6');
+	struct nanos6_proc *proc = EXT(emu->proc, '6');
 
 	struct task_info *info = &proc->task_info;
 	struct task_stack *stack = &th->task_stack;
@@ -337,7 +337,7 @@ enforce_task_rules(struct emu *emu, char tr, struct task *next)
 		return -1;
 	}
 
-	struct nanos6_thread *th = extend_get(&emu->thread->ext, '6');
+	struct nanos6_thread *th = EXT(emu->thread, '6');
 	struct value ss;
 	if (chan_read(&th->ch[CH_SUBSYSTEM], &ss) != 0) {
 		err("chan_read failed");
@@ -356,7 +356,7 @@ enforce_task_rules(struct emu *emu, char tr, struct task *next)
 static int
 update_task(struct emu *emu)
 {
-	struct nanos6_thread *th = extend_get(&emu->thread->ext, '6');
+	struct nanos6_thread *th = EXT(emu->thread, '6');
 	struct task_stack *stack = &th->task_stack;
 
 	struct task *prev = task_get_running(stack);
@@ -399,7 +399,7 @@ create_task(struct emu *emu)
 	uint32_t task_id = emu->ev->payload->u32[0];
 	uint32_t type_id = emu->ev->payload->u32[1];
 
-	struct nanos6_proc *proc = extend_get(&emu->proc->ext, '6');
+	struct nanos6_proc *proc = EXT(emu->proc, '6');
 	struct task_info *info = &proc->task_info;
 
 	if (task_create(info, type_id, task_id) != 0) {
@@ -461,7 +461,7 @@ pre_type(struct emu *emu)
 
 	const char *label = (const char *) data;
 
-	struct nanos6_proc *proc = extend_get(&emu->proc->ext, '6');
+	struct nanos6_proc *proc = EXT(emu->proc, '6');
 	struct task_info *info = &proc->task_info;
 
 	if (task_type_create(info, typeid, label) != 0) {

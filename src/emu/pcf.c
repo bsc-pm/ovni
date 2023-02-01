@@ -119,26 +119,6 @@ struct pcf_value_label nosv_ss_values[] = {
 	{ -1, NULL },
 };
 
-struct pcf_value_label tampi_mode_values[] = {
-	{ ST_NULL,              "NULL" },
-	{ ST_TOO_MANY_TH,       "TAMPI: Unknown, multiple threads running" },
-	{ ST_TAMPI_SEND,        "TAMPI: Send" },
-	{ ST_TAMPI_RECV,        "TAMPI: Recv" },
-	{ ST_TAMPI_ISEND,       "TAMPI: Isend" },
-	{ ST_TAMPI_IRECV,       "TAMPI: Irecv" },
-	{ ST_TAMPI_WAIT,        "TAMPI: Wait" },
-	{ ST_TAMPI_WAITALL,     "TAMPI: Waitall" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label openmp_mode_values[] = {
-	{ ST_NULL,              "NULL" },
-	{ ST_TOO_MANY_TH,       "OpenMP: Unknown, multiple threads running" },
-	{ ST_OPENMP_TASK,       "OpenMP: Task" },
-	{ ST_OPENMP_PARALLEL,   "OpenMP: Parallel" },
-	{ -1, NULL },
-};
-
 struct pcf_value_label nodes_mode_values[] = {
 	{ ST_NULL,              "NULL" },
 	{ ST_TOO_MANY_TH,       "NODES: Multiple threads running" },
@@ -219,8 +199,6 @@ struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
 	[CHAN_NOSV_SUBSYSTEM]   = &nosv_ss_values,
 	[CHAN_NOSV_RANK]        = &default_values,
 
-	[CHAN_TAMPI_MODE]       = &tampi_mode_values,
-	[CHAN_OPENMP_MODE]      = &openmp_mode_values,
 	[CHAN_NODES_SUBSYSTEM]  = &nodes_mode_values,
 
 	[CHAN_NANOS6_TASKID]    = &default_values,
@@ -249,8 +227,6 @@ char *pcf_chan_name[CHAN_MAX] = {
 	[CHAN_NOSV_SUBSYSTEM]   = "nOS-V subsystem",
 	[CHAN_NOSV_RANK]        = "nOS-V task MPI rank",
 
-	[CHAN_TAMPI_MODE]       = "TAMPI mode",
-	[CHAN_OPENMP_MODE]      = "OpenMP mode",
 	[CHAN_NODES_SUBSYSTEM]  = "NODES subsystem",
 
 	[CHAN_NANOS6_TASKID]    = "Nanos6 task ID",
@@ -287,8 +263,6 @@ int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
 	[CHAN_NOSV_SUBSYSTEM]   = { ACT_TH, RUN_TH },
 	[CHAN_NOSV_RANK]        = { RUN_TH, RUN_TH },
 
-	[CHAN_TAMPI_MODE]       = { RUN_TH, RUN_TH },
-	[CHAN_OPENMP_MODE]      = { RUN_TH, RUN_TH },
 	[CHAN_NODES_SUBSYSTEM]  = { RUN_TH, RUN_TH },
 
 	[CHAN_NANOS6_TASKID]    = { RUN_TH, RUN_TH },

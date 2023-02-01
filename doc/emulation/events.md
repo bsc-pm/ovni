@@ -76,34 +76,6 @@ VHW	Ends the execution as a worker
 VHd	Begins the execution as the delegate
 VHD	Ends the execution as the delegate
 
--------------------- TAMPI (model=T) ----------------------
-
-TS[	Enters MPI_Send()
-TS]	Exits MPI_Send()
-
-TR[	Enters MPI_Recv()
-TR]	Exits MPI_Recv()
-
-Ts[	Enters MPI_Isend()
-Ts]	Exits MPI_Isend()
-
-Tr[	Enters MPI_Irecv()
-Tr]	Exits MPI_Irecv()
-
-TV[	Enters MPI_Wait()
-TV]	Exits MPI_Wait()
-
-TW[	Enters MPI_Waitall()
-TW]	Exits MPI_Waitall()
-
--------------------- OpenMP (model=M) ----------------------
-
-MT[	Task begins
-MT]	Task ends
-
-MP]	Parallel region begins
-MP[	Parallel region ends
-
 -------------------- NODES (model=D) ----------------------
 
 DR[	Begins the registration of a task's accesses

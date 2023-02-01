@@ -3,7 +3,7 @@
 
 #define ENABLE_DEBUG
 
-#include "model_ust.h"
+#include "ovni_priv.h"
 
 #include "emu.h"
 #include "loom.h"
@@ -262,7 +262,7 @@ pre_affinity_remote(struct emu *emu)
 		return -1;
 	}
 
-	/* It must have an assigned CPU */
+	/* It movni have an assigned CPU */
 	if (remote_th->cpu == NULL) {
 		err("thread %d has no CPU", tid);
 		return -1;
@@ -412,31 +412,13 @@ process_ev(struct emu *emu)
 	return 0;
 }
 
-static int
-ust_probe(struct emu *emu)
+int
+ovni_event(struct emu *emu)
 {
-	if (emu->system.nthreads == 0)
-		return -1;
-
-	return 0;
-}
-
-static int
-ust_event(struct emu *emu)
-{
-	if (emu->ev->m != model_ust.model) {
+	if (emu->ev->m != 'O') {
 		err("unexpected event model %c\n", emu->ev->m);
 		return -1;
 	}
 
 	return process_ev(emu);
 }
-
-struct model_spec model_ust = {
-	.name = "ust",
-	.model = 'O',
-	.create  = NULL,
-	.connect = NULL,
-	.event   = ust_event,
-	.probe   = ust_probe,
-};

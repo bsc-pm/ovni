@@ -23,7 +23,6 @@ add_library(emu STATIC
   emu_trace.c
   loom.c
   metadata.c
-  model_ust.c
   mux.c
   path.c
   proc.c
@@ -34,6 +33,8 @@ add_library(emu STATIC
   task.c
   thread.c
   extend.c
+  ovni/probe.c
+  ovni/event.c
   nanos6/probe.c
   nanos6/connect.c
   nanos6/create.c

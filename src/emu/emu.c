@@ -8,7 +8,6 @@
 #include "emu.h"
 
 #include <unistd.h>
-#include "model_ust.h"
 #include "models.h"
 
 int
@@ -55,8 +54,8 @@ emu_init(struct emu *emu, int argc, char *argv[])
 //	/* Register all the models */
 //	emu_model_register(&emu->model, &ovni_model_spec, emu);
 
-	if (model_ust.create && model_ust.create(emu) != 0) {
-		err("model ust create failed");
+	if (model_ovni.create && model_ovni.create(emu) != 0) {
+		err("model ovni create failed");
 		return -1;
 	}
 	if (model_nanos6.create && model_nanos6.create(emu) != 0) {
@@ -71,8 +70,8 @@ emu_init(struct emu *emu, int argc, char *argv[])
 int
 emu_connect(struct emu *emu)
 {
-	if (model_ust.connect && model_ust.connect(emu) != 0) {
-		err("model ust connect failed");
+	if (model_ovni.connect && model_ovni.connect(emu) != 0) {
+		err("model ovni connect failed");
 		return -1;
 	}
 	if (model_nanos6.connect && model_nanos6.connect(emu) != 0) {
@@ -144,7 +143,7 @@ emu_step(struct emu *emu)
 	}
 
 	/* Otherwise progress */
-	if (emu->ev->m == 'O' && model_ust.event(emu) != 0) {
+	if (emu->ev->m == 'O' && model_ovni.event(emu) != 0) {
 		err("ovni event failed");
 		panic(emu);
 		return -1;

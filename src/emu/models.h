@@ -6,7 +6,7 @@
 
 #include "emu_model.h"
 
-extern struct model_spec model_ust;
+extern struct model_spec model_ovni;
 extern struct model_spec model_nanos6;
 
 #endif /* MODELS_H */

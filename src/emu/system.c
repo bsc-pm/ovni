@@ -137,7 +137,7 @@ create_loom(struct system *sys, const char *relpath)
 }
 
 static int
-create_system(struct system *sys, struct emu_trace *trace)
+create_system(struct system *sys, struct trace *trace)
 {
 	const char *dir = trace->tracedir;
 
@@ -149,7 +149,7 @@ create_system(struct system *sys, struct emu_trace *trace)
 	}
 
 	size_t i = 0;
-	for (struct emu_stream *s = trace->streams; s ; s = s->next) {
+	for (struct stream *s = trace->streams; s ; s = s->next) {
 		if (!loom_matches(s->relpath)) {
 			err("warning: ignoring unknown stream %s", s->relpath);
 			continue;
@@ -180,7 +180,7 @@ create_system(struct system *sys, struct emu_trace *trace)
 		lpt->proc = proc;
 		lpt->thread = thread;
 
-		emu_stream_data_set(s, lpt);
+		stream_data_set(s, lpt);
 	}
 
 	return 0;
@@ -396,7 +396,7 @@ parse_clkoff_entry(struct loom *looms, struct clkoff_entry *entry)
 }
 
 static int
-init_offsets(struct system *sys, struct emu_trace *trace)
+init_offsets(struct system *sys, struct trace *trace)
 {
 	struct clkoff *table = &sys->clkoff;
 	int n = clkoff_count(table);
@@ -419,7 +419,7 @@ init_offsets(struct system *sys, struct emu_trace *trace)
 		}
 	}
 
-	for (struct emu_stream *s = trace->streams; s; s = s->next) {
+	for (struct stream *s = trace->streams; s; s = s->next) {
 		struct lpt *lpt = system_get_lpt(s);
 		if (lpt == NULL) {
 			err("cannot get stream lpt");
@@ -427,7 +427,7 @@ init_offsets(struct system *sys, struct emu_trace *trace)
 		}
 
 		int64_t offset = lpt->loom->clock_offset;
-		if (emu_stream_clkoff_set(s, offset) != 0) {
+		if (stream_clkoff_set(s, offset) != 0) {
 			err("cannot set clock offset");
 			return -1;
 		}
@@ -471,7 +471,7 @@ init_end_system(struct system *sys)
 }
 
 int
-system_init(struct system *sys, struct emu_args *args, struct emu_trace *trace)
+system_init(struct system *sys, struct emu_args *args, struct trace *trace)
 {
 	memset(sys, 0, sizeof(struct system));
 	sys->args = args;
@@ -522,9 +522,9 @@ system_init(struct system *sys, struct emu_args *args, struct emu_trace *trace)
 }
 
 struct lpt *
-system_get_lpt(struct emu_stream *stream)
+system_get_lpt(struct stream *stream)
 {
-	struct lpt *lpt = emu_stream_data_get(stream);
+	struct lpt *lpt = stream_data_get(stream);
 
 	if (lpt->stream != stream)
 		die("inconsistent stream in lpt map");

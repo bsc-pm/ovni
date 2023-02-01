@@ -5,8 +5,8 @@
 #define EMU_SYSTEM_H
 
 #include "emu_args.h"
-#include "emu_trace.h"
-#include "emu_stream.h"
+#include "trace.h"
+#include "stream.h"
 #include "loom.h"
 #include "proc.h"
 #include "thread.h"
@@ -17,7 +17,7 @@
 
 /* Map from stream to lpt */
 struct lpt {
-	struct emu_stream *stream; /* Redundancy */
+	struct stream *stream; /* Redundancy */
 	struct loom *loom;
 	struct proc *proc;
 	struct thread *thread;
@@ -43,9 +43,9 @@ struct system {
 	//struct model_ctx ctx;
 };
 
-int system_init(struct system *sys, struct emu_args *args, struct emu_trace *trace);
+int system_init(struct system *sys, struct emu_args *args, struct trace *trace);
 int system_connect(struct system *sys, struct bay *bay, struct recorder *rec);
-struct lpt *system_get_lpt(struct emu_stream *stream);
+struct lpt *system_get_lpt(struct stream *stream);
 //struct emu_cpu *system_find_cpu(struct emu_loom *loom, int cpuid);
 //int model_ctx_set(struct model_ctx *ctx, int model, void *data);
 //int model_ctx_get(struct model_ctx *ctx, int model, void *data);

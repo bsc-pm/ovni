@@ -4,17 +4,17 @@
 #ifndef EMU_TRACE_H
 #define EMU_TRACE_H
 
-#include "emu_stream.h"
+#include "stream.h"
 
 #include <linux/limits.h>
 
-struct emu_trace {
+struct trace {
 	char tracedir[PATH_MAX];
 
 	long nstreams;
-	struct emu_stream *streams;
+	struct stream *streams;
 };
 
-int emu_trace_load(struct emu_trace *trace, const char *tracedir);
+int trace_load(struct trace *trace, const char *tracedir);
 
 #endif /* EMU_TRACE_H */

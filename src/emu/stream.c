@@ -1,7 +1,7 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#include "emu_stream.h"
+#include "stream.h"
 
 #include "ovni.h"
 #include <sys/stat.h>
@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 static int
-check_stream_header(struct emu_stream *stream)
+check_stream_header(struct stream *stream)
 {
 	int ret = 0;
 
@@ -42,7 +42,7 @@ check_stream_header(struct emu_stream *stream)
 }
 
 static int
-load_stream_fd(struct emu_stream *stream, int fd)
+load_stream_fd(struct stream *stream, int fd)
 {
 	struct stat st;
 	if (fstat(fd, &st) < 0) {
@@ -70,35 +70,35 @@ load_stream_fd(struct emu_stream *stream, int fd)
 }
 
 int
-emu_stream_load(struct emu_stream *stream, const char *tracedir, const char *relpath)
+stream_load(struct stream *stream, const char *tracedir, const char *relpath)
 {
 	int fd;
 
 	if (snprintf(stream->path, PATH_MAX, "%s/%s", tracedir, relpath) >= PATH_MAX) {
-		err("emu_stream_load: path too long: %s/%s\n", tracedir, relpath);
+		err("stream_load: path too long: %s/%s\n", tracedir, relpath);
 		return -1;
 	}
 
 	if (snprintf(stream->relpath, PATH_MAX, "%s", relpath) >= PATH_MAX) {
-		err("emu_stream_load: path too long: %s\n", relpath);
+		err("stream_load: path too long: %s\n", relpath);
 		return -1;
 	}
 
-	dbg("emu_stream_load: loading %s\n", stream->relpath);
+	dbg("stream_load: loading %s\n", stream->relpath);
 
 	if ((fd = open(stream->path, O_RDWR)) == -1) {
-		err("emu_stream_load: open failed: %s\n", stream->path);
+		err("stream_load: open failed: %s\n", stream->path);
 		return -1;
 	}
 
 	if (load_stream_fd(stream, fd) != 0) {
-		err("emu_stream_load: load_stream_fd failed for stream '%s'\n",
+		err("stream_load: load_stream_fd failed for stream '%s'\n",
 				stream->path);
 		return -1;
 	}
 
 	if (check_stream_header(stream) != 0) {
-		err("emu_stream_load: stream '%s' has bad header\n",
+		err("stream_load: stream '%s' has bad header\n",
 				stream->path);
 		return -1;
 	}
@@ -112,7 +112,7 @@ emu_stream_load(struct emu_stream *stream, const char *tracedir, const char *rel
 		err("warning: stream '%s' has zero events\n", stream->relpath);
 		stream->active = 0;
 	} else {
-		err("emu_stream_load: impossible, offset %ld bigger than size %ld\n",
+		err("stream_load: impossible, offset %ld bigger than size %ld\n",
 				stream->offset, stream->size);
 		return -1;
 	}
@@ -127,28 +127,28 @@ emu_stream_load(struct emu_stream *stream, const char *tracedir, const char *rel
 }
 
 void
-emu_stream_data_set(struct emu_stream *stream, void *data)
+stream_data_set(struct stream *stream, void *data)
 {
 	stream->data = data;
 }
 
 void *
-emu_stream_data_get(struct emu_stream *stream)
+stream_data_get(struct stream *stream)
 {
 	return stream->data;
 }
 
 int
-emu_stream_clkoff_set(struct emu_stream *stream, int64_t clkoff)
+stream_clkoff_set(struct stream *stream, int64_t clkoff)
 {
 	if (stream->cur_ev) {
-		die("emu_stream_clkoff_set: cannot set clokoff in started stream '%s'\n",
+		die("stream_clkoff_set: cannot set clokoff in started stream '%s'\n",
 				stream->relpath);
 		return -1;
 	}
 
 	if (stream->clock_offset != 0) {
-		err("emu_stream_clkoff_set: stream '%s' already has a clock offset\n",
+		err("stream_clkoff_set: stream '%s' already has a clock offset\n",
 				stream->relpath);
 		return -1;
 	}
@@ -159,28 +159,28 @@ emu_stream_clkoff_set(struct emu_stream *stream, int64_t clkoff)
 }
 
 struct ovni_ev *
-emu_stream_ev(struct emu_stream *stream)
+stream_ev(struct stream *stream)
 {
 	return stream->cur_ev;
 }
 
 int64_t
-emu_stream_evclock(struct emu_stream *stream, struct ovni_ev *ev)
+stream_evclock(struct stream *stream, struct ovni_ev *ev)
 {
 	return (int64_t) ovni_ev_get_clock(ev) + stream->clock_offset;
 }
 
 int64_t
-emu_stream_lastclock(struct emu_stream *stream)
+stream_lastclock(struct stream *stream)
 {
 	return stream->lastclock;
 }
 
 int
-emu_stream_step(struct emu_stream *stream)
+stream_step(struct stream *stream)
 {
 	if (!stream->active) {
-		err("emu_stream_step: stream is inactive, cannot step\n");
+		err("stream_step: stream is inactive, cannot step\n");
 		return -1;
 	}
 
@@ -190,7 +190,7 @@ emu_stream_step(struct emu_stream *stream)
 
 		/* It cannot pass the size, otherwise we are reading garbage */
 		if (stream->offset > stream->size) {
-			err("emu_stream_step: stream offset %ld exceeds size %ld\n",
+			err("stream_step: stream offset %ld exceeds size %ld\n",
 					stream->offset, stream->size);
 			return -1;
 		}
@@ -207,13 +207,13 @@ emu_stream_step(struct emu_stream *stream)
 
 	/* Ensure the event fits */
 	if (stream->offset + ovni_ev_size(stream->cur_ev) > stream->size) {
-		err("emu_stream_step: stream '%s' ends with incomplete event\n",
+		err("stream_step: stream '%s' ends with incomplete event\n",
 				stream->relpath);
 		return -1;
 	}
 
 	/* Ensure the clock grows monotonically */
-	int64_t clock = emu_stream_evclock(stream, stream->cur_ev);
+	int64_t clock = stream_evclock(stream, stream->cur_ev);
 	if (clock < stream->lastclock) {
 		err("clock goes backwards %ld -> %ld in stream '%s' at offset %ld\n",
 				stream->lastclock,
@@ -228,7 +228,7 @@ emu_stream_step(struct emu_stream *stream)
 }
 
 double
-emu_stream_progress(struct emu_stream *stream)
+stream_progress(struct stream *stream)
 {
 	if (stream->usize == 0)
 		return 1.0;

@@ -19,8 +19,8 @@ add_library(emu STATIC
   emu_ev.c
   emu_model.c
   emu_player.c
-  emu_stream.c
-  emu_trace.c
+  stream.c
+  trace.c
   loom.c
   metadata.c
   mux.c

@@ -3,7 +3,7 @@
 
 #define _XOPEN_SOURCE 500
 
-#include "emu_trace.h"
+#include "trace.h"
 #include "utlist.h"
 #include <stdlib.h>
 #include <string.h>
@@ -11,19 +11,19 @@
 
 /* See the nftw(3) manual to see why we need a global variable here:
  * https://pubs.opengroup.org/onlinepubs/9699919799/functions/nftw.html */
-static struct emu_trace *cur_trace = NULL;
+static struct trace *cur_trace = NULL;
 
 static void
-add_stream(struct emu_trace *trace, struct emu_stream *stream)
+add_stream(struct trace *trace, struct stream *stream)
 {
 	DL_APPEND(trace->streams, stream);
 	trace->nstreams++;
 }
 
 static int
-load_stream(struct emu_trace *trace, const char *path)
+load_stream(struct trace *trace, const char *path)
 {
-	struct emu_stream *stream = calloc(1, sizeof(struct emu_stream));
+	struct stream *stream = calloc(1, sizeof(struct stream));
 
 	if (stream == NULL) {
 		perror("calloc failed");
@@ -36,7 +36,7 @@ load_stream(struct emu_trace *trace, const char *path)
 	/* Skip begin slashes */
 	while (relpath[0] == '/') relpath++;
 
-	if (emu_stream_load(stream, trace->tracedir, relpath) != 0) {
+	if (stream_load(stream, trace->tracedir, relpath) != 0) {
 		err("load_stream: emu_steam_load failed\n");
 		return -1;
 	}
@@ -82,15 +82,15 @@ cb_nftw(const char *fpath, const struct stat *sb,
 }
 
 static int
-cmp_streams(struct emu_stream *a, struct emu_stream *b)
+cmp_streams(struct stream *a, struct stream *b)
 {
 	return strcmp(a->relpath, b->relpath);
 }
 
 int
-emu_trace_load(struct emu_trace *trace, const char *tracedir)
+trace_load(struct trace *trace, const char *tracedir)
 {
-	memset(trace, 0, sizeof(struct emu_trace));
+	memset(trace, 0, sizeof(struct trace));
 
 	cur_trace = trace;
 

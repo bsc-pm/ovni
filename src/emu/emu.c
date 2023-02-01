@@ -18,7 +18,7 @@ emu_init(struct emu *emu, int argc, char *argv[])
 	emu_args_init(&emu->args, argc, argv);
 
 	/* Load the streams into the trace */
-	if (emu_trace_load(&emu->trace, emu->args.tracedir) != 0) {
+	if (trace_load(&emu->trace, emu->args.tracedir) != 0) {
 		err("cannot load trace '%s'\n", emu->args.tracedir);
 		return -1;
 	}

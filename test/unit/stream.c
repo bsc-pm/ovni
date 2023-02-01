@@ -24,10 +24,10 @@ test_ok(char *fname)
 
 	fclose(f);
 
-	struct emu_stream stream;
+	struct stream stream;
 	const char *relpath = &fname[5];
-	if (emu_stream_load(&stream, "/tmp", relpath) != 0)
-		die("emu_stream_load failed");
+	if (stream_load(&stream, "/tmp", relpath) != 0)
+		die("stream_load failed");
 
 	if (stream.active)
 		die("stream is active\n");
@@ -51,10 +51,10 @@ test_bad(char *fname)
 
 	fclose(f);
 
-	struct emu_stream stream;
+	struct stream stream;
 	const char *relpath = &fname[5];
-	if (emu_stream_load(&stream, "/tmp", relpath) == 0)
-		die("emu_stream_load didn't fail");
+	if (stream_load(&stream, "/tmp", relpath) == 0)
+		die("stream_load didn't fail");
 }
 
 int main(void)

@@ -9,9 +9,9 @@
 #include <stdint.h>
 #include <linux/limits.h>
 
-struct emu_stream;
+struct stream;
 
-struct emu_stream {
+struct stream {
 	char path[PATH_MAX];
 	char relpath[PATH_MAX]; /* To tracedir */
 
@@ -28,26 +28,26 @@ struct emu_stream {
 	int64_t clock_offset;
 
 	heap_node_t hh;
-	struct emu_stream *next;
-	struct emu_stream *prev;
+	struct stream *next;
+	struct stream *prev;
 
 	struct ovni_ev *cur_ev;
 
 	void *data; /* To hold system details */
 };
 
-int emu_stream_load(struct emu_stream *stream,
+int stream_load(struct stream *stream,
 		const char *tracedir, const char *relpath);
 
-int emu_stream_clkoff_set(struct emu_stream *stream, int64_t clock_offset);
+int stream_clkoff_set(struct stream *stream, int64_t clock_offset);
 
-double emu_stream_progress(struct emu_stream *stream);
-int emu_stream_step(struct emu_stream *stream);
-struct ovni_ev *emu_stream_ev(struct emu_stream *stream);
-int64_t emu_stream_evclock(struct emu_stream *stream, struct ovni_ev *ev);
-int64_t emu_stream_lastclock(struct emu_stream *stream);
+double stream_progress(struct stream *stream);
+int stream_step(struct stream *stream);
+struct ovni_ev *stream_ev(struct stream *stream);
+int64_t stream_evclock(struct stream *stream, struct ovni_ev *ev);
+int64_t stream_lastclock(struct stream *stream);
 
-void emu_stream_data_set(struct emu_stream *stream, void *data);
-void *emu_stream_data_get(struct emu_stream *stream);
+void stream_data_set(struct stream *stream, void *data);
+void *stream_data_get(struct stream *stream);
 
 #endif /* EMU_STREAM_H */

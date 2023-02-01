@@ -5,7 +5,7 @@
 #define EMU_H
 
 #include "bay.h"
-#include "emu_trace.h"
+#include "trace.h"
 #include "emu_args.h"
 #include "system.h"
 #include "emu_player.h"
@@ -22,14 +22,14 @@ struct emu {
 	struct bay bay;
 
 	struct emu_args args;
-	struct emu_trace trace;
+	struct trace trace;
 	struct system system;
 	struct emu_player player;
 	struct emu_model model;
 	struct recorder recorder;
 
 	/* Quick access */
-	struct emu_stream *stream;
+	struct stream *stream;
 	struct emu_ev *ev;
 	struct thread *thread;
 	struct proc *proc;

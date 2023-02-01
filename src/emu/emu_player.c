@@ -15,13 +15,13 @@
 static inline int
 stream_cmp(heap_node_t *a, heap_node_t *b)
 {
-	struct emu_stream *sa, *sb;
+	struct stream *sa, *sb;
 
-	sa = heap_elem(a, struct emu_stream, hh);
-	sb = heap_elem(b, struct emu_stream, hh);
+	sa = heap_elem(a, struct stream, hh);
+	sb = heap_elem(b, struct stream, hh);
 
-	int64_t ca = emu_stream_lastclock(sa);
-	int64_t cb = emu_stream_lastclock(sb);
+	int64_t ca = stream_lastclock(sa);
+	int64_t cb = stream_lastclock(sb);
 
 	/* Return the opposite, so we have min-heap */
 	if (ca < cb)
@@ -33,12 +33,12 @@ stream_cmp(heap_node_t *a, heap_node_t *b)
 }
 
 static int
-step_stream(struct emu_player *player, struct emu_stream *stream)
+step_stream(struct emu_player *player, struct stream *stream)
 {
 	if (!stream->active)
 		return +1;
 
-	int ret = emu_stream_step(stream);
+	int ret = stream_step(stream);
 
 	if (ret < 0) {
 		err("step_stream: cannot step stream '%s'\n",
@@ -54,7 +54,7 @@ step_stream(struct emu_player *player, struct emu_stream *stream)
 }
 
 int
-emu_player_init(struct emu_player *player, struct emu_trace *trace)
+emu_player_init(struct emu_player *player, struct trace *trace)
 {
 	memset(player, 0, sizeof(struct emu_player));
 
@@ -64,7 +64,7 @@ emu_player_init(struct emu_player *player, struct emu_trace *trace)
 	player->stream = NULL;
 
 	/* Load initial streams and events */
-	struct emu_stream *stream;
+	struct stream *stream;
 	DL_FOREACH(trace->streams, stream) {
 		int ret = step_stream(player, stream);
 		if (ret > 0) {
@@ -80,7 +80,7 @@ emu_player_init(struct emu_player *player, struct emu_trace *trace)
 }
 
 static int
-update_clocks(struct emu_player *player, struct emu_stream *stream)
+update_clocks(struct emu_player *player, struct stream *stream)
 {
 	/* This can happen if two events are not ordered in the stream, but the
 	 * emulator picks other events in the middle. Example:
@@ -95,7 +95,7 @@ update_clocks(struct emu_player *player, struct emu_stream *stream)
 	 * 12
 	 * ...
 	 * */
-	int64_t sclock = emu_stream_lastclock(stream);
+	int64_t sclock = stream_lastclock(stream);
 
 	if (player->first_event) {
 		player->first_event = 0;
@@ -133,7 +133,7 @@ emu_player_step(struct emu_player *player)
 	if (node == NULL)
 		return +1;
 
-	struct emu_stream *stream = heap_elem(node, struct emu_stream, hh);
+	struct stream *stream = heap_elem(node, struct stream, hh);
 
 	if (stream == NULL) {
 		err("emu_player_step: heap_elem() returned NULL\n");
@@ -147,8 +147,8 @@ emu_player_step(struct emu_player *player)
 
 	player->stream = stream;
 
-	struct ovni_ev *oev = emu_stream_ev(stream);
-	int64_t sclock = emu_stream_evclock(stream, oev);
+	struct ovni_ev *oev = stream_ev(stream);
+	int64_t sclock = stream_evclock(stream, oev);
 	emu_ev(&player->ev, oev, sclock, player->deltaclock);
 
 	return 0;
@@ -160,7 +160,7 @@ emu_player_ev(struct emu_player *player)
 	return &player->ev;
 }
 
-struct emu_stream *
+struct stream *
 emu_player_stream(struct emu_player *player)
 {
 	return player->stream;

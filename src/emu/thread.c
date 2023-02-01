@@ -11,18 +11,12 @@ static const char *chan_name[] = {
 	[TH_CHAN_CPU] = "cpu_gindex",
 	[TH_CHAN_TID] = "tid_active",
 	[TH_CHAN_STATE] = "state",
-	[TH_CHAN_FLUSH] = "flush",
-};
-
-static const int chan_stack[] = {
-	[TH_CHAN_FLUSH] = 1,
 };
 
 static const int chan_type[] = {
 	[TH_CHAN_TID] = 2,
 	[TH_CHAN_STATE] = 4,
 	[TH_CHAN_CPU] = 6,
-	[TH_CHAN_FLUSH] = 7,
 };
 
 static int
@@ -103,12 +97,7 @@ thread_init_end(struct thread *th)
 	}
 
 	for (int i = 0; i < TH_CHAN_MAX; i++) {
-		enum chan_type type = CHAN_SINGLE;
-
-		if (chan_stack[i])
-			type = CHAN_STACK;
-
-		chan_init(&th->chan[i], type,
+		chan_init(&th->chan[i], CHAN_SINGLE,
 				chan_fmt, th->gindex, chan_name[i]);
 	}
 

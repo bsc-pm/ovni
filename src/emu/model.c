@@ -31,10 +31,14 @@ model_probe(struct model *model, struct emu *emu)
 		if (spec->probe == NULL)
 			continue;
 
-		if (spec->probe(emu) != 0) {
+		int ret = spec->probe(emu);
+		if (ret < 0) {
 			err("probe failed for model '%c'", (char) i);
 			return -1;
 		}
+
+		if (ret == 0)
+			model->enabled[i] = 1;
 	}
 	return 0;
 }
@@ -43,7 +47,7 @@ int
 model_create(struct model *model, struct emu *emu)
 {
 	for (int i = 0; i < MAX_MODELS; i++) {
-		if (!model->registered[i])
+		if (!model->enabled[i])
 			continue;
 
 		struct model_spec *spec = model->spec[i];
@@ -62,7 +66,7 @@ int
 model_connect(struct model *model, struct emu *emu)
 {
 	for (int i = 0; i < MAX_MODELS; i++) {
-		if (!model->registered[i])
+		if (!model->enabled[i])
 			continue;
 
 		struct model_spec *spec = model->spec[i];
@@ -81,7 +85,12 @@ int
 model_event(struct model *model, struct emu *emu, int index)
 {
 	if (!model->registered[index]) {
-		err("no model registered for '%c'", (char) index);
+		err("model not registered for '%c'", (char) index);
+		return -1;
+	}
+
+	if (!model->enabled[index]) {
+		err("model not enabled for '%c'", (char) index);
 		return -1;
 	}
 

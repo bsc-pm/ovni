@@ -21,6 +21,7 @@ struct model_spec {
 struct model {
 	struct model_spec *spec[MAX_MODELS];
 	int registered[MAX_MODELS];
+	int enabled[MAX_MODELS];
 };
 
 void model_init(struct model *model);

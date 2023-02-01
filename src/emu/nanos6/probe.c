@@ -13,7 +13,7 @@ int
 nanos6_probe(struct emu *emu)
 {
 	if (emu->system.nthreads == 0)
-		return -1;
+		return 1;
 
 	return 0;
 }

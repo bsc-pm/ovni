@@ -13,4 +13,6 @@ struct extend {
 void extend_set(struct extend *ext, int id, void *ctx);
 void *extend_get(struct extend *ext, int id);
 
+#define EXT(st, m) extend_get(&(st)->ext, (m))
+
 #endif /* EXTEND_H */

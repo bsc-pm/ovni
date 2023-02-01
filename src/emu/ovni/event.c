@@ -301,80 +301,83 @@ pre_affinity(struct emu *emu)
 		default:
 			err("unknown affinity event value %c\n",
 					emu->ev->v);
-//			return -1
+			return -1;
 	}
 
 	return 0;
 }
 
-//static int
-//compare_int64(const void *a, const void *b)
-//{
-//	int64_t aa = *(const int64_t *) a;
-//	int64_t bb = *(const int64_t *) b;
-//
-//	if (aa < bb)
-//		return -1;
-//	else if (aa > bb)
-//		return +1;
-//	else
-//		return 0;
-//}
+static int
+compare_int64(const void *a, const void *b)
+{
+	int64_t aa = *(const int64_t *) a;
+	int64_t bb = *(const int64_t *) b;
 
-//static int
-//pre_burst(struct emu *emu)
-//{
-//	struct thread *th = emu->thread;
-//
-//	if (th->nbursts >= MAX_BURSTS) {
-//		err("too many bursts");
-//		return -1;
-//	}
-//
-//	th->burst_time[th->nbursts++] = emu->delta_time;
-//	if (th->nbursts == MAX_BURSTS) {
-//		int n = MAX_BURSTS - 1;
-//		int64_t deltas[MAX_BURSTS - 1];
-//		for (int i = 0; i < n; i++) {
-//			deltas[i] = th->burst_time[i + 1] - th->burst_time[i];
-//		}
-//
-//		qsort(deltas, n, sizeof(int64_t), compare_int64);
-//
-//		double avg = 0.0;
-//		double maxdelta = 0;
-//		for (int i = 0; i < n; i++) {
-//			if (deltas[i] > maxdelta)
-//				maxdelta = deltas[i];
-//			avg += deltas[i];
-//		}
-//
-//		avg /= (double) n;
-//		double median = deltas[n / 2];
-//
-//		err("%s burst stats: median %.0f ns, avg %.1f ns, max %.0f ns\n",
-//				emu->cur_loom->dname, median, avg, maxdelta);
-//
-//		th->nbursts = 0;
-//	}
-//}
+	if (aa < bb)
+		return -1;
+	else if (aa > bb)
+		return +1;
+	else
+		return 0;
+}
+
+static int
+pre_burst(struct emu *emu)
+{
+	struct ovni_thread *th = EXT(emu->thread, 'O');
+
+	if (th->nbursts >= MAX_BURSTS) {
+		err("too many bursts");
+		return -1;
+	}
+
+	th->burst_time[th->nbursts++] = emu->ev->dclock;
+
+	if (th->nbursts != MAX_BURSTS)
+		return 0;
+
+	int n = MAX_BURSTS - 1;
+	int64_t deltas[MAX_BURSTS - 1];
+	for (int i = 0; i < n; i++)
+		deltas[i] = th->burst_time[i + 1] - th->burst_time[i];
+
+	qsort(deltas, n, sizeof(int64_t), compare_int64);
+
+	double avg = 0.0;
+	double maxdelta = 0;
+	for (int i = 0; i < n; i++) {
+		if (deltas[i] > maxdelta)
+			maxdelta = deltas[i];
+		avg += deltas[i];
+	}
+
+	avg /= (double) n;
+	double median = deltas[n / 2];
+
+	err("%s burst stats: median %.0f ns, avg %.1f ns, max %.0f ns\n",
+			emu->loom->id, median, avg, maxdelta);
+
+	th->nbursts = 0;
+
+	return 0;
+}
 
 static int
 pre_flush(struct emu *emu)
 {
-	struct thread *th = emu->thread;
-	struct chan *flush = &th->chan[TH_CHAN_FLUSH];
+	struct ovni_thread *th = extend_get(&emu->thread->ext, 'O');
+	struct chan *flush = &th->ch[CH_FLUSH];
 
 	switch (emu->ev->v) {
 		case '[':
-			if (chan_push(flush, value_int64(1)) != 0) {
-				err("chan_push failed");
+			if (chan_set(flush, value_int64(1)) != 0) {
+				err("chan_set failed");
 				return -1;
 			}
 			break;
 		case ']':
-			if (chan_pop(flush, value_int64(1)) != 0) {
-				err("chan_pop failed");
+			if (chan_set(flush, value_null()) != 0) {
+				err("chan_set failed");
 				return -1;
 			}
 			break;
@@ -398,15 +401,15 @@ process_ev(struct emu *emu)
 			return pre_thread(emu);
 		case 'A':
 			return pre_affinity(emu);
-//		case 'B':
-//			pre_burst(emu);
-//			break;
+		case 'B':
+			pre_burst(emu);
+			break;
 		case 'F':
 			return pre_flush(emu);
 		default:
 			err("unknown ovni event category %c\n",
 					emu->ev->c);
-//			return -1;
+			return -1;
 	}
 
 	return 0;

@@ -6,7 +6,7 @@
 struct model_spec model_ovni = {
 	.name = "ovni",
 	.model = 'O',
-	.create  = NULL,
+	.create  = ovni_create,
 	.connect = NULL,
 	.event   = ovni_event,
 	.probe   = ovni_probe,
@@ -16,7 +16,7 @@ int
 ovni_probe(struct emu *emu)
 {
 	if (emu->system.nthreads == 0)
-		return -1;
+		return 1;
 
 	return 0;
 }

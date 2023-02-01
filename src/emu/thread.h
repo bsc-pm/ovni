@@ -31,7 +31,6 @@ enum thread_chan {
 	TH_CHAN_CPU = 0,
 	TH_CHAN_TID,
 	TH_CHAN_STATE,
-	TH_CHAN_FLUSH,
 	TH_CHAN_MAX,
 };
 

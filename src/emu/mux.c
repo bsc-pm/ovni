@@ -1,4 +1,4 @@
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 #include "mux.h"
 
@@ -57,6 +57,7 @@ cb_select(struct chan *sel_chan, void *ptr)
 	}
 
 	char buf[128];
+	UNUSED(buf);
 	dbg("select channel got value %s\n",
 			value_str(sel_value, buf));
 

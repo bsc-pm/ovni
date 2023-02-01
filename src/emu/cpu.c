@@ -37,7 +37,7 @@ cpu_init_begin(struct cpu *cpu, int phyid)
 
 	cpu->phyid = phyid;
 
-	err("cpu init %d", phyid);
+	dbg("cpu init %d", phyid);
 }
 
 int

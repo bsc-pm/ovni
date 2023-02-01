@@ -84,7 +84,7 @@ emu_stream_load(struct emu_stream *stream, const char *tracedir, const char *rel
 		return -1;
 	}
 
-	err("emu_stream_load: loading %s\n", stream->relpath);
+	dbg("emu_stream_load: loading %s\n", stream->relpath);
 
 	if ((fd = open(stream->path, O_RDWR)) == -1) {
 		err("emu_stream_load: open failed: %s\n", stream->path);

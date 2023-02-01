@@ -66,7 +66,7 @@ loom_init_begin(struct loom *loom, const char *name)
 
 	cpu_init_begin(&loom->vcpu, -1);
 
-	err("creating new loom %s", loom->id);
+	dbg("creating new loom %s", loom->id);
 
 	return 0;
 }

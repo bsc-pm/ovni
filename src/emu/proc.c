@@ -84,7 +84,7 @@ proc_init_begin(struct proc *proc, const char *relpath)
 		return -1;
 	}
 
-	err("created proc %s", proc->id);
+	dbg("created proc %s", proc->id);
 
 	return 0;
 }

@@ -1,4 +1,4 @@
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 #include "bay.h"
 

@@ -8,9 +8,6 @@ include_directories(
   "${CMAKE_SOURCE_DIR}/include"
 )
 
-#add_library(trace STATIC trace.c)
-#target_link_libraries(trace parson ovni-static)
-
 add_library(emu STATIC
   ../common.c
   bay.c
@@ -26,7 +23,6 @@ add_library(emu STATIC
   emu_trace.c
   loom.c
   metadata.c
-  model_nanos6.c
   model_ust.c
   mux.c
   path.c
@@ -38,26 +34,15 @@ add_library(emu STATIC
   task.c
   thread.c
   extend.c
+  nanos6/probe.c
+  nanos6/connect.c
+  nanos6/create.c
+  nanos6/event.c
 )
 
-#add_library(emu STATIC
-#  chan.c
-#  emu.c
-#  nosv.c
-#  openmp.c
-#  ovni.c
-#  tampi.c
-#  nodes.c
-#  kernel.c
-#  nanos6.c
-#  task.c
-#  pcf.c
-#  prv.c
-#)
-#
-#add_executable(ovniemu ovniemu.c)
-#target_link_libraries(ovniemu emu trace)
-#
+add_executable(ovniemu ovniemu.c)
+target_link_libraries(ovniemu emu parson-static ovni-static)
+
 #add_executable(ovnidump ovnidump.c)
 #target_link_libraries(ovnidump emu trace)
 #

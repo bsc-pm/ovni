@@ -95,13 +95,13 @@ emu_trace_load(struct emu_trace *trace, const char *tracedir)
 	cur_trace = trace;
 
 	if (snprintf(trace->tracedir, PATH_MAX, "%s", tracedir) >= PATH_MAX) {
-		err("emu_trace_load: path too long: %s\n", tracedir);
+		err("path too long: %s", tracedir);
 		return -1;
 	}
 
 	/* Search recursively all streams in the trace directory */
 	if (nftw(tracedir, cb_nftw, 50, 0) != 0) {
-		err("emu_trace_load: nftw failed\n");
+		err("nftw failed");
 		return -1;
 	}
 
@@ -110,7 +110,7 @@ emu_trace_load(struct emu_trace *trace, const char *tracedir)
 	/* Sort the streams */
 	DL_SORT(trace->streams, cmp_streams);
 
-	err("emu_trace_load: loaded %ld streams\n", trace->nstreams);
+	err("loaded %ld streams", trace->nstreams);
 
 	return 0;
 }

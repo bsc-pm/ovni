@@ -15,6 +15,7 @@ void vdie(const char *func, const char *errstr, ...);
 
 /* clang-format off */
 
+#define rerr(...) fprintf(stderr, __VA_ARGS__);
 #define err(...) verr(__func__, __VA_ARGS__);
 #define die(...) vdie(__func__, __VA_ARGS__);
 

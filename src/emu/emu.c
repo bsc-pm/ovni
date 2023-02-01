@@ -3,13 +3,13 @@
 
 #define _POSIX_C_SOURCE 2
 
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 #include "emu.h"
 
 #include <unistd.h>
 #include "model_ust.h"
-#include "model_nanos6.h"
+#include "models.h"
 
 int
 emu_init(struct emu *emu, int argc, char *argv[])
@@ -54,8 +54,6 @@ emu_init(struct emu *emu, int argc, char *argv[])
 
 //	/* Register all the models */
 //	emu_model_register(&emu->model, &ovni_model_spec, emu);
-//
-
 
 	if (model_ust.create && model_ust.create(emu) != 0) {
 		err("model ust create failed");

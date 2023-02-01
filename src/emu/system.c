@@ -515,7 +515,8 @@ system_init(struct system *sys, struct emu_args *args, struct emu_trace *trace)
 	}
 
 	/* Finaly dump the system */
-	print_system(sys);
+	if (0)
+		print_system(sys);
 
 	return 0;
 }

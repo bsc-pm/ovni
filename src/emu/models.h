@@ -4,9 +4,9 @@
 #ifndef MODELS_H
 #define MODELS_H
 
-#include "emu_model.h"
+#include "model.h"
 
-extern struct model_spec model_ovni;
-extern struct model_spec model_nanos6;
+void
+models_register(struct model *model);
 
 #endif /* MODELS_H */

@@ -51,18 +51,20 @@ emu_init(struct emu *emu, int argc, char *argv[])
 		return -1;
 	}
 
-//	/* Register all the models */
-//	emu_model_register(&emu->model, &ovni_model_spec, emu);
+	model_init(&emu->model);
 
-	if (model_ovni.create && model_ovni.create(emu) != 0) {
-		err("model ovni create failed");
-		return -1;
-	}
-	if (model_nanos6.create && model_nanos6.create(emu) != 0) {
-		err("model nanos6 create failed");
+	/* Register all the models */
+	models_register(&emu->model);
+
+	if (model_probe(&emu->model, emu) != 0) {
+		err("model_probe failed");
 		return -1;
 	}
 
+	if (model_create(&emu->model, emu) != 0) {
+		err("model_create failed");
+		return -1;
+	}
 
 	return 0;
 }
@@ -70,14 +72,11 @@ emu_init(struct emu *emu, int argc, char *argv[])
 int
 emu_connect(struct emu *emu)
 {
-	if (model_ovni.connect && model_ovni.connect(emu) != 0) {
-		err("model ovni connect failed");
+	if (model_connect(&emu->model, emu) != 0) {
+		err("model_connect failed");
 		return -1;
 	}
-	if (model_nanos6.connect && model_nanos6.connect(emu) != 0) {
-		err("model nanos6 connect failed");
-		return -1;
-	}
+
 	return 0;
 }
 
@@ -143,14 +142,8 @@ emu_step(struct emu *emu)
 	}
 
 	/* Otherwise progress */
-	if (emu->ev->m == 'O' && model_ovni.event(emu) != 0) {
-		err("ovni event failed");
-		panic(emu);
-		return -1;
-	}
-
-	if (emu->ev->m == '6' && model_nanos6.event(emu) != 0) {
-		err("nanos6 event failed");
+	if (model_event(&emu->model, emu, emu->ev->m) != 0) {
+		err("model_event failed");
 		panic(emu);
 		return -1;
 	}

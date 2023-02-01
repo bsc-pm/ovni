@@ -9,7 +9,7 @@
 #include "emu_args.h"
 #include "system.h"
 #include "player.h"
-#include "emu_model.h"
+#include "model.h"
 #include "emu_ev.h"
 #include "recorder.h"
 
@@ -25,7 +25,7 @@ struct emu {
 	struct trace trace;
 	struct system system;
 	struct player player;
-	struct emu_model model;
+	struct model model;
 	struct recorder recorder;
 
 	/* Quick access */

@@ -21,16 +21,25 @@ main(int argc, char *argv[])
 	if (emu_connect(emu) != 0)
 		die("emu_connect failed\n");
 
-	err("emulation starts\n");
+	err("emulation starts");
 	int ret = 0;
 	while ((ret = emu_step(emu)) == 0);
 
-	if (ret < 0)
-		die("emu_step failed\n");
+	if (ret < 0) {
+		err("emu_step failed");
+		ret = 1;
+		/* continue to close the trace files */
+		err("emulation aborts!");
+	} else {
+		err("emulation ends");
+	}
 
-	err("emulation ends\n");
+	if (emu_finish(emu) != 0) {
+		err("emu_finish failed");
+		ret = 1;
+	}
 
 	free(emu);
 
-	return 0;
+	return ret;
 }

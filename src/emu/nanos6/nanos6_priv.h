@@ -10,7 +10,14 @@
 #include "task.h"
 
 /* Private enums */
+
 enum nanos6_chan_type {
+	CT_TH = 0,
+	CT_CPU,
+	CT_MAX
+};
+
+enum nanos6_chan {
 	CH_TASKID = 0,
 	CH_TYPE,
 	CH_SUBSYSTEM,
@@ -26,8 +33,7 @@ enum nanos6_track {
 	TRACK_MAX,
 };
 
-extern const enum nanos6_track th_track[CH_MAX];
-extern const enum nanos6_track cpu_track[CH_MAX];
+extern const enum nanos6_track chan_track[CH_MAX][CT_MAX];
 
 enum nanos6_ss_state {
 	ST_TASK_BODY = 1,
@@ -92,5 +98,7 @@ int nanos6_probe(struct emu *emu);
 int nanos6_create(struct emu *emu);
 int nanos6_connect(struct emu *emu);
 int nanos6_event(struct emu *emu);
+
+int init_pvt(struct emu *emu);
 
 #endif /* NANOS6_PRIV_H */

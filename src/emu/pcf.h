@@ -31,7 +31,6 @@ struct pcf_type {
 
 struct pcf {
 	FILE *f;
-	int chantype;
 	int pcf_ntypes;
 	struct pcf_type *types;
 };
@@ -42,22 +41,12 @@ struct pcf_value_label {
 	char *label;
 };
 
-extern struct pcf_value_label nanos6_ss_values[];
-
-void pcf_open(struct pcf *pcf, char *path, int chantype);
-
-void pcf_write(struct pcf *pcf);
-
-void pcf_close(struct pcf *pcf);
+int pcf_open(struct pcf *pcf, char *path);
+int pcf_close(struct pcf *pcf);
 
 struct pcf_type *pcf_find_type(struct pcf *pcf, int type_id);
-
-struct pcf_type *pcf_add_type(struct pcf *pcf, int type_id,
-		const char *label);
-
-struct pcf_value *pcf_add_value(struct pcf_type *type, int value,
-		const char *label);
-
+struct pcf_type *pcf_add_type(struct pcf *pcf, int type_id, const char *label);
+struct pcf_value *pcf_add_value(struct pcf_type *type, int value, const char *label);
 struct pcf_value *pcf_find_value(struct pcf_type *type, int value);
 
 #endif /* OVNI_PCF_H */

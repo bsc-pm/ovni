@@ -2,9 +2,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "pcf.h"
-#include "emu.h"
-#include "prv.h"
 
+#include "common.h"
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -69,210 +68,210 @@ const uint32_t pcf_def_palette[] = {
 const uint32_t *pcf_palette = pcf_def_palette;
 const int pcf_palette_len = ARRAY_LEN(pcf_def_palette);
 
-/* ------------------ Value labels --------------------- */
-
-struct pcf_value_label default_values[] = {
-	{ ST_TOO_MANY_TH, "Unknown: Multiple threads running" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label ovni_state_values[] = {
-	{ TH_ST_UNKNOWN, "Unknown" },
-	{ TH_ST_RUNNING, "Running" },
-	{ TH_ST_PAUSED,  "Paused"  },
-	{ TH_ST_DEAD,    "Dead"    },
-	{ TH_ST_COOLING, "Cooling" },
-	{ TH_ST_WARMING, "Warming" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label ovni_flush_values[] = {
-	{ 0, "None" },
-	{ ST_OVNI_FLUSHING, "Flushing" },
-	{ ST_TOO_MANY_TH, "Unknown flushing state: Multiple threads running" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label nosv_ss_values[] = {
-	/* Errors */
-	{ ST_BAD,                       "Unknown: bad happened (report bug)" },
-	{ ST_TOO_MANY_TH,               "Unknown: multiple threads running" },
-	/* Good values */
-	{ ST_NULL,                      "No subsystem" },
-	{ ST_NOSV_SCHED_HUNGRY,         "Scheduler: Hungry" },
-	{ ST_NOSV_SCHED_SERVING,        "Scheduler: Serving" },
-	{ ST_NOSV_SCHED_SUBMITTING,     "Scheduler: Submitting" },
-	{ ST_NOSV_MEM_ALLOCATING,       "Memory: Allocating" },
-	{ ST_NOSV_MEM_FREEING,          "Memory: Freeing" },
-	{ ST_NOSV_TASK_RUNNING,         "Task: Running" },
-	{ ST_NOSV_API_SUBMIT,           "API: Submit" },
-	{ ST_NOSV_API_PAUSE,            "API: Pause" },
-	{ ST_NOSV_API_YIELD,            "API: Yield" },
-	{ ST_NOSV_API_WAITFOR,          "API: Waitfor" },
-	{ ST_NOSV_API_SCHEDPOINT,       "API: Scheduling point" },
-	{ ST_NOSV_ATTACH,               "Thread: Attached" },
-	{ ST_NOSV_WORKER,               "Thread: Worker" },
-	{ ST_NOSV_DELEGATE,             "Thread: Delegate" },
-	{ EV_NOSV_SCHED_SEND,           "EV Scheduler: Send task" },
-	{ EV_NOSV_SCHED_RECV,           "EV Scheduler: Recv task" },
-	{ EV_NOSV_SCHED_SELF,           "EV Scheduler: Self-assign task" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label nodes_mode_values[] = {
-	{ ST_NULL,              "NULL" },
-	{ ST_TOO_MANY_TH,       "NODES: Multiple threads running" },
-	{ ST_NODES_REGISTER,    "Dependencies: Registering task accesses" },
-	{ ST_NODES_UNREGISTER,  "Dependencies: Unregistering task accesses" },
-	{ ST_NODES_IF0_WAIT,    "If0: Waiting for an If0 task" },
-	{ ST_NODES_IF0_INLINE,  "If0: Executing an If0 task inline" },
-	{ ST_NODES_TASKWAIT,    "Taskwait: Taskwait" },
-	{ ST_NODES_CREATE,      "Add Task: Creating a task" },
-	{ ST_NODES_SUBMIT,      "Add Task: Submitting a task" },
-	{ ST_NODES_SPAWN,       "Spawn Function: Spawning a function" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label kernel_cs_values[] = {
-	{ ST_NULL,              "NULL" },
-	{ ST_TOO_MANY_TH,       "Unknown: multiple threads running" },
-	{ ST_KERNEL_CSOUT,      "Context switch: Out of the CPU" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label nanos6_ss_values[] = {
-	{ ST_NULL,                    "No subsystem" },
-	{ ST_TOO_MANY_TH,             "Unknown: multiple threads running" },
-	{ ST_NANOS6_TASK_BODY,        "Task: Running body" },
-	{ ST_NANOS6_TASK_CREATING,    "Task: Creating" },
-	{ ST_NANOS6_TASK_SUBMIT,      "Task: Submitting" },
-	{ ST_NANOS6_TASK_SPAWNING,    "Task: Spawning function" },
-	{ ST_NANOS6_TASK_FOR,         "Task: Running task for" },
-	{ ST_NANOS6_SCHED_SERVING,    "Scheduler: Serving tasks" },
-	{ ST_NANOS6_SCHED_ADDING,     "Scheduler: Adding ready tasks" },
-	{ ST_NANOS6_SCHED_PROCESSING, "Scheduler: Processing ready tasks" },
-	{ ST_NANOS6_DEP_REG,          "Dependency: Registering" },
-	{ ST_NANOS6_DEP_UNREG,        "Dependency: Unregistering" },
-	{ ST_NANOS6_BLK_TASKWAIT,     "Blocking: Taskwait" },
-	{ ST_NANOS6_BLK_BLOCKING,     "Blocking: Blocking current task" },
-	{ ST_NANOS6_BLK_UNBLOCKING,   "Blocking: Unblocking remote task" },
-	{ ST_NANOS6_BLK_WAITFOR,      "Blocking: Wait for deadline" },
-	{ ST_NANOS6_HANDLING_TASK,    "Worker: Handling task" },
-	{ ST_NANOS6_WORKER_LOOP,      "Worker: Looking for work" },
-	{ ST_NANOS6_SWITCH_TO,        "Worker: Switching to another thread" },
-	{ ST_NANOS6_MIGRATE,          "Worker: Migrating CPU" },
-	{ ST_NANOS6_SUSPEND,          "Worker: Suspending thread" },
-	{ ST_NANOS6_RESUME,           "Worker: Resuming another thread" },
-	{ ST_NANOS6_ALLOCATING,       "Memory: Allocating" },
-	{ ST_NANOS6_FREEING,          "Memory: Freeing" },
-	{ EV_NANOS6_SCHED_SEND,       "EV Scheduler: Send task" },
-	{ EV_NANOS6_SCHED_RECV,       "EV Scheduler: Recv task" },
-	{ EV_NANOS6_SCHED_SELF,       "EV Scheduler: Self-assign task" },
-	{ EV_NANOS6_CPU_IDLE,         "EV CPU: Becomes idle" },
-	{ EV_NANOS6_CPU_ACTIVE,       "EV CPU: Becomes active" },
-	{ EV_NANOS6_SIGNAL,           "EV Worker: Wakening another thread" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label nanos6_thread_type[] = {
-	{ ST_NULL,                 "No type" },
-	{ ST_TOO_MANY_TH,          "Unknown: multiple threads running" },
-	{ ST_NANOS6_TH_EXTERNAL,   "External" },
-	{ ST_NANOS6_TH_WORKER,     "Worker" },
-	{ ST_NANOS6_TH_LEADER,     "Leader" },
-	{ ST_NANOS6_TH_MAIN,       "Main" },
-	{ -1, NULL },
-};
-
-struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
-	[CHAN_OVNI_PID]         = &default_values,
-	[CHAN_OVNI_TID]         = &default_values,
-	[CHAN_OVNI_NRTHREADS]   = &default_values,
-	[CHAN_OVNI_STATE]       = &ovni_state_values,
-	[CHAN_OVNI_APPID]       = &default_values,
-	[CHAN_OVNI_CPU]         = &default_values,
-	[CHAN_OVNI_FLUSH]       = &ovni_flush_values,
-
-	[CHAN_NOSV_TASKID]      = &default_values,
-	[CHAN_NOSV_TYPE]        = &default_values,
-	[CHAN_NOSV_APPID]       = &default_values,
-	[CHAN_NOSV_SUBSYSTEM]   = &nosv_ss_values,
-	[CHAN_NOSV_RANK]        = &default_values,
-
-	[CHAN_NODES_SUBSYSTEM]  = &nodes_mode_values,
-
-	[CHAN_NANOS6_TASKID]    = &default_values,
-	[CHAN_NANOS6_TYPE]  	= &default_values,
-	[CHAN_NANOS6_SUBSYSTEM] = &nanos6_ss_values,
-	[CHAN_NANOS6_RANK]      = &default_values,
-	[CHAN_NANOS6_THREAD]    = &nanos6_thread_type,
-
-	[CHAN_KERNEL_CS]        = &kernel_cs_values,
-};
-
-/* ------------------ Type labels --------------------- */
-
-char *pcf_chan_name[CHAN_MAX] = {
-	[CHAN_OVNI_PID]         = "PID",
-	[CHAN_OVNI_TID]         = "TID",
-	[CHAN_OVNI_NRTHREADS]   = "Number of RUNNING threads",
-	[CHAN_OVNI_STATE]       = "Execution state",
-	[CHAN_OVNI_APPID]       = "AppID",
-	[CHAN_OVNI_CPU]         = "CPU affinity",
-	[CHAN_OVNI_FLUSH]       = "Flushing state",
-
-	[CHAN_NOSV_TASKID]      = "nOS-V TaskID",
-	[CHAN_NOSV_TYPE]        = "nOS-V task type",
-	[CHAN_NOSV_APPID]       = "nOS-V task AppID",
-	[CHAN_NOSV_SUBSYSTEM]   = "nOS-V subsystem",
-	[CHAN_NOSV_RANK]        = "nOS-V task MPI rank",
-
-	[CHAN_NODES_SUBSYSTEM]  = "NODES subsystem",
-
-	[CHAN_NANOS6_TASKID]    = "Nanos6 task ID",
-	[CHAN_NANOS6_TYPE]      = "Nanos6 task type",
-	[CHAN_NANOS6_SUBSYSTEM] = "Nanos6 subsystem",
-	[CHAN_NANOS6_RANK]      = "Nanos6 task MPI rank",
-	[CHAN_NANOS6_THREAD]    = "Nanos6 thread type",
-
-	[CHAN_KERNEL_CS]        = "Context switches",
-};
-
-enum pcf_suffix { NONE = 0, CUR_TH, RUN_TH, ACT_TH, SUFFIX_MAX };
-
-char *pcf_suffix_name[SUFFIX_MAX] = {
-	[NONE] = "",
-	[CUR_TH] = "of the CURRENT thread",
-	[RUN_TH] = "of the RUNNING thread",
-	[ACT_TH] = "of the ACTIVE thread",
-};
-
-int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
-	                        /*  Thread  CPU  */
-	[CHAN_OVNI_PID]         = { RUN_TH, RUN_TH },
-	[CHAN_OVNI_TID]         = { RUN_TH, RUN_TH },
-	[CHAN_OVNI_NRTHREADS]   = { NONE,   NONE   },
-	[CHAN_OVNI_STATE]       = { CUR_TH, NONE   },
-	[CHAN_OVNI_APPID]       = { NONE,   RUN_TH },
-	[CHAN_OVNI_CPU]         = { CUR_TH, NONE   },
-	[CHAN_OVNI_FLUSH]       = { CUR_TH, RUN_TH },
-
-	[CHAN_NOSV_TASKID]      = { RUN_TH, RUN_TH },
-	[CHAN_NOSV_TYPE]        = { RUN_TH, RUN_TH },
-	[CHAN_NOSV_APPID]       = { RUN_TH, RUN_TH },
-	[CHAN_NOSV_SUBSYSTEM]   = { ACT_TH, RUN_TH },
-	[CHAN_NOSV_RANK]        = { RUN_TH, RUN_TH },
-
-	[CHAN_NODES_SUBSYSTEM]  = { RUN_TH, RUN_TH },
-
-	[CHAN_NANOS6_TASKID]    = { RUN_TH, RUN_TH },
-	[CHAN_NANOS6_TYPE]      = { RUN_TH, RUN_TH },
-	[CHAN_NANOS6_SUBSYSTEM] = { ACT_TH, RUN_TH },
-	[CHAN_NANOS6_RANK]      = { RUN_TH, RUN_TH },
-	[CHAN_NANOS6_THREAD]    = { RUN_TH, NONE   },
-
-	[CHAN_KERNEL_CS]        = { RUN_TH, ACT_TH },
-};
+///* ------------------ Value labels --------------------- */
+//
+//struct pcf_value_label default_values[] = {
+//	{ ST_TOO_MANY_TH, "Unknown: Multiple threads running" },
+//	{ -1, NULL },
+//};
+//
+//struct pcf_value_label ovni_state_values[] = {
+//	{ TH_ST_UNKNOWN, "Unknown" },
+//	{ TH_ST_RUNNING, "Running" },
+//	{ TH_ST_PAUSED,  "Paused"  },
+//	{ TH_ST_DEAD,    "Dead"    },
+//	{ TH_ST_COOLING, "Cooling" },
+//	{ TH_ST_WARMING, "Warming" },
+//	{ -1, NULL },
+//};
+//
+//struct pcf_value_label ovni_flush_values[] = {
+//	{ 0, "None" },
+//	{ ST_OVNI_FLUSHING, "Flushing" },
+//	{ ST_TOO_MANY_TH, "Unknown flushing state: Multiple threads running" },
+//	{ -1, NULL },
+//};
+//
+//struct pcf_value_label nosv_ss_values[] = {
+//	/* Errors */
+//	{ ST_BAD,                       "Unknown: bad happened (report bug)" },
+//	{ ST_TOO_MANY_TH,               "Unknown: multiple threads running" },
+//	/* Good values */
+//	{ ST_NULL,                      "No subsystem" },
+//	{ ST_NOSV_SCHED_HUNGRY,         "Scheduler: Hungry" },
+//	{ ST_NOSV_SCHED_SERVING,        "Scheduler: Serving" },
+//	{ ST_NOSV_SCHED_SUBMITTING,     "Scheduler: Submitting" },
+//	{ ST_NOSV_MEM_ALLOCATING,       "Memory: Allocating" },
+//	{ ST_NOSV_MEM_FREEING,          "Memory: Freeing" },
+//	{ ST_NOSV_TASK_RUNNING,         "Task: Running" },
+//	{ ST_NOSV_API_SUBMIT,           "API: Submit" },
+//	{ ST_NOSV_API_PAUSE,            "API: Pause" },
+//	{ ST_NOSV_API_YIELD,            "API: Yield" },
+//	{ ST_NOSV_API_WAITFOR,          "API: Waitfor" },
+//	{ ST_NOSV_API_SCHEDPOINT,       "API: Scheduling point" },
+//	{ ST_NOSV_ATTACH,               "Thread: Attached" },
+//	{ ST_NOSV_WORKER,               "Thread: Worker" },
+//	{ ST_NOSV_DELEGATE,             "Thread: Delegate" },
+//	{ EV_NOSV_SCHED_SEND,           "EV Scheduler: Send task" },
+//	{ EV_NOSV_SCHED_RECV,           "EV Scheduler: Recv task" },
+//	{ EV_NOSV_SCHED_SELF,           "EV Scheduler: Self-assign task" },
+//	{ -1, NULL },
+//};
+//
+//struct pcf_value_label nodes_mode_values[] = {
+//	{ ST_NULL,              "NULL" },
+//	{ ST_TOO_MANY_TH,       "NODES: Multiple threads running" },
+//	{ ST_NODES_REGISTER,    "Dependencies: Registering task accesses" },
+//	{ ST_NODES_UNREGISTER,  "Dependencies: Unregistering task accesses" },
+//	{ ST_NODES_IF0_WAIT,    "If0: Waiting for an If0 task" },
+//	{ ST_NODES_IF0_INLINE,  "If0: Executing an If0 task inline" },
+//	{ ST_NODES_TASKWAIT,    "Taskwait: Taskwait" },
+//	{ ST_NODES_CREATE,      "Add Task: Creating a task" },
+//	{ ST_NODES_SUBMIT,      "Add Task: Submitting a task" },
+//	{ ST_NODES_SPAWN,       "Spawn Function: Spawning a function" },
+//	{ -1, NULL },
+//};
+//
+//struct pcf_value_label kernel_cs_values[] = {
+//	{ ST_NULL,              "NULL" },
+//	{ ST_TOO_MANY_TH,       "Unknown: multiple threads running" },
+//	{ ST_KERNEL_CSOUT,      "Context switch: Out of the CPU" },
+//	{ -1, NULL },
+//};
+//
+//struct pcf_value_label nanos6_ss_values[] = {
+//	{ ST_NULL,                    "No subsystem" },
+//	{ ST_TOO_MANY_TH,             "Unknown: multiple threads running" },
+//	{ ST_NANOS6_TASK_BODY,        "Task: Running body" },
+//	{ ST_NANOS6_TASK_CREATING,    "Task: Creating" },
+//	{ ST_NANOS6_TASK_SUBMIT,      "Task: Submitting" },
+//	{ ST_NANOS6_TASK_SPAWNING,    "Task: Spawning function" },
+//	{ ST_NANOS6_TASK_FOR,         "Task: Running task for" },
+//	{ ST_NANOS6_SCHED_SERVING,    "Scheduler: Serving tasks" },
+//	{ ST_NANOS6_SCHED_ADDING,     "Scheduler: Adding ready tasks" },
+//	{ ST_NANOS6_SCHED_PROCESSING, "Scheduler: Processing ready tasks" },
+//	{ ST_NANOS6_DEP_REG,          "Dependency: Registering" },
+//	{ ST_NANOS6_DEP_UNREG,        "Dependency: Unregistering" },
+//	{ ST_NANOS6_BLK_TASKWAIT,     "Blocking: Taskwait" },
+//	{ ST_NANOS6_BLK_BLOCKING,     "Blocking: Blocking current task" },
+//	{ ST_NANOS6_BLK_UNBLOCKING,   "Blocking: Unblocking remote task" },
+//	{ ST_NANOS6_BLK_WAITFOR,      "Blocking: Wait for deadline" },
+//	{ ST_NANOS6_HANDLING_TASK,    "Worker: Handling task" },
+//	{ ST_NANOS6_WORKER_LOOP,      "Worker: Looking for work" },
+//	{ ST_NANOS6_SWITCH_TO,        "Worker: Switching to another thread" },
+//	{ ST_NANOS6_MIGRATE,          "Worker: Migrating CPU" },
+//	{ ST_NANOS6_SUSPEND,          "Worker: Suspending thread" },
+//	{ ST_NANOS6_RESUME,           "Worker: Resuming another thread" },
+//	{ ST_NANOS6_ALLOCATING,       "Memory: Allocating" },
+//	{ ST_NANOS6_FREEING,          "Memory: Freeing" },
+//	{ EV_NANOS6_SCHED_SEND,       "EV Scheduler: Send task" },
+//	{ EV_NANOS6_SCHED_RECV,       "EV Scheduler: Recv task" },
+//	{ EV_NANOS6_SCHED_SELF,       "EV Scheduler: Self-assign task" },
+//	{ EV_NANOS6_CPU_IDLE,         "EV CPU: Becomes idle" },
+//	{ EV_NANOS6_CPU_ACTIVE,       "EV CPU: Becomes active" },
+//	{ EV_NANOS6_SIGNAL,           "EV Worker: Wakening another thread" },
+//	{ -1, NULL },
+//};
+//
+//struct pcf_value_label nanos6_thread_type[] = {
+//	{ ST_NULL,                 "No type" },
+//	{ ST_TOO_MANY_TH,          "Unknown: multiple threads running" },
+//	{ ST_NANOS6_TH_EXTERNAL,   "External" },
+//	{ ST_NANOS6_TH_WORKER,     "Worker" },
+//	{ ST_NANOS6_TH_LEADER,     "Leader" },
+//	{ ST_NANOS6_TH_MAIN,       "Main" },
+//	{ -1, NULL },
+//};
+//
+//struct pcf_value_label (*pcf_chan_value_labels[CHAN_MAX])[] = {
+//	[CHAN_OVNI_PID]         = &default_values,
+//	[CHAN_OVNI_TID]         = &default_values,
+//	[CHAN_OVNI_NRTHREADS]   = &default_values,
+//	[CHAN_OVNI_STATE]       = &ovni_state_values,
+//	[CHAN_OVNI_APPID]       = &default_values,
+//	[CHAN_OVNI_CPU]         = &default_values,
+//	[CHAN_OVNI_FLUSH]       = &ovni_flush_values,
+//
+//	[CHAN_NOSV_TASKID]      = &default_values,
+//	[CHAN_NOSV_TYPE]        = &default_values,
+//	[CHAN_NOSV_APPID]       = &default_values,
+//	[CHAN_NOSV_SUBSYSTEM]   = &nosv_ss_values,
+//	[CHAN_NOSV_RANK]        = &default_values,
+//
+//	[CHAN_NODES_SUBSYSTEM]  = &nodes_mode_values,
+//
+//	[CHAN_NANOS6_TASKID]    = &default_values,
+//	[CHAN_NANOS6_TYPE]  	= &default_values,
+//	[CHAN_NANOS6_SUBSYSTEM] = &nanos6_ss_values,
+//	[CHAN_NANOS6_RANK]      = &default_values,
+//	[CHAN_NANOS6_THREAD]    = &nanos6_thread_type,
+//
+//	[CHAN_KERNEL_CS]        = &kernel_cs_values,
+//};
+//
+///* ------------------ Type labels --------------------- */
+//
+//char *pcf_chan_name[CHAN_MAX] = {
+//	[CHAN_OVNI_PID]         = "PID",
+//	[CHAN_OVNI_TID]         = "TID",
+//	[CHAN_OVNI_NRTHREADS]   = "Number of RUNNING threads",
+//	[CHAN_OVNI_STATE]       = "Execution state",
+//	[CHAN_OVNI_APPID]       = "AppID",
+//	[CHAN_OVNI_CPU]         = "CPU affinity",
+//	[CHAN_OVNI_FLUSH]       = "Flushing state",
+//
+//	[CHAN_NOSV_TASKID]      = "nOS-V TaskID",
+//	[CHAN_NOSV_TYPE]        = "nOS-V task type",
+//	[CHAN_NOSV_APPID]       = "nOS-V task AppID",
+//	[CHAN_NOSV_SUBSYSTEM]   = "nOS-V subsystem",
+//	[CHAN_NOSV_RANK]        = "nOS-V task MPI rank",
+//
+//	[CHAN_NODES_SUBSYSTEM]  = "NODES subsystem",
+//
+//	[CHAN_NANOS6_TASKID]    = "Nanos6 task ID",
+//	[CHAN_NANOS6_TYPE]      = "Nanos6 task type",
+//	[CHAN_NANOS6_SUBSYSTEM] = "Nanos6 subsystem",
+//	[CHAN_NANOS6_RANK]      = "Nanos6 task MPI rank",
+//	[CHAN_NANOS6_THREAD]    = "Nanos6 thread type",
+//
+//	[CHAN_KERNEL_CS]        = "Context switches",
+//};
+//
+//enum pcf_suffix { NONE = 0, CUR_TH, RUN_TH, ACT_TH, SUFFIX_MAX };
+//
+//char *pcf_suffix_name[SUFFIX_MAX] = {
+//	[NONE] = "",
+//	[CUR_TH] = "of the CURRENT thread",
+//	[RUN_TH] = "of the RUNNING thread",
+//	[ACT_TH] = "of the ACTIVE thread",
+//};
+//
+//int pcf_chan_suffix[CHAN_MAX][CHAN_MAXTYPE] = {
+//	                        /*  Thread  CPU  */
+//	[CHAN_OVNI_PID]         = { RUN_TH, RUN_TH },
+//	[CHAN_OVNI_TID]         = { RUN_TH, RUN_TH },
+//	[CHAN_OVNI_NRTHREADS]   = { NONE,   NONE   },
+//	[CHAN_OVNI_STATE]       = { CUR_TH, NONE   },
+//	[CHAN_OVNI_APPID]       = { NONE,   RUN_TH },
+//	[CHAN_OVNI_CPU]         = { CUR_TH, NONE   },
+//	[CHAN_OVNI_FLUSH]       = { CUR_TH, RUN_TH },
+//
+//	[CHAN_NOSV_TASKID]      = { RUN_TH, RUN_TH },
+//	[CHAN_NOSV_TYPE]        = { RUN_TH, RUN_TH },
+//	[CHAN_NOSV_APPID]       = { RUN_TH, RUN_TH },
+//	[CHAN_NOSV_SUBSYSTEM]   = { ACT_TH, RUN_TH },
+//	[CHAN_NOSV_RANK]        = { RUN_TH, RUN_TH },
+//
+//	[CHAN_NODES_SUBSYSTEM]  = { RUN_TH, RUN_TH },
+//
+//	[CHAN_NANOS6_TASKID]    = { RUN_TH, RUN_TH },
+//	[CHAN_NANOS6_TYPE]      = { RUN_TH, RUN_TH },
+//	[CHAN_NANOS6_SUBSYSTEM] = { ACT_TH, RUN_TH },
+//	[CHAN_NANOS6_RANK]      = { RUN_TH, RUN_TH },
+//	[CHAN_NANOS6_THREAD]    = { RUN_TH, NONE   },
+//
+//	[CHAN_KERNEL_CS]        = { RUN_TH, ACT_TH },
+//};
 
 /* clang-format on */
 
@@ -324,61 +323,20 @@ write_types(struct pcf *pcf)
 		write_type(pcf->f, t);
 }
 
-static void
-create_values(struct pcf_type *t, enum chan c)
-{
-	struct pcf_value_label(*q)[] = pcf_chan_value_labels[c];
-
-	if (q == NULL)
-		return;
-
-	for (struct pcf_value_label *p = *q; p->label != NULL; p++)
-		pcf_add_value(t, p->value, p->label);
-}
-
-static void
-create_type(struct pcf *pcf, enum chan c)
-{
-	enum chan_type ct = pcf->chantype;
-	int prv_type = chan_to_prvtype[c];
-
-	if (prv_type == -1)
-		return;
-
-	/* Compute the label by joining the two parts */
-	char *prefix = pcf_chan_name[c];
-	int isuffix = pcf_chan_suffix[c][ct];
-	char *suffix = pcf_suffix_name[isuffix];
-
-	char label[MAX_PCF_LABEL];
-	int ret = snprintf(label, MAX_PCF_LABEL, "%s %s",
-			prefix, suffix);
-
-	if (ret >= MAX_PCF_LABEL)
-		die("computed type label too long\n");
-
-	struct pcf_type *t = pcf_add_type(pcf, prv_type, label);
-
-	create_values(t, c);
-}
-
 /** Open the given PCF file and create the default events. */
-void
-pcf_open(struct pcf *pcf, char *path, int chantype)
+int
+pcf_open(struct pcf *pcf, char *path)
 {
 	memset(pcf, 0, sizeof(*pcf));
 
 	pcf->f = fopen(path, "w");
-	pcf->chantype = chantype;
 
 	if (pcf->f == NULL) {
-		die("cannot open PCF file '%s': %s\n",
-				path, strerror(errno));
+		err("cannot open PCF file '%s':", path);
+		return -1;
 	}
 
-	/* Create default types and values */
-	for (enum chan c = 0; c < CHAN_MAX; c++)
-		create_type(pcf, c);
+	return 0;
 }
 
 struct pcf_type *
@@ -461,17 +419,14 @@ pcf_add_value(struct pcf_type *type, int value, const char *label)
 	return pcfvalue;
 }
 
-/** Writes the defined event and values to the PCF file. */
-void
-pcf_write(struct pcf *pcf)
+/** Writes the defined event and values to the PCF file and closes the file. */
+int
+pcf_close(struct pcf *pcf)
 {
 	write_header(pcf->f);
 	write_colors(pcf->f, pcf_palette, pcf_palette_len);
 	write_types(pcf);
-}
 
-void
-pcf_close(struct pcf *pcf)
-{
 	fclose(pcf->f);
+	return 0;
 }

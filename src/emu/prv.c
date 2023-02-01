@@ -42,13 +42,14 @@ prv_open(struct prv *prv, long nrows, const char *path)
 	return prv_open_file(prv, nrows, f);
 }
 
-void
+int
 prv_close(struct prv *prv)
 {
 	/* Fix the header with the current duration */
 	fseek(prv->file, 0, SEEK_SET);
 	write_header(prv->file, prv->time, prv->nrows);
 	fclose(prv->file);
+	return 0;
 }
 
 static struct prv_chan *

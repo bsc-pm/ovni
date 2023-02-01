@@ -27,6 +27,7 @@ add_library(emu STATIC
   mux.c
   path.c
   proc.c
+  pcf.c
   prv.c
   pvt.c
   recorder.c
@@ -41,6 +42,7 @@ add_library(emu STATIC
   nanos6/connect.c
   nanos6/create.c
   nanos6/event.c
+  nanos6/pvt.c
 )
 
 add_executable(ovniemu ovniemu.c)

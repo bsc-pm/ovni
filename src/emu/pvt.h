@@ -22,5 +22,6 @@ int pvt_open(struct pvt *pvt, long nrows, const char *dir, const char *name);
 struct prv *pvt_get_prv(struct pvt *pvt);
 struct pcf *pvt_get_pcf(struct pvt *pvt);
 int pvt_advance(struct pvt *pvt, int64_t time);
+int pvt_close(struct pvt *pvt);
 
 #endif /* PVT_H */

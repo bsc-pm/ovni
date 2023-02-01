@@ -39,6 +39,7 @@ struct emu {
 int emu_init(struct emu *emu, int argc, char *argv[]);
 int emu_connect(struct emu *emu);
 int emu_step(struct emu *emu);
+int emu_finish(struct emu *emu);
 
 static inline struct emu *
 emu_get(void *ptr)

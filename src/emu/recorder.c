@@ -64,3 +64,16 @@ recorder_advance(struct recorder *rec, int64_t time)
 
 	return 0;
 }
+
+int
+recorder_finish(struct recorder *rec)
+{
+	for (struct pvt *pvt = rec->pvt; pvt; pvt = pvt->hh.next) {
+		if (pvt_close(pvt) != 0) {
+			err("pvt_close failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}

@@ -318,7 +318,7 @@ write_type(FILE *f, struct pcf_type *type)
 }
 
 static void
-write_types(struct pcf_file *pcf)
+write_types(struct pcf *pcf)
 {
 	for (struct pcf_type *t = pcf->types; t != NULL; t = t->hh.next)
 		write_type(pcf->f, t);
@@ -337,7 +337,7 @@ create_values(struct pcf_type *t, enum chan c)
 }
 
 static void
-create_type(struct pcf_file *pcf, enum chan c)
+create_type(struct pcf *pcf, enum chan c)
 {
 	enum chan_type ct = pcf->chantype;
 	int prv_type = chan_to_prvtype[c];
@@ -364,7 +364,7 @@ create_type(struct pcf_file *pcf, enum chan c)
 
 /** Open the given PCF file and create the default events. */
 void
-pcf_open(struct pcf_file *pcf, char *path, int chantype)
+pcf_open(struct pcf *pcf, char *path, int chantype)
 {
 	memset(pcf, 0, sizeof(*pcf));
 
@@ -382,7 +382,7 @@ pcf_open(struct pcf_file *pcf, char *path, int chantype)
 }
 
 struct pcf_type *
-pcf_find_type(struct pcf_file *pcf, int type_id)
+pcf_find_type(struct pcf *pcf, int type_id)
 {
 	struct pcf_type *type;
 
@@ -397,7 +397,7 @@ pcf_find_type(struct pcf_file *pcf, int type_id)
  * @return The pcf_type created.
  */
 struct pcf_type *
-pcf_add_type(struct pcf_file *pcf, int type_id, const char *label)
+pcf_add_type(struct pcf *pcf, int type_id, const char *label)
 {
 	struct pcf_type *pcftype = pcf_find_type(pcf, type_id);
 
@@ -463,7 +463,7 @@ pcf_add_value(struct pcf_type *type, int value, const char *label)
 
 /** Writes the defined event and values to the PCF file. */
 void
-pcf_write(struct pcf_file *pcf)
+pcf_write(struct pcf *pcf)
 {
 	write_header(pcf->f);
 	write_colors(pcf->f, pcf_palette, pcf_palette_len);
@@ -471,7 +471,7 @@ pcf_write(struct pcf_file *pcf)
 }
 
 void
-pcf_close(struct pcf_file *pcf)
+pcf_close(struct pcf *pcf)
 {
 	fclose(pcf->f);
 }

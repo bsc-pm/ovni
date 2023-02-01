@@ -13,7 +13,7 @@ struct pvt {
 	char dir[PATH_MAX];
 	char name[PATH_MAX]; /* Without .prv extension */
 	struct prv prv;
-	struct pcf_file pcf;
+	struct pcf pcf;
 
 	struct UT_hash_handle hh; /* For recorder */
 };

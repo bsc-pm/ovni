@@ -1,4 +1,4 @@
-#include "emu_player.h"
+#include "player.h"
 
 #include "heap.h"
 #include "utlist.h"
@@ -33,7 +33,7 @@ stream_cmp(heap_node_t *a, heap_node_t *b)
 }
 
 static int
-step_stream(struct emu_player *player, struct stream *stream)
+step_stream(struct player *player, struct stream *stream)
 {
 	if (!stream->active)
 		return +1;
@@ -54,9 +54,9 @@ step_stream(struct emu_player *player, struct stream *stream)
 }
 
 int
-emu_player_init(struct emu_player *player, struct trace *trace)
+player_init(struct player *player, struct trace *trace)
 {
-	memset(player, 0, sizeof(struct emu_player));
+	memset(player, 0, sizeof(struct player));
 
 	heap_init(&player->heap);
 
@@ -71,7 +71,7 @@ emu_player_init(struct emu_player *player, struct trace *trace)
 			/* No more events */
 			continue;
 		} else if (ret < 0) {
-			err("emu_player_init: step_stream failed\n");
+			err("player_init: step_stream failed\n");
 			return -1;
 		}
 	}
@@ -80,7 +80,7 @@ emu_player_init(struct emu_player *player, struct trace *trace)
 }
 
 static int
-update_clocks(struct emu_player *player, struct stream *stream)
+update_clocks(struct player *player, struct stream *stream)
 {
 	/* This can happen if two events are not ordered in the stream, but the
 	 * emulator picks other events in the middle. Example:
@@ -118,7 +118,7 @@ update_clocks(struct emu_player *player, struct stream *stream)
 /* Returns -1 on error, +1 if there are no more events and 0 if next event
  * loaded properly */
 int
-emu_player_step(struct emu_player *player)
+player_step(struct player *player)
 {
 	/* Add the stream back if still active */
 	if (player->stream != NULL && step_stream(player, player->stream) < 0) {
@@ -136,12 +136,12 @@ emu_player_step(struct emu_player *player)
 	struct stream *stream = heap_elem(node, struct stream, hh);
 
 	if (stream == NULL) {
-		err("emu_player_step: heap_elem() returned NULL\n");
+		err("player_step: heap_elem() returned NULL\n");
 		return -1;
 	}
 
 	if (update_clocks(player, stream) != 0) {
-		err("emu_player_step: update_clocks() failed\n");
+		err("player_step: update_clocks() failed\n");
 		return -1;
 	}
 
@@ -155,13 +155,13 @@ emu_player_step(struct emu_player *player)
 }
 
 struct emu_ev *
-emu_player_ev(struct emu_player *player)
+player_ev(struct player *player)
 {
 	return &player->ev;
 }
 
 struct stream *
-emu_player_stream(struct emu_player *player)
+player_stream(struct player *player)
 {
 	return player->stream;
 }

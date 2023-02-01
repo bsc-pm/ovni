@@ -9,7 +9,7 @@
 
 #include <linux/limits.h>
 
-struct emu_player {
+struct player {
 	heap_head_t heap;
 	int64_t firstclock;
 	int64_t lastclock;
@@ -19,9 +19,9 @@ struct emu_player {
 	struct emu_ev ev;
 };
 
-int emu_player_init(struct emu_player *player, struct trace *trace);
-int emu_player_step(struct emu_player *player);
-struct emu_ev *emu_player_ev(struct emu_player *player);
-struct stream *emu_player_stream(struct emu_player *player);
+int player_init(struct player *player, struct trace *trace);
+int player_step(struct player *player);
+struct emu_ev *player_ev(struct player *player);
+struct stream *player_stream(struct player *player);
 
 #endif /* EMU_PLAYER_H */

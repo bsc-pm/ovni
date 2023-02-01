@@ -45,7 +45,7 @@ emu_init(struct emu *emu, int argc, char *argv[])
 		return -1;
 	}
 
-	if (emu_player_init(&emu->player, &emu->trace) != 0) {
+	if (player_init(&emu->player, &emu->trace) != 0) {
 		err("emu_init: cannot init player for trace '%s'\n",
 				emu->args.tracedir);
 		return -1;
@@ -84,8 +84,8 @@ emu_connect(struct emu *emu)
 static void
 set_current(struct emu *emu)
 {
-	emu->ev = emu_player_ev(&emu->player);
-	emu->stream = emu_player_stream(&emu->player);
+	emu->ev = player_ev(&emu->player);
+	emu->stream = player_stream(&emu->player);
 	struct lpt *lpt = system_get_lpt(emu->stream);
 	emu->loom = lpt->loom;
 	emu->proc = lpt->proc;
@@ -120,7 +120,7 @@ panic(struct emu *emu)
 int
 emu_step(struct emu *emu)
 {
-	int ret = emu_player_step(&emu->player);
+	int ret = player_step(&emu->player);
 
 	/* No more events */
 	if (ret > 0)
@@ -128,7 +128,7 @@ emu_step(struct emu *emu)
 
 	/* Error happened */
 	if (ret < 0) {
-		err("emu_player_step failed");
+		err("player_step failed");
 		return -1;
 	}
 

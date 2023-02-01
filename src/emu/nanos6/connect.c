@@ -1,19 +1,19 @@
 #include "nanos6_priv.h"
 
-static const char *th_track[] = {
-	[CH_TASKID]    = "running",
-	[CH_TYPE]      = "running",
-	[CH_SUBSYSTEM] = "active",
-	[CH_RANK]      = "running",
-	[CH_THREAD]    = "none",
+const enum nanos6_track th_track[] = {
+	[CH_TASKID]    = RUN_TH,
+	[CH_TYPE]      = RUN_TH,
+	[CH_SUBSYSTEM] = ACT_TH,
+	[CH_RANK]      = RUN_TH,
+	[CH_THREAD]    = NONE,
 };
 
-static const char *cpu_track[] = {
-	[CH_TASKID]    = "running",
-	[CH_TYPE]      = "running",
-	[CH_SUBSYSTEM] = "running",
-	[CH_RANK]      = "running",
-	[CH_THREAD]    = "running",
+const enum nanos6_track cpu_track[] = {
+	[CH_TASKID]    = RUN_TH,
+	[CH_TYPE]      = RUN_TH,
+	[CH_SUBSYSTEM] = RUN_TH,
+	[CH_RANK]      = RUN_TH,
+	[CH_THREAD]    = RUN_TH,
 };
 
 static const int th_type[] = {
@@ -67,14 +67,12 @@ connect_thread_mux(struct emu *emu, struct thread *thread)
 
 		/* The tracking only sets the ch_out, but we keep both tracking
 		 * updated as the CPU tracking channels may use them. */
-		const char *tracking = th_track[i];
-		if (strcmp(tracking, "running") == 0) {
+		if (th_track[i] == RUN_TH)
 			th->ch_out[i] = &th->ch_run[i];
-		} else if (strcmp(tracking, "active") == 0) {
+		else if (th_track[i] == ACT_TH)
 			th->ch_out[i] = &th->ch_act[i];
-		} else {
+		else
 			th->ch_out[i] = &th->ch[i];
-		}
 
 	}
 
@@ -105,15 +103,13 @@ add_inputs_cpu_mux(struct emu *emu, struct mux *mux, int i)
 		struct nanos6_thread *th = extend_get(&t->ext, '6');
 
 		/* Choose input thread channel based on tracking mode */
-		const char *tracking = cpu_track[i];
-		struct chan *inp;
-		if (strcmp(tracking, "running") == 0) {
+		struct chan *inp = NULL;
+		if (cpu_track[i] == RUN_TH)
 			inp = &th->ch_run[i];
-		} else if (strcmp(tracking, "active") == 0) {
+		else if (cpu_track[i] == ACT_TH)
 			inp = &th->ch_act[i];
-		} else {
+		else
 			die("cpu tracking must be 'running' or 'active'");
-		}
 
 		if (mux_add_input(mux, value_int64(t->gindex), inp) != 0) {
 			err("mux_add_input failed");
@@ -131,17 +127,15 @@ connect_cpu_mux(struct emu *emu, struct cpu *scpu)
 	for (int i = 0; i < CH_MAX; i++) {
 		struct mux *mux = &cpu->mux[i];
 		struct chan *out = &cpu->ch[i];
-		const char *tracking = cpu_track[i];
 
 		/* Choose select CPU channel based on tracking mode */
-		struct chan *sel;
-		if (strcmp(tracking, "running") == 0) {
+		struct chan *sel = NULL;
+		if (cpu_track[i] == RUN_TH)
 			sel = &scpu->chan[CPU_CHAN_THRUN];
-		} else if (strcmp(tracking, "active") == 0) {
+		else if (cpu_track[i] == ACT_TH)
 			sel = &scpu->chan[CPU_CHAN_THACT];
-		} else {
+		else
 			die("cpu tracking must be 'running' or 'active'");
-		}
 
 		if (mux_init(mux, &emu->bay, sel, out, NULL) != 0) {
 			err("mux_init failed");
@@ -205,6 +199,11 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 	return 0;
 }
 
+//static int
+//populate_cpu_pcf(struct emu *emu, struct pcf *pcf)
+//{
+//}
+
 static int
 connect_cpus(struct emu *emu)
 {
@@ -232,6 +231,9 @@ connect_cpus(struct emu *emu)
 			return -1;
 		}
 	}
+
+//	struct pcf *pcf = pvt_get_pcf(pvt);
+//	populate_cpu_pcf(pcf, emu);
 
 	return 0;
 }

@@ -19,6 +19,16 @@ enum nanos6_chan_type {
 	CH_MAX,
 };
 
+enum nanos6_track {
+	NONE = 0,
+	RUN_TH,
+	ACT_TH,
+	TRACK_MAX,
+};
+
+extern const enum nanos6_track th_track[CH_MAX];
+extern const enum nanos6_track cpu_track[CH_MAX];
+
 enum nanos6_ss_state {
 	ST_TASK_BODY = 1,
 	ST_TASK_CREATING,

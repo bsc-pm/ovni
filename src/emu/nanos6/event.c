@@ -491,6 +491,7 @@ process_ev(struct emu *emu)
 		case 'D':
 		case 'B':
 		case 'W':
+		case 'M':
 			return simple(emu);
 		case 'T':
 			return pre_task(emu);

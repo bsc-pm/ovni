@@ -406,9 +406,6 @@ init_offsets(struct system *sys, struct trace *trace)
 	if (n == 0 && sys->nlooms > 1) {
 		err("warning: no clock offset file loaded with %ld looms",
 				sys->nlooms);
-
-		if (sys->args->linter_mode)
-			abort();
 	}
 
 	for (int i = 0; i < n; i++) {

@@ -53,6 +53,42 @@ step_stream(struct player *player, struct stream *stream)
 	return 0;
 }
 
+static int
+check_clock_gate(struct trace *trace)
+{
+	/* 1 hour in nanoseconds */
+	int64_t maxgate = 3600LL * 1000LL * 1000LL * 1000LL;
+	int64_t t0 = 0LL;
+	int first = 1;
+	int ret = 0;
+
+	struct stream *stream;
+	DL_FOREACH(trace->streams, stream) {
+		struct ovni_ev *oev = stream_ev(stream);
+		int64_t sclock = stream_evclock(stream, oev);
+
+		if (first) {
+			first = 0;
+			t0 = sclock;
+		}
+
+		int64_t delta = llabs(t0 - sclock);
+		if (delta > maxgate) {
+			double hdelta = ((double) delta) / (3600.0 * 1e9);
+			err("stream %s has starting clock too far: delta=%.2f h",
+					stream->relpath, hdelta);
+			ret = -1;
+		}
+	}
+
+	if (ret != 0) {
+		err("detected large clock gate, run 'ovnisync' to set the offsets");
+		return -1;
+	}
+
+	return 0;
+}
+
 int
 player_init(struct player *player, struct trace *trace)
 {
@@ -74,6 +110,13 @@ player_init(struct player *player, struct trace *trace)
 			err("player_init: step_stream failed\n");
 			return -1;
 		}
+	}
+
+	/* Ensure the first event sclocks are not too far apart. Otherwise an
+	 * offset table is mandatory. */
+	if (check_clock_gate(trace) != 0) {
+		err("check_clock_gate failed\n");
+		return -1;
 	}
 
 	return 0;

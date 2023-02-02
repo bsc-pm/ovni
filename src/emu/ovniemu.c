@@ -32,6 +32,7 @@ main(int argc, char *argv[])
 		err("emulation aborts!");
 	} else {
 		err("emulation ends");
+		ret = 0;
 	}
 
 	if (emu_finish(emu) != 0) {

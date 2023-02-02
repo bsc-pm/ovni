@@ -37,6 +37,17 @@ pvt_open(struct pvt *pvt, long nrows, const char *dir, const char *name)
 		return -1;
 	}
 
+	char prfpath[PATH_MAX];
+	if (snprintf(prfpath, PATH_MAX, "%s/%s.row", dir, name) >= PATH_MAX) {
+		err("snprintf failed: path too long");
+		return -1;
+	}
+
+	if (prf_open(&pvt->prf, prfpath, nrows) != 0) {
+		err("prf_open failed");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -52,6 +63,12 @@ pvt_get_pcf(struct pvt *pvt)
 	return &pvt->pcf;
 }
 
+struct prf *
+pvt_get_prf(struct pvt *pvt)
+{
+	return &pvt->prf;
+}
+
 int
 pvt_advance(struct pvt *pvt, int64_t time)
 {
@@ -62,12 +79,17 @@ int
 pvt_close(struct pvt *pvt)
 {
 	if (prv_close(&pvt->prv) != 0) {
-		err("prv_close failed");
+		err("prv_close failed for '%s'", pvt->name);
 		return -1;
 	}
 
 	if (pcf_close(&pvt->pcf) != 0) {
-		err("pcf_close failed");
+		err("pcf_close failed for '%s'", pvt->name);
+		return -1;
+	}
+
+	if (prf_close(&pvt->prf) != 0) {
+		err("prf_close failed for '%s'", pvt->name);
 		return -1;
 	}
 

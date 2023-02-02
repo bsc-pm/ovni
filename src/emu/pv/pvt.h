@@ -6,6 +6,7 @@
 
 #include "prv.h"
 #include "pcf.h"
+#include "prf.h"
 #include "uthash.h"
 #include <linux/limits.h>
 
@@ -14,6 +15,7 @@ struct pvt {
 	char name[PATH_MAX]; /* Without .prv extension */
 	struct prv prv;
 	struct pcf pcf;
+	struct prf prf;
 
 	struct UT_hash_handle hh; /* For recorder */
 };
@@ -21,6 +23,7 @@ struct pvt {
 int pvt_open(struct pvt *pvt, long nrows, const char *dir, const char *name);
 struct prv *pvt_get_prv(struct pvt *pvt);
 struct pcf *pvt_get_pcf(struct pvt *pvt);
+struct prf *pvt_get_prf(struct pvt *pvt);
 int pvt_advance(struct pvt *pvt, int64_t time);
 int pvt_close(struct pvt *pvt);
 

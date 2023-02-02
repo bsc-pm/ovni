@@ -533,11 +533,14 @@ int
 system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 {
 	/* Create Paraver traces */
-	if (recorder_add_pvt(rec, "cpu", sys->ncpus) == NULL) {
+	struct pvt *pvt_cpu = NULL;
+	if ((pvt_cpu = recorder_add_pvt(rec, "cpu", sys->ncpus)) == NULL) {
 		err("recorder_add_pvt failed");
 		return -1;
 	}
-	if (recorder_add_pvt(rec, "thread", sys->nthreads) == NULL) {
+
+	struct pvt *pvt_th = NULL;
+	if ((pvt_th = recorder_add_pvt(rec, "thread", sys->nthreads)) == NULL) {
 		err("recorder_add_pvt failed");
 		return -1;
 	}
@@ -547,11 +550,31 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 			err("thread_connect failed\n");
 			return -1;
 		}
+
+		struct prf *prf = pvt_get_prf(pvt_th);
+		char name[128];
+		int appid = th->proc->appid;
+		int tid = th->tid;
+		if (snprintf(name, 128, "TH %d.%d", appid, tid) >= 128) {
+			err("label too long");
+			return -1;
+		}
+
+		if (prf_add(prf, th->gindex, name) != 0) {
+			err("prf_add failed for thread '%s'", th->id);
+			return -1;
+		}
 	}
 
 	for (struct cpu *cpu = sys->cpus; cpu; cpu = cpu->next) {
 		if (cpu_connect(cpu, bay, rec) != 0) {
 			err("cpu_connect failed\n");
+			return -1;
+		}
+
+		struct prf *prf = pvt_get_prf(pvt_cpu);
+		if (prf_add(prf, cpu->gindex, cpu->name) != 0) {
+			err("prf_add failed for cpu '%s'", cpu->name);
 			return -1;
 		}
 	}

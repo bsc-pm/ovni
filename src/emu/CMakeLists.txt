@@ -28,6 +28,7 @@ add_library(emu STATIC
   path.c
   proc.c
   pv/pcf.c
+  pv/prf.c
   pv/prv.c
   pv/pvt.c
   recorder.c

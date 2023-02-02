@@ -6,8 +6,7 @@
 #include "chan.h"
 #include "value.h"
 #include "utlist.h"
-#include "pvt.h"
-#include "prv.h"
+#include "pv/pvt.h"
 
 static const char chan_fmt[] = "cpu%ld.%s";
 static const char *chan_name[] = {

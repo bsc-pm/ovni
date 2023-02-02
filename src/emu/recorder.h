@@ -6,7 +6,7 @@
 
 /* Records data into files (Paraver traces only for now) */
 
-#include "pvt.h"
+#include "pv/pvt.h"
 
 #include <linux/limits.h>
 

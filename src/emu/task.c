@@ -3,9 +3,7 @@
 
 #include "task.h"
 
-#include "uthash.h"
 #include "utlist.h"
-#include "pcf.h"
 
 struct task *
 task_find(struct task *tasks, uint32_t task_id)

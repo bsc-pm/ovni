@@ -27,9 +27,9 @@ add_library(emu STATIC
   mux.c
   path.c
   proc.c
-  pcf.c
-  prv.c
-  pvt.c
+  pv/pcf.c
+  pv/prv.c
+  pv/pvt.c
   recorder.c
   system.c
   task.c

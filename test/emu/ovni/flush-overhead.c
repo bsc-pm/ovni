@@ -35,7 +35,7 @@ static void
 emit(uint8_t *buf, size_t size)
 {
 	struct ovni_ev ev = {0};
-	ovni_ev_set_mcv(&ev, "O$$");
+	ovni_ev_set_mcv(&ev, "OB.");
 	ovni_ev_set_clock(&ev, ovni_clock_now());
 	ovni_ev_jumbo_emit(&ev, buf, size);
 }

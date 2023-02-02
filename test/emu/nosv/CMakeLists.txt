@@ -6,3 +6,4 @@ ovni_test(nested-tasks-bad.c SHOULD_FAIL
   REGEX "fatal: cannot execute task 1: state is not created")
 ovni_test(task-types.c MP)
 ovni_test(pause.c MP)
+ovni_test(mp-rank.c MP)

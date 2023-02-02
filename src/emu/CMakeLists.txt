@@ -43,6 +43,7 @@ add_library(emu STATIC
   nanos6/create.c
   nanos6/event.c
   nanos6/pvt.c
+  nanos6/finish.c
 )
 
 add_executable(ovniemu ovniemu.c)

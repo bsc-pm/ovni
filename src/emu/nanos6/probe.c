@@ -7,6 +7,7 @@ struct model_spec model_nanos6 = {
 	.connect = nanos6_connect,
 	.event   = nanos6_event,
 	.probe   = nanos6_probe,
+	.finish  = nanos6_finish,
 };
 
 int

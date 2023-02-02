@@ -14,6 +14,7 @@ struct model_spec {
 	emu_hook_t *create;
 	emu_hook_t *connect;
 	emu_hook_t *event;
+	emu_hook_t *finish;
 };
 
 #define MAX_MODELS 256
@@ -31,5 +32,6 @@ int model_probe(struct model *model, struct emu *emu);
 int model_create(struct model *model, struct emu *emu);
 int model_connect(struct model *model, struct emu *emu);
 int model_event(struct model *model, struct emu *emu, int index);
+int model_finish(struct model *model, struct emu *emu);
 
 #endif /* MODEL_H */

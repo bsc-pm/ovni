@@ -160,9 +160,15 @@ emu_step(struct emu *emu)
 int
 emu_finish(struct emu *emu)
 {
+	if (model_finish(&emu->model, emu) != 0) {
+		err("model_finish failed");
+		return -1;
+	}
+
 	if (recorder_finish(&emu->recorder) != 0) {
 		err("recorder_finish failed");
 		return -1;
 	}
+
 	return 0;
 }

@@ -1,6 +1,12 @@
 #include "nanos6_priv.h"
 
 /* TODO: Assign types on runtime and generate configs */
+
+static const char *pvt_name[CT_MAX] = {
+	[CT_TH]  = "thread",
+	[CT_CPU] = "cpu",
+};
+
 static const int pvt_type[] = {
 	[CH_TASKID]    = 35,
 	[CH_TYPE]      = 36,
@@ -239,4 +245,49 @@ init_pvt(struct emu *emu)
 	}
 
 	return 0;
+}
+
+int
+finish_pvt(struct emu *emu)
+{
+	struct system *sys = &emu->system;
+
+	/* Emit task types for all channel types and processes */
+	for (enum chan_type ct = 0; ct < CHAN_MAXTYPE; ct++) {
+		struct pvt *pvt = recorder_find_pvt(&emu->recorder, pvt_name[ct]);
+		if (pvt == NULL) {
+			err("cannot find pvt with name '%s'", pvt_name[ct]);
+			return -1;
+		}
+		struct pcf *pcf = pvt_get_pcf(pvt);
+		long typeid = pvt_type[CH_TYPE];
+		struct pcf_type *pcftype = pcf_find_type(pcf, typeid);
+
+		for (struct proc *p = sys->procs; p; p = p->gnext) {
+			struct nanos6_proc *nanos6proc = EXT(p, '6');
+			struct task_info *info = &nanos6proc->task_info;
+			if (task_create_pcf_types(pcftype, info->types) != 0) {
+				err("task_create_pcf_types failed");
+				return -1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+const char *
+ss_name(int ss)
+{
+	static const char *unknown = "(unknown)";
+	const char *name = unknown;
+	const struct pcf_value_label *pv;
+	for (pv = &nanos6_ss_values[0]; pv->label; pv++) {
+		if (pv->value == ss) {
+			name = pv->label;
+			break;
+		}
+	}
+
+	return name;
 }

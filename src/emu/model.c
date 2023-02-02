@@ -105,3 +105,22 @@ model_event(struct model *model, struct emu *emu, int index)
 
 	return 0;
 }
+
+int
+model_finish(struct model *model, struct emu *emu)
+{
+	for (int i = 0; i < MAX_MODELS; i++) {
+		if (!model->enabled[i])
+			continue;
+
+		struct model_spec *spec = model->spec[i];
+		if (spec->finish == NULL)
+			continue;
+
+		if (spec->finish(emu) != 0) {
+			err("finish failed for model '%c'", (char) i);
+			return -1;
+		}
+	}
+	return 0;
+}

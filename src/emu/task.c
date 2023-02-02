@@ -5,6 +5,7 @@
 
 #include "uthash.h"
 #include "utlist.h"
+#include "pcf.h"
 
 struct task *
 task_find(struct task *tasks, uint32_t task_id)
@@ -281,24 +282,31 @@ task_type_create(struct task_info *info, uint32_t type_id, const char *label)
 	return 0;
 }
 
-//void
-//task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
-//{
-//	/* Emit types for all task types */
-//	for (struct task_type *tt = types; tt != NULL; tt = tt->hh.next) {
-//		struct pcf_value *pcfvalue = pcf_find_value(pcftype, tt->gid);
-//		if (pcfvalue != NULL) {
-//			/* Ensure the label is the same, so we know that
-//			 * no collision occurred */
-//			if (strcmp(pcfvalue->label, tt->label) != 0)
-//				die("collision occurred in task type labels");
-//			else
-//				continue;
-//		}
-//
-//		pcf_add_value(pcftype, tt->gid, tt->label);
-//	}
-//}
+int
+task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
+{
+	int ret = 0;
+
+	/* Emit types for all task types */
+	for (struct task_type *tt = types; tt != NULL; tt = tt->hh.next) {
+		struct pcf_value *pcfvalue = pcf_find_value(pcftype, tt->gid);
+		if (pcfvalue != NULL) {
+			/* Ensure the label is the same, so we know that
+			 * no collision occurred */
+			if (strcmp(pcfvalue->label, tt->label) != 0) {
+				err("collision occurred in task type labels: %s and %s",
+						pcfvalue->label, tt->label);
+				ret = -1;
+			} else {
+				continue;
+			}
+		}
+
+		pcf_add_value(pcftype, tt->gid, tt->label);
+	}
+
+	return ret;
+}
 
 struct task *
 task_get_running(struct task_stack *stack)

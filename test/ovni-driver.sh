@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-set -e
+set -ex
 
 if [ -n "$OVNI_TEST_VERBOSE" ]; then
   set -x

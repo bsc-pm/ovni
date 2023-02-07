@@ -33,7 +33,7 @@ enum nanos6_track {
 	TRACK_MAX,
 };
 
-extern const enum nanos6_track chan_track[CH_MAX][CT_MAX];
+extern const enum nanos6_track nanos6_chan_track[CH_MAX][CT_MAX];
 
 enum nanos6_ss_state {
 	ST_TASK_BODY = 1,
@@ -100,8 +100,8 @@ int nanos6_connect(struct emu *emu);
 int nanos6_event(struct emu *emu);
 int nanos6_finish(struct emu *emu);
 
-int init_pvt(struct emu *emu);
-int finish_pvt(struct emu *emu);
-const char *ss_name(int ss);
+int nanos6_init_pvt(struct emu *emu);
+int nanos6_finish_pvt(struct emu *emu);
+const char *nanos6_ss_name(int ss);
 
 #endif /* NANOS6_PRIV_H */

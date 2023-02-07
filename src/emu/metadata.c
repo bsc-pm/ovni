@@ -105,7 +105,7 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 			return -1;
 		}
 
-		cpu_init_begin(cpu, phyid);
+		cpu_init_begin(cpu, phyid, 0);
 
 		if (loom_add_cpu(loom, cpu) != 0) {
 			err("loom_add_cpu() failed");

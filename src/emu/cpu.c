@@ -30,11 +30,12 @@ static int chan_type[] = {
 };
 
 void
-cpu_init_begin(struct cpu *cpu, int phyid)
+cpu_init_begin(struct cpu *cpu, int phyid, int is_virtual)
 {
 	memset(cpu, 0, sizeof(struct cpu));
 
 	cpu->phyid = phyid;
+	cpu->is_virtual = is_virtual;
 
 	dbg("cpu init %d", phyid);
 }
@@ -165,6 +166,13 @@ cpu_update(struct cpu *cpu)
 
 	cpu->nth_running = running;
 	cpu->nth_active = active;
+
+	/* Only virtual cpus can be oversubscribed */
+	if (cpu->nth_running > 1 && !cpu->is_virtual) {
+		err("physical cpu %s has %d thread running at the same time",
+				cpu->name, cpu->nth_running);
+		return -1;
+	}
 
 	struct value tid_running;
 	struct value pid_running;

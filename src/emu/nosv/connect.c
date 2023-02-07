@@ -1,18 +1,19 @@
-#include "nanos6_priv.h"
+#include "nosv_priv.h"
 
-const enum nanos6_track nanos6_chan_track[CH_MAX][CT_MAX] = {
+const enum nosv_track nosv_chan_track[CH_MAX][CT_MAX] = {
 	                /* Thread  CPU */
 	[CH_TASKID]    = { RUN_TH, RUN_TH },
 	[CH_TYPE]      = { RUN_TH, RUN_TH },
+	[CH_APPID]     = { RUN_TH, RUN_TH },
 	[CH_SUBSYSTEM] = { ACT_TH, RUN_TH },
 	[CH_RANK]      = { RUN_TH, RUN_TH },
-	[CH_THREAD]    = { NONE,   RUN_TH },
 };
+
 
 static int
 connect_thread_mux(struct emu *emu, struct thread *thread)
 {
-	struct nanos6_thread *th = EXT(thread, '6');
+	struct nosv_thread *th = EXT(thread, 'V');
 	for (int i = 0; i < CH_MAX; i++) {
 
 		/* TODO: Let the thread take the select channel
@@ -49,7 +50,7 @@ connect_thread_mux(struct emu *emu, struct thread *thread)
 
 		/* The tracking only sets the ch_out, but we keep both tracking
 		 * updated as the CPU tracking channels may use them. */
-		enum nanos6_track track = nanos6_chan_track[i][CT_TH];
+		enum nosv_track track = nosv_chan_track[i][CT_TH];
 		if (track == RUN_TH)
 			th->ch_out[i] = &th->ch_run[i];
 		else if (track == ACT_TH)
@@ -66,11 +67,11 @@ static int
 add_inputs_cpu_mux(struct emu *emu, struct mux *mux, int i)
 {
 	for (struct thread *t = emu->system.threads; t; t = t->gnext) {
-		struct nanos6_thread *th = EXT(t, '6');
+		struct nosv_thread *th = EXT(t, 'V');
 
 		/* Choose input thread channel based on tracking mode */
 		struct chan *inp = NULL;
-		enum nanos6_track track = nanos6_chan_track[i][CT_CPU];
+		enum nosv_track track = nosv_chan_track[i][CT_CPU];
 		if (track == RUN_TH)
 			inp = &th->ch_run[i];
 		else if (track == ACT_TH)
@@ -90,14 +91,14 @@ add_inputs_cpu_mux(struct emu *emu, struct mux *mux, int i)
 static int
 connect_cpu_mux(struct emu *emu, struct cpu *scpu)
 {
-	struct nanos6_cpu *cpu = EXT(scpu, '6');
+	struct nosv_cpu *cpu = EXT(scpu, 'V');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct mux *mux = &cpu->mux[i];
 		struct chan *out = &cpu->ch[i];
 
 		/* Choose select CPU channel based on tracking mode */
 		struct chan *sel = NULL;
-		enum nanos6_track track = nanos6_chan_track[i][CT_CPU];
+		enum nosv_track track = nosv_chan_track[i][CT_CPU];
 		if (track == RUN_TH)
 			sel = &scpu->chan[CPU_CHAN_THRUN];
 		else if (track == ACT_TH)
@@ -120,7 +121,7 @@ connect_cpu_mux(struct emu *emu, struct cpu *scpu)
 }
 
 int
-nanos6_connect(struct emu *emu)
+nosv_connect(struct emu *emu)
 {
 	struct system *sys = &emu->system;
 
@@ -140,7 +141,7 @@ nanos6_connect(struct emu *emu)
 		}
 	}
 
-	if (nanos6_init_pvt(emu) != 0) {
+	if (nosv_init_pvt(emu) != 0) {
 		err("init_pvt failed");
 		return -1;
 	}

@@ -1,23 +1,22 @@
-#include "nanos6_priv.h"
+#include "nosv_priv.h"
 
-static const char chan_fmt_cpu_raw[] = "nanos6.cpu%ld.%s";
-//static const char chan_fmt_cpu_run[] = "nanos6.cpu%ld.%s.run";
-//static const char chan_fmt_cpu_act[] = "nanos6.cpu%ld.%s.act";
-static const char chan_fmt_th_raw[] = "nanos6.thread%ld.%s.raw";
-static const char chan_fmt_th_run[] = "nanos6.thread%ld.%s.run";
-static const char chan_fmt_th_act[] = "nanos6.thread%ld.%s.act";
+static const char chan_fmt_cpu_raw[] = "nosv.cpu%ld.%s";
+//static const char chan_fmt_cpu_run[] = "nosv.cpu%ld.%s.run";
+//static const char chan_fmt_cpu_act[] = "nosv.cpu%ld.%s.act";
+static const char chan_fmt_th_raw[] = "nosv.thread%ld.%s.raw";
+static const char chan_fmt_th_run[] = "nosv.thread%ld.%s.run";
+static const char chan_fmt_th_act[] = "nosv.thread%ld.%s.act";
 
 static const char *chan_name[CH_MAX] = {
 	[CH_TASKID]    = "taskid",
 	[CH_TYPE]      = "task_type",
+	[CH_APPID]     = "appid",
 	[CH_SUBSYSTEM] = "subsystem",
 	[CH_RANK]      = "rank",
-	[CH_THREAD]    = "thread_type",
 };
 
 static const int chan_stack[CH_MAX] = {
 	[CH_SUBSYSTEM] = 1,
-	[CH_THREAD] = 1,
 };
 
 static int
@@ -40,7 +39,7 @@ init_chans(struct bay *bay, struct chan *chans, const char *fmt, int64_t gindex,
 static int
 init_cpu(struct bay *bay, struct cpu *syscpu)
 {
-	struct nanos6_cpu *cpu = calloc(1, sizeof(struct nanos6_cpu));
+	struct nosv_cpu *cpu = calloc(1, sizeof(struct nosv_cpu));
 	if (cpu == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -63,14 +62,14 @@ init_cpu(struct bay *bay, struct cpu *syscpu)
 		return -1;
 	}
 
-	extend_set(&syscpu->ext, '6', cpu);
+	extend_set(&syscpu->ext, 'V', cpu);
 	return 0;
 }
 
 static int
 init_thread(struct bay *bay, struct thread *systh)
 {
-	struct nanos6_thread *th = calloc(1, sizeof(struct nanos6_thread));
+	struct nosv_thread *th = calloc(1, sizeof(struct nosv_thread));
 	if (th == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -130,7 +129,7 @@ init_thread(struct bay *bay, struct thread *systh)
 
 	th->task_stack.thread = systh;
 
-	extend_set(&systh->ext, '6', th);
+	extend_set(&systh->ext, 'V', th);
 
 	return 0;
 }
@@ -138,19 +137,19 @@ init_thread(struct bay *bay, struct thread *systh)
 static int
 init_proc(struct proc *sysproc)
 {
-	struct nanos6_proc *proc = calloc(1, sizeof(struct nanos6_proc));
+	struct nosv_proc *proc = calloc(1, sizeof(struct nosv_proc));
 	if (proc == NULL) {
 		err("calloc failed:");
 		return -1;
 	}
 
-	extend_set(&sysproc->ext, '6', proc);
+	extend_set(&sysproc->ext, 'V', proc);
 
 	return 0;
 }
 
 int
-nanos6_create(struct emu *emu)
+nosv_create(struct emu *emu)
 {
 	struct system *sys = &emu->system;
 	struct bay *bay = &emu->bay;

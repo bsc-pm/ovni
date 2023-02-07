@@ -64,7 +64,7 @@ loom_init_begin(struct loom *loom, const char *name)
 	set_hostname(loom->hostname, loom->name);
 	loom->id = loom->name;
 
-	cpu_init_begin(&loom->vcpu, -1);
+	cpu_init_begin(&loom->vcpu, -1, 1);
 
 	dbg("creating new loom %s", loom->id);
 

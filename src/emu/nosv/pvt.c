@@ -1,4 +1,4 @@
-#include "nanos6_priv.h"
+#include "nosv_priv.h"
 
 /* TODO: Assign types on runtime and generate configs */
 
@@ -8,20 +8,21 @@ static const char *pvt_name[CT_MAX] = {
 };
 
 static const int pvt_type[] = {
-	[CH_TASKID]    = 35,
-	[CH_TYPE]      = 36,
-	[CH_SUBSYSTEM] = 37,
-	[CH_RANK]      = 38,
-	[CH_THREAD]    = 39,
+	[CH_TASKID]    = 10,
+	[CH_TYPE]      = 11,
+	[CH_APPID]     = 12,
+	[CH_SUBSYSTEM] = 13,
+	[CH_RANK]      = 14,
 };
 
 static const char *pcf_prefix[CH_MAX] = {
-	[CH_TASKID]    = "Nanos6 task ID",
-	[CH_TYPE]      = "Nanos6 task type",
-	[CH_SUBSYSTEM] = "Nanos6 subsystem",
-	[CH_RANK]      = "Nanos6 task MPI rank",
-	[CH_THREAD]    = "Nanos6 thread type",
+	[CH_TASKID]      = "nOS-V task ID",
+	[CH_TYPE]        = "nOS-V task type",
+	[CH_APPID]       = "nOS-V task AppID",
+	[CH_SUBSYSTEM]   = "nOS-V subsystem",
+	[CH_RANK]        = "nOS-V task MPI rank",
 };
+
 
 static const char *pcf_suffix[TRACK_MAX] = {
 	[NONE] = "",
@@ -29,50 +30,29 @@ static const char *pcf_suffix[TRACK_MAX] = {
 	[ACT_TH] = "of the ACTIVE thread",
 };
 
-static const struct pcf_value_label nanos6_ss_values[] = {
-	{ ST_TASK_BODY,        "Task: Running body" },
-	{ ST_TASK_CREATING,    "Task: Creating" },
-	{ ST_TASK_SUBMIT,      "Task: Submitting" },
-	{ ST_TASK_SPAWNING,    "Task: Spawning function" },
-	{ ST_TASK_FOR,         "Task: Running task for" },
-	{ ST_SCHED_SERVING,    "Scheduler: Serving tasks" },
-	{ ST_SCHED_ADDING,     "Scheduler: Adding ready tasks" },
-	{ ST_SCHED_PROCESSING, "Scheduler: Processing ready tasks" },
-	{ ST_DEP_REG,          "Dependency: Registering" },
-	{ ST_DEP_UNREG,        "Dependency: Unregistering" },
-	{ ST_BLK_TASKWAIT,     "Blocking: Taskwait" },
-	{ ST_BLK_BLOCKING,     "Blocking: Blocking current task" },
-	{ ST_BLK_UNBLOCKING,   "Blocking: Unblocking remote task" },
-	{ ST_BLK_WAITFOR,      "Blocking: Wait for deadline" },
-	{ ST_HANDLING_TASK,    "Worker: Handling task" },
-	{ ST_WORKER_LOOP,      "Worker: Looking for work" },
-	{ ST_SWITCH_TO,        "Worker: Switching to another thread" },
-	{ ST_MIGRATE,          "Worker: Migrating CPU" },
-	{ ST_SUSPEND,          "Worker: Suspending thread" },
-	{ ST_RESUME,           "Worker: Resuming another thread" },
-	{ ST_ALLOCATING,       "Memory: Allocating" },
-	{ ST_FREEING,          "Memory: Freeing" },
-
+static const struct pcf_value_label nosv_ss_values[] = {
+	{ ST_SCHED_HUNGRY,     "Scheduler: Hungry" },
+	{ ST_SCHED_SERVING,    "Scheduler: Serving" },
+	{ ST_SCHED_SUBMITTING, "Scheduler: Submitting" },
+	{ ST_MEM_ALLOCATING,   "Memory: Allocating" },
+	{ ST_MEM_FREEING,      "Memory: Freeing" },
+	{ ST_TASK_RUNNING,     "Task: Running" },
+	{ ST_API_SUBMIT,       "API: Submit" },
+	{ ST_API_PAUSE,        "API: Pause" },
+	{ ST_API_YIELD,        "API: Yield" },
+	{ ST_API_WAITFOR,      "API: Waitfor" },
+	{ ST_API_SCHEDPOINT,   "API: Scheduling point" },
+	{ ST_ATTACH,           "Thread: Attached" },
+	{ ST_WORKER,           "Thread: Worker" },
+	{ ST_DELEGATE,         "Thread: Delegate" },
 	{ EV_SCHED_SEND,       "EV Scheduler: Send task" },
 	{ EV_SCHED_RECV,       "EV Scheduler: Recv task" },
 	{ EV_SCHED_SELF,       "EV Scheduler: Self-assign task" },
-	{ EV_CPU_IDLE,         "EV CPU: Becomes idle" },
-	{ EV_CPU_ACTIVE,       "EV CPU: Becomes active" },
-	{ EV_SIGNAL,           "EV Worker: Wakening another thread" },
-	{ -1, NULL },
-};
-
-static const struct pcf_value_label nanos6_thread_type[] = {
-	{ ST_TH_EXTERNAL,   "External" },
-	{ ST_TH_WORKER,     "Worker" },
-	{ ST_TH_LEADER,     "Leader" },
-	{ ST_TH_MAIN,       "Main" },
 	{ -1, NULL },
 };
 
 static const struct pcf_value_label (*pcf_chan_value_labels[CH_MAX])[] = {
-	[CH_SUBSYSTEM] = &nanos6_ss_values,
-	[CH_THREAD]    = &nanos6_thread_type,
+	[CH_SUBSYSTEM] = &nosv_ss_values,
 };
 
 /* ------------------------------ pcf ------------------------------ */
@@ -92,7 +72,7 @@ create_values(struct pcf_type *t, int c)
 }
 
 static int
-create_type(struct pcf *pcf, enum nanos6_chan c, enum nanos6_chan_type ct)
+create_type(struct pcf *pcf, enum nosv_chan c, enum nosv_chan_type ct)
 {
 	long type = pvt_type[c];
 
@@ -101,7 +81,7 @@ create_type(struct pcf *pcf, enum nanos6_chan c, enum nanos6_chan_type ct)
 
 	/* Compute the label by joining the two parts */
 	const char *prefix = pcf_prefix[c];
-	int track_mode = nanos6_chan_track[c][ct];
+	int track_mode = nosv_chan_track[c][ct];
 	const char *suffix = pcf_suffix[track_mode];
 
 	char label[MAX_PCF_LABEL];
@@ -119,10 +99,10 @@ create_type(struct pcf *pcf, enum nanos6_chan c, enum nanos6_chan_type ct)
 }
 
 static int
-init_pcf(struct pcf *pcf, enum nanos6_chan_type ct)
+init_pcf(struct pcf *pcf, enum nosv_chan_type ct)
 {
 	/* Create default types and values */
-	for (enum nanos6_chan c = 0; c < CH_MAX; c++) {
+	for (enum nosv_chan c = 0; c < CH_MAX; c++) {
 		if (create_type(pcf, c, ct) != 0) {
 			err("create_type failed");
 			return -1;
@@ -137,7 +117,7 @@ init_pcf(struct pcf *pcf, enum nanos6_chan_type ct)
 static int
 connect_thread_prv(struct emu *emu, struct thread *thread, struct prv *prv)
 {
-	struct nanos6_thread *th = EXT(thread, '6');
+	struct nosv_thread *th = EXT(thread, 'V');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct chan *out = th->ch_out[i];
 		long type = pvt_type[i];
@@ -154,7 +134,7 @@ connect_thread_prv(struct emu *emu, struct thread *thread, struct prv *prv)
 static int
 connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 {
-	struct nanos6_cpu *cpu = EXT(scpu, '6');
+	struct nosv_cpu *cpu = EXT(scpu, 'V');
 	for (int i = 0; i < CH_MAX; i++) {
 		struct chan *out = &cpu->ch[i];
 		long type = pvt_type[i];
@@ -232,7 +212,7 @@ connect_cpus(struct emu *emu)
 
 /* Connect all outputs to the paraver trace and setup PCF types */
 int
-nanos6_init_pvt(struct emu *emu)
+nosv_init_pvt(struct emu *emu)
 {
 	if (connect_threads(emu) != 0) {
 		err("connect_threads failed");
@@ -248,7 +228,7 @@ nanos6_init_pvt(struct emu *emu)
 }
 
 int
-nanos6_finish_pvt(struct emu *emu)
+nosv_finish_pvt(struct emu *emu)
 {
 	struct system *sys = &emu->system;
 
@@ -264,8 +244,8 @@ nanos6_finish_pvt(struct emu *emu)
 		struct pcf_type *pcftype = pcf_find_type(pcf, typeid);
 
 		for (struct proc *p = sys->procs; p; p = p->gnext) {
-			struct nanos6_proc *nanos6proc = EXT(p, '6');
-			struct task_info *info = &nanos6proc->task_info;
+			struct nosv_proc *nosvproc = EXT(p, 'V');
+			struct task_info *info = &nosvproc->task_info;
 			if (task_create_pcf_types(pcftype, info->types) != 0) {
 				err("task_create_pcf_types failed");
 				return -1;
@@ -277,12 +257,12 @@ nanos6_finish_pvt(struct emu *emu)
 }
 
 const char *
-nanos6_ss_name(int ss)
+nosv_ss_name(int ss)
 {
 	static const char *unknown = "(unknown)";
 	const char *name = unknown;
 	const struct pcf_value_label *pv;
-	for (pv = &nanos6_ss_values[0]; pv->label; pv++) {
+	for (pv = &nosv_ss_values[0]; pv->label; pv++) {
 		if (pv->value == ss) {
 			name = pv->label;
 			break;

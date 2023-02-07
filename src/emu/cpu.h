@@ -61,7 +61,7 @@ struct cpu {
 	UT_hash_handle hh; /* CPUs in the loom */
 };
 
-void cpu_init_begin(struct cpu *cpu, int phyid);
+void cpu_init_begin(struct cpu *cpu, int phyid, int is_virtual);
 int cpu_get_phyid(struct cpu *cpu);
 //int cpu_get_index(struct cpu *cpu);
 void cpu_set_gindex(struct cpu *cpu, int64_t gindex);

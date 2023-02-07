@@ -1,6 +1,8 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#define ENABLE_DEBUG
+
 #include "model.h"
 
 #include "common.h"
@@ -18,6 +20,8 @@ model_register(struct model *model, struct model_spec *spec)
 	int i = spec->model;
 	model->spec[i] = spec;
 	model->registered[i] = 1;
+
+	dbg("registered model %c", (char) i);
 }
 
 int
@@ -37,8 +41,12 @@ model_probe(struct model *model, struct emu *emu)
 			return -1;
 		}
 
-		if (ret == 0)
+		if (ret == 0) {
 			model->enabled[i] = 1;
+			dbg("model %c enabled", (char) i);
+		} else {
+			dbg("model %c disabled", (char) i);
+		}
 	}
 	return 0;
 }
@@ -77,6 +85,8 @@ model_connect(struct model *model, struct emu *emu)
 			err("connect failed for model '%c'", (char) i);
 			return -1;
 		}
+
+		dbg("connect for model %c ok", (char) i);
 	}
 	return 0;
 }

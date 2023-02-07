@@ -308,6 +308,22 @@ pre_affinity(struct emu *emu)
 }
 
 static int
+pre_cpu(struct emu *emu)
+{
+	switch (emu->ev->v) {
+		case 'n':
+			err("ignoring old event OCn");
+			return 0;
+		default:
+			err("unknown cpu event value %c\n",
+					emu->ev->v);
+			return -1;
+	}
+
+	return 0;
+}
+
+static int
 compare_int64(const void *a, const void *b)
 {
 	int64_t aa = *(const int64_t *) a;
@@ -402,8 +418,9 @@ process_ev(struct emu *emu)
 		case 'A':
 			return pre_affinity(emu);
 		case 'B':
-			pre_burst(emu);
-			break;
+			return pre_burst(emu);
+		case 'C':
+			return pre_cpu(emu);
 		case 'F':
 			return pre_flush(emu);
 		default:

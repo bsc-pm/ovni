@@ -1,4 +1,4 @@
-#include "nanos6_priv.h"
+#include "nosv_priv.h"
 
 static int
 end_lint(struct emu *emu)
@@ -7,7 +7,7 @@ end_lint(struct emu *emu)
 
 	/* Ensure we run out of subsystem states */
 	for (struct thread *t = sys->threads; t; t = t->gnext) {
-		struct nanos6_thread *th = EXT(t, '6');
+		struct nosv_thread *th = EXT(t, 'V');
 		struct chan *ch = &th->ch[CH_SUBSYSTEM];
 		int stacked = ch->data.stack.n;
 		if (stacked > 0) {
@@ -17,8 +17,8 @@ end_lint(struct emu *emu)
 				return -1;
 			}
 
-			err("thread %d ended with %d stacked nanos6 subsystems, top=\"%s\"\n",
-					t->tid, stacked, nanos6_ss_name(top.i));
+			err("thread %d ended with %d stacked nosv subsystems, top=\"%s\"\n",
+					t->tid, stacked, nosv_ss_name(top.i));
 			return -1;
 		}
 	}
@@ -27,9 +27,9 @@ end_lint(struct emu *emu)
 }
 
 int
-nanos6_finish(struct emu *emu)
+nosv_finish(struct emu *emu)
 {
-	if (nanos6_finish_pvt(emu) != 0) {
+	if (nosv_finish_pvt(emu) != 0) {
 		err("finish_pvt failed");
 		return -1;
 	}

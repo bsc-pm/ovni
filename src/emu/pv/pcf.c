@@ -92,32 +92,6 @@ const int pcf_palette_len = ARRAY_LEN(pcf_def_palette);
 //	{ -1, NULL },
 //};
 //
-//struct pcf_value_label nosv_ss_values[] = {
-//	/* Errors */
-//	{ ST_BAD,                       "Unknown: bad happened (report bug)" },
-//	{ ST_TOO_MANY_TH,               "Unknown: multiple threads running" },
-//	/* Good values */
-//	{ ST_NULL,                      "No subsystem" },
-//	{ ST_NOSV_SCHED_HUNGRY,         "Scheduler: Hungry" },
-//	{ ST_NOSV_SCHED_SERVING,        "Scheduler: Serving" },
-//	{ ST_NOSV_SCHED_SUBMITTING,     "Scheduler: Submitting" },
-//	{ ST_NOSV_MEM_ALLOCATING,       "Memory: Allocating" },
-//	{ ST_NOSV_MEM_FREEING,          "Memory: Freeing" },
-//	{ ST_NOSV_TASK_RUNNING,         "Task: Running" },
-//	{ ST_NOSV_API_SUBMIT,           "API: Submit" },
-//	{ ST_NOSV_API_PAUSE,            "API: Pause" },
-//	{ ST_NOSV_API_YIELD,            "API: Yield" },
-//	{ ST_NOSV_API_WAITFOR,          "API: Waitfor" },
-//	{ ST_NOSV_API_SCHEDPOINT,       "API: Scheduling point" },
-//	{ ST_NOSV_ATTACH,               "Thread: Attached" },
-//	{ ST_NOSV_WORKER,               "Thread: Worker" },
-//	{ ST_NOSV_DELEGATE,             "Thread: Delegate" },
-//	{ EV_NOSV_SCHED_SEND,           "EV Scheduler: Send task" },
-//	{ EV_NOSV_SCHED_RECV,           "EV Scheduler: Recv task" },
-//	{ EV_NOSV_SCHED_SELF,           "EV Scheduler: Self-assign task" },
-//	{ -1, NULL },
-//};
-//
 //struct pcf_value_label nodes_mode_values[] = {
 //	{ ST_NULL,              "NULL" },
 //	{ ST_TOO_MANY_TH,       "NODES: Multiple threads running" },

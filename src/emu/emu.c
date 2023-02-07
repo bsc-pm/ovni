@@ -3,7 +3,7 @@
 
 #define _POSIX_C_SOURCE 2
 
-//#define ENABLE_DEBUG
+#define ENABLE_DEBUG
 
 #include "emu.h"
 

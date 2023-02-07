@@ -3,4 +3,4 @@
 
 add_subdirectory(nanos6)
 #add_subdirectory(nodes)
-#add_subdirectory(nosv)
+add_subdirectory(nosv)

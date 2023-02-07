@@ -169,7 +169,7 @@ cpu_update(struct cpu *cpu)
 
 	/* Only virtual cpus can be oversubscribed */
 	if (cpu->nth_running > 1 && !cpu->is_virtual) {
-		err("physical cpu %s has %d thread running at the same time",
+		err("physical cpu %s has %d threads running at the same time",
 				cpu->name, cpu->nth_running);
 		return -1;
 	}

@@ -1,98 +1,74 @@
-#include "emu/bay.h"
+#include "emu/cpu.h"
 #include "common.h"
 
 static void
-test_remove(struct bay *bay)
+test_oversubscription(void)
 {
-	struct chan chan;
-	chan_init(&chan, CHAN_SINGLE, "removeme");
+	struct cpu cpu;
 
-	if (bay_register(bay, &chan) != 0)
-		die("bay_register failed\n");
+	int phyid = 0;
+	cpu_init_begin(&cpu, phyid, 0);
+	cpu_set_name(&cpu, "cpu0");
+	cpu_set_gindex(&cpu, 0);
+	if (cpu_init_end(&cpu) != 0)
+		die("cpu_init_end failed");
 
-	if (bay_find(bay, chan.name) == NULL)
-		die("bay_find failed\n");
+	struct proc proc;
 
-	if (bay_remove(bay, &chan) != 0)
-		die("bay_remove failed\n");
+	if (proc_init_begin(&proc, "loom.0/proc.0") != 0)
+		die("proc_init_begin failed");
 
-	if (bay_find(bay, chan.name) != NULL)
-		die("bay_find didn't fail\n");
-}
+	proc_set_gindex(&proc, 0);
 
-static void
-test_duplicate(struct bay *bay)
-{
-	struct chan chan;
-	chan_init(&chan, CHAN_SINGLE, "dup");
+	/* FIXME: We shouldn't need to recreate a full process to test the CPU
+	 * affinity rules */
+	proc.metadata_loaded = 1;
 
-	if (bay_register(bay, &chan) != 0)
-		die("bay_register failed\n");
+	if (proc_init_end(&proc) != 0)
+		die("proc_init_end failed");
 
-	if (bay_register(bay, &chan) == 0)
-		die("bay_register didn't fail\n");
+	struct thread th0, th1;
 
-	if (bay_remove(bay, &chan) != 0)
-		die("bay_remove failed\n");
-}
+	if (thread_init_begin(&th0, &proc, "loom.0/proc.0/thread.0.ovnistream") != 0)
+		die("thread_init_begin failed");
 
-static int
-callback(struct chan *chan, void *ptr)
-{
-	struct value value;
-	if (chan_read(chan, &value) != 0)
-		die("callback: chan_read failed\n");
+	thread_set_gindex(&th0, 0);
 
-	if (value.type != VALUE_INT64)
-		die("callback: unexpected value type\n");
+	if (thread_init_end(&th0) != 0)
+		die("thread_init_end failed");
 
-	int64_t *ival = ptr;
-	*ival = value.i;
+	if (thread_init_begin(&th1, &proc, "loom.1/proc.1/thread.1.ovnistream") != 0)
+		die("thread_init_begin failed");
 
-	return 0;
-}
+	thread_set_gindex(&th1, 1);
 
-static void
-test_callback(struct bay *bay)
-{
-	struct chan chan;
-	chan_init(&chan, CHAN_SINGLE, "testchan");
+	if (thread_init_end(&th1) != 0)
+		die("thread_init_end failed");
 
-	if (bay_register(bay, &chan) != 0)
-		die("bay_register failed\n");
+	if (thread_set_cpu(&th0, &cpu) != 0)
+		die("thread_set_cpu failed");
 
-	int64_t data = 0;
-	if (bay_add_cb(bay, BAY_CB_DIRTY, &chan, callback, &data) != 0)
-		die("bay_add_cb failed\n");
+	if (thread_set_cpu(&th1, &cpu) != 0)
+		die("thread_set_cpu failed");
 
-	if (data != 0)
-		die("data changed after bay_chan_append_cb\n");
+	if (thread_set_state(&th0, TH_ST_RUNNING) != 0)
+		die("thread_set_state failed");
 
-	if (chan_set(&chan, value_int64(1)) != 0)
-		die("chan_set failed\n");
+	if (thread_set_state(&th1, TH_ST_RUNNING) != 0)
+		die("thread_set_state failed");
 
-	if (data != 0)
-		die("data changed after chan_set\n");
+	if (cpu_add_thread(&cpu, &th0) != 0)
+		die("cpu_add_thread failed");
 
-	/* Now the callback should modify 'data' */
-	if (bay_propagate(bay) != 0)
-		die("bay_propagate failed\n");
+	if (cpu_add_thread(&cpu, &th1) == 0)
+		die("cpu_add_thread didn't fail");
 
-	if (data != 1)
-		die("data didn't change after bay_propagate\n");
-
-	if (bay_remove(bay, &chan) != 0)
-		die("bay_remove failed\n");
+	err("ok");
 }
 
 int main(void)
 {
-	struct bay bay;
-	bay_init(&bay);
-
-	test_remove(&bay);
-	test_duplicate(&bay);
-	test_callback(&bay);
+	test_oversubscription();
 
 	return 0;
 }

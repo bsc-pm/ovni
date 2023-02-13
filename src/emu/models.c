@@ -8,11 +8,13 @@
 extern struct model_spec model_ovni;
 extern struct model_spec model_nanos6;
 extern struct model_spec model_nosv;
+extern struct model_spec model_nodes;
 
 static struct model_spec *models[] = {
 	&model_ovni,
 	&model_nanos6,
 	&model_nosv,
+	&model_nodes,
 	NULL
 };
 

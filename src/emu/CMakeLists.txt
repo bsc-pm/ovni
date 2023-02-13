@@ -52,6 +52,12 @@ add_library(emu STATIC
   nosv/event.c
   nosv/pvt.c
   nosv/finish.c
+  nodes/probe.c
+  nodes/connect.c
+  nodes/create.c
+  nodes/event.c
+  nodes/pvt.c
+  nodes/finish.c
 )
 
 add_executable(ovniemu ovniemu.c)

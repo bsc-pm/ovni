@@ -56,8 +56,8 @@ add_library(emu STATIC
 add_executable(ovniemu ovniemu.c)
 target_link_libraries(ovniemu emu parson-static ovni-static)
 
-#add_executable(ovnidump ovnidump.c)
-#target_link_libraries(ovnidump emu trace)
+add_executable(ovnidump ovnidump.c)
+target_link_libraries(ovnidump emu parson-static ovni-static)
 #
 #add_executable(ovnisort ovnisort.c)
 #target_link_libraries(ovnisort emu trace)

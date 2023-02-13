@@ -8,6 +8,7 @@ struct cpu; /* Needed for thread */
 
 #include "thread.h"
 #include "chan.h"
+#include "track.h"
 #include "bay.h"
 #include "uthash.h"
 #include "recorder.h"
@@ -73,5 +74,7 @@ int cpu_update(struct cpu *cpu);
 int cpu_add_thread(struct cpu *cpu, struct thread *thread);
 int cpu_remove_thread(struct cpu *cpu, struct thread *thread);
 int cpu_migrate_thread(struct cpu *cpu, struct thread *thread, struct cpu *newcpu);
+
+struct chan *cpu_get_th_chan(struct cpu *cpu, enum track_th mode);
 
 #endif /* CPU_H */

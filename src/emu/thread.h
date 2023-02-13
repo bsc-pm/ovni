@@ -85,5 +85,6 @@ int thread_connect(struct thread *th, struct bay *bay, struct recorder *rec);
 
 int thread_select_active(struct mux *mux, struct value value, struct mux_input **input);
 int thread_select_running(struct mux *mux, struct value value, struct mux_input **input);
+int thread_select_any(struct mux *mux, struct value value, struct mux_input **input);
 
 #endif /* THREAD_H */

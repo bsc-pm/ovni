@@ -23,10 +23,10 @@ static const char *pcf_prefix[CH_MAX] = {
 	[CH_THREAD]    = "Nanos6 thread type",
 };
 
-static const char *pcf_suffix[TRACK_MAX] = {
-	[NONE] = "",
-	[RUN_TH] = "of the RUNNING thread",
-	[ACT_TH] = "of the ACTIVE thread",
+static const char *pcf_suffix[TRACK_TH_MAX] = {
+	[TRACK_TH_ANY] = "",
+	[TRACK_TH_RUN] = "of the RUNNING thread",
+	[TRACK_TH_ACT] = "of the ACTIVE thread",
 };
 
 static const struct pcf_value_label nanos6_ss_values[] = {
@@ -139,7 +139,7 @@ connect_thread_prv(struct emu *emu, struct thread *thread, struct prv *prv)
 {
 	struct nanos6_thread *th = EXT(thread, '6');
 	for (int i = 0; i < CH_MAX; i++) {
-		struct chan *out = th->ch_out[i];
+		struct chan *out = track_get_default(&th->track[i]);
 		long type = pvt_type[i];
 		long row = thread->gindex;
 		if (prv_register(prv, row, type, &emu->bay, out, PRV_DUP)) {
@@ -156,7 +156,7 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 {
 	struct nanos6_cpu *cpu = EXT(scpu, '6');
 	for (int i = 0; i < CH_MAX; i++) {
-		struct chan *out = &cpu->ch[i];
+		struct chan *out = track_get_default(&cpu->track[i]);
 		long type = pvt_type[i];
 		long row = scpu->gindex;
 		if (prv_register(prv, row, type, &emu->bay, out, PRV_DUP)) {

@@ -254,7 +254,30 @@ thread_select_running(struct mux *mux,
 	return 0;
 }
 
+int
+thread_select_any(struct mux *mux,
+		struct value value,
+		struct mux_input **input)
+{
+	if (value.type == VALUE_NULL) {
+		*input = NULL;
+		return 0;
+	}
 
+	if (value.type != VALUE_INT64) {
+		err("expecting NULL or INT64 channel value");
+		return -1;
+	}
+
+	if (mux->ninputs != 1) {
+		err("mux doesn't have one input but %d", mux->ninputs);
+		return -1;
+	}
+
+	*input = mux->input;
+
+	return 0;
+}
 
 int
 thread_set_cpu(struct thread *th, struct cpu *cpu)

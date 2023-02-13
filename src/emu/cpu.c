@@ -285,3 +285,12 @@ cpu_migrate_thread(struct cpu *cpu, struct thread *thread, struct cpu *newcpu)
 
 	return 0;
 }
+
+struct chan *
+cpu_get_th_chan(struct cpu *cpu, enum track_th trackmode)
+{
+	if (trackmode != TRACK_TH_RUN)
+		die("cpu tracking must be running");
+
+	return &cpu->chan[CPU_CHAN_THRUN];
+}

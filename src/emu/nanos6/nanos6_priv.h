@@ -8,6 +8,7 @@
 #include "chan.h"
 #include "mux.h"
 #include "task.h"
+#include "track.h"
 
 /* Private enums */
 
@@ -26,14 +27,7 @@ enum nanos6_chan {
 	CH_MAX,
 };
 
-enum nanos6_track {
-	NONE = 0,
-	RUN_TH,
-	ACT_TH,
-	TRACK_MAX,
-};
-
-extern const enum nanos6_track nanos6_chan_track[CH_MAX][CT_MAX];
+extern const int nanos6_chan_track[CH_MAX][CT_MAX];
 
 enum nanos6_ss_state {
 	ST_TASK_BODY = 1,
@@ -76,18 +70,13 @@ enum nanos6_thread_type {
 };
 
 struct nanos6_thread {
-	struct chan *ch;	/* Raw, modified by nanos6 */
-	struct chan *ch_run;	/* Tracking running thread */
-	struct chan *ch_act;	/* Tracking active thread */
-	struct chan **ch_out;	/* Output to PRV */
-	struct mux *mux_run;
-	struct mux *mux_act;
+	struct chan *ch;
+	struct track *track;
 	struct task_stack task_stack;
 };
 
 struct nanos6_cpu {
-	struct chan *ch;
-	struct mux *mux;
+	struct track *track;
 };
 
 struct nanos6_proc {

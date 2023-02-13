@@ -1,12 +1,5 @@
 #include "nanos6_priv.h"
 
-static const char chan_fmt_cpu_raw[] = "nanos6.cpu%ld.%s";
-//static const char chan_fmt_cpu_run[] = "nanos6.cpu%ld.%s.run";
-//static const char chan_fmt_cpu_act[] = "nanos6.cpu%ld.%s.act";
-static const char chan_fmt_th_raw[] = "nanos6.thread%ld.%s.raw";
-static const char chan_fmt_th_run[] = "nanos6.thread%ld.%s.run";
-static const char chan_fmt_th_act[] = "nanos6.thread%ld.%s.act";
-
 static const char *chan_name[CH_MAX] = {
 	[CH_TASKID]    = "taskid",
 	[CH_TYPE]      = "task_type",
@@ -21,15 +14,30 @@ static const int chan_stack[CH_MAX] = {
 };
 
 static int
-init_chans(struct bay *bay, struct chan *chans, const char *fmt, int64_t gindex, int filtered)
+init_chans(struct bay *bay, struct chan *chans, const char *fmt, int64_t gindex)
 {
 	for (int i = 0; i < CH_MAX; i++) {
 		struct chan *c = &chans[i];
-		int type = (chan_stack[i] && !filtered) ? CHAN_STACK : CHAN_SINGLE;
+		int type = chan_stack[i] ? CHAN_STACK : CHAN_SINGLE;
 		chan_init(c, type, fmt, gindex, chan_name[i]);
 
 		if (bay_register(bay, c) != 0) {
 			err("bay_register failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+init_tracks(struct bay *bay, struct track *tracks, const char *fmt, int64_t gindex)
+{
+	for (int i = 0; i < CH_MAX; i++) {
+		struct track *track = &tracks[i];
+
+		if (track_init(track, bay, TRACK_TYPE_TH, fmt, gindex, chan_name[i]) != 0) {
+			err("track_init failed");
 			return -1;
 		}
 	}
@@ -46,20 +54,15 @@ init_cpu(struct bay *bay, struct cpu *syscpu)
 		return -1;
 	}
 
-	cpu->ch = calloc(CH_MAX, sizeof(struct chan));
-	if (cpu->ch == NULL) {
+	cpu->track = calloc(CH_MAX, sizeof(struct track));
+	if (cpu->track == NULL) {
 		err("calloc failed:");
 		return -1;
 	}
 
-	cpu->mux = calloc(CH_MAX, sizeof(struct mux));
-	if (cpu->mux == NULL) {
-		err("calloc failed:");
-		return -1;
-	}
-
-	if (init_chans(bay, cpu->ch, chan_fmt_cpu_raw, syscpu->gindex, 1) != 0) {
-		err("init_chans failed");
+	char *fmt = "nanos6.cpu%ld.%s";
+	if (init_tracks(bay, cpu->track, fmt, syscpu->gindex) != 0) {
+		err("init_tracks failed");
 		return -1;
 	}
 
@@ -82,51 +85,22 @@ init_thread(struct bay *bay, struct thread *systh)
 		return -1;
 	}
 
-	th->ch_run = calloc(CH_MAX, sizeof(struct chan));
-	if (th->ch_run == NULL) {
+	th->track = calloc(CH_MAX, sizeof(struct track));
+	if (th->track == NULL) {
 		err("calloc failed:");
 		return -1;
 	}
 
-	th->ch_act = calloc(CH_MAX, sizeof(struct chan));
-	if (th->ch_act == NULL) {
-		err("calloc failed:");
-		return -1;
-	}
-
-	th->ch_out = calloc(CH_MAX, sizeof(struct chan *));
-	if (th->ch_out == NULL) {
-		err("calloc failed:");
-		return -1;
-	}
-
-	th->mux_run = calloc(CH_MAX, sizeof(struct mux));
-	if (th->mux_run == NULL) {
-		err("calloc failed:");
-		return -1;
-	}
-
-	th->mux_act = calloc(CH_MAX, sizeof(struct mux));
-	if (th->mux_act == NULL) {
-		err("calloc failed:");
-		return -1;
-	}
-
-	if (init_chans(bay, th->ch, chan_fmt_th_raw, systh->gindex, 0) != 0) {
+	char *fmt = "nanos6.thread%ld.%s";
+	if (init_chans(bay, th->ch, fmt, systh->gindex) != 0) {
 		err("init_chans failed");
 		return -1;
 	}
 
-	if (init_chans(bay, th->ch_run, chan_fmt_th_run, systh->gindex, 1) != 0) {
-		err("init_chans failed");
+	if (init_tracks(bay, th->track, fmt, systh->gindex) != 0) {
+		err("init_tracks failed");
 		return -1;
 	}
-
-	if (init_chans(bay, th->ch_act, chan_fmt_th_act, systh->gindex, 1) != 0) {
-		err("init_chans failed");
-		return -1;
-	}
-
 
 	th->task_stack.thread = systh;
 

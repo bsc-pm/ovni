@@ -34,6 +34,7 @@ add_library(emu STATIC
   recorder.c
   system.c
   task.c
+  track.c
   thread.c
   extend.c
   ovni/probe.c

@@ -75,7 +75,7 @@ cb_nftw(const char *fpath, const struct stat *sb,
 	if (typeflag != FTW_F)
 		return 0;
 
-	if (!has_suffix(fpath, ".ovnistream"))
+	if (!has_suffix(fpath, OVNI_STREAM_EXT))
 		return 0;
 
 	return load_stream(cur_trace, fpath);

@@ -31,6 +31,8 @@ typedef struct json_value_t JSON_Value;
 #define OVNI_STREAM_VERSION 1
 #define OVNI_MODEL_VERSION "O1 V1 T1 M1 D1 K1 61"
 
+#define OVNI_STREAM_EXT ".obs"
+
 /* Follow https://semver.org rules for versioning */
 #define OVNI_LIB_VERSION "1.0.0"
 

@@ -29,7 +29,7 @@ test_oversubscription(void)
 
 	struct thread th0, th1;
 
-	if (thread_init_begin(&th0, &proc, "loom.0/proc.0/thread.0.ovnistream") != 0)
+	if (thread_init_begin(&th0, &proc, "loom.0/proc.0/thread.0.obs") != 0)
 		die("thread_init_begin failed");
 
 	thread_set_gindex(&th0, 0);
@@ -37,7 +37,7 @@ test_oversubscription(void)
 	if (thread_init_end(&th0) != 0)
 		die("thread_init_end failed");
 
-	if (thread_init_begin(&th1, &proc, "loom.1/proc.1/thread.1.ovnistream") != 0)
+	if (thread_init_begin(&th1, &proc, "loom.1/proc.1/thread.1.obs") != 0)
 		die("thread_init_begin failed");
 
 	thread_set_gindex(&th1, 1);

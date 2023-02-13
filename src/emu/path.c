@@ -91,3 +91,12 @@ path_keep(char *path, int n)
 	err("missing %d components", n);
 	return -1;
 }
+
+void
+path_remove_trailing(char *path)
+{
+	int n = strlen(path);
+	for (int i = n - 1; path[i] == '/'; i--) {
+		path[i] = '\0';
+	}
+}

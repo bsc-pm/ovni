@@ -4,6 +4,7 @@
 #include "stream.h"
 
 #include "ovni.h"
+#include "path.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -78,6 +79,9 @@ stream_load(struct stream *stream, const char *tracedir, const char *relpath)
 		err("stream_load: path too long: %s/%s\n", tracedir, relpath);
 		return -1;
 	}
+
+	/* Allow loading a trace with empty relpath */
+	path_remove_trailing(stream->path);
 
 	if (snprintf(stream->relpath, PATH_MAX, "%s", relpath) >= PATH_MAX) {
 		err("stream_load: path too long: %s\n", relpath);

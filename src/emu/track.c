@@ -106,8 +106,8 @@ track_add_input(struct track *track, int mode, struct value key, struct chan *in
 	return 0;
 }
 
-int
-track_thread(struct track *track, struct chan *sel, struct chan *inp)
+static int
+track_th_input_chan(struct track *track, struct chan *sel, struct chan *inp)
 {
 	/* Create all thread tracking modes */
 	if (track_set_select(track, TRACK_TH_ANY, sel, thread_select_any) != 0) {
@@ -138,3 +138,20 @@ track_thread(struct track *track, struct chan *sel, struct chan *inp)
 	return 0;
 }
 
+int
+track_connect_thread(struct track *tracks, struct chan *chans, const int *modes, struct chan *sel, int n)
+{
+	for (int i = 0; i < n; i++) {
+		struct track *track = &tracks[i];
+
+		if (track_th_input_chan(track, sel, &chans[i]) != 0) {
+			err("track_th_input_chan failed");
+			return -1;
+		}
+
+		/* Select the default output to PRV */
+		track_set_default(track, modes[i]);
+	}
+
+	return 0;
+}

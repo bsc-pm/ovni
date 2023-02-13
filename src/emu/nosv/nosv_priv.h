@@ -33,8 +33,6 @@ enum nosv_track {
 	TRACK_MAX,
 };
 
-extern const enum nosv_track nosv_chan_track[CH_MAX][CT_MAX];
-
 enum nosv_ss_values {
 	ST_SCHED_HUNGRY = 6,
 	ST_SCHED_SERVING,
@@ -57,18 +55,13 @@ enum nosv_ss_values {
 };
 
 struct nosv_thread {
-	struct chan *ch;	/* Raw, modified by nosv */
-	struct chan *ch_run;	/* Tracking running thread */
-	struct chan *ch_act;	/* Tracking active thread */
-	struct chan **ch_out;	/* Output to PRV */
-	struct mux *mux_run;
-	struct mux *mux_act;
+	struct chan *ch;
+	struct track *track;
 	struct task_stack task_stack;
 };
 
 struct nosv_cpu {
-	struct chan *ch;
-	struct mux *mux;
+	struct track *track;
 };
 
 struct nosv_proc {
@@ -84,5 +77,6 @@ int nosv_finish(struct emu *emu);
 int nosv_init_pvt(struct emu *emu);
 int nosv_finish_pvt(struct emu *emu);
 const char *nosv_ss_name(int ss);
+int nosv_get_track(int c, int type);
 
 #endif /* NOSV_PRIV_H */

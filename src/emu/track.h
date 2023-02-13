@@ -37,6 +37,6 @@ void track_set_default(struct track *track, int mode);
 struct chan *track_get_default(struct track *track);
 struct chan *track_get_output(struct track *track, int mode);
 
-int track_thread(struct track *track, struct chan *sel, struct chan *inp);
+int track_connect_thread(struct track *tracks, struct chan *chans, const int *modes, struct chan *sel, int n);
 
 #endif /* TRACK_H */

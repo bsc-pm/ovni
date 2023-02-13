@@ -81,7 +81,7 @@ create_type(struct pcf *pcf, enum nosv_chan c, enum nosv_chan_type ct)
 
 	/* Compute the label by joining the two parts */
 	const char *prefix = pcf_prefix[c];
-	int track_mode = nosv_chan_track[c][ct];
+	int track_mode = nosv_get_track(c, ct);
 	const char *suffix = pcf_suffix[track_mode];
 
 	char label[MAX_PCF_LABEL];
@@ -119,7 +119,7 @@ connect_thread_prv(struct emu *emu, struct thread *thread, struct prv *prv)
 {
 	struct nosv_thread *th = EXT(thread, 'V');
 	for (int i = 0; i < CH_MAX; i++) {
-		struct chan *out = th->ch_out[i];
+		struct chan *out = track_get_default(&th->track[i]);
 		long type = pvt_type[i];
 		long row = thread->gindex;
 		if (prv_register(prv, row, type, &emu->bay, out, PRV_DUP)) {
@@ -136,7 +136,7 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 {
 	struct nosv_cpu *cpu = EXT(scpu, 'V');
 	for (int i = 0; i < CH_MAX; i++) {
-		struct chan *out = &cpu->ch[i];
+		struct chan *out = track_get_default(&cpu->track[i]);
 		long type = pvt_type[i];
 		long row = scpu->gindex;
 		if (prv_register(prv, row, type, &emu->bay, out, PRV_DUP)) {

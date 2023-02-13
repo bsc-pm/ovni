@@ -101,7 +101,7 @@ create_type(struct pcf *pcf, enum nanos6_chan c, enum nanos6_chan_type ct)
 
 	/* Compute the label by joining the two parts */
 	const char *prefix = pcf_prefix[c];
-	int track_mode = nanos6_chan_track[c][ct];
+	int track_mode = nanos6_get_track(c, ct);
 	const char *suffix = pcf_suffix[track_mode];
 
 	char label[MAX_PCF_LABEL];

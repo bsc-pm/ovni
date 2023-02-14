@@ -32,6 +32,11 @@ nav:
     - emulation/nosv.md
     - emulation/nanos6.md
     - emulation/events.md
-    - emulation/channels.md
   - 'Developer guide':
-    - developer-guide/index.md
+    - dev/index.md
+    - dev/channels.md
+    - dev/patchbay.md
+    - dev/mux.md
+    - dev/paraver.md
+    - dev/model.md
+    - dev/extend.md

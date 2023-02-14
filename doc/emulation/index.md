@@ -10,7 +10,7 @@ happened on the hardware. It consists of CPUs which can execute multiple threads
 at the same time.
 
 The emulator uses several models to identify how the resources are being
-used. The following diagram despicts the resource, process and task
+used. The following diagram depicts the resource, process and task
 model.
 
 [![Model](fig/model.svg)](fig/model.svg)
@@ -34,11 +34,11 @@ the problem. No effort is made to let the emulator recover from an
 inconsistency.
 
 The emulator critical path is kept as simple as possible, so the
-processing of events can keep the disk writting as the bottleneck.
+processing of events can keep the disk writing as the bottleneck.
 
-The linter mode enables more tests which are disabled from the default
+The lint mode enables more tests which are disabled from the default
 mode to prevent costly operations running in the emulator by default.
-The linter tests are enabled when running the ovni testsuite.
+The lint tests are enabled when running the ovni testsuite.
 
 ## Emulation models
 

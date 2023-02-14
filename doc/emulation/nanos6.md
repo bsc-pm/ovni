@@ -202,4 +202,4 @@ multiple times by varying the arguments with the task for clause, which breaks
 the emulation model.
 
 The task for is currently only shown in the subsystem view, but it doesn't
-appear as running any task in the the other views.
+appear as running any task in the other views.

@@ -1,4 +1,4 @@
-# Developer guide
+# Developer guidelines
 
 To contribute to the ovni project, please read carefully this guide and
 follow the guidelines to have your contribution accepted in the project.

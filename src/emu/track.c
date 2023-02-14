@@ -4,6 +4,7 @@
 #include "track.h"
 
 #include "thread.h"
+#include <stdarg.h>
 
 static const int track_nmodes[TRACK_TYPE_MAX] = {
 	[TRACK_TYPE_TH] = TRACK_TH_MAX,

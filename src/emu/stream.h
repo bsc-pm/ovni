@@ -21,6 +21,7 @@ struct stream {
 	int64_t offset;
 
 	int active;
+	int unsorted;
 
 	double progress;
 
@@ -46,6 +47,7 @@ int stream_step(struct stream *stream);
 struct ovni_ev *stream_ev(struct stream *stream);
 int64_t stream_evclock(struct stream *stream, struct ovni_ev *ev);
 int64_t stream_lastclock(struct stream *stream);
+void stream_allow_unsorted(struct stream *stream);
 
 void stream_data_set(struct stream *stream, void *data);
 void *stream_data_get(struct stream *stream);

@@ -56,7 +56,7 @@ simple(struct emu *emu)
 	int st = entry[2];
 
 	struct nosv_thread *th = EXT(emu->thread, 'V');
-	struct chan *ch = &th->ch[chind];
+	struct chan *ch = &th->m.ch[chind];
 
 	if (action == PUSH) {
 		return chan_push(ch, value_int64(st));
@@ -78,29 +78,29 @@ chan_task_stopped(struct emu *emu)
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 
 	struct value null = value_null();
-	if (chan_set(&th->ch[CH_TASKID], null) != 0) {
+	if (chan_set(&th->m.ch[CH_TASKID], null) != 0) {
 		err("chan_set taskid failed");
 		return -1;
 	}
-	if (chan_set(&th->ch[CH_TYPE], null) != 0) {
+	if (chan_set(&th->m.ch[CH_TYPE], null) != 0) {
 		err("chan_set type failed");
 		return -1;
 	}
-	if (chan_set(&th->ch[CH_APPID], null) != 0) {
+	if (chan_set(&th->m.ch[CH_APPID], null) != 0) {
 		err("chan_set appid failed");
 		return -1;
 	}
 
 	struct proc *proc = emu->proc;
 	if (proc->rank >= 0) {
-		if (chan_set(&th->ch[CH_RANK], null) != 0) {
+		if (chan_set(&th->m.ch[CH_RANK], null) != 0) {
 			err("chan_set rank failed");
 			return -1;
 		}
 	}
 
 	/* FIXME: Do we need this transition? */
-	if (chan_pop(&th->ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
+	if (chan_pop(&th->m.ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
 		err("chan_pop subsystem failed");
 		return -1;
 	}
@@ -113,7 +113,7 @@ chan_task_running(struct emu *emu, struct task *task)
 {
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct proc *proc = emu->proc;
-	struct chan *ch = th->ch;
+	struct chan *ch = th->m.ch;
 
 	if (task->id == 0) {
 		err("task id cannot be 0");
@@ -188,14 +188,14 @@ chan_task_switch(struct emu *emu,
 
 	/* No need to change the rank or app ID as we will switch 
 	 * to tasks from same thread */
-	if (chan_set(&th->ch[CH_TASKID], value_int64(next->id)) != 0) {
+	if (chan_set(&th->m.ch[CH_TASKID], value_int64(next->id)) != 0) {
 		err("chan_set taskid failed");
 		return -1;
 	}
 
 	/* TODO: test when switching to another task with the same type. We
 	 * should emit the same type state value as previous task. */
-	if (chan_set(&th->ch[CH_TYPE], value_int64(next->type->gid)) != 0) {
+	if (chan_set(&th->m.ch[CH_TYPE], value_int64(next->type->gid)) != 0) {
 		err("chan_set type failed");
 		return -1;
 	}
@@ -322,7 +322,7 @@ enforce_task_rules(struct emu *emu, char tr, struct task *next)
 
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct value ss;
-	if (chan_read(&th->ch[CH_SUBSYSTEM], &ss) != 0) {
+	if (chan_read(&th->m.ch[CH_SUBSYSTEM], &ss) != 0) {
 		err("chan_read failed");
 		return -1;
 	}

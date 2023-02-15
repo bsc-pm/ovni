@@ -8,14 +8,10 @@
 #include "chan.h"
 #include "mux.h"
 #include "task.h"
+#include "model_cpu.h"
+#include "model_thread.h"
 
 /* Private enums */
-
-enum nosv_chan_type {
-	CT_TH = 0,
-	CT_CPU,
-	CT_MAX
-};
 
 enum nosv_chan {
 	CH_TASKID = 0,
@@ -55,13 +51,12 @@ enum nosv_ss_values {
 };
 
 struct nosv_thread {
-	struct chan *ch;
-	struct track *track;
+	struct model_thread m;
 	struct task_stack task_stack;
 };
 
 struct nosv_cpu {
-	struct track *track;
+	struct model_cpu m;
 };
 
 struct nosv_proc {

@@ -1,16 +1,16 @@
-#include "nanos6_priv.h"
+#include "nosv_priv.h"
 
-static const char model_name[] = "nanos6";
-static const int model_id = '6';
+static const char model_name[] = "nosv";
+static const int model_id = 'V';
 
-struct model_spec model_nanos6 = {
+struct model_spec model_nosv = {
 	.name = model_name,
 	.model = model_id,
-	.create  = nanos6_create,
-	.connect = nanos6_connect,
-	.event   = nanos6_event,
-	.probe   = nanos6_probe,
-	.finish  = nanos6_finish,
+	.create  = nosv_create,
+	.connect = nosv_connect,
+	.event   = nosv_event,
+	.probe   = nosv_probe,
+	.finish  = nosv_finish,
 };
 
 /* ----------------- channels ------------------ */
@@ -18,78 +18,56 @@ struct model_spec model_nanos6 = {
 static const char *chan_name[CH_MAX] = {
 	[CH_TASKID]    = "taskid",
 	[CH_TYPE]      = "task_type",
+	[CH_APPID]     = "appid",
 	[CH_SUBSYSTEM] = "subsystem",
 	[CH_RANK]      = "rank",
-	[CH_THREAD]    = "thread_type",
 };
 
 static const int chan_stack[CH_MAX] = {
 	[CH_SUBSYSTEM] = 1,
-	[CH_THREAD] = 1,
 };
 
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[] = {
-	[CH_TASKID]    = 35,
-	[CH_TYPE]      = 36,
-	[CH_SUBSYSTEM] = 37,
-	[CH_RANK]      = 38,
-	[CH_THREAD]    = 39,
+	[CH_TASKID]    = 10,
+	[CH_TYPE]      = 11,
+	[CH_APPID]     = 12,
+	[CH_SUBSYSTEM] = 13,
+	[CH_RANK]      = 14,
 };
 
 static const char *pcf_prefix[CH_MAX] = {
-	[CH_TASKID]    = "Nanos6 task ID",
-	[CH_TYPE]      = "Nanos6 task type",
-	[CH_SUBSYSTEM] = "Nanos6 subsystem",
-	[CH_RANK]      = "Nanos6 task MPI rank",
-	[CH_THREAD]    = "Nanos6 thread type",
+	[CH_TASKID]      = "nOS-V task ID",
+	[CH_TYPE]        = "nOS-V task type",
+	[CH_APPID]       = "nOS-V task AppID",
+	[CH_SUBSYSTEM]   = "nOS-V subsystem",
+	[CH_RANK]        = "nOS-V task MPI rank",
 };
 
-static const struct pcf_value_label nanos6_ss_values[] = {
-	{ ST_TASK_BODY,        "Task: Running body" },
-	{ ST_TASK_CREATING,    "Task: Creating" },
-	{ ST_TASK_SUBMIT,      "Task: Submitting" },
-	{ ST_TASK_SPAWNING,    "Task: Spawning function" },
-	{ ST_TASK_FOR,         "Task: Running task for" },
-	{ ST_SCHED_SERVING,    "Scheduler: Serving tasks" },
-	{ ST_SCHED_ADDING,     "Scheduler: Adding ready tasks" },
-	{ ST_SCHED_PROCESSING, "Scheduler: Processing ready tasks" },
-	{ ST_DEP_REG,          "Dependency: Registering" },
-	{ ST_DEP_UNREG,        "Dependency: Unregistering" },
-	{ ST_BLK_TASKWAIT,     "Blocking: Taskwait" },
-	{ ST_BLK_BLOCKING,     "Blocking: Blocking current task" },
-	{ ST_BLK_UNBLOCKING,   "Blocking: Unblocking remote task" },
-	{ ST_BLK_WAITFOR,      "Blocking: Wait for deadline" },
-	{ ST_HANDLING_TASK,    "Worker: Handling task" },
-	{ ST_WORKER_LOOP,      "Worker: Looking for work" },
-	{ ST_SWITCH_TO,        "Worker: Switching to another thread" },
-	{ ST_MIGRATE,          "Worker: Migrating CPU" },
-	{ ST_SUSPEND,          "Worker: Suspending thread" },
-	{ ST_RESUME,           "Worker: Resuming another thread" },
-	{ ST_ALLOCATING,       "Memory: Allocating" },
-	{ ST_FREEING,          "Memory: Freeing" },
-
+static const struct pcf_value_label nosv_ss_values[] = {
+	{ ST_SCHED_HUNGRY,     "Scheduler: Hungry" },
+	{ ST_SCHED_SERVING,    "Scheduler: Serving" },
+	{ ST_SCHED_SUBMITTING, "Scheduler: Submitting" },
+	{ ST_MEM_ALLOCATING,   "Memory: Allocating" },
+	{ ST_MEM_FREEING,      "Memory: Freeing" },
+	{ ST_TASK_RUNNING,     "Task: Running" },
+	{ ST_API_SUBMIT,       "API: Submit" },
+	{ ST_API_PAUSE,        "API: Pause" },
+	{ ST_API_YIELD,        "API: Yield" },
+	{ ST_API_WAITFOR,      "API: Waitfor" },
+	{ ST_API_SCHEDPOINT,   "API: Scheduling point" },
+	{ ST_ATTACH,           "Thread: Attached" },
+	{ ST_WORKER,           "Thread: Worker" },
+	{ ST_DELEGATE,         "Thread: Delegate" },
 	{ EV_SCHED_SEND,       "EV Scheduler: Send task" },
 	{ EV_SCHED_RECV,       "EV Scheduler: Recv task" },
 	{ EV_SCHED_SELF,       "EV Scheduler: Self-assign task" },
-	{ EV_CPU_IDLE,         "EV CPU: Becomes idle" },
-	{ EV_CPU_ACTIVE,       "EV CPU: Becomes active" },
-	{ EV_SIGNAL,           "EV Worker: Waking another thread" },
-	{ -1, NULL },
-};
-
-static const struct pcf_value_label nanos6_thread_type[] = {
-	{ ST_TH_EXTERNAL,   "External" },
-	{ ST_TH_WORKER,     "Worker" },
-	{ ST_TH_LEADER,     "Leader" },
-	{ ST_TH_MAIN,       "Main" },
 	{ -1, NULL },
 };
 
 static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
-	[CH_SUBSYSTEM] = &nanos6_ss_values,
-	[CH_THREAD]    = &nanos6_thread_type,
+	[CH_SUBSYSTEM] = &nosv_ss_values,
 };
 
 static const struct model_pvt_spec pvt_spec = {
@@ -103,17 +81,17 @@ static const struct model_pvt_spec pvt_spec = {
 static const int th_track[CH_MAX] = {
 	[CH_TASKID]    = TRACK_TH_RUN,
 	[CH_TYPE]      = TRACK_TH_RUN,
+	[CH_APPID]     = TRACK_TH_RUN,
 	[CH_SUBSYSTEM] = TRACK_TH_ACT,
 	[CH_RANK]      = TRACK_TH_RUN,
-	[CH_THREAD]    = TRACK_TH_ANY,
 };
 
 static const int cpu_track[CH_MAX] = {
 	[CH_TASKID]    = TRACK_TH_RUN,
 	[CH_TYPE]      = TRACK_TH_RUN,
+	[CH_APPID]     = TRACK_TH_RUN,
 	[CH_SUBSYSTEM] = TRACK_TH_RUN,
 	[CH_RANK]      = TRACK_TH_RUN,
-	[CH_THREAD]    = TRACK_TH_RUN,
 };
 
 /* ----------------- chan_spec ------------------ */
@@ -139,21 +117,21 @@ static const struct model_chan_spec cpu_chan = {
 /* ----------------- models ------------------ */
 
 static const struct model_cpu_spec cpu_spec = {
-	.size = sizeof(struct nanos6_cpu),
+	.size = sizeof(struct nosv_cpu),
 	.chan = &cpu_chan,
-	.model = &model_nanos6,
+	.model = &model_nosv,
 };
 
 static const struct model_thread_spec th_spec = {
-	.size = sizeof(struct nanos6_thread),
+	.size = sizeof(struct nosv_thread),
 	.chan = &th_chan,
-	.model = &model_nanos6,
+	.model = &model_nosv,
 };
 
 /* ----------------------------------------------------- */
 
 int
-nanos6_probe(struct emu *emu)
+nosv_probe(struct emu *emu)
 {
 	if (emu->system.nthreads == 0)
 		return 1;
@@ -164,7 +142,7 @@ nanos6_probe(struct emu *emu)
 static int
 init_proc(struct proc *sysproc)
 {
-	struct nanos6_proc *proc = calloc(1, sizeof(struct nanos6_proc));
+	struct nosv_proc *proc = calloc(1, sizeof(struct nosv_proc));
 	if (proc == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -176,7 +154,7 @@ init_proc(struct proc *sysproc)
 }
 
 int
-nanos6_create(struct emu *emu)
+nosv_create(struct emu *emu)
 {
 	struct system *sys = &emu->system;
 
@@ -192,7 +170,7 @@ nanos6_create(struct emu *emu)
 
 	/* Init task stack thread pointer */
 	for (struct thread *t = sys->threads; t; t = t->gnext) {
-		struct nanos6_thread *th = EXT(t, model_id);
+		struct nosv_thread *th = EXT(t, model_id);
 		th->task_stack.thread = t;
 	}
 
@@ -207,7 +185,7 @@ nanos6_create(struct emu *emu)
 }
 
 int
-nanos6_connect(struct emu *emu)
+nosv_connect(struct emu *emu)
 {
 	if (model_thread_connect(emu, &th_spec) != 0) {
 		err("model_thread_connect failed");
@@ -230,7 +208,7 @@ end_lint(struct emu *emu)
 
 	/* Ensure we run out of subsystem states */
 	for (struct thread *t = sys->threads; t; t = t->gnext) {
-		struct nanos6_thread *th = EXT(t, model_id);
+		struct nosv_thread *th = EXT(t, model_id);
 		struct chan *ch = &th->m.ch[CH_SUBSYSTEM];
 		int stacked = ch->data.stack.n;
 		if (stacked > 0) {
@@ -240,7 +218,7 @@ end_lint(struct emu *emu)
 				return -1;
 			}
 
-			err("thread %d ended with %d stacked nanos6 subsystems\n",
+			err("thread %d ended with %d stacked nosv subsystems\n",
 					t->tid, stacked);
 			return -1;
 		}
@@ -265,7 +243,7 @@ finish_pvt(struct emu *emu, const char *name)
 	struct pcf_type *pcftype = pcf_find_type(pcf, typeid);
 
 	for (struct proc *p = sys->procs; p; p = p->gnext) {
-		struct nanos6_proc *proc = EXT(p, model_id);
+		struct nosv_proc *proc = EXT(p, model_id);
 		struct task_info *info = &proc->task_info;
 		if (task_create_pcf_types(pcftype, info->types) != 0) {
 			err("task_create_pcf_types failed");
@@ -277,7 +255,7 @@ finish_pvt(struct emu *emu, const char *name)
 }
 
 int
-nanos6_finish(struct emu *emu)
+nosv_finish(struct emu *emu)
 {
 	/* Fill task types */
 	if (finish_pvt(emu, "thread") != 0) {

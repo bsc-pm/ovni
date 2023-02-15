@@ -5,8 +5,6 @@
 #define NOSV_PRIV_H
 
 #include "emu.h"
-#include "chan.h"
-#include "mux.h"
 #include "task.h"
 #include "model_cpu.h"
 #include "model_thread.h"
@@ -20,13 +18,6 @@ enum nosv_chan {
 	CH_SUBSYSTEM,
 	CH_RANK,
 	CH_MAX,
-};
-
-enum nosv_track {
-	NONE = 0,
-	RUN_TH,
-	ACT_TH,
-	TRACK_MAX,
 };
 
 enum nosv_ss_values {
@@ -68,10 +59,5 @@ int nosv_create(struct emu *emu);
 int nosv_connect(struct emu *emu);
 int nosv_event(struct emu *emu);
 int nosv_finish(struct emu *emu);
-
-int nosv_init_pvt(struct emu *emu);
-int nosv_finish_pvt(struct emu *emu);
-const char *nosv_ss_name(int ss);
-int nosv_get_track(int c, int type);
 
 #endif /* NOSV_PRIV_H */

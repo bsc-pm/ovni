@@ -5,13 +5,9 @@
 #define NANOS6_PRIV_H
 
 #include "emu.h"
-#include "chan.h"
-#include "mux.h"
 #include "task.h"
-#include "track.h"
 #include "model_cpu.h"
 #include "model_thread.h"
-#include "model_pvt.h"
 
 /* Private enums */
 

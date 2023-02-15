@@ -1,7 +1,7 @@
 #include "nosv_priv.h"
 
 static const char model_name[] = "nosv";
-static const int model_id = 'V';
+enum { model_id = 'V' };
 
 struct model_spec model_nosv = {
 	.name = model_name,

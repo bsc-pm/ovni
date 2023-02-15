@@ -1,7 +1,7 @@
 #include "nodes_priv.h"
 
 static const char model_name[] = "nodes";
-static const int model_id = 'D';
+enum { model_id = 'D' };
 
 struct model_spec model_nodes = {
 	.name = model_name,

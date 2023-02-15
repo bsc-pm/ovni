@@ -1,7 +1,7 @@
 #include "kernel_priv.h"
 
 static const char model_name[] = "kernel";
-static const int model_id = 'K';
+enum { model_id = 'K' };
 
 struct model_spec model_kernel = {
 	.name = model_name,

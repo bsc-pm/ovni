@@ -1,7 +1,7 @@
 #include "nanos6_priv.h"
 
 static const char model_name[] = "nanos6";
-static const int model_id = '6';
+enum { model_id = '6' };
 
 struct model_spec model_nanos6 = {
 	.name = model_name,

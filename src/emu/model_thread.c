@@ -1,0 +1,112 @@
+#include "model_thread.h"
+
+#include "model_pvt.h"
+
+static int
+init_chan(struct model_thread *th, const struct model_chan_spec *spec, int64_t gindex)
+{
+	const char *fmt = "%s.thread%ld.%s";
+	const char *prefix = spec->prefix;
+
+	th->ch = calloc(spec->nch, sizeof(struct chan));
+	if (th->ch == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	for (int i = 0; i < spec->nch; i++) {
+		struct chan *c = &th->ch[i];
+		int type = spec->ch_stack[i];
+		const char *ch_name = spec->ch_names[i];
+		chan_init(c, type, fmt, prefix, gindex, ch_name);
+
+		if (bay_register(th->bay, c) != 0) {
+			err("bay_register failed");
+			return -1;
+		}
+	}
+
+	th->track = calloc(spec->nch, sizeof(struct track));
+	if (th->track == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	for (int i = 0; i < spec->nch; i++) {
+		struct track *track = &th->track[i];
+
+		const char *ch_name = spec->ch_names[i];
+
+		if (track_init(track, th->bay, TRACK_TYPE_TH, fmt,
+					prefix, gindex, ch_name) != 0) {
+			err("track_init failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+init_thread(struct thread *systh, struct bay *bay, const struct model_thread_spec *spec)
+{
+	struct model_thread *th = calloc(1, spec->size);
+	if (th == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	th->spec = spec;
+	th->bay = bay;
+
+	if (init_chan(th, spec->chan, systh->gindex) != 0) {
+		err("init_chan failed");
+		return -1;
+	}
+
+	extend_set(&systh->ext, spec->model->model, th);
+
+	return 0;
+}
+
+int
+model_thread_create(struct emu *emu, const struct model_thread_spec *spec)
+{
+	struct system *sys = &emu->system;
+	struct bay *bay = &emu->bay;
+
+	for (struct thread *t = sys->threads; t; t = t->gnext) {
+		if (init_thread(t, bay, spec) != 0) {
+			err("init_thread failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+int
+model_thread_connect(struct emu *emu, const struct model_thread_spec *spec)
+{
+	int id = spec->model->model;
+	struct system *sys = &emu->system;
+
+	for (struct thread *t = sys->threads; t; t = t->gnext) {
+		struct model_thread *th = EXT(t, id);
+		struct chan *sel = &t->chan[TH_CHAN_STATE];
+		const int *modes = th->spec->chan->track;
+		int nch = th->spec->chan->nch;
+		if (track_connect_thread(th->track, th->ch, modes, sel, nch) != 0) {
+			err("track_thread failed");
+			return -1;
+		}
+	}
+
+	/* Connect channels to Paraver trace */
+	if (model_pvt_connect_thread(emu, spec) != 0) {
+		err("model_pvt_connect_thread failed");
+		return -1;
+	}
+
+	return 0;
+}

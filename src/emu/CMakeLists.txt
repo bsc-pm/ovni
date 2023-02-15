@@ -18,6 +18,9 @@ add_library(emu STATIC
   emu_args.c
   emu_ev.c
   model.c
+  model_cpu.c
+  model_thread.c
+  model_pvt.c
   models.c
   player.c
   stream.c
@@ -40,12 +43,8 @@ add_library(emu STATIC
   ovni/probe.c
   ovni/create.c
   ovni/event.c
-  nanos6/probe.c
-  nanos6/connect.c
-  nanos6/create.c
+  nanos6/setup.c
   nanos6/event.c
-  nanos6/pvt.c
-  nanos6/finish.c
   nosv/probe.c
   nosv/connect.c
   nosv/create.c

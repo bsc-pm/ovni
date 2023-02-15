@@ -9,14 +9,11 @@
 #include "mux.h"
 #include "task.h"
 #include "track.h"
+#include "model_cpu.h"
+#include "model_thread.h"
+#include "model_pvt.h"
 
 /* Private enums */
-
-enum nanos6_chan_type {
-	CT_TH = 0,
-	CT_CPU,
-	CT_MAX
-};
 
 enum nanos6_chan {
 	CH_TASKID = 0,
@@ -68,13 +65,12 @@ enum nanos6_thread_type {
 };
 
 struct nanos6_thread {
-	struct chan *ch;
-	struct track *track;
+	struct model_thread m;
 	struct task_stack task_stack;
 };
 
 struct nanos6_cpu {
-	struct track *track;
+	struct model_cpu m;
 };
 
 struct nanos6_proc {
@@ -86,10 +82,5 @@ int nanos6_create(struct emu *emu);
 int nanos6_connect(struct emu *emu);
 int nanos6_event(struct emu *emu);
 int nanos6_finish(struct emu *emu);
-
-int nanos6_init_pvt(struct emu *emu);
-int nanos6_finish_pvt(struct emu *emu);
-const char *nanos6_ss_name(int ss);
-int nanos6_get_track(enum nanos6_chan c, enum nanos6_chan_type type);
 
 #endif /* NANOS6_PRIV_H */

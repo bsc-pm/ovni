@@ -7,7 +7,7 @@
 #include "emu_hook.h"
 
 struct model_spec {
-	char *name;
+	const char *name;
 	int model;
 	char *depends;
 	emu_hook_t *probe;

@@ -5,17 +5,10 @@
 #define NODES_PRIV_H
 
 #include "emu.h"
-#include "chan.h"
-#include "mux.h"
-#include "task.h"
+#include "model_cpu.h"
+#include "model_thread.h"
 
 /* Private enums */
-
-enum nodes_chan_type {
-	CT_TH = 0,
-	CT_CPU,
-	CT_MAX
-};
 
 enum nodes_chan {
 	CH_SUBSYSTEM = 0,
@@ -34,12 +27,11 @@ enum nodes_ss_values {
 };
 
 struct nodes_thread {
-	struct chan *ch;
-	struct track *track;
+	struct model_thread m;
 };
 
 struct nodes_cpu {
-	struct track *track;
+	struct model_cpu m;
 };
 
 int nodes_probe(struct emu *emu);
@@ -47,10 +39,5 @@ int nodes_create(struct emu *emu);
 int nodes_connect(struct emu *emu);
 int nodes_event(struct emu *emu);
 int nodes_finish(struct emu *emu);
-
-int nodes_init_pvt(struct emu *emu);
-int nodes_finish_pvt(struct emu *emu);
-const char *nodes_ss_name(int ss);
-int nodes_get_track(int c, int type);
 
 #endif /* NODES_PRIV_H */

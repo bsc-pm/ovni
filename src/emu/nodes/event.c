@@ -48,7 +48,7 @@ simple(struct emu *emu)
 	int st = entry[2];
 
 	struct nodes_thread *th = EXT(emu->thread, 'D');
-	struct chan *ch = &th->ch[chind];
+	struct chan *ch = &th->m.ch[chind];
 
 	if (action == PUSH) {
 		return chan_push(ch, value_int64(st));

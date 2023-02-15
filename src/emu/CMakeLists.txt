@@ -47,12 +47,8 @@ add_library(emu STATIC
   nanos6/event.c
   nosv/setup.c
   nosv/event.c
-  nodes/probe.c
-  nodes/connect.c
-  nodes/create.c
+  nodes/setup.c
   nodes/event.c
-  nodes/pvt.c
-  nodes/finish.c
 )
 
 add_executable(ovniemu ovniemu.c)

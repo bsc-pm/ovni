@@ -49,6 +49,8 @@ add_library(emu STATIC
   nosv/event.c
   nodes/setup.c
   nodes/event.c
+  kernel/setup.c
+  kernel/event.c
 )
 
 add_executable(ovniemu ovniemu.c)

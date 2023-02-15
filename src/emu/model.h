@@ -26,7 +26,7 @@ struct model {
 };
 
 void model_init(struct model *model);
-void model_register(struct model *model, struct model_spec *spec);
+int model_register(struct model *model, struct model_spec *spec);
 
 int model_probe(struct model *model, struct emu *emu);
 int model_create(struct model *model, struct emu *emu);

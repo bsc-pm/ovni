@@ -14,14 +14,21 @@ model_init(struct model *model)
 	memset(model, 0, sizeof(struct model));
 }
 
-void
+int
 model_register(struct model *model, struct model_spec *spec)
 {
 	int i = spec->model;
+
+	if (model->registered[i]) {
+		err("model %c already registered", i);
+		return -1;
+	}
+
 	model->spec[i] = spec;
 	model->registered[i] = 1;
 
 	dbg("registered model %c", (char) i);
+	return 0;
 }
 
 int

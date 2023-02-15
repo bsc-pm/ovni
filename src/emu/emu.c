@@ -46,7 +46,7 @@ emu_init(struct emu *emu, int argc, char *argv[])
 	}
 
 	if (player_init(&emu->player, &emu->trace) != 0) {
-		err("emu_init: cannot init player for trace '%s'\n",
+		err("cannot init player for trace '%s'\n",
 				emu->args.tracedir);
 		return -1;
 	}
@@ -54,7 +54,10 @@ emu_init(struct emu *emu, int argc, char *argv[])
 	model_init(&emu->model);
 
 	/* Register all the models */
-	models_register(&emu->model);
+	if (models_register(&emu->model) != 0) {
+		err("failed to register models");
+		return -1;
+	}
 
 	if (model_probe(&emu->model, emu) != 0) {
 		err("model_probe failed");

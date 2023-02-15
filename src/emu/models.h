@@ -6,7 +6,7 @@
 
 #include "model.h"
 
-void
+int
 models_register(struct model *model);
 
 #endif /* MODELS_H */

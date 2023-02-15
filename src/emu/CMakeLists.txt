@@ -58,10 +58,10 @@ target_link_libraries(ovniemu emu parson-static ovni-static)
 
 add_executable(ovnidump ovnidump.c)
 target_link_libraries(ovnidump emu parson-static ovni-static)
-#
-#add_executable(ovnisort ovnisort.c)
-#target_link_libraries(ovnisort emu trace)
-#
+
+add_executable(ovnisort ovnisort.c)
+target_link_libraries(ovnisort emu parson-static ovni-static)
+
 ## Use <PackageName>_ROOT variables if available, commonly used by MPI
 ## installations
 #if(POLICY CMP0074)

@@ -423,6 +423,9 @@ process_ev(struct emu *emu)
 			return pre_cpu(emu);
 		case 'F':
 			return pre_flush(emu);
+		case 'U':
+			/* Ignore sorting events */
+			return 0;
 		default:
 			err("unknown ovni event category %c\n",
 					emu->ev->c);

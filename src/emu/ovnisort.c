@@ -238,13 +238,13 @@ execute_sort_plan(struct sortplan *sp)
 
 /* Sort the events in the stream chronologically using a ring */
 static int
-stream_winsort(struct ovni_stream *stream, struct ring *r)
+stream_winsort(struct stream *stream, struct ring *r)
 {
-	char *fn = stream->thread->tracefile;
+	char *fn = stream->path;
 	int fd = open(fn, O_WRONLY);
 
 	if (fd < 0)
-		die("open %s failed: %s\n", fn, strerror(errno));
+		die("open %s failed:", fn);
 
 	ring_reset(r);
 
@@ -256,9 +256,10 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 	size_t empty_regions = 0;
 	size_t updated = 0;
 	char st = 'S';
+	int ret = 0;
 
-	while (ovni_load_next_event(stream) == 0) {
-		struct ovni_ev *ev = stream->cur_ev;
+	while ((ret = stream_step(stream)) == 0) {
+		struct ovni_ev *ev = stream_ev(stream);
 
 		if (st == 'S' && starts_unsorted_region(ev)) {
 			st = 'U';
@@ -276,10 +277,11 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 			if (ends_unsorted_region(ev)) {
 				updated = 1;
 				sp.next = ev;
-				dbg("executing sort plan for stream tid=%d\n", stream->tid);
+				dbg("executing sort plan for stream %s\n",
+						stream->relpath);
 				if (execute_sort_plan(&sp) < 0) {
-					err("sort failed for stream tid=%d\n",
-							stream->tid);
+					err("sort failed for stream %s\n",
+							stream->relpath);
 					return -1;
 				}
 
@@ -294,9 +296,14 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 		ring_add(r, ev);
 	}
 
+	if (ret < 0) {
+		err("stream_step failed");
+		return -1;
+	}
+
 	if (empty_regions > 0)
-		err("warning: stream %d contains %ld empty sort regions\n",
-				stream->tid, empty_regions);
+		err("warning: stream %s contains %ld empty sort regions\n",
+				stream->relpath, empty_regions);
 
 	if (updated && fdatasync(fd) < 0)
 		die("fdatasync %s failed: %s\n", fn, strerror(errno));
@@ -309,33 +316,44 @@ stream_winsort(struct ovni_stream *stream, struct ring *r)
 
 /* Ensures that each individual stream is sorted */
 static int
-stream_check(struct ovni_stream *stream)
+stream_check(struct stream *stream)
 {
-	if (ovni_load_next_event(stream) != 0)
+	int ret = stream_step(stream);
+	if (ret < 0) {
+		err("stream_step failed");
+		return -1;
+	}
+
+	/* Reached the end */
+	if (ret != 0)
 		return 0;
 
-	struct ovni_ev *ev = stream->cur_ev;
+	struct ovni_ev *ev = stream_ev(stream);
 	uint64_t last_clock = ev->header.clock;
-	int ret = 0;
 
-	while (ovni_load_next_event(stream) == 0) {
-		ev = stream->cur_ev;
+	while ((ret = stream_step(stream)) == 0) {
+		ev = stream_ev(stream);
 		uint64_t cur_clock = ovni_ev_get_clock(ev);
 
 		if (cur_clock < last_clock) {
-			err("backwards jump in time %ld -> %ld for stream tid=%d\n",
-					last_clock, cur_clock, stream->tid);
+			err("backwards jump in time %ld -> %ld for stream %s\n",
+					last_clock, cur_clock, stream->relpath);
 			ret = -1;
 		}
 
 		last_clock = cur_clock;
 	}
 
+	if (ret < 0) {
+		err("stream_step failed");
+		return -1;
+	}
+
 	return ret;
 }
 
 static int
-process_trace(struct ovni_trace *trace)
+process_trace(struct trace *trace)
 {
 	struct ring ring;
 	int ret = 0;
@@ -346,19 +364,20 @@ process_trace(struct ovni_trace *trace)
 	if (ring.ev == NULL)
 		die("malloc failed: %s\n", strerror(errno));
 
-	for (size_t i = 0; i < trace->nstreams; i++) {
-		struct ovni_stream *stream = &trace->stream[i];
+	for (struct stream *stream = trace->streams; stream; stream = stream->next) {
+		stream_allow_unsorted(stream);
+
 		if (operation_mode == SORT) {
-			dbg("sorting stream tid=%d\n", stream->tid);
+			dbg("sorting stream %s\n", stream->relpath);
 			if (stream_winsort(stream, &ring) != 0) {
-				err("sort stream tid=%d failed\n", stream->tid);
+				err("sort stream %s failed\n", stream->relpath);
 				/* When sorting, return at the first
 				 * attempt */
 				return -1;
 			}
 		} else {
 			if (stream_check(stream) != 0) {
-				err("stream tid=%d is not sorted\n", stream->tid);
+				err("stream %s is not sorted\n", stream->relpath);
 				/* When checking, report all errors and
 				 * then fail */
 				ret = -1;
@@ -427,31 +446,29 @@ parse_args(int argc, char *argv[])
 int
 main(int argc, char *argv[])
 {
-	int ret = 0;
+	progname_set("ovnisort");
 
 	parse_args(argc, argv);
 
-	struct ovni_trace *trace = calloc(1, sizeof(struct ovni_trace));
+	struct trace *trace = calloc(1, sizeof(struct trace));
 
 	if (trace == NULL) {
-		perror("calloc");
-		exit(EXIT_FAILURE);
+		err("calloc failed:");
+		return 1;
 	}
 
-	if (ovni_load_trace(trace, tracedir))
+	if (trace_load(trace, tracedir) != 0) {
+		err("failed to load trace: %s", tracedir);
 		return 1;
+	}
 
-	if (ovni_load_streams(trace))
+	if (process_trace(trace) != 0) {
+		err("failed to process trace: %s", tracedir);
 		return 1;
+	}
 
-	if (process_trace(trace))
-		ret = 1;
-
-	ovni_free_streams(trace);
-
-	ovni_free_trace(trace);
 
 	free(trace);
 
-	return ret;
+	return 0;
 }

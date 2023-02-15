@@ -21,7 +21,7 @@ static void
 emit_jumbo(uint8_t *buf, size_t size, int64_t clock)
 {
 	struct ovni_ev ev = {0};
-	ovni_ev_set_mcv(&ev, "O$$");
+	ovni_ev_set_mcv(&ev, "OUj");
 	ovni_ev_set_clock(&ev, clock);
 	ovni_ev_jumbo_emit(&ev, buf, size);
 }

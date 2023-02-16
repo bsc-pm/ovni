@@ -6,6 +6,7 @@
 #include "emu_args.h"
 
 #include "common.h"
+#include "path.h"
 #include <unistd.h>
 #include <string.h>
 
@@ -59,4 +60,5 @@ emu_args_init(struct emu_args *args, int argc, char *argv[])
 	}
 
 	args->tracedir = argv[optind];
+	path_remove_trailing(args->tracedir);
 }

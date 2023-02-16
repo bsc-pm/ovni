@@ -27,6 +27,11 @@ static const int chan_stack[CH_MAX] = {
 	[CH_SUBSYSTEM] = 1,
 };
 
+static const int chan_dup[CH_MAX] = {
+	[CH_APPID] = 1,
+	[CH_TYPE] = 1,
+};
+
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[] = {
@@ -101,6 +106,7 @@ static const struct model_chan_spec th_chan = {
 	.prefix = model_name,
 	.ch_names = chan_name,
 	.ch_stack = chan_stack,
+	.ch_dup = chan_dup,
 	.pvt = &pvt_spec,
 	.track = th_track,
 };

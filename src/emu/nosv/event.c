@@ -76,31 +76,31 @@ static int
 chan_task_stopped(struct emu *emu)
 {
 	struct nosv_thread *th = EXT(emu->thread, 'V');
+	struct chan *ch = th->m.ch;
 
 	struct value null = value_null();
-	if (chan_set(&th->m.ch[CH_TASKID], null) != 0) {
+	if (chan_set(&ch[CH_TASKID], null) != 0) {
 		err("chan_set taskid failed");
 		return -1;
 	}
-	if (chan_set(&th->m.ch[CH_TYPE], null) != 0) {
+	if (chan_set(&ch[CH_TYPE], null) != 0) {
 		err("chan_set type failed");
 		return -1;
 	}
-	if (chan_set(&th->m.ch[CH_APPID], null) != 0) {
+	if (chan_set(&ch[CH_APPID], null) != 0) {
 		err("chan_set appid failed");
 		return -1;
 	}
 
 	struct proc *proc = emu->proc;
 	if (proc->rank >= 0) {
-		if (chan_set(&th->m.ch[CH_RANK], null) != 0) {
+		if (chan_set(&ch[CH_RANK], null) != 0) {
 			err("chan_set rank failed");
 			return -1;
 		}
 	}
 
-	/* FIXME: Do we need this transition? */
-	if (chan_pop(&th->m.ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
+	if (chan_pop(&ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
 		err("chan_pop subsystem failed");
 		return -1;
 	}
@@ -156,10 +156,10 @@ chan_task_running(struct emu *emu, struct task *task)
 }
 
 static int
-chan_task_switch(struct emu *emu,
-		struct task *prev, struct task *next)
+chan_task_switch(struct emu *emu, struct task *prev, struct task *next, char tr)
 {
 	struct nosv_thread *th = EXT(emu->thread, 'V');
+	struct chan *ch = th->m.ch;
 
 	if (!prev || !next) {
 		err("cannot switch to or from a NULL task");
@@ -188,16 +188,30 @@ chan_task_switch(struct emu *emu,
 
 	/* No need to change the rank or app ID as we will switch 
 	 * to tasks from same thread */
-	if (chan_set(&th->m.ch[CH_TASKID], value_int64(next->id)) != 0) {
+	if (chan_set(&ch[CH_TASKID], value_int64(next->id)) != 0) {
 		err("chan_set taskid failed");
 		return -1;
 	}
 
 	/* TODO: test when switching to another task with the same type. We
 	 * should emit the same type state value as previous task. */
-	if (chan_set(&th->m.ch[CH_TYPE], value_int64(next->type->gid)) != 0) {
+	if (chan_set(&ch[CH_TYPE], value_int64(next->type->gid)) != 0) {
 		err("chan_set type failed");
 		return -1;
+	}
+
+	/* Update the subsystem depending if we are pushing (X) or
+	 * poping (E) a task from the stack */
+	if (tr == 'X') {
+		if (chan_push(&ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
+			err("chan_push subsystem failed");
+			return -1;
+		}
+	} else if (tr == 'E') {
+		if (chan_pop(&ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
+			err("chan_pop subsystem failed");
+			return -1;
+		}
 	}
 
 	return 0;
@@ -275,8 +289,7 @@ expand_transition_value(struct emu *emu, int was_running, int runs_now, char *tr
 }
 
 static int
-update_task_channels(struct emu *emu,
-		char tr, struct task *prev, struct task *next)
+update_task_channels(struct emu *emu, char tr, struct task *prev, struct task *next)
 {
 	int ret = 0;
 	switch (tr) {
@@ -291,7 +304,7 @@ update_task_channels(struct emu *emu,
 			/* Additional nested transitions */
 		case 'X':
 		case 'E':
-			ret = chan_task_switch(emu, prev, next);
+			ret = chan_task_switch(emu, prev, next, tr);
 			break;
 		default:
 			err("unexpected transition value %c", tr);
@@ -307,8 +320,22 @@ update_task_channels(struct emu *emu,
 }
 
 static int
-enforce_task_rules(struct emu *emu, char tr, struct task *next)
+enforce_task_rules(struct emu *emu, char tr, struct task_stack *stack, struct task *next)
 {
+	struct nosv_thread *th = EXT(emu->thread, 'V');
+	struct value ss;
+	if (chan_read(&th->m.ch[CH_SUBSYSTEM], &ss) != 0) {
+		err("chan_read failed");
+		return -1;
+	}
+
+	/* If there is no task in the stack, the subsystem must not be
+	 * running a task */
+	if (stack->top == NULL && ss.type == VALUE_INT64 && ss.i == ST_TASK_RUNNING) {
+		err("task stack empty but subsystem is Task running");
+		return -1;
+	}
+
 	if (tr != 'x' && tr != 'X')
 		return 0;
 
@@ -320,17 +347,9 @@ enforce_task_rules(struct emu *emu, char tr, struct task *next)
 		return -1;
 	}
 
-	struct nosv_thread *th = EXT(emu->thread, 'V');
-	struct value ss;
-	if (chan_read(&th->m.ch[CH_SUBSYSTEM], &ss) != 0) {
-		err("chan_read failed");
-		return -1;
-	}
-
 	if (ss.type == VALUE_INT64 && ss.i != ST_TASK_RUNNING) {
 		err("wrong subsystem state on task begin");
-		//return -1;
-		return 0; // FIXME
+		return -1;
 	}
 
 	return 0;
@@ -352,18 +371,21 @@ update_task(struct emu *emu)
 
 	struct task *next = task_get_running(stack);
 
+	char tr;
 	int was_running = (prev != NULL);
 	int runs_now = (next != NULL);
-	char tr;
 	if (expand_transition_value(emu, was_running, runs_now, &tr) != 0) {
 		err("expand_transition_value failed");
 		return -1;
 	}
 
 	/* Update the task related channels now */
-	update_task_channels(emu, tr, prev, next);
+	if (update_task_channels(emu, tr, prev, next) != 0) {
+		err("update_task_channels failed");
+		return -1;
+	}
 
-	if (enforce_task_rules(emu, tr, next) != 0) {
+	if (enforce_task_rules(emu, tr, stack, next) != 0) {
 		err("enforce_task_rules failed");
 		return -1;
 	}

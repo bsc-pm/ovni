@@ -3,7 +3,7 @@
 
 #define _POSIX_C_SOURCE 2
 
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 #include "emu.h"
 
@@ -45,7 +45,7 @@ emu_init(struct emu *emu, int argc, char *argv[])
 		return -1;
 	}
 
-	if (player_init(&emu->player, &emu->trace) != 0) {
+	if (player_init(&emu->player, &emu->trace, 0) != 0) {
 		err("cannot init player for trace '%s'\n",
 				emu->args.tracedir);
 		return -1;

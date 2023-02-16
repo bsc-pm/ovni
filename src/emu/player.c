@@ -89,7 +89,7 @@ check_clock_gate(struct trace *trace)
 }
 
 int
-player_init(struct player *player, struct trace *trace)
+player_init(struct player *player, struct trace *trace, int unsorted)
 {
 	memset(player, 0, sizeof(struct player));
 
@@ -98,10 +98,14 @@ player_init(struct player *player, struct trace *trace)
 	player->first_event = 1;
 	player->stream = NULL;
 	player->trace = trace;
+	player->unsorted = unsorted;
 
 	/* Load initial streams and events */
 	struct stream *stream;
 	DL_FOREACH(trace->streams, stream) {
+		if (unsorted)
+			stream_allow_unsorted(stream);
+
 		int ret = step_stream(player, stream);
 		if (ret > 0) {
 			/* No more events */
@@ -114,8 +118,8 @@ player_init(struct player *player, struct trace *trace)
 
 	/* Ensure the first event sclocks are not too far apart. Otherwise an
 	 * offset table is mandatory. */
-	if (check_clock_gate(trace) != 0) {
-		err("check_clock_gate failed\n");
+	if (unsorted == 0 && check_clock_gate(trace) != 0) {
+		err("check_clock_gate failed");
 		return -1;
 	}
 
@@ -147,9 +151,10 @@ update_clocks(struct player *player, struct stream *stream)
 	}
 
 	if (sclock < player->lastclock) {
-		err("backwards jump in time %ld -> %ld in stream '%s'\n",
+		err("backwards jump in time %ld -> %ld in stream '%s'",
 				player->lastclock, sclock, stream->relpath);
-		return -1;
+		if (player->unsorted == 0)
+			return -1;
 	}
 
 	player->lastclock = sclock;

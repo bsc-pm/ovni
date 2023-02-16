@@ -16,11 +16,12 @@ struct player {
 	int64_t lastclock;
 	int64_t deltaclock;
 	int first_event;
+	int unsorted;
 	struct stream *stream;
 	struct emu_ev ev;
 };
 
-int player_init(struct player *player, struct trace *trace);
+int player_init(struct player *player, struct trace *trace, int unsorted);
 int player_step(struct player *player);
 struct emu_ev *player_ev(struct player *player);
 struct stream *player_stream(struct player *player);

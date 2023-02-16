@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (player_init(player, trace) != 0) {
+	if (player_init(player, trace, 1) != 0) {
 		err("player_init failed");
 		return 1;
 	}

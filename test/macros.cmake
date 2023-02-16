@@ -42,9 +42,13 @@ function(unit_test source)
     COMMAND "${OVNI_TEST_NAME}"
     WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
 
+  list(APPEND OVNI_TEST_ENV
+    "OVNI_CONFIG_DIR=${CMAKE_SOURCE_DIR}/cfg")
+
   set_tests_properties("${OVNI_TEST_NAME}"
     PROPERTIES
       RUN_SERIAL TRUE
+      ENVIRONMENT "${OVNI_TEST_ENV}"
       WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
 endfunction(unit_test)
 

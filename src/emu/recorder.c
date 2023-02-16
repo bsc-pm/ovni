@@ -5,6 +5,8 @@
 
 #include "recorder.h"
 
+#include "pv/cfg.h"
+
 int
 recorder_init(struct recorder *rec, const char *dir)
 {
@@ -73,6 +75,12 @@ recorder_finish(struct recorder *rec)
 			err("pvt_close failed");
 			return -1;
 		}
+	}
+
+	/* TODO: Use configs per pvt */
+	if (cfg_generate(rec->dir) != 0) {
+		err("cfg_generate failed");
+		return -1;
 	}
 
 	return 0;

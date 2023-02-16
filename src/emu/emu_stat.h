@@ -11,6 +11,7 @@ struct emu_stat {
 	double in_progress;
 	double period;
 	double last_time;
+	double first_time;
 };
 
 void emu_stat_init(struct emu_stat *stat, double period_seconds);

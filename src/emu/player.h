@@ -15,6 +15,7 @@ struct player {
 	int64_t firstclock;
 	int64_t lastclock;
 	int64_t deltaclock;
+	int64_t nprocessed;
 	int first_event;
 	int unsorted;
 	struct stream *stream;
@@ -26,5 +27,6 @@ int player_step(struct player *player);
 struct emu_ev *player_ev(struct player *player);
 struct stream *player_stream(struct player *player);
 double player_progress(struct player *player);
+int64_t player_nprocessed(struct player *player);
 
 #endif /* EMU_PLAYER_H */

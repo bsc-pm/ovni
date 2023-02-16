@@ -49,6 +49,8 @@ step_stream(struct player *player, struct stream *stream)
 
 	heap_insert(&player->heap, &stream->hh, &stream_cmp);
 
+	player->nprocessed++;
+
 	return 0;
 }
 
@@ -232,4 +234,10 @@ player_progress(struct player *player)
 	done /= (double) n;
 
 	return done;
+}
+
+int64_t
+player_nprocessed(struct player *player)
+{
+	return player->nprocessed;
 }

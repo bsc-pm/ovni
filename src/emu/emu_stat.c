@@ -22,20 +22,33 @@ emu_stat_init(struct emu_stat *stat, double period_seconds)
 	memset(stat, 0, sizeof(struct emu_stat));
 
 	stat->period = period_seconds;
+	double t = get_time();
+	stat->last_time = t;
+	stat->first_time = t;
 }
 
 void
 emu_stat_report(struct emu_stat *stat, struct player *player)
 {
-	double t = get_time();
+	double progress = player_progress(player);
+	int64_t nprocessed = player_nprocessed(player);
 
-	stat->in_progress = player_progress(player);
+	double time_now = get_time();
+	double time_elapsed = time_now - stat->first_time;
+	double time_total = time_elapsed / progress;
+	double time_left = time_total - time_elapsed;
 
-	double iprog = stat->in_progress * 100.0;
+	/* Compute average speed since the beginning */
+	double speed = 0.0;
+	if (time_elapsed > 0.0)
+		speed = (double) nprocessed / time_elapsed;
 
-	err("%.1f%% done", iprog);
+	verr(NULL, "%5.1f%% done at %.0f kev/s (%.1f s left)",
+			progress * 100.0,
+			speed * 1e-3,
+			time_left);
 
-	stat->last_time = t;
+	stat->last_time = time_now;
 }
 
 void

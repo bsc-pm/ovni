@@ -11,6 +11,7 @@ struct model_chan_spec {
 	const char *prefix;
 	const char **ch_names;
 	const int *ch_stack;
+	const int *ch_dup;
 	const struct model_pvt_spec *pvt;
 	const int *track;
 };

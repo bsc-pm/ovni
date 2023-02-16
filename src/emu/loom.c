@@ -13,13 +13,16 @@
 static void
 set_hostname(char host[PATH_MAX], const char name[PATH_MAX])
 {
+	/* Skip prefix */
+	const char *start = name + strlen("loom.");
+
 	/* Copy until dot or end */
 	int i;
 	for (i = 0; i < PATH_MAX - 1; i++) {
-		if (name[i] == '.' || name[i] == '\0')
+		if (start[i] == '.' || start[i] == '\0')
 			break;
 
-		host[i] = name[i];
+		host[i] = start[i];
 	}
 
 	host[i] = '\0';

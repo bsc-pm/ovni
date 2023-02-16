@@ -35,6 +35,18 @@ test_bad_name(struct loom *loom)
 }
 
 static void
+test_hostname(struct loom *loom)
+{
+	if (loom_init_begin(loom, "loom.node1.blah") != 0)
+		die("loom_init_begin failed");
+
+	if (strcmp(loom->hostname, "node1") != 0)
+		die("wrong hostname: %s", loom->hostname);
+
+	err("ok");
+}
+
+static void
 test_negative_cpu(struct loom *loom)
 {
 	if (loom_init_begin(loom, testloom) != 0)
@@ -125,6 +137,7 @@ int main(void)
 	struct loom loom;
 
 	test_bad_name(&loom);
+	test_hostname(&loom);
 	test_negative_cpu(&loom);
 	test_duplicate_cpus(&loom);
 	//test_sort_cpus(&loom);

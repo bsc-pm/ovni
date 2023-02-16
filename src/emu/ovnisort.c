@@ -59,7 +59,7 @@ enum operation_mode { SORT,
 
 static char *tracedir = NULL;
 static enum operation_mode operation_mode = SORT;
-static const size_t max_look_back = 100000;
+static const size_t max_look_back = 1000000;
 
 static void
 ring_reset(struct ring *r)

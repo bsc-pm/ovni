@@ -49,14 +49,14 @@ main(void)
 	int64_t t0 = ovni_clock_now();
 
 	/* Leave some room to prevent clashes */
-	usleep(10000); /* 10000000 ns */
+	usleep(100000); /* 100000000 ns */
 
 	int64_t t1 = ovni_clock_now();
 
 	emit("OU[", t1);
 
 	/* Fill the ring buffer */
-	long n = 100000 + 10;
+	long n = 1000000 + 10;
 
 	err("using n=%ld events\n", n);
 

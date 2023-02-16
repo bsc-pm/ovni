@@ -23,7 +23,7 @@ pre_thread_execute(struct emu *emu, struct thread *th)
 
 	if (cpu == NULL) {
 		err("cannot find CPU with phyid %d in loom %s",
-				cpuid, emu->loom->id)
+				cpuid, emu->loom->id);
 		return -1;
 	}
 

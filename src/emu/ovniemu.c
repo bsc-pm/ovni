@@ -31,7 +31,6 @@ main(int argc, char *argv[])
 		/* continue to close the trace files */
 		err("emulation aborts!");
 	} else {
-		err("emulation ends");
 		ret = 0;
 	}
 
@@ -39,6 +38,11 @@ main(int argc, char *argv[])
 		err("emu_finish failed");
 		ret = 1;
 	}
+
+	if (ret == 0)
+		err("emulation ends ok");
+	else
+		err("emulation ends with errors");
 
 	free(emu);
 

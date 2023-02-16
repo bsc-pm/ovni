@@ -10,6 +10,7 @@
 #include <linux/limits.h>
 
 struct player {
+	struct trace *trace;
 	heap_head_t heap;
 	int64_t firstclock;
 	int64_t lastclock;
@@ -23,5 +24,6 @@ int player_init(struct player *player, struct trace *trace);
 int player_step(struct player *player);
 struct emu_ev *player_ev(struct player *player);
 struct stream *player_stream(struct player *player);
+double player_progress(struct player *player);
 
 #endif /* EMU_PLAYER_H */

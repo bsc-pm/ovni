@@ -41,8 +41,7 @@ step_stream(struct player *player, struct stream *stream)
 	int ret = stream_step(stream);
 
 	if (ret < 0) {
-		err("step_stream: cannot step stream '%s'\n",
-				stream->relpath);
+		err("cannot step stream '%s'", stream->relpath);
 		return -1;
 	} else if (ret > 0) {
 		return ret;
@@ -98,6 +97,7 @@ player_init(struct player *player, struct trace *trace)
 
 	player->first_event = 1;
 	player->stream = NULL;
+	player->trace = trace;
 
 	/* Load initial streams and events */
 	struct stream *stream;
@@ -107,7 +107,7 @@ player_init(struct player *player, struct trace *trace)
 			/* No more events */
 			continue;
 		} else if (ret < 0) {
-			err("player_init: step_stream failed\n");
+			err("step_stream failed");
 			return -1;
 		}
 	}
@@ -165,7 +165,7 @@ player_step(struct player *player)
 {
 	/* Add the stream back if still active */
 	if (player->stream != NULL && step_stream(player, player->stream) < 0) {
-		err("player_step: step_stream() failed\n");
+		err("step_stream() failed");
 		return -1;
 	}
 
@@ -179,12 +179,12 @@ player_step(struct player *player)
 	struct stream *stream = heap_elem(node, struct stream, hh);
 
 	if (stream == NULL) {
-		err("player_step: heap_elem() returned NULL\n");
+		err("heap_elem() returned NULL");
 		return -1;
 	}
 
 	if (update_clocks(player, stream) != 0) {
-		err("player_step: update_clocks() failed\n");
+		err("update_clocks() failed");
 		return -1;
 	}
 
@@ -207,4 +207,24 @@ struct stream *
 player_stream(struct player *player)
 {
 	return player->stream;
+}
+
+double
+player_progress(struct player *player)
+{
+	int64_t n = 0;
+	double done = 0.0;
+	struct trace *trace = player->trace;
+	struct stream *stream;
+	DL_FOREACH(trace->streams, stream) {
+		done += stream_progress(stream);
+		n++;
+	}
+
+	if (n == 0)
+		return 1.0;
+
+	done /= (double) n;
+
+	return done;
 }

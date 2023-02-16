@@ -12,6 +12,7 @@
 #include "model.h"
 #include "emu_ev.h"
 #include "recorder.h"
+#include "emu_stat.h"
 
 enum error_values {
 	ST_BAD = 666,
@@ -27,6 +28,7 @@ struct emu {
 	struct player player;
 	struct model model;
 	struct recorder recorder;
+	struct emu_stat stat;
 
 	/* Quick access */
 	struct stream *stream;

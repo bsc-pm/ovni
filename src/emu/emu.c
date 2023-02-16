@@ -51,6 +51,8 @@ emu_init(struct emu *emu, int argc, char *argv[])
 		return -1;
 	}
 
+	emu_stat_init(&emu->stat, 0.5);
+
 	model_init(&emu->model);
 
 	/* Register all the models */
@@ -138,6 +140,8 @@ emu_step(struct emu *emu)
 
 	dbg("----- mvc=%s dclock=%ld -----", emu->ev->mcv, emu->ev->dclock);
 
+	emu_stat_update(&emu->stat, &emu->player);
+
 	/* Advance recorder clock */
 	if (recorder_advance(&emu->recorder, emu->ev->dclock) != 0) {
 		err("recorder_advance failed");
@@ -163,6 +167,8 @@ emu_step(struct emu *emu)
 int
 emu_finish(struct emu *emu)
 {
+	emu_stat_report(&emu->stat, &emu->player);
+
 	if (model_finish(&emu->model, emu) != 0) {
 		err("model_finish failed");
 		return -1;

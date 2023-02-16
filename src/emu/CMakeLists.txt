@@ -17,6 +17,7 @@ add_library(emu STATIC
   emu.c
   emu_args.c
   emu_ev.c
+  emu_stat.c
   model.c
   model_cpu.c
   model_thread.c

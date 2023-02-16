@@ -33,5 +33,8 @@ INSTR_1ARG(instr_nosv_task_pause, "VTp", int32_t, id)
 INSTR_1ARG(instr_nosv_task_resume, "VTr", int32_t, id)
 INSTR_1ARG(instr_nosv_task_end, "VTe", int32_t, id)
 
+INSTR_0ARG(instr_nosv_submit_enter, "VAs")
+INSTR_0ARG(instr_nosv_submit_exit,  "VAS")
+
 
 #endif /* INSTR_NOSV_H */

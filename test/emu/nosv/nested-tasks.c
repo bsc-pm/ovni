@@ -7,6 +7,8 @@ static void
 create_and_run(int32_t id, uint32_t typeid, int us)
 {
 	instr_nosv_task_create(id, typeid);
+	/* Change subsystem to prevent duplicates */
+	instr_nosv_submit_enter();
 	instr_nosv_task_execute(id);
 	usleep(us);
 }
@@ -26,8 +28,11 @@ main(void)
 		create_and_run(i + 1, typeid, 500);
 
 	/* End the tasks in the opposite order */
-	for (int i = ntasks - 1; i >= 0; i--)
+	for (int i = ntasks - 1; i >= 0; i--) {
 		instr_nosv_task_end(i + 1);
+		/* Change subsystem to prevent duplicates */
+		instr_nosv_submit_exit();
+	}
 
 	instr_end();
 

@@ -17,18 +17,20 @@ get_time(void)
 }
 
 void
-emu_stat_init(struct emu_stat *stat, double period_seconds)
+emu_stat_init(struct emu_stat *stat)
 {
 	memset(stat, 0, sizeof(struct emu_stat));
 
-	stat->period = period_seconds;
 	double t = get_time();
 	stat->last_time = t;
+	stat->reported_time = t;
 	stat->first_time = t;
+	stat->maxcalls = 100;
+	stat->period = 0.2;
 }
 
 void
-emu_stat_report(struct emu_stat *stat, struct player *player)
+emu_stat_report(struct emu_stat *stat, struct player *player, int last)
 {
 	double progress = player_progress(player);
 	int64_t nprocessed = player_nprocessed(player);
@@ -38,27 +40,58 @@ emu_stat_report(struct emu_stat *stat, struct player *player)
 	double time_total = time_elapsed / progress;
 	double time_left = time_total - time_elapsed;
 
+	int tmin = (int) (time_left / 60.0);
+	int tsec = (int) ((time_left / 60.0 - tmin) * 60.0);
+
+//	int64_t delta_nprocessed = nprocessed - stat->last_nprocessed;
+//	double time_delta = time_now - stat->reported_time;
+//	double speed = 0.0;
+//	if (time_delta > 0.0)
+//		speed = (double) delta_nprocessed / time_delta;
+
 	/* Compute average speed since the beginning */
-	double speed = 0.0;
+	double avgspeed = 0.0;
 	if (time_elapsed > 0.0)
-		speed = (double) nprocessed / time_elapsed;
+		avgspeed = (double) nprocessed / time_elapsed;
 
-	verr(NULL, "%5.1f%% done at %.0f kev/s (%.1f s left)",
+	verr(NULL, "ovniemu: %5.1f%% done at %.0f kev/s (%d min %d s left)   \r",
 			progress * 100.0,
-			speed * 1e-3,
-			time_left);
+			avgspeed * 1e-3,
+			tmin, tsec);
 
-	stat->last_time = time_now;
+	if (last)
+		fprintf(stderr, "\n");
+
+	stat->reported_time = time_now;
+	stat->last_nprocessed = nprocessed;
 }
 
 void
 emu_stat_update(struct emu_stat *stat, struct player *player)
 {
-	double t = get_time();
+	stat->ncalls++;
 
-	/* Not yet */
-	if (t - stat->last_time < stat->period)
+	/* Don't do anything until we arrive at a minimum number of calls */
+	if (stat->ncalls < stat->maxcalls)
 		return;
 
-	emu_stat_report(stat, player);
+	stat->ncalls = 0;
+
+	double t = get_time();
+	//double dt = t - stat->last_time;
+	//if (dt > 300.0e-6) {
+	//	struct emu_ev *ev = player_ev(player);
+	//	struct stream *stream = player_stream(player);
+	//	err("event mcv=%s took %.3f us in %s",
+	//			ev->mcv, stream->relpath,
+	//			dt * 1e6);
+	//}
+
+	stat->last_time = t;
+
+	/* Not yet */
+	if (stat->last_time - stat->reported_time < stat->period)
+		return;
+
+	emu_stat_report(stat, player, 0);
 }

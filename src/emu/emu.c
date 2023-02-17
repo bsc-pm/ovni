@@ -51,7 +51,7 @@ emu_init(struct emu *emu, int argc, char *argv[])
 		return -1;
 	}
 
-	emu_stat_init(&emu->stat, 0.5);
+	emu_stat_init(&emu->stat);
 
 	model_init(&emu->model);
 
@@ -167,7 +167,7 @@ emu_step(struct emu *emu)
 int
 emu_finish(struct emu *emu)
 {
-	emu_stat_report(&emu->stat, &emu->player);
+	emu_stat_report(&emu->stat, &emu->player, 1);
 
 	if (model_finish(&emu->model, emu) != 0) {
 		err("model_finish failed");

@@ -11,11 +11,15 @@ struct emu_stat {
 	double in_progress;
 	double period;
 	double last_time;
+	double reported_time;
 	double first_time;
+	int64_t last_nprocessed;
+	int64_t ncalls;
+	int64_t maxcalls;
 };
 
-void emu_stat_init(struct emu_stat *stat, double period_seconds);
+void emu_stat_init(struct emu_stat *stat);
 void emu_stat_update(struct emu_stat *stat, struct player *player);
-void emu_stat_report(struct emu_stat *stat, struct player *player);
+void emu_stat_report(struct emu_stat *stat, struct player *player, int last);
 
 #endif /* EMU_STAT_H */

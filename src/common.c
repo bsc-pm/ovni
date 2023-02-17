@@ -33,7 +33,7 @@ vaerr(const char *func, const char *errstr, va_list ap)
 		char last = errstr[len - 1];
 		if (last == ':')
 			fprintf(stderr, " %s\n", strerror(errno));
-		else if (last != '\n')
+		else if (last != '\n' && last != '\r')
 			fprintf(stderr, "\n");
 	}
 }

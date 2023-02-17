@@ -43,14 +43,14 @@ struct chan;
 typedef int (*chan_cb_t)(struct chan *chan, void *ptr);
 
 struct chan {
-	char name[MAX_CHAN_NAME];
-	enum chan_type type;
-	union chan_data data;
 	int is_dirty;
 	int prop[CHAN_MAXPROP];
-	struct value last_value;
 	chan_cb_t dirty_cb;
 	void *dirty_arg;
+	struct value last_value;
+	enum chan_type type;
+	union chan_data data;
+	char name[MAX_CHAN_NAME];
 };
 
         void chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...);

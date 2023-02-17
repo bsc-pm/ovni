@@ -98,10 +98,10 @@ chan_set(struct chan *chan, struct value value)
 		return -1;
 	}
 
+#ifdef ENABLE_DEBUG
 	char buf[128];
-	UNUSED(buf);
-	dbg("%s: sets value to %s\n",
-			chan->name, value_str(value, buf));
+	dbg("%s: sets value to %s", chan->name, value_str(value, buf));
+#endif
 	chan->data.value = value;
 
 	if (set_dirty(chan) != 0) {

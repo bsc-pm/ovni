@@ -167,7 +167,7 @@ prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan 
 	rchan->flags = flags;
 
 	/* Add emit callback */
-	if (bay_add_cb(bay, BAY_CB_EMIT, chan, cb_prv, rchan) != 0) {
+	if (bay_add_cb(bay, BAY_CB_EMIT, chan, cb_prv, rchan, 1) == NULL) {
 		err("bay_add_cb failed");
 		return -1;
 	}

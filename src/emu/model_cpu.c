@@ -22,8 +22,9 @@ init_chan(struct model_cpu *cpu, const struct model_chan_spec *spec, int64_t gin
 
 		const char *name = cpu->spec->model->name;
 		const char *ch_name = spec->ch_names[i];
+		int track_mode = spec->track[i];
 
-		if (track_init(track, cpu->bay, TRACK_TYPE_TH, "%s.cpu%ld.%s",
+		if (track_init(track, cpu->bay, TRACK_TYPE_TH, track_mode, "%s.cpu%ld.%s",
 					name, gindex, ch_name) != 0) {
 			err("track_init failed");
 			return -1;
@@ -84,7 +85,9 @@ connect_cpu(struct emu *emu, struct cpu *scpu, int id)
 		 * TRACK_TH_RUN allowed, as active may cause collisions) */
 		int mode = chan_spec->track[i];
 		struct chan *sel = cpu_get_th_chan(scpu, mode);
-		if (track_set_select(track, mode, sel, NULL) != 0) {
+
+		int64_t nthreads = emu->system.nthreads;
+		if (track_set_select(track, sel, NULL, nthreads) != 0) {
 			err("track_select failed");
 			return -1;
 		}
@@ -93,19 +96,14 @@ connect_cpu(struct emu *emu, struct cpu *scpu, int id)
 		for (struct thread *t = emu->system.threads; t; t = t->gnext) {
 			struct model_thread *th = EXT(t, id);
 
-			/* Choose input channel from the thread output channels
-			 * based on CPU tracking mode */
-			struct value key = value_int64(t->gindex);
-			struct chan *inp = track_get_output(&th->track[i], mode);
+			/* Use the input thread directly */
+			struct chan *inp = &th->ch[i];
 
-			if (track_add_input(track, mode, key, inp) != 0) {
+			if (track_set_input(track, t->gindex, inp) != 0) {
 				err("track_add_input failed");
 				return -1;
 			}
 		}
-
-		/* Set the PRV output */
-		track_set_default(track, mode);
 	}
 
 	return 0;

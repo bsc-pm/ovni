@@ -210,7 +210,7 @@ thread_select_active(struct mux *mux,
 		case TH_ST_RUNNING:
 		case TH_ST_COOLING:
 		case TH_ST_WARMING:
-			*input = mux->input;
+			*input = mux_get_input(mux, 0);
 			break;
 		default:
 			*input = NULL;
@@ -244,7 +244,7 @@ thread_select_running(struct mux *mux,
 
 	switch (state) {
 		case TH_ST_RUNNING:
-			*input = mux->input;
+			*input = mux_get_input(mux, 0);
 			break;
 		default:
 			*input = NULL;
@@ -274,7 +274,7 @@ thread_select_any(struct mux *mux,
 		return -1;
 	}
 
-	*input = mux->input;
+	*input = mux_get_input(mux, 0);
 
 	return 0;
 }

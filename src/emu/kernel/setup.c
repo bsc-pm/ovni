@@ -7,7 +7,7 @@ struct model_spec model_kernel = {
 	.name = model_name,
 	.model = model_id,
 	.create  = kernel_create,
-	.connect = kernel_connect,
+//	.connect = kernel_connect,
 	.event   = kernel_event,
 	.probe   = kernel_probe,
 };
@@ -29,7 +29,7 @@ static const int pvt_type[] = {
 };
 
 static const char *pcf_prefix[CH_MAX] = {
-	[CH_CS]   = "Kernel subsystem",
+	[CH_CS]   = "Kernel context switch",
 };
 
 static const struct pcf_value_label kernel_cs_values[] = {

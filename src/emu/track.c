@@ -6,10 +6,6 @@
 #include "thread.h"
 #include <stdarg.h>
 
-static const int track_nmodes[TRACK_TYPE_MAX] = {
-	[TRACK_TYPE_TH] = TRACK_TH_MAX,
-};
-
 static const char *th_suffix[TRACK_TH_MAX] = {
 	[TRACK_TH_ANY] = ".any",
 	[TRACK_TH_RUN] = ".run",
@@ -21,7 +17,7 @@ static const char **track_suffix[TRACK_TYPE_MAX] = {
 };
 
 int
-track_init(struct track *track, struct bay *bay, enum track_type type, const char *fmt, ...)
+track_init(struct track *track, struct bay *bay, enum track_type type, int mode, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
@@ -32,74 +28,48 @@ track_init(struct track *track, struct bay *bay, enum track_type type, const cha
 		die("track name too long\n");
 	va_end(ap);
 
-	track->nmodes = track_nmodes[type];
 	track->type = type;
+	track->mode = mode;
 	track->bay = bay;
 
-	/* Create one output channel per tracking mode */
-	track->out = calloc(track->nmodes, sizeof(struct chan));
-	if (track->out == NULL) {
-		err("calloc failed:");
-		return -1;
-	}
-
 	/* Set the channel name by appending the suffix */
-	for (int i = 0; i < track->nmodes; i++) {
-		struct chan *ch = &track->out[i];
-		chan_init(ch, CHAN_SINGLE, "%s%s", track->name, track_suffix[type][i]);
+	struct chan *ch = &track->ch;
+	const char *suffix = track_suffix[type][mode];
+	chan_init(ch, CHAN_SINGLE, "%s%s", track->name, suffix);
 
-		if (bay_register(bay, ch) != 0) {
-			err("bay_register failed");
-			return -1;
-		}
-	}
-
-	track->mux = calloc(track->nmodes, sizeof(struct mux));
-	if (track->mux == NULL) {
-		err("calloc failed:");
+	if (bay_register(bay, ch) != 0) {
+		err("bay_register failed");
 		return -1;
 	}
 
 	return 0;
 }
 
-void
-track_set_default(struct track *track, int mode)
-{
-	track->def = &track->out[mode];
-}
-
 struct chan *
-track_get_default(struct track *track)
+track_get_output(struct track *track)
 {
-	return track->def;
+	return track->out;
 }
 
 int
-track_set_select(struct track *track, int mode, struct chan *sel, mux_select_func_t fsel)
+track_set_select(struct track *track, struct chan *sel, mux_select_func_t fsel, int64_t ninputs)
 {
-	struct mux *mux = &track->mux[mode];
-	struct chan *out = &track->out[mode];
-	if (mux_init(mux, track->bay, sel, out, fsel) != 0) {
+	struct mux *mux = &track->mux;
+	struct chan *out = &track->ch;
+	if (mux_init(mux, track->bay, sel, out, fsel, ninputs) != 0) {
 		err("mux_init failed");
 		return -1;
 	}
+	track->out = out;
 
 	return 0;
 }
 
-
-struct chan *
-track_get_output(struct track *track, int mode)
-{
-	return &track->out[mode];
-}
-
 int
-track_add_input(struct track *track, int mode, struct value key, struct chan *inp)
+track_set_input(struct track *track, int64_t index, struct chan *inp)
 {
-	struct mux *mux = &track->mux[mode];
-	if (mux_add_input(mux, key, inp) != 0) {
+	struct mux *mux = &track->mux;
+	if (mux_set_input(mux, index, inp) != 0) {
 		err("mux_add_input failed");
 		return -1;
 	}
@@ -110,28 +80,33 @@ track_add_input(struct track *track, int mode, struct value key, struct chan *in
 static int
 track_th_input_chan(struct track *track, struct chan *sel, struct chan *inp)
 {
+	mux_select_func_t fsel = NULL;
+
+	if (track->mode == TRACK_TH_ANY) {
+		/* Just follow the channel as-is */
+		track->out = inp;
+		return 0;
+	}
+
+	/* Otherwise create a mux and use a selection function */
+	switch (track->mode) {
+		case TRACK_TH_RUN:
+			fsel = thread_select_running;
+			break;
+		case TRACK_TH_ACT:
+			fsel = thread_select_active;
+			break;
+		default:
+			die("wrong mode");
+	};
+
 	/* Create all thread tracking modes */
-	if (track_set_select(track, TRACK_TH_ANY, sel, thread_select_any) != 0) {
+	if (track_set_select(track, sel, fsel, 1) != 0) {
 		err("track_select failed");
 		return -1;
 	}
-	if (track_add_input(track, TRACK_TH_ANY, value_int64(0), inp) != 0) {
-		err("track_add_input failed");
-		return -1;
-	}
-	if (track_set_select(track, TRACK_TH_RUN, sel, thread_select_running) != 0) {
-		err("track_select failed");
-		return -1;
-	}
-	if (track_add_input(track, TRACK_TH_RUN, value_int64(0), inp) != 0) {
-		err("track_add_input failed");
-		return -1;
-	}
-	if (track_set_select(track, TRACK_TH_ACT, sel, thread_select_active) != 0) {
-		err("track_select failed");
-		return -1;
-	}
-	if (track_add_input(track, TRACK_TH_ACT, value_int64(0), inp) != 0) {
+
+	if (track_set_input(track, 0, inp) != 0) {
 		err("track_add_input failed");
 		return -1;
 	}
@@ -140,7 +115,7 @@ track_th_input_chan(struct track *track, struct chan *sel, struct chan *inp)
 }
 
 int
-track_connect_thread(struct track *tracks, struct chan *chans, const int *modes, struct chan *sel, int n)
+track_connect_thread(struct track *tracks, struct chan *chans, struct chan *sel, int n)
 {
 	for (int i = 0; i < n; i++) {
 		struct track *track = &tracks[i];
@@ -149,9 +124,6 @@ track_connect_thread(struct track *tracks, struct chan *chans, const int *modes,
 			err("track_th_input_chan failed");
 			return -1;
 		}
-
-		/* Select the default output to PRV */
-		track_set_default(track, modes[i]);
 	}
 
 	return 0;

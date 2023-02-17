@@ -25,7 +25,7 @@ cb_chan_is_dirty(struct chan *chan, void *arg)
 		return -1;
 	}
 
-	dbg("adding dirty chan %s", chan->name)
+	dbg("adding dirty chan %s", chan->name);
 	DL_APPEND(bay->dirty, bchan);
 
 	return 0;
@@ -103,34 +103,68 @@ bay_remove(struct bay *bay, struct chan *chan)
 	return 0;
 }
 
-int
+struct bay_cb *
 bay_add_cb(struct bay *bay, enum bay_cb_type type,
-		struct chan *chan, bay_cb_func_t func, void *arg)
+		struct chan *chan, bay_cb_func_t func, void *arg, int enabled)
 {
 	if (func == NULL) {
-		err("bay_add_cb: func is NULL\n");
-		return -1;
+		err("func is NULL");
+		return NULL;
 	}
 
 	struct bay_chan *bchan = find_bay_chan(bay, chan->name);
 	if (bchan == NULL) {
-		err("bay_add_cb: cannot find channel %s in bay\n", chan->name);
-		return -1;
+		err("cannot find channel %s in bay", chan->name);
+		return NULL;
 	}
 
 	struct bay_cb *cb = calloc(1, sizeof(struct bay_cb));
 
 	if (cb == NULL) {
-		err("bay_add_cb: calloc failed\n");
-		return -1;
+		err("calloc failed");
+		return NULL;
 	}
 
 	cb->func = func;
 	cb->arg = arg;
+	cb->bchan = bchan;
+	cb->type = type;
+	cb->enabled = 0;
 
-	DL_APPEND(bchan->cb[type], cb);
-	bchan->ncallbacks[type]++;
-	return 0;
+	if (enabled)
+		bay_enable_cb(cb);
+
+	return cb;
+}
+
+void
+bay_enable_cb(struct bay_cb *cb)
+{
+	if (cb->enabled)
+		return;
+
+	cb->enabled = 1;
+
+	struct bay_chan *bchan = cb->bchan;
+	if (bchan->is_dirty)
+		die("cannot change callbacks of dirty bay channel");
+	DL_APPEND(bchan->cb[cb->type], cb);
+	bchan->ncallbacks[cb->type]++;
+}
+
+void
+bay_disable_cb(struct bay_cb *cb)
+{
+	if (cb->enabled == 0)
+		return;
+
+	cb->enabled = 0;
+
+	struct bay_chan *bchan = cb->bchan;
+	if (bchan->is_dirty)
+		die("cannot change callbacks of dirty bay channel");
+	DL_DELETE(bchan->cb[cb->type], cb);
+	bchan->ncallbacks[cb->type]++;
 }
 
 void
@@ -154,7 +188,9 @@ propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 			bchan->chan->name, propname[type]);
 
 	struct bay_cb *cur = NULL;
+	/* New callbacks cannot be added while propagating a bay_chan */
 	DL_FOREACH(bchan->cb[type], cur) {
+		dbg("calling cb %p", cur->func);
 		if (cur->func(bchan->chan, cur->arg) != 0) {
 			err("propagate_chan: callback failed\n");
 			return -1;

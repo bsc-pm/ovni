@@ -41,8 +41,10 @@ init_chan(struct model_thread *th, const struct model_chan_spec *spec, int64_t g
 		struct track *track = &th->track[i];
 
 		const char *ch_name = spec->ch_names[i];
+		int track_mode = spec->track[i];
 
-		if (track_init(track, th->bay, TRACK_TYPE_TH, fmt,
+		if (track_init(track, th->bay, TRACK_TYPE_TH,
+					track_mode, fmt,
 					prefix, gindex, ch_name) != 0) {
 			err("track_init failed");
 			return -1;
@@ -99,9 +101,8 @@ model_thread_connect(struct emu *emu, const struct model_thread_spec *spec)
 	for (struct thread *t = sys->threads; t; t = t->gnext) {
 		struct model_thread *th = EXT(t, id);
 		struct chan *sel = &t->chan[TH_CHAN_STATE];
-		const int *modes = th->spec->chan->track;
 		int nch = th->spec->chan->nch;
-		if (track_connect_thread(th->track, th->ch, modes, sel, nch) != 0) {
+		if (track_connect_thread(th->track, th->ch, sel, nch) != 0) {
 			err("track_thread failed");
 			return -1;
 		}

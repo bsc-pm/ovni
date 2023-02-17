@@ -41,7 +41,7 @@ int stream_load(struct stream *stream,
 
 int stream_clkoff_set(struct stream *stream, int64_t clock_offset);
 
-double stream_progress(struct stream *stream);
+void stream_progress(struct stream *stream, int64_t *done, int64_t *total);
 int stream_step(struct stream *stream);
 struct ovni_ev *stream_ev(struct stream *stream);
 int64_t stream_evclock(struct stream *stream, struct ovni_ev *ev);

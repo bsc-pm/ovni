@@ -219,21 +219,21 @@ player_stream(struct player *player)
 double
 player_progress(struct player *player)
 {
-	int64_t n = 0;
-	double done = 0.0;
 	struct trace *trace = player->trace;
 	struct stream *stream;
+	int64_t sum_done = 0;
+	int64_t sum_total = 0;
 	DL_FOREACH(trace->streams, stream) {
-		done += stream_progress(stream);
-		n++;
+		int64_t done, total;
+		stream_progress(stream, &done, &total);
+		sum_done += done;
+		sum_total += total;
 	}
 
-	if (n == 0)
+	if (sum_total == 0)
 		return 1.0;
 
-	done /= (double) n;
-
-	return done;
+	return (double) sum_done / (double) sum_total;
 }
 
 int64_t

@@ -236,15 +236,11 @@ stream_step(struct stream *stream)
 	return 0;
 }
 
-double
-stream_progress(struct stream *stream)
+void
+stream_progress(struct stream *stream, int64_t *done, int64_t *total)
 {
-	if (stream->usize == 0)
-		return 1.0;
-
-	int64_t uoffset = stream->offset - sizeof(struct ovni_stream_header);
-	double prog = (double) uoffset / (double) stream->usize;
-	return prog;
+	*done = stream->offset - sizeof(struct ovni_stream_header);
+	*total = stream->usize;
 }
 
 void

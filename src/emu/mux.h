@@ -5,13 +5,15 @@
 #include "bay.h"
 #include "uthash.h"
 
-struct mux_input {
-	struct value key;
-	struct chan *chan;
-	UT_hash_handle hh;
-};
-
 struct mux;
+
+struct mux_input {
+	int64_t index;
+	struct chan *chan;
+	int selected;
+	struct chan *output;
+	struct bay_cb *cb;
+};
 
 typedef int (* mux_select_func_t)(struct mux *mux,
 		struct value value,
@@ -20,7 +22,8 @@ typedef int (* mux_select_func_t)(struct mux *mux,
 struct mux {
 	struct bay *bay;
 	int64_t ninputs;
-	struct mux_input *input;
+	int64_t selected;
+	struct mux_input *inputs;
 	mux_select_func_t select_func;
 	struct chan *select;
 	struct chan *output;
@@ -34,15 +37,15 @@ USE_RET int mux_init(struct mux *mux,
 		struct bay *bay,
 		struct chan *select,
 		struct chan *output,
-		mux_select_func_t select_func);
+		mux_select_func_t select_func,
+		int64_t ninputs);
 
-USE_RET struct mux_input *mux_find_input(struct mux *mux,
-		struct value key);
-
-/* TODO: use an index to select the input in O(1) */
-USE_RET int mux_add_input(struct mux *mux,
-		struct value key,
+USE_RET int mux_set_input(struct mux *mux,
+		int64_t index,
 		struct chan *input);
+
+USE_RET struct mux_input *mux_get_input(struct mux *mux,
+		int64_t index);
 
 USE_RET int mux_register(struct mux *mux,
 		struct bay *bay);

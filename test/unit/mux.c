@@ -78,9 +78,9 @@ test_input(struct mux *mux, int key)
 	int new_value = 2000 + key;
 
 	/* Then change that channel */
-	struct mux_input *mi = mux_find_input(mux, value_int64(key));
+	struct mux_input *mi = mux_get_input(mux, key);
 	if (mi == NULL)
-		die("mux_find_input failed to locate input %d\n", key);
+		die("mux_get_input failed to locate input %d\n", key);
 
 	if (chan_set(mi->chan, value_int64(new_value)) != 0)
 		die("chan_set failed\n");
@@ -102,9 +102,9 @@ test_select_and_input(struct mux *mux, int key)
 	int new_value = 2000 + key;
 
 	/* Also change that channel */
-	struct mux_input *mi = mux_find_input(mux, value_int64(key));
+	struct mux_input *mi = mux_get_input(mux, key);
 	if (mi == NULL)
-		die("mux_find_input failed to locate input %d\n", key);
+		die("mux_get_input failed to locate input %d\n", key);
 
 	if (chan_set(mi->chan, value_int64(new_value)) != 0)
 		die("chan_set failed\n");
@@ -122,9 +122,9 @@ test_input_and_select(struct mux *mux, int key)
 	int new_value = 2000 + key;
 
 	/* First change the input */
-	struct mux_input *mi = mux_find_input(mux, value_int64(key));
+	struct mux_input *mi = mux_get_input(mux, key);
 	if (mi == NULL)
-		die("mux_find_input failed to locate input %d\n", key);
+		die("mux_get_input failed to locate input %d\n", key);
 
 	if (chan_set(mi->chan, value_int64(new_value)) != 0)
 		die("chan_set failed\n");
@@ -145,9 +145,9 @@ test_mid_propagate(struct mux *mux, int key)
 {
 	int new_value = 2000 + key;
 
-	struct mux_input *mi = mux_find_input(mux, value_int64(key));
+	struct mux_input *mi = mux_get_input(mux, key);
 	if (mi == NULL)
-		die("mux_find_input failed to locate input %d\n", key);
+		die("mux_get_input failed to locate input %d\n", key);
 
 	if (chan_set(mi->chan, value_int64(new_value)) != 0)
 		die("chan_set failed\n");
@@ -169,13 +169,13 @@ test_duplicate_output(struct mux *mux, int key1, int key2)
 {
 	int new_value = 2000 + key1;
 
-	struct mux_input *in1 = mux_find_input(mux, value_int64(key1));
+	struct mux_input *in1 = mux_get_input(mux, key1);
 	if (in1 == NULL)
-		die("mux_find_input failed to locate input1 %d\n", key1);
+		die("mux_get_input failed to locate input1 %d\n", key1);
 
-	struct mux_input *in2 = mux_find_input(mux, value_int64(key2));
+	struct mux_input *in2 = mux_get_input(mux, key2);
 	if (in2 == NULL)
-		die("mux_find_input failed to locate input2 %d\n", key2);
+		die("mux_get_input failed to locate input2 %d\n", key2);
 
 	if (chan_set(in1->chan, value_int64(new_value)) != 0)
 		die("chan_set failed\n");
@@ -233,17 +233,17 @@ main(void)
 
 	struct mux mux;
 	/* Attempt to init the mux without registering the output */
-	if (mux_init(&mux, &bay, &select, &output, NULL) == 0)
+	if (mux_init(&mux, &bay, &select, &output, NULL, N) == 0)
 		die("mux_init didn't fail\n");
 
 	if (bay_register(&bay, &output) != 0)
 		die("bay_register failed\n");
 
-	if (mux_init(&mux, &bay, &select, &output, NULL) != 0)
+	if (mux_init(&mux, &bay, &select, &output, NULL, N) != 0)
 		die("mux_init failed\n");
 
 	for (int i = 0; i < N; i++) {
-		if (mux_add_input(&mux, value_int64(i), &inputs[i]) != 0)
+		if (mux_set_input(&mux, i, &inputs[i]) != 0)
 			die("mux_add_input failed\n");
 	}
 

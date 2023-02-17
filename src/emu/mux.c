@@ -5,23 +5,28 @@
 static int
 default_select(struct mux *mux,
 		struct value key,
-		struct mux_input **input)
+		struct mux_input **pinput)
 {
-	if (value_is_null(key)) {
-		*input = NULL;
+	if (key.type == VALUE_NULL) {
+		*pinput = NULL;
 		return 0;
 	}
 
-	struct mux_input *tmp = mux_find_input(mux, key);
-
-	if (tmp == NULL) {
-		char buf[128];
-		err("default_select: cannot find input with key %s\n",
-				value_str(key, buf));
+	if (key.type != VALUE_INT64) {
+		err("only null and int64 values supported");
 		return -1;
 	}
 
-	*input = tmp;
+	int64_t index = key.i;
+
+	if (index < 0 || index >= mux->ninputs) {
+		err("index out of bounds %ld", index);
+		return -1;
+	}
+
+	struct mux_input *input = &mux->inputs[index];
+
+	*pinput = input;
 
 	return 0;
 }
@@ -31,11 +36,13 @@ select_input(struct mux *mux,
 		struct value key,
 		struct mux_input **input)
 {
-	if (mux->select_func == NULL)
-		die("select_input: select_func is NULL\n");
-
-	if (mux->select_func(mux, key, input) != 0) {
-		err("select_input: select_func failed\n");
+	if (mux->select_func == NULL) {
+		if (default_select(mux, key, input) != 0) {
+			err("default_select failed\n");
+			return -1;
+		}
+	} else if (mux->select_func(mux, key, input) != 0) {
+		err("select_func failed\n");
 		return -1;
 	}
 
@@ -56,6 +63,14 @@ cb_select(struct chan *sel_chan, void *ptr)
 		return -1;
 	}
 
+	/* Clear previous selected input */
+	if (mux->selected >= 0) {
+		struct mux_input *old_input = &mux->inputs[mux->selected];
+		bay_disable_cb(old_input->cb);
+		old_input->selected = 0;
+		mux->selected = -1;
+	}
+
 	char buf[128];
 	UNUSED(buf);
 	dbg("select channel got value %s\n",
@@ -63,11 +78,14 @@ cb_select(struct chan *sel_chan, void *ptr)
 
 	struct mux_input *input = NULL;
 	if (select_input(mux, sel_value, &input) != 0) {
-		err("cb_select: select_input failed\n");
+		err("select_input failed\n");
 		return -1;
 	}
 
 	if (input) {
+		bay_enable_cb(input->cb);
+		input->selected = 1;
+		mux->selected = input->index;
 		dbg("mux selects input key=%s chan=%s\n",
 				value_str(sel_value, buf), input->chan->name);
 	}
@@ -87,38 +105,18 @@ cb_select(struct chan *sel_chan, void *ptr)
 	return 0;
 }
 
-/** Called when the input channel changes its value */
+/** Called when the input channel changes its value and is selected */
 static int
 cb_input(struct chan *in_chan, void *ptr)
 {
-	struct mux *mux = ptr;
+	struct mux_input *input = ptr;
 
-	struct value sel_value;
-	if (chan_read(mux->select, &sel_value) != 0) {
-		err("cb_input: chan_read(select) failed\n");
-		return -1;
-	}
+	dbg("selected mux input %s changed", in_chan->name);
 
-	struct mux_input *input = NULL;
-	if (select_input(mux, sel_value, &input) != 0) {
-		err("cb_input: select_input failed\n");
-		return -1;
-	}
-
-	/* Nothing to do, the input is not selected */
-	if (input == NULL || input->chan != in_chan) {
-		//dbg("input channel %s changed but not selected\n",
-		//		in_chan->name);
-		return 0;
-	}
-
-	dbg("selected mux input %s changed\n", in_chan->name);
-
-	/* Set to null by default */
-	struct value out_value = value_null();
+	struct value out_value;
 
 	if (chan_read(in_chan, &out_value) != 0) {
-		err("cb_input: chan_read() failed\n");
+		err("chan_read() failed\n");
 		return -1;
 	}
 
@@ -127,8 +125,8 @@ cb_input(struct chan *in_chan, void *ptr)
 	dbg("setting output chan %s to value %s",
 			mux->output->name, value_str(out_value, buf));
 
-	if (chan_set(mux->output, out_value) != 0) {
-		err("cb_input: chan_set() failed\n");
+	if (chan_set(input->output, out_value) != 0) {
+		err("chan_set() failed");
 		return -1;
 	}
 
@@ -140,7 +138,8 @@ mux_init(struct mux *mux,
 		struct bay *bay,
 		struct chan *select,
 		struct chan *output,
-		mux_select_func_t select_func)
+		mux_select_func_t select_func,
+		int64_t ninputs)
 {
 	if (chan_get_type(output) != CHAN_SINGLE) {
 		err("mux_init: output channel must be of type single\n");
@@ -176,15 +175,20 @@ mux_init(struct mux *mux,
 	memset(mux, 0, sizeof(struct mux));
 	mux->select = select;
 	mux->output = output;
+	mux->ninputs = ninputs;
+	mux->inputs = calloc(ninputs, sizeof(struct mux_input));
 
-	if (select_func == NULL)
-		select_func = default_select;
+	if (mux->inputs == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
 
 	mux->select_func = select_func;
 	mux->bay = bay;
 
-	if (bay_add_cb(bay, BAY_CB_DIRTY, select, cb_select, mux) != 0) {
-		err("mux_init: bay_add_cb failed\n");
+	/* Select always enabled */
+	if (bay_add_cb(bay, BAY_CB_DIRTY, select, cb_select, mux, 1) == NULL) {
+		err("bay_add_cb failed");
 		return -1;
 	}
 
@@ -192,16 +196,13 @@ mux_init(struct mux *mux,
 }
 
 struct mux_input *
-mux_find_input(struct mux *mux, struct value value)
+mux_get_input(struct mux *mux, int64_t index)
 {
-	struct mux_input *input = NULL;
-
-	HASH_FIND(hh, mux->input, &value, sizeof(value), input);
-	return input;
+	return &mux->inputs[index];
 }
 
 int
-mux_add_input(struct mux *mux, struct value key, struct chan *chan)
+mux_set_input(struct mux *mux, int64_t index, struct chan *chan)
 {
 	if (chan == mux->output) {
 		err("mux_init: cannot use same input channel as output\n");
@@ -213,31 +214,23 @@ mux_add_input(struct mux *mux, struct value key, struct chan *chan)
 		return -1;
 	}
 
-	if (mux_find_input(mux, key) != NULL) {
-		char buf[128];
-		err("mux_add_input: input key %s already in mux\n",
-				value_str(key, buf));
+	struct mux_input *input = &mux->inputs[index];
+
+	if (input->chan != NULL) {
+		err("input %d already has a channel", index);
 		return -1;
 	}
 
-	struct mux_input *input = calloc(1, sizeof(struct mux_input));
-
-	if (input == NULL) {
-		err("mux_add_input: calloc failed\n");
-		return -1;
-	}
-
-	input->key = key;
+	input->index = index;
 	input->chan = chan;
+	input->output = mux->output;
 
-	HASH_ADD_KEYPTR(hh, mux->input, &input->key, sizeof(input->key), input);
-
-	if (bay_add_cb(mux->bay, BAY_CB_DIRTY, chan, cb_input, mux) != 0) {
-		err("mux_add_input: bay_add_cb failed\n");
+	/* Inputs disabled until selected */
+	input->cb = bay_add_cb(mux->bay, BAY_CB_DIRTY, chan, cb_input, input, 0);
+	if (input->cb == NULL) {
+		err("bay_add_cb failed");
 		return -1;
 	}
-
-	mux->ninputs++;
 
 	return 0;
 }

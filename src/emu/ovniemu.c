@@ -1,7 +1,17 @@
 #include "emu.h"
 
 #include <stdlib.h>
+#include <signal.h>
 #include "common.h"
+
+static volatile int run = 1;
+
+static void stop_emulation(int dummy)
+{
+	UNUSED(dummy);
+	run = 0;
+	signal(SIGINT, SIG_DFL);
+}
 
 int
 main(int argc, char *argv[])
@@ -21,9 +31,11 @@ main(int argc, char *argv[])
 	if (emu_connect(emu) != 0)
 		die("emu_connect failed\n");
 
+	signal(SIGINT, stop_emulation);
+
 	err("emulation starts");
 	int ret = 0;
-	while ((ret = emu_step(emu)) == 0);
+	while (run && (ret = emu_step(emu)) == 0);
 
 	if (ret < 0) {
 		err("emu_step failed");
@@ -33,6 +45,9 @@ main(int argc, char *argv[])
 	} else {
 		ret = 0;
 	}
+
+	if (run == 0)
+		err("stopping emulation by user (^C again to abort)");
 
 	if (emu_finish(emu) != 0) {
 		err("emu_finish failed");

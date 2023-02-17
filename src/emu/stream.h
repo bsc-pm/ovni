@@ -12,19 +12,9 @@
 struct stream;
 
 struct stream {
-	char path[PATH_MAX];
-	char relpath[PATH_MAX]; /* To tracedir */
-
+	struct ovni_ev *cur_ev;
 	uint8_t *buf;
 	int64_t size;
-	int64_t usize; /* Useful size for events */
-	int64_t offset;
-
-	int active;
-	int unsorted;
-
-	double progress;
-
 	int64_t lastclock;
 	int64_t clock_offset;
 
@@ -32,9 +22,18 @@ struct stream {
 	struct stream *next;
 	struct stream *prev;
 
-	struct ovni_ev *cur_ev;
-
 	void *data; /* To hold system details */
+
+	int active;
+	int unsorted;
+
+	char path[PATH_MAX];
+	char relpath[PATH_MAX]; /* To tracedir */
+
+	int64_t usize; /* Useful size for events */
+	int64_t offset;
+
+	double progress;
 };
 
 int stream_load(struct stream *stream,

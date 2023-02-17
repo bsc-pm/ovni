@@ -53,6 +53,12 @@ cpu_set_gindex(struct cpu *cpu, int64_t gindex)
 }
 
 void
+cpu_set_loom(struct cpu *cpu, struct loom *loom)
+{
+	cpu->loom = loom;
+}
+
+void
 cpu_set_name(struct cpu *cpu, const char *name)
 {
 	if (snprintf(cpu->name, PATH_MAX, "%s", name) >= PATH_MAX)

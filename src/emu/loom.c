@@ -68,6 +68,7 @@ loom_init_begin(struct loom *loom, const char *name)
 	loom->id = loom->name;
 
 	cpu_init_begin(&loom->vcpu, -1, 1);
+	cpu_set_loom(&loom->vcpu, loom);
 
 	dbg("creating new loom %s", loom->id);
 
@@ -120,6 +121,8 @@ loom_add_cpu(struct loom *loom, struct cpu *cpu)
 	HASH_ADD_INT(loom->cpus, phyid, cpu);
 	//DL_SORT2(loom->cpus, cmp_cpus, lprev, lnext); // Maybe?
 	loom->ncpus++;
+
+	cpu_set_loom(cpu, loom);
 
 	return 0;
 }
@@ -222,6 +225,8 @@ loom_add_proc(struct loom *loom, struct proc *proc)
 
 	HASH_ADD_INT(loom->procs, pid, proc);
 	loom->nprocs++;
+
+	proc_set_loom(proc, loom);
 
 	return 0;
 }

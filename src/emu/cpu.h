@@ -37,6 +37,9 @@ struct cpu {
 	/* Physical id: as reported by lscpu(1) */
 	int phyid;
 
+	/* Required to find threads that can run in this CPU */
+	struct loom *loom;
+
 	size_t nthreads;
 	size_t nth_running;
 	size_t nth_active;
@@ -66,6 +69,7 @@ void cpu_init_begin(struct cpu *cpu, int phyid, int is_virtual);
 int cpu_get_phyid(struct cpu *cpu);
 //int cpu_get_index(struct cpu *cpu);
 void cpu_set_gindex(struct cpu *cpu, int64_t gindex);
+void cpu_set_loom(struct cpu *cpu, struct loom *loom);
 void cpu_set_name(struct cpu *cpu, const char *name);
 int cpu_init_end(struct cpu *cpu);
 int cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec);

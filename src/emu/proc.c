@@ -95,6 +95,12 @@ proc_set_gindex(struct proc *proc, int64_t gindex)
 	proc->gindex = gindex;
 }
 
+void
+proc_set_loom(struct proc *proc, struct loom *loom)
+{
+	proc->loom = loom;
+}
+
 int
 proc_load_metadata(struct proc *proc, JSON_Object *meta)
 {

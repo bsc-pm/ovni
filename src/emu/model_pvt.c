@@ -76,7 +76,7 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv, int id)
 	struct model_cpu *cpu = EXT(scpu, id);
 	const struct model_chan_spec *spec = cpu->spec->chan;
 	for (int i = 0; i < spec->nch; i++) {
-		struct chan *out = track_get_default(&cpu->track[i]);
+		struct chan *out = track_get_output(&cpu->track[i]);
 		long type = spec->pvt->type[i];
 		long row = scpu->gindex;
 		if (prv_register(prv, row, type, &emu->bay, out, PRV_DUP)) {
@@ -126,7 +126,7 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv, int id)
 	struct model_thread *th = EXT(sth, id);
 	const struct model_chan_spec *spec = th->spec->chan;
 	for (int i = 0; i < spec->nch; i++) {
-		struct chan *out = track_get_default(&th->track[i]);
+		struct chan *out = track_get_output(&th->track[i]);
 		long type = spec->pvt->type[i];
 		long row = sth->gindex;
 		if (prv_register(prv, row, type, &emu->bay, out, PRV_DUP)) {

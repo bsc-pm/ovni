@@ -100,3 +100,15 @@ path_remove_trailing(char *path)
 		path[i] = '\0';
 	}
 }
+
+const char *
+path_filename(const char *path)
+{
+	const char *start = strrchr(path, '/');
+	if (start == NULL)
+		start = path;
+	else
+		start++;
+
+	return start;
+}

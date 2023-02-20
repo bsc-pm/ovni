@@ -38,5 +38,6 @@ struct ovni_cpu {
 int ovni_probe(struct emu *emu);
 int ovni_create(struct emu *emu);
 int ovni_event(struct emu *emu);
+int ovni_finish(struct emu *emu);
 
 #endif /* OVNI_PRIV_H */

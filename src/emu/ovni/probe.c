@@ -10,6 +10,7 @@ struct model_spec model_ovni = {
 	.connect = NULL,
 	.event   = ovni_event,
 	.probe   = ovni_probe,
+	.finish  = ovni_finish,
 };
 
 int

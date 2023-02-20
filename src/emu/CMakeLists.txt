@@ -45,6 +45,7 @@ add_library(emu STATIC
   ovni/probe.c
   ovni/create.c
   ovni/event.c
+  ovni/finish.c
   nanos6/setup.c
   nanos6/event.c
   nosv/setup.c

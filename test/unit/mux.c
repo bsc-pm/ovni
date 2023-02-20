@@ -202,6 +202,59 @@ test_duplicate_output(struct mux *mux, int key1, int key2)
 	check_output(mux, value_int64(new_value));
 }
 
+/* Ensure that the output of a mux is correct while the mux is connected
+ * to the bay with a clean select channel but that already contains a
+ * valid value of a input of the mux. The select must be marked as dirty
+ * */
+static void
+test_delayed_connect(void)
+{
+	struct bay bay;
+	bay_init(&bay);
+
+	struct chan input, output, select;
+	chan_init(&output, CHAN_SINGLE, "output");
+	chan_init(&select, CHAN_SINGLE, "select");
+	chan_init(&input, CHAN_SINGLE, "input.0");
+
+	/* Register all channels in the bay */
+	if (bay_register(&bay, &select) != 0)
+		die("bay_register failed\n");
+
+	if (bay_register(&bay, &output) != 0)
+		die("bay_register failed\n");
+
+	if (bay_register(&bay, &input) != 0)
+		die("bay_register failed\n");
+
+	/* Setup channel values */
+	if (chan_set(&select, value_int64(0)) != 0)
+		die("chan_set failed\n");
+	if (chan_set(&input, value_int64(1000)) != 0)
+		die("chan_set failed\n");
+
+	/* Propagate now so they are clean */
+	if (bay_propagate(&bay) != 0)
+		die("bay_propagate failed\n");
+
+	/* ----- delayed connect ----- */
+
+	struct mux mux;
+	if (mux_init(&mux, &bay, &select, &output, NULL, 1) != 0)
+		die("mux_init failed\n");
+
+	if (mux_set_input(&mux, 0, &input) != 0)
+		die("mux_add_input failed\n");
+
+	/* Don't modify the input of the select until propagation, the
+	 * mux_init must have marked the select as dirty. */
+
+	if (bay_propagate(&bay) != 0)
+		die("bay_propagate failed\n");
+
+	/* The mux must have selected the first input */
+	check_output(&mux, value_int64(1000));
+}
 
 int
 main(void)
@@ -227,7 +280,7 @@ main(void)
 		die("bay_register failed\n");
 
 	for (int i = 0; i < N; i++) {
-		if(bay_register(&bay, &inputs[i]) != 0)
+		if (bay_register(&bay, &inputs[i]) != 0)
 			die("bay_register failed\n");
 	}
 
@@ -263,6 +316,7 @@ main(void)
 	test_input_and_select(&mux, 4);
 	test_mid_propagate(&mux, 5);
 	test_duplicate_output(&mux, 6, 7);
+	test_delayed_connect();
 
 	err("OK\n");
 

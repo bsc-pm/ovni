@@ -70,6 +70,8 @@ recorder_advance(struct recorder *rec, int64_t time)
 int
 recorder_finish(struct recorder *rec)
 {
+	err("writting the traces to disk, please wait");
+
 	for (struct pvt *pvt = rec->pvt; pvt; pvt = pvt->hh.next) {
 		if (pvt_close(pvt) != 0) {
 			err("pvt_close failed");

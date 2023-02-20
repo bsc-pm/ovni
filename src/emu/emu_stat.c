@@ -54,7 +54,7 @@ emu_stat_report(struct emu_stat *stat, struct player *player, int last)
 	if (time_elapsed > 0.0)
 		avgspeed = (double) nprocessed / time_elapsed;
 
-	verr(NULL, "ovniemu: %5.1f%% done at %.0f kev/s (%d min %d s left)   \r",
+	verr(NULL, "%5.1f%% done at %.0f kev/s (%d min %d s left)   \r",
 			progress * 100.0,
 			avgspeed * 1e-3,
 			tmin, tsec);

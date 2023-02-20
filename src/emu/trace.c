@@ -5,6 +5,7 @@
 
 #include "trace.h"
 #include "utlist.h"
+#include "path.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ftw.h>
@@ -66,6 +67,28 @@ has_suffix(const char *str, const char *suffix)
 }
 
 static int
+is_stream(const char *fpath)
+{
+	if (has_suffix(fpath, OVNI_STREAM_EXT))
+		return 1;
+
+	/* For compatibility load the old streams too */
+	const char *filename = path_filename(fpath);
+
+	const char prefix[] = "thread.";
+	if (!path_has_prefix(filename, prefix))
+		return 0;
+
+	const char *tid = filename + strlen(prefix);
+	for (int i = 0; tid[i]; i++) {
+		if (tid[i] < '0' || tid[i] > '9')
+			return 0;
+	}
+
+	return 1;
+}
+
+static int
 cb_nftw(const char *fpath, const struct stat *sb,
 		int typeflag, struct FTW *ftwbuf)
 {
@@ -75,7 +98,7 @@ cb_nftw(const char *fpath, const struct stat *sb,
 	if (typeflag != FTW_F)
 		return 0;
 
-	if (!has_suffix(fpath, OVNI_STREAM_EXT))
+	if (!is_stream(fpath))
 		return 0;
 
 	return load_stream(cur_trace, fpath);

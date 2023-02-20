@@ -1,5 +1,7 @@
 #define _GNU_SOURCE
 
+#include "unittest.h"
+
 #include "emu/pv/prv.h"
 #include "common.h"
 
@@ -108,6 +110,32 @@ test_duplicate(const char *path)
 	err("test duplicate OK\n");
 }
 
+/* Detect same types being registered to the same row */
+static void
+test_same_type(const char *path)
+{
+	long type = 100;
+	long row = 0;
+
+	struct bay bay;
+	bay_init(&bay);
+
+	struct prv prv;
+	prv_open(&prv, NROWS, path);
+
+	struct chan chan;
+	chan_init(&chan, CHAN_SINGLE, "testchan");
+
+	/* Allow setting the same value in the channel */
+	chan_prop_set(&chan, CHAN_DUPLICATES, 1);
+
+	OK(bay_register(&bay, &chan));
+	OK(prv_register(&prv, row, type, &bay, &chan, 0));
+	ERR(prv_register(&prv, row, type, &bay, &chan, 0));
+
+	err("ok");
+}
+
 int main(void)
 {
 	/* Create temporary trace file */
@@ -118,6 +146,7 @@ int main(void)
 
 	test_emit(fname);
 	test_duplicate(fname);
+	test_same_type(fname);
 
 	close(fd);
 

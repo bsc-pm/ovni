@@ -52,11 +52,17 @@ prv_close(struct prv *prv)
 	return 0;
 }
 
+static long
+get_id(struct prv *prv, long type, long row)
+{
+	return type * prv->nrows + row;
+}
+
 static struct prv_chan *
-find_prv_chan(struct prv *prv, const char *name)
+find_prv_chan(struct prv *prv, long id)
 {
 	struct prv_chan *rchan = NULL;
-	HASH_FIND_STR(prv->channels, name, rchan);
+	HASH_FIND_LONG(prv->channels, &id, rchan);
 
 	return rchan;
 }
@@ -145,10 +151,11 @@ cb_prv(struct chan *chan, void *ptr)
 int
 prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan, long flags)
 {
-	/* FIXME: use the type instead of channel name as key */
-	struct prv_chan *rchan = find_prv_chan(prv, chan->name);
+	long id = get_id(prv, type, row);
+	struct prv_chan *rchan = find_prv_chan(prv, id);
 	if (rchan != NULL) {
-		err("channel %s already registered", chan->name);
+		err("row=%ld type=%ld has channel '%s' registered",
+				row, type, chan->name);
 		return -1;
 	}
 
@@ -158,6 +165,7 @@ prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan 
 		return -1;
 	}
 
+	rchan->id = id;
 	rchan->chan = chan;
 	rchan->row_base1 = row + 1;
 	rchan->type = type;
@@ -173,7 +181,7 @@ prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan 
 	}
 
 	/* Add to hash table */
-	HASH_ADD_STR(prv->channels, chan->name, rchan);
+	HASH_ADD_LONG(prv->channels, id, rchan);
 
 	return 0;
 }

@@ -18,6 +18,7 @@ enum prv_flags {
 struct prv_chan {
 	struct prv *prv;
 	struct chan *chan;
+	long id;
 	long row_base1;
 	long type;
 	long flags;

@@ -346,8 +346,7 @@ enforce_task_rules(struct emu *emu, char tr, struct task *next)
 
 	if (ss.type == VALUE_INT64 && ss.i != ST_TASK_BODY) {
 		err("wrong subsystem state on task begin");
-		//return -1;
-		return 0; // FIXME
+		return -1;
 	}
 
 	return 0;

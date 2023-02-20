@@ -8,3 +8,4 @@ ovni_test(task-types.c MP)
 ovni_test(blocking.c MP)
 ovni_test(ss-mismatch.c SHOULD_FAIL
   REGEX "thread [0-9]\\+ ended with 1 stacked nanos6 subsystems")
+ovni_test(delayed-connect-ss.c)

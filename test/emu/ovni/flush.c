@@ -1,35 +1,9 @@
-/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200112L
 #define _GNU_SOURCE
 
-#include <limits.h>
-#include <linux/limits.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include "compat.h"
-#include "ovni.h"
-
-static inline void
-init(void)
-{
-	char hostname[HOST_NAME_MAX];
-
-	if (gethostname(hostname, HOST_NAME_MAX) != 0) {
-		perror("gethostname failed");
-		exit(EXIT_FAILURE);
-	}
-
-	ovni_proc_init(0, hostname, getpid());
-	ovni_thread_init(gettid());
-	ovni_add_cpu(0, 0);
-}
+#include "instr_ovni.h"
 
 static void
 emit(uint8_t *buf, size_t size)
@@ -43,13 +17,10 @@ emit(uint8_t *buf, size_t size)
 int
 main(void)
 {
-	size_t payload_size;
-	uint8_t *payload_buf;
+	instr_start(0, 1);
 
-	init();
-
-	payload_size = (size_t) (0.9 * (double) OVNI_MAX_EV_BUF);
-	payload_buf = calloc(1, payload_size);
+	size_t payload_size = (size_t) (0.9 * (double) OVNI_MAX_EV_BUF);
+	uint8_t *payload_buf = calloc(1, payload_size);
 
 	if (!payload_buf) {
 		perror("calloc failed");
@@ -67,8 +38,7 @@ main(void)
 	emit(payload_buf, payload_size);
 
 	/* Flush the last event to disk manually */
-	ovni_flush();
-	ovni_proc_fini();
+	instr_end();
 
 	free(payload_buf);
 

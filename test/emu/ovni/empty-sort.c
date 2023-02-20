@@ -1,35 +1,9 @@
-/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200112L
 #define _GNU_SOURCE
 
-#include <limits.h>
-#include <linux/limits.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include "compat.h"
-#include "ovni.h"
-
-static inline void
-init(void)
-{
-	char hostname[HOST_NAME_MAX];
-
-	if (gethostname(hostname, HOST_NAME_MAX) != 0) {
-		perror("gethostname failed");
-		exit(EXIT_FAILURE);
-	}
-
-	ovni_proc_init(0, hostname, getpid());
-	ovni_thread_init(gettid());
-	ovni_add_cpu(0, 0);
-}
+#include "instr_ovni.h"
 
 static void
 emit(char *mcv, int64_t clock)
@@ -43,7 +17,7 @@ emit(char *mcv, int64_t clock)
 int
 main(void)
 {
-	init();
+	instr_start(0, 1);
 
 	/* Leave some room to prevent clashes */
 	usleep(100); /* 100000 us */
@@ -60,8 +34,7 @@ main(void)
 
 	emit("OU]", ovni_clock_now());
 
-	ovni_flush();
-	ovni_proc_fini();
+	instr_end();
 
 	return 0;
 }

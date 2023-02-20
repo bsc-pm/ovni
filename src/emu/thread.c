@@ -5,6 +5,7 @@
 
 #include "path.h"
 #include "bay.h"
+#include <errno.h>
 
 static const char chan_fmt[] = "thread%lu.%s";
 static const char *chan_name[] = {
@@ -49,7 +50,17 @@ get_tid(const char *id, int *tid)
 		return -1;
 	}
 
-	*tid = atoi(tidstr);
+	char *endptr;
+	errno = 0;
+	*tid = strtol(tidstr, &endptr, 10);
+	if (errno != 0) {
+		err("strtol failed for '%s':", tidstr);
+		return -1;
+	}
+	if (endptr == tidstr) {
+		err("no digits in tid string '%s'", tidstr);
+		return -1;
+	}
 
 	return 0;
 }

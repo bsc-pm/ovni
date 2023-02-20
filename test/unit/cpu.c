@@ -24,12 +24,9 @@ test_oversubscription(void)
 	 * affinity rules */
 	proc.metadata_loaded = 1;
 
-	if (proc_init_end(&proc) != 0)
-		die("proc_init_end failed");
-
 	struct thread th0, th1;
 
-	if (thread_init_begin(&th0, &proc, "loom.0/proc.0/thread.0.obs") != 0)
+	if (thread_init_begin(&th0, "loom.0/proc.0/thread.0.obs") != 0)
 		die("thread_init_begin failed");
 
 	thread_set_gindex(&th0, 0);
@@ -37,13 +34,22 @@ test_oversubscription(void)
 	if (thread_init_end(&th0) != 0)
 		die("thread_init_end failed");
 
-	if (thread_init_begin(&th1, &proc, "loom.1/proc.1/thread.1.obs") != 0)
+	if (thread_init_begin(&th1, "loom.1/proc.1/thread.1.obs") != 0)
 		die("thread_init_begin failed");
 
 	thread_set_gindex(&th1, 1);
 
 	if (thread_init_end(&th1) != 0)
 		die("thread_init_end failed");
+
+	if (proc_add_thread(&proc, &th0) != 0)
+		die("proc_add_thread failed");
+
+	if (proc_add_thread(&proc, &th1) != 0)
+		die("proc_add_thread failed");
+
+	if (proc_init_end(&proc) != 0)
+		die("proc_init_end failed");
 
 	if (thread_set_cpu(&th0, &cpu) != 0)
 		die("thread_set_cpu failed");

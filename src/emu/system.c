@@ -28,7 +28,7 @@ create_thread(struct proc *proc, const char *relpath)
 		return NULL;
 	}
 
-	if (thread_init_begin(thread, proc, relpath) != 0) {
+	if (thread_init_begin(thread, relpath) != 0) {
 		err("cannot init thread");
 		return NULL;
 	}

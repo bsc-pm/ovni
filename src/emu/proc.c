@@ -155,6 +155,8 @@ proc_add_thread(struct proc *proc, struct thread *thread)
 	HASH_ADD_INT(proc->threads, tid, thread);
 	proc->nthreads++;
 
+	thread_set_proc(thread, proc);
+
 	return 0;
 }
 

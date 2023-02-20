@@ -73,7 +73,7 @@ struct thread {
 };
 
 int thread_relpath_get_tid(const char *relpath, int *tid);
-int thread_init_begin(struct thread *thread, struct proc *proc, const char *relpath);
+int thread_init_begin(struct thread *thread, const char *relpath);
 int thread_init_end(struct thread *thread);
 int thread_set_state(struct thread *th, enum thread_state state);
 int thread_set_cpu(struct thread *th, struct cpu *cpu);
@@ -81,6 +81,7 @@ int thread_unset_cpu(struct thread *th);
 int thread_migrate_cpu(struct thread *th, struct cpu *cpu);
 int thread_get_tid(struct thread *thread);
 void thread_set_gindex(struct thread *th, int64_t gindex);
+void thread_set_proc(struct thread *th, struct proc *proc);
 int thread_connect(struct thread *th, struct bay *bay, struct recorder *rec);
 
 int thread_select_active(struct mux *mux, struct value value, struct mux_input **input);

@@ -61,13 +61,12 @@ thread_relpath_get_tid(const char *relpath, int *tid)
 }
 
 int
-thread_init_begin(struct thread *thread, struct proc *proc, const char *relpath)
+thread_init_begin(struct thread *thread, const char *relpath)
 {
 	memset(thread, 0, sizeof(struct thread));
 
 	thread->state = TH_ST_UNKNOWN;
 	thread->gindex = -1;
-	thread->proc = proc;
 
 	if (snprintf(thread->id, PATH_MAX, "%s", relpath) >= PATH_MAX) {
 		err("relpath too long");
@@ -86,6 +85,12 @@ void
 thread_set_gindex(struct thread *th, int64_t gindex)
 {
 	th->gindex = gindex;
+}
+
+void
+thread_set_proc(struct thread *th, struct proc *proc)
+{
+	th->proc = proc;
 }
 
 int

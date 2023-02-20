@@ -3,42 +3,6 @@
 
 #define N 10
 
-//static int
-//select_active_thread(struct mux *mux,
-//		struct value *value,
-//		struct mux_input **input)
-//{
-//	if (value->type == VALUE_NULL) {
-//		*input = NULL;
-//		return 0;
-//	}
-//
-//	if (value->type != VALUE_INT64) {
-//		err("expecting NULL or INT64 channel value\n");
-//		return -1;
-//	}
-//
-//	enum thread_state state = (enum thread_state) value->i;
-//
-//	if (mux->ninputs != 1) {
-//		err("expecting NULL or INT64 channel value\n");
-//		return -1;
-//	}
-//
-//	switch (state) {
-//		case TH_ST_RUNNING:
-//		case TH_ST_COOLING:
-//		case TH_ST_WARMING:
-//			*input = only_input;
-//			break;
-//		case TH_ST_PAUSED:
-//			*input = NULL;
-//			break;
-//	}
-//
-//	return 0;
-//}
-
 static void
 check_output(struct mux *mux, struct value expected)
 {

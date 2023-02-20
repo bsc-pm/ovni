@@ -237,6 +237,22 @@ chan_flush(struct chan *chan)
 	return 0;
 }
 
+/** Marks the channel as dirty */
+int
+chan_dirty(struct chan *chan)
+{
+	/* Nothing to do, already dirty */
+	if (chan->is_dirty)
+		return 0;
+
+	if (set_dirty(chan) != 0) {
+		err("%s: set_dirty failed\n", chan->name);
+		return -1;
+	}
+
+	return 0;
+}
+
 void
 chan_prop_set(struct chan *chan, enum chan_prop prop, int value)
 {

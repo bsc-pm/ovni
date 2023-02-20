@@ -63,5 +63,6 @@ USE_RET int chan_flush(struct chan *chan);
         void chan_prop_set(struct chan *chan, enum chan_prop prop, int value);
 USE_RET int chan_prop_get(struct chan *chan, enum chan_prop prop);
         void chan_set_dirty_cb(struct chan *chan, chan_cb_t func, void *arg);
+USE_RET int chan_dirty(struct chan *chan);
 
 #endif /* CHAN_H */

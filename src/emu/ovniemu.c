@@ -55,9 +55,9 @@ main(int argc, char *argv[])
 	}
 
 	if (ret == 0)
-		err("emulation ends ok");
+		err("emulation finished ok");
 	else
-		err("emulation ends with errors");
+		err("emulation finished with errors");
 
 	free(emu);
 

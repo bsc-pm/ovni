@@ -41,6 +41,10 @@ nanos6_rt_test(several-tasks.c)
 nanos6_rt_test(sched-add.c)
 nanos6_rt_test(if0.c)
 #nanos6_rt_test(taskfor.c) #Taskfor no longer supported
+nanos6_rt_test(spawn-task.c)
+nanos6_rt_test(spawn-task-external.c)
+nanos6_rt_test(spawn-task-external-bad.c SHOULD_FAIL
+  REGEX "ovni_finish: thread [0-9]* is not dead")
 
 # Test multiple instrumentation levels
 nanos6_rt_test(simple-task.c NAME simple-task-level-1 LEVEL 1)

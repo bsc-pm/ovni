@@ -18,6 +18,11 @@ pre_thread_execute(struct emu *emu, struct thread *th)
 		return -1;
 	}
 
+	if (emu->ev->payload_size < 4) {
+		err("missing payload in thread %d execute event", th->tid);
+		return -1;
+	}
+
 	int cpuid = emu->ev->payload->i32[0];
 	struct cpu *cpu = loom_find_cpu(emu->loom, cpuid);
 

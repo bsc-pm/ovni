@@ -6,6 +6,10 @@
 int
 ovni_finish(struct emu *emu)
 {
+	/* Skip the check if the we are stopping prematurely */
+	if (!emu->finished)
+		return 0;
+
 	struct system *sys = &emu->system;
 	int ret = 0;
 

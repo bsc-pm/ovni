@@ -30,6 +30,8 @@ struct emu {
 	struct recorder recorder;
 	struct emu_stat stat;
 
+	int finished;
+
 	/* Quick access */
 	struct stream *stream;
 	struct emu_ev *ev;

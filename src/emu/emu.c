@@ -127,8 +127,10 @@ emu_step(struct emu *emu)
 	int ret = player_step(&emu->player);
 
 	/* No more events */
-	if (ret > 0)
+	if (ret > 0) {
+		emu->finished = 1;
 		return +1;
+	}
 
 	/* Error happened */
 	if (ret < 0) {

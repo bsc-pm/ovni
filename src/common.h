@@ -18,6 +18,8 @@ void vdie(const char *func, const char *errstr, ...);
 #define rerr(...) fprintf(stderr, __VA_ARGS__)
 #define err(...) verr(__func__, __VA_ARGS__)
 #define die(...) vdie(__func__, __VA_ARGS__)
+#define info(...) verr("INFO", __VA_ARGS__)
+#define warn(...) verr("WARN", __VA_ARGS__)
 
 #ifdef ENABLE_DEBUG
 # define dbg(...) verr(__func__, __VA_ARGS__)

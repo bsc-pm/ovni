@@ -47,7 +47,6 @@ verr(const char *func, const char *errstr, ...)
 	va_end(ap);
 }
 
-
 void
 vdie(const char *func, const char *errstr, ...)
 {

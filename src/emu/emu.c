@@ -82,6 +82,13 @@ emu_connect(struct emu *emu)
 		return -1;
 	}
 
+	/* Run a propagation phase so we clean all the dirty channels, in
+	 * particular the select channel of the muxes */
+	if (bay_propagate(&emu->bay) != 0) {
+		err("bay_propagate failed");
+		return -1;
+	}
+
 	return 0;
 }
 

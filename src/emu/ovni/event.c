@@ -42,7 +42,10 @@ pre_thread_execute(struct emu *emu, struct thread *th)
 
 	/* And then add the thread to the CPU, so tracking channels see the
 	 * updated thread state */
-	cpu_add_thread(cpu, th);
+	if (cpu_add_thread(cpu, th) != 0) {
+		err("cpu_add_thread failed");
+		return -1;
+	}
 
 	return 0;
 }

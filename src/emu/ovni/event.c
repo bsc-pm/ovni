@@ -390,7 +390,7 @@ static int
 pre_flush(struct emu *emu)
 {
 	struct ovni_thread *th = EXT(emu->thread, 'O');
-	struct chan *flush = &th->ch[CH_FLUSH];
+	struct chan *flush = &th->m.ch[CH_FLUSH];
 
 	switch (emu->ev->v) {
 		case '[':
@@ -398,12 +398,21 @@ pre_flush(struct emu *emu)
 				err("chan_set failed");
 				return -1;
 			}
+			th->flush_start = emu->ev->dclock;
 			break;
 		case ']':
 			if (chan_set(flush, value_null()) != 0) {
 				err("chan_set failed");
 				return -1;
 			}
+			int64_t flush_ns = emu->ev->dclock - th->flush_start;
+			double flush_ms = (double) flush_ns * 1e-6;
+			/* Avoid last flush warnings */
+			if (flush_ms > 10.0 && emu->thread->is_running)
+				warn("large flush of %.1f ms at dclock=%ld ns in tid=%d",
+						flush_ms,
+						emu->ev->dclock,
+						emu->thread->tid);
 			break;
 		default:
 			err("unexpected value '%c' (expecting '[' or ']')\n",

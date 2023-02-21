@@ -198,8 +198,7 @@ player_step(struct player *player)
 	player->stream = stream;
 
 	struct ovni_ev *oev = stream_ev(stream);
-	int64_t sclock = stream_evclock(stream, oev);
-	emu_ev(&player->ev, oev, sclock, player->deltaclock);
+	emu_ev(&player->ev, oev, player->lastclock, player->deltaclock);
 
 	return 0;
 }

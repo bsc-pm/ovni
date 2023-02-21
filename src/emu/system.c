@@ -151,7 +151,7 @@ create_system(struct system *sys, struct trace *trace)
 	size_t i = 0;
 	for (struct stream *s = trace->streams; s ; s = s->next) {
 		if (!loom_matches(s->relpath)) {
-			err("warning: ignoring unknown stream %s", s->relpath);
+			warn("ignoring unknown stream %s", s->relpath);
 			continue;
 		}
 
@@ -404,7 +404,7 @@ init_offsets(struct system *sys, struct trace *trace)
 	/* If we have more than one hostname and no offset table has been found,
 	 * we won't be able to synchronize the clocks */
 	if (n == 0 && sys->nlooms > 1) {
-		err("warning: no clock offset file loaded with %ld looms",
+		warn("no clock offset file loaded with %ld looms",
 				sys->nlooms);
 	}
 

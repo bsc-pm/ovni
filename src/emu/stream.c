@@ -114,7 +114,7 @@ stream_load(struct stream *stream, const char *tracedir, const char *relpath)
 	if (stream->offset < stream->size) {
 		stream->active = 1;
 	} else if (stream->offset == stream->size) {
-		err("warning: stream '%s' has zero events", stream->relpath);
+		warn("stream '%s' has zero events", stream->relpath);
 		stream->active = 0;
 	} else {
 		err("impossible, offset %ld bigger than size %ld",

@@ -415,7 +415,7 @@ pre_task(struct emu *emu)
 	int ret = 0;
 	switch (emu->ev->v) {
 		case 'C':
-			err("warning: got old 6TC event, ignoring");
+			warn("got old 6TC event, ignoring");
 			break;
 		case 'c':
 			ret = create_task(emu);

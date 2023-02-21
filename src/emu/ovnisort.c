@@ -302,7 +302,7 @@ stream_winsort(struct stream *stream, struct ring *r)
 	}
 
 	if (empty_regions > 0)
-		err("warning: stream %s contains %ld empty sort regions\n",
+		warn("stream %s contains %ld empty sort regions\n",
 				stream->relpath, empty_regions);
 
 	if (updated && fdatasync(fd) < 0)

@@ -178,15 +178,17 @@ emu_finish(struct emu *emu)
 {
 	emu_stat_report(&emu->stat, &emu->player, 1);
 
+	int ret = 0;
 	if (model_finish(&emu->model, emu) != 0) {
 		err("model_finish failed");
-		return -1;
+		ret = -1;
 	}
 
+	/* Finish the traces event if the model_finish failed */
 	if (recorder_finish(&emu->recorder) != 0) {
 		err("recorder_finish failed");
-		return -1;
+		ret = -1;
 	}
 
-	return 0;
+	return ret;
 }

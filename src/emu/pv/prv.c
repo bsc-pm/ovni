@@ -108,6 +108,9 @@ emit(struct prv *prv, struct prv_chan *rchan)
 	switch (value.type) {
 		case VALUE_INT64:
 			val = value.i;
+			if (rchan->flags & PRV_NEXT)
+				val++;
+
 			//if (val == 0) {
 			//	err("forbidden value 0 in %s: %s\n",
 			//			chan->name,

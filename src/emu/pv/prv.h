@@ -12,7 +12,8 @@
 struct prv;
 
 enum prv_flags {
-	PRV_DUP = 1,
+	PRV_DUP = 1<<0,
+	PRV_NEXT = 1<<1, /* Add one to the channel value */
 };
 
 struct prv_chan {

@@ -378,7 +378,7 @@ pre_burst(struct emu *emu)
 	avg /= (double) n;
 	double median = deltas[n / 2];
 
-	err("%s burst stats: median %.0f ns, avg %.1f ns, max %.0f ns\n",
+	info("%s burst stats: median/avg/max = %3.0f/%3.0f/%3.0f ns\n",
 			emu->loom->id, median, avg, maxdelta);
 
 	th->nbursts = 0;

@@ -10,7 +10,8 @@
  * execution by the kernel. */
 
 #include "emu.h"
-#include "chan.h"
+#include "model_cpu.h"
+#include "model_thread.h"
 #include <stdint.h>
 
 enum ovni_chan_type {
@@ -18,25 +19,29 @@ enum ovni_chan_type {
 	CH_MAX,
 };
 
+enum ovni_flusing_st {
+	ST_FLUSHING = 1,
+};
+
 #define MAX_BURSTS 100
 
 struct ovni_thread {
-	struct chan ch[CH_MAX];
-	struct chan ch_run[CH_MAX];
-	struct chan mux_run[CH_MAX];
+	struct model_thread m;
 
 	/* Burst times */
 	int nbursts;
 	int64_t burst_time[MAX_BURSTS];
+
+	int64_t flush_start;
 };
 
 struct ovni_cpu {
-	struct chan ch[CH_MAX];
-	struct mux mux[CH_MAX];
+	struct model_cpu m;
 };
 
 int ovni_probe(struct emu *emu);
 int ovni_create(struct emu *emu);
+int ovni_connect(struct emu *emu);
 int ovni_event(struct emu *emu);
 int ovni_finish(struct emu *emu);
 

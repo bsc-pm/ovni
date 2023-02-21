@@ -132,6 +132,12 @@ cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec)
 	return 0;
 }
 
+struct pcf_value *
+cpu_add_to_pcf_type(struct cpu *cpu, struct pcf_type *type)
+{
+	return pcf_add_value(type, cpu->gindex + 1, cpu->name);
+}
+
 static struct thread *
 find_thread(struct cpu *cpu, struct thread *thread)
 {

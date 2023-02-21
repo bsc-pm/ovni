@@ -566,6 +566,14 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 		}
 	}
 
+	struct pcf *pcf_th = pvt_get_pcf(pvt_th);
+	if (thread_create_pcf_types(pcf_th) != 0) {
+		err("thread_create_pcf_types failed");
+		return -1;
+	}
+
+	struct pcf_type *affinity_type = thread_get_affinity_pcf_type(pcf_th);
+
 	for (struct cpu *cpu = sys->cpus; cpu; cpu = cpu->next) {
 		if (cpu_connect(cpu, bay, rec) != 0) {
 			err("cpu_connect failed\n");
@@ -577,6 +585,8 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 			err("prf_add failed for cpu '%s'", cpu->name);
 			return -1;
 		}
+
+		cpu_add_to_pcf_type(cpu, affinity_type);
 	}
 
 	return 0;

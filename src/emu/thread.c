@@ -20,6 +20,26 @@ static const int chan_type[] = {
 	[TH_CHAN_CPU] = 6,
 };
 
+static const char *pvt_name[] = {
+	[TH_CHAN_CPU] = "Thread: CPU affinity",
+	[TH_CHAN_TID] = "Thread: TID of the ACTIVE thread",
+	[TH_CHAN_STATE] = "Thread: thread state",
+};
+
+static const struct pcf_value_label state_name[] = {
+	{ TH_ST_UNKNOWN, "Unknown" },
+	{ TH_ST_RUNNING, "Running" },
+	{ TH_ST_PAUSED,  "Paused" },
+	{ TH_ST_DEAD,    "Dead" },
+	{ TH_ST_COOLING, "Cooling" },
+	{ TH_ST_WARMING, "Warming" },
+	{ -1, NULL },
+};
+
+static const struct pcf_value_label (*pcf_labels[TH_CHAN_MAX])[] = {
+	[TH_CHAN_STATE] = &state_name,
+};
+
 static int
 get_tid(const char *id, int *tid)
 {
@@ -123,6 +143,39 @@ thread_init_end(struct thread *th)
 	return 0;
 }
 
+static int
+create_values(struct pcf_type *t, int i)
+{
+	const struct pcf_value_label(*q)[] = pcf_labels[i];
+
+	if (q == NULL)
+		return 0;
+
+	for (const struct pcf_value_label *p = *q; p->label != NULL; p++)
+		pcf_add_value(t, p->value, p->label);
+
+	return 0;
+}
+
+static int
+create_type(struct pcf *pcf, int i)
+{
+	long type = chan_type[i];
+
+	if (type == -1)
+		return 0;
+
+	const char *label = pvt_name[i];
+	struct pcf_type *pcftype = pcf_add_type(pcf, type, label);
+
+	if (create_values(pcftype, i) != 0) {
+		err("create_values failed");
+		return -1;
+	}
+
+	return 0;
+}
+
 int
 thread_connect(struct thread *th, struct bay *bay, struct recorder *rec)
 {
@@ -148,13 +201,38 @@ thread_connect(struct thread *th, struct bay *bay, struct recorder *rec)
 
 		long type = chan_type[i];
 		long row = th->gindex;
-		if (prv_register(prv, row, type, bay, c, PRV_DUP)) {
+		long flags = PRV_DUP;
+
+		/* Add one to the cpu gindex in the PRV output */
+		if (i == TH_CHAN_CPU)
+			flags |= PRV_NEXT;
+
+		if (prv_register(prv, row, type, bay, c, flags)) {
 			err("prv_register failed");
 			return -1;
 		}
 	}
 
 	return 0;
+}
+
+int
+thread_create_pcf_types(struct pcf *pcf)
+{
+	for (int i = 0; i < TH_CHAN_MAX; i++) {
+		if (create_type(pcf, i) != 0) {
+			err("create_type failed");
+			return -1;
+		}
+	}
+	return 0;
+}
+
+struct pcf_type *
+thread_get_affinity_pcf_type(struct pcf *pcf)
+{
+	int type_id = chan_type[TH_CHAN_CPU];
+	return pcf_find_type(pcf, type_id);
 }
 
 int

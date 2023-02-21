@@ -79,5 +79,6 @@ int cpu_remove_thread(struct cpu *cpu, struct thread *thread);
 int cpu_migrate_thread(struct cpu *cpu, struct thread *thread, struct cpu *newcpu);
 
 struct chan *cpu_get_th_chan(struct cpu *cpu, enum track_th mode);
+struct pcf_value *cpu_add_to_pcf_type(struct cpu *cpu, struct pcf_type *type);
 
 #endif /* CPU_H */

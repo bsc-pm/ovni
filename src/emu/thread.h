@@ -88,4 +88,7 @@ int thread_select_active(struct mux *mux, struct value value, struct mux_input *
 int thread_select_running(struct mux *mux, struct value value, struct mux_input **input);
 int thread_select_any(struct mux *mux, struct value value, struct mux_input **input);
 
+int thread_create_pcf_types(struct pcf *pcf);
+struct pcf_type *thread_get_affinity_pcf_type(struct pcf *pcf);
+
 #endif /* THREAD_H */

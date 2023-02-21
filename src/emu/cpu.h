@@ -64,19 +64,18 @@ struct cpu {
 	UT_hash_handle hh; /* CPUs in the loom */
 };
 
-void cpu_init_begin(struct cpu *cpu, int phyid, int is_virtual);
-int cpu_get_phyid(struct cpu *cpu);
-//int cpu_get_index(struct cpu *cpu);
-void cpu_set_gindex(struct cpu *cpu, int64_t gindex);
-void cpu_set_loom(struct cpu *cpu, struct loom *loom);
-void cpu_set_name(struct cpu *cpu, const char *name);
-int cpu_init_end(struct cpu *cpu);
-int cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec);
+        void cpu_init_begin(struct cpu *cpu, int phyid, int is_virtual);
+USE_RET int cpu_get_phyid(struct cpu *cpu);
+        void cpu_set_gindex(struct cpu *cpu, int64_t gindex);
+        void cpu_set_loom(struct cpu *cpu, struct loom *loom);
+        void cpu_set_name(struct cpu *cpu, const char *name);
+USE_RET int cpu_init_end(struct cpu *cpu);
+USE_RET int cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec);
 
-int cpu_update(struct cpu *cpu);
-int cpu_add_thread(struct cpu *cpu, struct thread *thread);
-int cpu_remove_thread(struct cpu *cpu, struct thread *thread);
-int cpu_migrate_thread(struct cpu *cpu, struct thread *thread, struct cpu *newcpu);
+USE_RET int cpu_update(struct cpu *cpu);
+USE_RET int cpu_add_thread(struct cpu *cpu, struct thread *thread);
+USE_RET int cpu_remove_thread(struct cpu *cpu, struct thread *thread);
+USE_RET int cpu_migrate_thread(struct cpu *cpu, struct thread *thread, struct cpu *newcpu);
 
 struct chan *cpu_get_th_chan(struct cpu *cpu, enum track_th mode);
 struct pcf_value *cpu_add_to_pcf_type(struct cpu *cpu, struct pcf_type *type);

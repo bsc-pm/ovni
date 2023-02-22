@@ -67,7 +67,7 @@ loom_init_begin(struct loom *loom, const char *name)
 	set_hostname(loom->hostname, loom->name);
 	loom->id = loom->name;
 
-	cpu_init_begin(&loom->vcpu, -1, 1);
+	cpu_init_begin(&loom->vcpu, -1, -1, 1);
 	cpu_set_loom(&loom->vcpu, loom);
 
 	dbg("creating new loom %s", loom->id);
@@ -96,6 +96,20 @@ loom_find_cpu(struct loom *loom, int phyid)
 	struct cpu *cpu = NULL;
 	HASH_FIND_INT(loom->cpus, &phyid, cpu);
 	return cpu;
+}
+
+struct cpu *
+loom_get_cpu(struct loom *loom, int index)
+{
+	if (index == -1)
+		return &loom->vcpu;
+
+	if (index < 0 || (size_t) index >= loom->ncpus) {
+		err("cpu index out of bounds");
+		return NULL;
+	}
+
+	return loom->cpus_array[index];
 }
 
 int
@@ -181,6 +195,27 @@ loom_init_end(struct loom *loom)
 			loom->rank_enabled = 1;
 			break;
 		}
+	}
+
+	/* Populate cpus_array */
+	loom->cpus_array = calloc(loom->ncpus, sizeof(struct cpu *));
+	if (loom->cpus_array == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+	for (struct cpu *c = loom->cpus; c; c = c->hh.next) {
+		int index = cpu_get_index(c);
+		if (index < 0 || (size_t) index >= loom->ncpus) {
+			err("cpu index out of bounds");
+			return -1;
+		}
+
+		if (loom->cpus_array[index] != NULL) {
+			err("cpu with index %d already taken", index);
+			return -1;
+		}
+
+		loom->cpus_array[index] = c;
 	}
 
 	loom->is_init = 1;

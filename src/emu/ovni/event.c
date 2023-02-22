@@ -23,12 +23,12 @@ pre_thread_execute(struct emu *emu, struct thread *th)
 		return -1;
 	}
 
-	int cpuid = emu->ev->payload->i32[0];
-	struct cpu *cpu = loom_find_cpu(emu->loom, cpuid);
+	int index = emu->ev->payload->i32[0];
+	struct cpu *cpu = loom_get_cpu(emu->loom, index);
 
 	if (cpu == NULL) {
-		err("cannot find CPU with phyid %d in loom %s",
-				cpuid, emu->loom->id);
+		err("cannot find CPU with index %d in loom %s",
+				index, emu->loom->id);
 		return -1;
 	}
 
@@ -213,12 +213,12 @@ pre_affinity_set(struct emu *emu)
 		return -1;
 	}
 
-	/* Migrate current cpu to the one at phyid */
-	int phyid = emu->ev->payload->i32[0];
-	struct cpu *newcpu = loom_find_cpu(emu->loom, phyid);
+	/* Migrate current cpu to the one at index */
+	int index = emu->ev->payload->i32[0];
+	struct cpu *newcpu = loom_get_cpu(emu->loom, index);
 
 	if (newcpu == NULL) {
-		err("cannot find cpu with phyid %d", phyid);
+		err("cannot find cpu with index %d", index);
 		return -1;
 	}
 
@@ -244,7 +244,7 @@ pre_affinity_set(struct emu *emu)
 static int
 pre_affinity_remote(struct emu *emu)
 {
-	int32_t phyid = emu->ev->payload->i32[0];
+	int32_t index = emu->ev->payload->i32[0];
 	int32_t tid = emu->ev->payload->i32[1];
 
 	struct thread *remote_th = proc_find_thread(emu->proc, tid);
@@ -276,10 +276,10 @@ pre_affinity_remote(struct emu *emu)
 		return -1;
 	}
 
-	/* Migrate current cpu to the one at phyid */
-	struct cpu *newcpu = loom_find_cpu(emu->loom, phyid);
+	/* Migrate current cpu to the one at index */
+	struct cpu *newcpu = loom_get_cpu(emu->loom, index);
 	if (newcpu == NULL) {
-		err("cannot find CPU with phyid %d", phyid);
+		err("cannot find CPU with index %d", index);
 		return -1;
 	}
 
@@ -293,7 +293,7 @@ pre_affinity_remote(struct emu *emu)
 		return -1;
 	}
 
-	dbg("remote_th %d remotely switches to cpu %d", tid, phyid);
+	dbg("remote_th %d remotely switches to cpu %d", tid, index);
 
 	return 0;
 }

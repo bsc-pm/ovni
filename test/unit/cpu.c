@@ -1,15 +1,20 @@
 #include "emu/cpu.h"
+#include "emu/loom.h"
 #include "common.h"
 
 static void
 test_oversubscription(void)
 {
+	struct loom loom;
+	loom_init_begin(&loom, "loom.0");
+
 	struct cpu cpu;
 
 	int phyid = 0;
-	cpu_init_begin(&cpu, phyid, 0);
-	cpu_set_name(&cpu, "cpu0");
+	int index = 0;
+	cpu_init_begin(&cpu, index, phyid, 0);
 	cpu_set_gindex(&cpu, 0);
+	cpu_set_loom(&cpu, &loom);
 	if (cpu_init_end(&cpu) != 0)
 		die("cpu_init_end failed");
 

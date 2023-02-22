@@ -53,7 +53,7 @@ test_negative_cpu(struct loom *loom)
 		die("loom_init_begin failed");
 
 	struct cpu cpu;
-	cpu_init_begin(&cpu, -1, 0);
+	cpu_init_begin(&cpu, -1, -1, 0);
 
 	if (loom_add_cpu(loom, &cpu) == 0)
 		die("loom_add_cpu didn't fail");
@@ -68,7 +68,7 @@ test_duplicate_cpus(struct loom *loom)
 		die("loom_init_begin failed");
 
 	struct cpu cpu;
-	cpu_init_begin(&cpu, 123, 0);
+	cpu_init_begin(&cpu, 123, 123, 0);
 	if (loom_add_cpu(loom, &cpu) != 0)
 		die("loom_add_cpu failed");
 

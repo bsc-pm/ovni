@@ -278,41 +278,36 @@ init_global_indices(struct system *sys)
 }
 
 static int
-init_cpu_name(struct loom *loom, struct cpu *cpu, int virtual)
+init_end_system(struct system *sys)
 {
-	size_t i = loom_get_gindex(loom);
-	size_t j = cpu_get_phyid(cpu);
-	int n = 0;
-	char name[PATH_MAX];
-
-	if (virtual)
-		n = snprintf(name, PATH_MAX, "vCPU %ld.*", i);
-	else
-		n = snprintf(name, PATH_MAX, "CPU %ld.%ld", i, j);
-
-	if (n >= PATH_MAX) {
-		err("cpu name too long");
-		return -1;
-	}
-
-	cpu_set_name(cpu, name);
-
-	return 0;
-}
-
-static int
-init_cpu_names(struct system *sys)
-{
-	for (struct loom *loom = sys->looms; loom; loom = loom->next) {
-		for (struct cpu *cpu = loom->cpus; cpu; cpu = cpu->hh.next) {
-			if (init_cpu_name(loom, cpu, 0) != 0)
+	for (struct loom *l = sys->looms; l; l = l->next) {
+		for (struct proc *p = l->procs; p; p = p->hh.next) {
+			for (struct thread *t = p->threads; t; t = t->hh.next) {
+				if (thread_init_end(t) != 0) {
+					err("thread_init_end failed");
+					return -1;
+				}
+			}
+			if (proc_init_end(p) != 0) {
+				err("proc_init_end failed");
 				return -1;
+			}
 		}
-		struct cpu *vcpu = loom_get_vcpu(loom);
-		if (init_cpu_name(loom, vcpu, 1) != 0)
+		for (struct cpu *cpu = l->cpus; cpu; cpu = cpu->hh.next) {
+			if (cpu_init_end(cpu) != 0) {
+				err("cpu_init_end failed");
+				return -1;
+			}
+		}
+		if (cpu_init_end(&l->vcpu) != 0) {
+			err("cpu_init_end failed");
 			return -1;
+		}
+		if (loom_init_end(l) != 0) {
+			err("loom_init_end failed");
+			return -1;
+		}
 	}
-
 	return 0;
 }
 
@@ -433,40 +428,6 @@ init_offsets(struct system *sys, struct trace *trace)
 	return 0;
 }
 
-static int
-init_end_system(struct system *sys)
-{
-	for (struct loom *l = sys->looms; l; l = l->next) {
-		for (struct proc *p = l->procs; p; p = p->hh.next) {
-			for (struct thread *t = p->threads; t; t = t->hh.next) {
-				if (thread_init_end(t) != 0) {
-					err("thread_init_end failed");
-					return -1;
-				}
-			}
-			if (proc_init_end(p) != 0) {
-				err("proc_init_end failed");
-				return -1;
-			}
-		}
-		for (struct cpu *cpu = l->cpus; cpu; cpu = cpu->hh.next) {
-			if (cpu_init_end(cpu) != 0) {
-				err("cpu_init_end failed");
-				return -1;
-			}
-		}
-		if (cpu_init_end(&l->vcpu) != 0) {
-			err("cpu_init_end failed");
-			return -1;
-		}
-		if (loom_init_end(l) != 0) {
-			err("loom_init_end failed");
-			return -1;
-		}
-	}
-	return 0;
-}
-
 int
 system_init(struct system *sys, struct emu_args *args, struct trace *trace)
 {
@@ -488,9 +449,8 @@ system_init(struct system *sys, struct emu_args *args, struct trace *trace)
 	/* Now that we have loaded all resources, populate the indices */
 	init_global_indices(sys);
 
-	/* Set CPU names like "CPU 1.34" */
-	if (init_cpu_names(sys) != 0) {
-		err("init_cpu_names() failed");
+	if (init_end_system(sys) != 0) {
+		err("init_end_system failed");
 		return -1;
 	}
 
@@ -503,11 +463,6 @@ system_init(struct system *sys, struct emu_args *args, struct trace *trace)
 	/* Set the offsets of the looms and streams */
 	if (init_offsets(sys, trace) != 0) {
 		err("system_init: init_offsets() failed\n");
-		return -1;
-	}
-
-	if (init_end_system(sys) != 0) {
-		err("init_end_system failed");
 		return -1;
 	}
 

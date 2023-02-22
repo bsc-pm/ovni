@@ -3,6 +3,7 @@
 
 #include "cpu.h"
 
+#include "loom.h"
 #include "chan.h"
 #include "value.h"
 #include "utlist.h"
@@ -28,14 +29,22 @@ static int chan_type[] = {
 };
 
 void
-cpu_init_begin(struct cpu *cpu, int phyid, int is_virtual)
+cpu_init_begin(struct cpu *cpu, int index, int phyid, int is_virtual)
 {
 	memset(cpu, 0, sizeof(struct cpu));
 
+	cpu->index = index;
 	cpu->phyid = phyid;
 	cpu->is_virtual = is_virtual;
+	cpu->gindex = -1;
 
 	dbg("cpu init %d", phyid);
+}
+
+int
+cpu_get_index(struct cpu *cpu)
+{
+	return cpu->index;
 }
 
 int
@@ -56,23 +65,41 @@ cpu_set_loom(struct cpu *cpu, struct loom *loom)
 	cpu->loom = loom;
 }
 
-void
-cpu_set_name(struct cpu *cpu, const char *name)
+static int
+set_name(struct cpu *cpu)
 {
-	if (snprintf(cpu->name, PATH_MAX, "%s", name) >= PATH_MAX)
-		die("cpu name too long");
+	size_t i = loom_get_gindex(cpu->loom);
+	size_t j = cpu_get_phyid(cpu);
+	int n;
+
+	if (cpu->is_virtual)
+		n = snprintf(cpu->name, PATH_MAX, "vCPU %ld.*", i);
+	else
+		n = snprintf(cpu->name, PATH_MAX, " CPU %ld.%ld", i, j);
+
+	if (n >= PATH_MAX) {
+		err("cpu name too long");
+		return -1;
+	}
+
+	return 0;
 }
 
 int
 cpu_init_end(struct cpu *cpu)
 {
-	if (strlen(cpu->name) == 0) {
-		err("cpu name not set");
+	if (cpu->gindex < 0) {
+		err("cpu gindex not set");
 		return -1;
 	}
 
-	if (cpu->gindex < 0) {
-		err("cpu gindex not set");
+	if (cpu->loom == NULL) {
+		err("cpu loom not set");
+		return -1;
+	}
+
+	if (set_name(cpu) != 0) {
+		err("set_name failed");
 		return -1;
 	}
 

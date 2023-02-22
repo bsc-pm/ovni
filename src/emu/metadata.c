@@ -97,8 +97,7 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 
 		/* Cast from double */
 		int index = (int) json_object_get_number(jcpu, "index");
-		/* FIXME: Use phyid instead */
-		//int phyid = (int) json_object_get_number(jcpu, "phyid");
+		int phyid = (int) json_object_get_number(jcpu, "phyid");
 
 		struct cpu *cpu = calloc(1, sizeof(struct cpu));
 		if (cpu == NULL) {
@@ -106,7 +105,7 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 			return -1;
 		}
 
-		cpu_init_begin(cpu, index, 0);
+		cpu_init_begin(cpu, index, phyid, 0);
 
 		if (loom_add_cpu(loom, cpu) != 0) {
 			err("loom_add_cpu() failed");

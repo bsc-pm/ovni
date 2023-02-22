@@ -4,7 +4,7 @@
 #ifndef LOOM_H
 #define LOOM_H
 
-//struct loom;
+struct loom;
 
 #include <stddef.h>
 #include <stdint.h>
@@ -33,6 +33,9 @@ struct loom {
 	/* Physical CPUs hash table by phyid */
 	struct cpu *cpus;
 
+	/* Array of CPUs indexed by logic index */
+	struct cpu **cpus_array;
+
 	/* Virtual CPU */
 	struct cpu vcpu;
 
@@ -54,6 +57,7 @@ int loom_add_cpu(struct loom *loom, struct cpu *cpu);
 int64_t loom_get_gindex(struct loom *loom);
 void loom_set_gindex(struct loom *loom, int64_t gindex);
 struct cpu *loom_find_cpu(struct loom *loom, int phyid);
+struct cpu *loom_get_cpu(struct loom *loom, int index);
 void loom_set_vcpu(struct loom *loom, struct cpu *vcpu);
 struct cpu *loom_get_vcpu(struct loom *loom);
 struct proc *loom_find_proc(struct loom *loom, pid_t pid);

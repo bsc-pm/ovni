@@ -4,7 +4,8 @@
 #ifndef CPU_H
 #define CPU_H
 
-struct cpu; /* Needed for thread */
+struct cpu; /* Needed for thread and loom */
+struct loom;
 
 #include "thread.h"
 #include "chan.h"
@@ -30,8 +31,8 @@ struct cpu {
 	char name[PATH_MAX];
 	int is_init;
 
-	/* Logical index: 0 to ncpus - 1 */
-	//int index;
+	/* Logical index: 0 to ncpus - 1, and -1 for virtual */
+	int index;
 
 	/* Physical id: as reported by lscpu(1) */
 	int phyid;
@@ -64,8 +65,9 @@ struct cpu {
 	UT_hash_handle hh; /* CPUs in the loom */
 };
 
-        void cpu_init_begin(struct cpu *cpu, int phyid, int is_virtual);
+        void cpu_init_begin(struct cpu *cpu, int index, int phyid, int is_virtual);
 USE_RET int cpu_get_phyid(struct cpu *cpu);
+USE_RET int cpu_get_index(struct cpu *cpu);
         void cpu_set_gindex(struct cpu *cpu, int64_t gindex);
         void cpu_set_loom(struct cpu *cpu, struct loom *loom);
         void cpu_set_name(struct cpu *cpu, const char *name);

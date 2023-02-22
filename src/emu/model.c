@@ -126,6 +126,7 @@ model_event(struct model *model, struct emu *emu, int index)
 int
 model_finish(struct model *model, struct emu *emu)
 {
+	int ret = 0;
 	for (int i = 0; i < MAX_MODELS; i++) {
 		if (!model->enabled[i])
 			continue;
@@ -136,8 +137,9 @@ model_finish(struct model *model, struct emu *emu)
 
 		if (spec->finish(emu) != 0) {
 			err("finish failed for model '%c'", (char) i);
-			return -1;
+			ret = -1;
 		}
 	}
-	return 0;
+
+	return ret;
 }

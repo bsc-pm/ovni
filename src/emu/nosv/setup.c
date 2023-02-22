@@ -236,6 +236,10 @@ end_lint(struct emu *emu)
 static int
 finish_pvt(struct emu *emu, const char *name)
 {
+	/* Only run the check if we finished the complete trace */
+	if (!emu->finished)
+		return 0;
+
 	struct system *sys = &emu->system;
 
 	/* Emit task types for all channel types and processes */

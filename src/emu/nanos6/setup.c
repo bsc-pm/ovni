@@ -226,6 +226,10 @@ nanos6_connect(struct emu *emu)
 static int
 end_lint(struct emu *emu)
 {
+	/* Only run the check if we finished the complete trace */
+	if (!emu->finished)
+		return 0;
+
 	struct system *sys = &emu->system;
 
 	/* Ensure we run out of subsystem states */

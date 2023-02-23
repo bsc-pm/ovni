@@ -92,15 +92,24 @@ emu_connect(struct emu *emu)
 	return 0;
 }
 
-static void
+static int
 set_current(struct emu *emu)
 {
 	emu->ev = player_ev(&emu->player);
 	emu->stream = player_stream(&emu->player);
 	struct lpt *lpt = system_get_lpt(emu->stream);
+	if (lpt == NULL) {
+		/* For now die if we have a unknown stream */
+		err("event from unknown stream: %s",
+				emu->stream->path);
+		return -1;
+	}
+
 	emu->loom = lpt->loom;
 	emu->proc = lpt->proc;
 	emu->thread = lpt->thread;
+
+	return 0;
 }
 
 static void
@@ -145,7 +154,10 @@ emu_step(struct emu *emu)
 		return -1;
 	}
 
-	set_current(emu);
+	if (set_current(emu) != 0) {
+		err("cannot set current event information");
+		return -1;
+	}
 
 	dbg("----- mvc=%s dclock=%ld -----", emu->ev->mcv, emu->ev->dclock);
 

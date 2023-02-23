@@ -413,10 +413,9 @@ init_offsets(struct system *sys, struct trace *trace)
 
 	for (struct stream *s = trace->streams; s; s = s->next) {
 		struct lpt *lpt = system_get_lpt(s);
-		if (lpt == NULL) {
-			err("cannot get stream lpt");
-			return -1;
-		}
+		/* Not LPT stream */
+		if (lpt == NULL)
+			continue;
 
 		int64_t offset = lpt->loom->clock_offset;
 		if (stream_clkoff_set(s, offset) != 0) {
@@ -477,6 +476,9 @@ struct lpt *
 system_get_lpt(struct stream *stream)
 {
 	struct lpt *lpt = stream_data_get(stream);
+
+	if (lpt == NULL)
+		return NULL;
 
 	if (lpt->stream != stream)
 		die("inconsistent stream in lpt map");

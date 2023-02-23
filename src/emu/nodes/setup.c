@@ -49,10 +49,15 @@ static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
 	[CH_SUBSYSTEM] = &nodes_ss_values,
 };
 
+static const long prv_flags[CH_MAX] = {
+	[CH_SUBSYSTEM] = PRV_SKIPDUP,
+};
+
 static const struct model_pvt_spec pvt_spec = {
 	.type = pvt_type,
 	.prefix = pcf_prefix,
 	.label = pcf_labels,
+	.flags = prv_flags,
 };
 
 /* ----------------- tracking ------------------ */

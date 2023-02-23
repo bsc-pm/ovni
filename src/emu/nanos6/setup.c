@@ -92,10 +92,19 @@ static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
 	[CH_THREAD]    = &nanos6_thread_type,
 };
 
+static const long prv_flags[CH_MAX] = {
+	[CH_TASKID]    = PRV_SKIPDUP,
+	[CH_TYPE]      = PRV_SKIPDUP,
+	[CH_SUBSYSTEM] = PRV_SKIPDUP,
+	[CH_RANK]      = PRV_SKIPDUP,
+	[CH_THREAD]    = PRV_SKIPDUP,
+};
+
 static const struct model_pvt_spec pvt_spec = {
 	.type = pvt_type,
 	.prefix = pcf_prefix,
 	.label = pcf_labels,
+	.flags = prv_flags,
 };
 
 /* ----------------- tracking ------------------ */

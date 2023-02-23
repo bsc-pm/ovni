@@ -11,6 +11,7 @@ struct model_pvt_spec {
 	const int *type;
 	const char **prefix;
 	const char **suffix;
+	const long *flags;
 	const struct pcf_value_label (**label)[];
 };
 

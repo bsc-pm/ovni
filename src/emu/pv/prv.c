@@ -67,16 +67,20 @@ find_prv_chan(struct prv *prv, long id)
 	return rchan;
 }
 
-static int
+static void
 write_line(struct prv *prv, long row_base1, long type, long value)
 {
-	int ret = fprintf(prv->file, "2:0:1:1:%ld:%ld:%ld:%ld\n",
+	fprintf(prv->file, "2:0:1:1:%ld:%ld:%ld:%ld\n",
 			row_base1, prv->time, type, value);
+}
 
-	if (ret < 0)
-		return -1;
-	else
+static int
+is_value_dup(struct prv_chan *rchan, struct value *value)
+{
+	if (!rchan->last_value_set)
 		return 0;
+
+	return value_is_equal(value, &rchan->last_value);
 }
 
 static int
@@ -90,18 +94,25 @@ emit(struct prv *prv, struct prv_chan *rchan)
 		return -1;
 	}
 
-	/* Ensure we don't emit the same value twice */
-	if (rchan->last_value_set && value_is_equal(&value, &rchan->last_value)) {
-		char buf[128];
-		if (rchan->flags & PRV_DUP) {
-			dbg("skipping duplicated value %s for channel %s\n",
-					value_str(value, buf), chan->name);
-			return 0;
-		} else {
+	/* Only test for duplicates if not emitting them */
+	if (~rchan->flags & PRV_EMITDUP) {
+		int is_dup = is_value_dup(rchan, &value);
+		if (is_dup) {
+			if (rchan->flags & PRV_SKIPDUP)
+				return 0;
+
+			int is_null = value_is_null(value);
+			if (rchan->flags & PRV_SKIPNULL && is_null)
+				return 0;
+
 			err("error duplicated value %s for channel %s\n",
 					value_str(value, buf), chan->name);
 			return -1;
 		}
+
+		/* Only set when caring about duplicates */
+		rchan->last_value = value;
+		rchan->last_value_set = 1;
 	}
 
 	long val = 0;
@@ -111,12 +122,12 @@ emit(struct prv *prv, struct prv_chan *rchan)
 			if (rchan->flags & PRV_NEXT)
 				val++;
 
-			//if (val == 0) {
-			//	err("forbidden value 0 in %s: %s\n",
-			//			chan->name,
-			//			value_str(value, buf));
-			//	return -1;
-			//}
+			if (~rchan->flags & PRV_ZERO && val == 0) {
+				err("forbidden value 0 in %s: %s\n",
+						chan->name,
+						value_str(value, buf));
+				return -1;
+			}
 			break;
 		case VALUE_NULL:
 			val = 0;
@@ -127,16 +138,10 @@ emit(struct prv *prv, struct prv_chan *rchan)
 			return -1;
 	}
 
-	if (write_line(prv, rchan->row_base1, rchan->type, val) != 0) {
-		err("write_line failed for channel %s\n",
-				chan->name);
-		return -1;
-	}
+	write_line(prv, rchan->row_base1, rchan->type, val);
 
 	dbg("written %s for chan %s", value_str(value, buf), chan->name);
 
-	rchan->last_value = value;
-	rchan->last_value_set = 1;
 
 	return 0;
 }

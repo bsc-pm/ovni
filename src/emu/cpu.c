@@ -26,6 +26,12 @@ static int chan_type[] = {
 	[CPU_CHAN_THACT] = -1,
 };
 
+static long chan_flags[] = {
+	[CPU_CHAN_PID]  = PRV_SKIPDUP,
+	[CPU_CHAN_TID]  = PRV_SKIPDUP,
+	[CPU_CHAN_NRUN] = PRV_SKIPDUP | PRV_ZERO,
+};
+
 void
 cpu_init_begin(struct cpu *cpu, int index, int phyid, int is_virtual)
 {
@@ -148,7 +154,8 @@ cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec)
 			continue;
 
 		long row = cpu->gindex;
-		if (prv_register(prv, row, type, bay, c, PRV_DUP)) {
+		long flags = chan_flags[i];
+		if (prv_register(prv, row, type, bay, c, flags)) {
 			err("prv_register failed");
 			return -1;
 		}

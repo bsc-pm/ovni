@@ -75,11 +75,13 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv, int id)
 {
 	struct model_cpu *cpu = EXT(scpu, id);
 	const struct model_chan_spec *spec = cpu->spec->chan;
+	const long *flags_arr = spec->pvt->flags;
 	for (int i = 0; i < spec->nch; i++) {
 		struct chan *out = track_get_output(&cpu->track[i]);
 		long type = spec->pvt->type[i];
 		long row = scpu->gindex;
-		if (prv_register(prv, row, type, &emu->bay, out, PRV_DUP)) {
+		long flags = flags_arr ? flags_arr[i] : 0;
+		if (prv_register(prv, row, type, &emu->bay, out, flags)) {
 			err("prv_register failed");
 			return -1;
 		}
@@ -125,11 +127,13 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv, int id)
 {
 	struct model_thread *th = EXT(sth, id);
 	const struct model_chan_spec *spec = th->spec->chan;
+	const long *flags_arr = spec->pvt->flags;
 	for (int i = 0; i < spec->nch; i++) {
 		struct chan *out = track_get_output(&th->track[i]);
 		long type = spec->pvt->type[i];
 		long row = sth->gindex;
-		if (prv_register(prv, row, type, &emu->bay, out, PRV_DUP)) {
+		long flags = flags_arr ? flags_arr[i] : 0;
+		if (prv_register(prv, row, type, &emu->bay, out, flags)) {
 			err("prv_register failed");
 			return -1;
 		}

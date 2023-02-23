@@ -54,7 +54,7 @@ static const int th_track[CH_MAX] = {
 };
 
 static const int cpu_track[CH_MAX] = {
-	[CH_CS] = TRACK_TH_RUN, /* FIXME: Why active */
+	[CH_CS] = TRACK_TH_RUN,
 };
 
 /* ----------------- chan_spec ------------------ */

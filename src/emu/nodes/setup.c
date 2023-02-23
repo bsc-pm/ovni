@@ -58,7 +58,7 @@ static const struct model_pvt_spec pvt_spec = {
 /* ----------------- tracking ------------------ */
 
 static const int th_track[CH_MAX] = {
-	[CH_SUBSYSTEM] = TRACK_TH_RUN, /* FIXME: Why not active? */
+	[CH_SUBSYSTEM] = TRACK_TH_ACT,
 };
 
 static const int cpu_track[CH_MAX] = {

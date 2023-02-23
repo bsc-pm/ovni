@@ -121,9 +121,8 @@ cb_input(struct chan *in_chan, void *ptr)
 	}
 
 	char buf[128];
-	UNUSED(buf);
 	dbg("setting output chan %s to value %s",
-			mux->output->name, value_str(out_value, buf));
+			input->output->name, value_str(out_value, buf));
 
 	if (chan_set(input->output, out_value) != 0) {
 		err("chan_set() failed");

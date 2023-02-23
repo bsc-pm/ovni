@@ -7,9 +7,9 @@ void
 emu_ev(struct emu_ev *ev, const struct ovni_ev *oev,
 		int64_t sclock, int64_t dclock)
 {
-	ev->mcv[0] = ev->m = oev->header.model;
-	ev->mcv[1] = ev->c = oev->header.category;
-	ev->mcv[2] = ev->v = oev->header.value;
+	ev->m = oev->header.model;
+	ev->c = oev->header.category;
+	ev->v = oev->header.value;
 	ev->mcv[3] = '\0';
 
 	ev->rclock = oev->header.clock;

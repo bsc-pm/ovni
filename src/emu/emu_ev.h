@@ -9,10 +9,15 @@
 
 /* Easier to parse emulation event */
 struct emu_ev {
-	uint8_t m;
-	uint8_t c;
-	uint8_t v;
-	char mcv[4];
+	union {
+		struct {
+			uint8_t m;
+			uint8_t c;
+			uint8_t v;
+			uint8_t nil;
+		};
+		char mcv[4];
+	};
 
 	int64_t rclock; /* As-is clock in the binary stream */
 	int64_t sclock; /* Corrected clock with stream offset */

@@ -24,7 +24,7 @@ void vdie(const char *func, const char *errstr, ...);
 #ifdef ENABLE_DEBUG
 # define dbg(...) verr(__func__, __VA_ARGS__)
 #else
-# define dbg(...)
+# define dbg(...) do { if (0) { verr(__func__, __VA_ARGS__); } } while(0)
 #endif
 
 #define likely(x) __builtin_expect(!!(x), 1)

@@ -27,7 +27,6 @@ const char *pcf_def_header =
 	"THREAD_FUNC         State As Is\n";
 
 #define RGB(r, g, b) (r<<16 | g<<8 | b)
-#define ARRAY_LEN(x)  (sizeof(x) / sizeof((x)[0]))
 
 /* Define colors for the trace */
 #define DEEPBLUE  RGB(  0,   0, 255)
@@ -66,7 +65,7 @@ const uint32_t pcf_def_palette[] = {
 };
 
 const uint32_t *pcf_palette = pcf_def_palette;
-const int pcf_palette_len = ARRAY_LEN(pcf_def_palette);
+const int pcf_palette_len = ARRAYLEN(pcf_def_palette);
 
 /* clang-format on */
 

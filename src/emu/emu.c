@@ -51,8 +51,6 @@ emu_init(struct emu *emu, int argc, char *argv[])
 		return -1;
 	}
 
-	emu_stat_init(&emu->stat);
-
 	model_init(&emu->model);
 
 	/* Register all the models */
@@ -70,6 +68,8 @@ emu_init(struct emu *emu, int argc, char *argv[])
 		err("model_create failed");
 		return -1;
 	}
+
+	emu_stat_init(&emu->stat);
 
 	return 0;
 }

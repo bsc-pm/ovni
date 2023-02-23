@@ -14,7 +14,6 @@ static const char *chan_name[] = {
 	[CPU_CHAN_NRUN] = "nrunning",
 	[CPU_CHAN_PID] = "pid_running",
 	[CPU_CHAN_TID] = "tid_running",
-	[CPU_CHAN_APPID] = "appid_running",
 	[CPU_CHAN_THRUN] = "th_running",
 	[CPU_CHAN_THACT] = "th_active",
 };
@@ -23,7 +22,6 @@ static int chan_type[] = {
 	[CPU_CHAN_PID] = 1,
 	[CPU_CHAN_TID] = 2,
 	[CPU_CHAN_NRUN] = 3,
-	[CPU_CHAN_APPID] = 5,
 	[CPU_CHAN_THRUN] = -1,
 	[CPU_CHAN_THACT] = -1,
 };

@@ -20,7 +20,6 @@ enum cpu_chan {
 	CPU_CHAN_NRUN = 0,
 	CPU_CHAN_PID,
 	CPU_CHAN_TID,
-	CPU_CHAN_APPID,
 	CPU_CHAN_THRUN, /* gindex */
 	CPU_CHAN_THACT, /* gindex */
 	CPU_CHAN_MAX,

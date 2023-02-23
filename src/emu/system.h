@@ -39,15 +39,10 @@ struct system {
 	struct emu_args *args;
 
 	struct lpt *lpt;
-
-	//struct model_ctx ctx;
 };
 
 int system_init(struct system *sys, struct emu_args *args, struct trace *trace);
 int system_connect(struct system *sys, struct bay *bay, struct recorder *rec);
 struct lpt *system_get_lpt(struct stream *stream);
-//struct emu_cpu *system_find_cpu(struct emu_loom *loom, int cpuid);
-//int model_ctx_set(struct model_ctx *ctx, int model, void *data);
-//int model_ctx_get(struct model_ctx *ctx, int model, void *data);
 
 #endif /* EMU_SYSTEM_H */

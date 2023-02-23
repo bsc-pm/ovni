@@ -15,7 +15,7 @@ struct model_spec model_kernel = {
 /* ----------------- channels ------------------ */
 
 static const char *chan_name[CH_MAX] = {
-	[CH_CS] = "subsystem",
+	[CH_CS] = "context_switch",
 };
 
 static const int chan_stack[CH_MAX] = {

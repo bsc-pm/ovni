@@ -16,6 +16,7 @@ struct emu_stat {
 	int64_t last_nprocessed;
 	int64_t ncalls;
 	int64_t maxcalls;
+	int average;
 };
 
 void emu_stat_init(struct emu_stat *stat);

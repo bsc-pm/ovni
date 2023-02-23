@@ -27,6 +27,7 @@ emu_stat_init(struct emu_stat *stat)
 	stat->first_time = t;
 	stat->maxcalls = 100;
 	stat->period = 0.2;
+	stat->average = 1; /* Show average speed */
 }
 
 void
@@ -40,27 +41,32 @@ emu_stat_report(struct emu_stat *stat, struct player *player, int last)
 	double time_total = time_elapsed / progress;
 	double time_left = time_total - time_elapsed;
 
-	int tmin = (int) (time_left / 60.0);
-	int tsec = (int) ((time_left / 60.0 - tmin) * 60.0);
-
-//	int64_t delta_nprocessed = nprocessed - stat->last_nprocessed;
-//	double time_delta = time_now - stat->reported_time;
-//	double speed = 0.0;
-//	if (time_delta > 0.0)
-//		speed = (double) delta_nprocessed / time_delta;
+	int64_t delta_nprocessed = nprocessed - stat->last_nprocessed;
+	double time_delta = time_now - stat->reported_time;
+	double instspeed = 0.0;
+	if (time_delta > 0.0)
+		instspeed = (double) delta_nprocessed / time_delta;
 
 	/* Compute average speed since the beginning */
 	double avgspeed = 0.0;
 	if (time_elapsed > 0.0)
 		avgspeed = (double) nprocessed / time_elapsed;
 
-	verr(NULL, "%5.1f%% done at %.0f kev/s (%d min %d s left)   \r",
-			progress * 100.0,
-			avgspeed * 1e-3,
-			tmin, tsec);
+	double speed = stat->average ? avgspeed : instspeed;
 
-	if (last)
-		fprintf(stderr, "\n");
+	if (last) {
+		int tmin = (int) (time_elapsed / 60.0);
+		int tsec = (int) ((time_elapsed / 60.0 - tmin) * 60.0);
+		verr(NULL, "%5.1f%% done at avg %.0f kev/s\n",
+				progress * 100.0, avgspeed * 1e-3, tmin, tsec);
+		verr(NULL, "processed %ld input events in %d min %d s\n",
+				nprocessed, tmin, tsec);
+	} else {
+		int tmin = (int) (time_left / 60.0);
+		int tsec = (int) ((time_left / 60.0 - tmin) * 60.0);
+		verr(NULL, "%5.1f%% done at %.0f kev/s (%d min %d s left)   \r",
+				progress * 100.0, speed * 1e-3, tmin, tsec);
+	}
 
 	stat->reported_time = time_now;
 	stat->last_nprocessed = nprocessed;

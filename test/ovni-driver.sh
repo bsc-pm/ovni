@@ -41,4 +41,10 @@ fi
 # Then launch the emulator in lint mode
 "$emubin" -l "$tracedir"
 
+# Run any post script that was generated
+ls -1 *.sh | while read sh; do
+  echo "Running '$sh'"
+  bash -x $sh
+done
+
 #rm -rf $tracedir

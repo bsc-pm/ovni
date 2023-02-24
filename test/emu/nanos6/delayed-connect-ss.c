@@ -3,6 +3,9 @@
 
 #include "instr_nanos6.h"
 
+#include "emu_prv.h"
+#include "nanos6/nanos6_priv.h"
+
 int
 main(void)
 {
@@ -15,12 +18,30 @@ main(void)
 	 * will remain selecting a null input until the thread state
 	 * changes. */
 
-	/* FIXME: We should be able to test that after emitting the
-	 * nanos6 event the emulator follows some properties. */
-
 	instr_nanos6_worker_loop_enter();
 
+	/* Match the PRV line in the trace */
+	FILE *f = fopen("match.sh", "w");
+	if (f == NULL)
+		die("fopen failed:");
+
+	/* Ensure that after the Nanos6 connect phase, the CPU subsystem mux has
+	 * selected the correct input, based on the running thread */
+	int type = PRV_NANOS6_SUBSYSTEM;
+	int64_t t = get_delta();
+	int value = ST_WORKER_LOOP;
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, type, value);
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, type, value);
+
 	instr_nanos6_worker_loop_exit();
+
+	/* Also test when exitting the stacked subsystem */
+	t = get_delta();
+	value = 0;
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, type, value);
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, type, value);
+
+	fclose(f);
 
 	instr_end();
 

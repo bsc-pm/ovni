@@ -32,6 +32,7 @@ static const int chan_stack[CH_MAX] = {
 static const int chan_dup[CH_MAX] = {
 	[CH_APPID] = 1,
 	[CH_TYPE] = 1,
+	[CH_RANK] = 1,
 };
 
 /* ----------------- pvt ------------------ */
@@ -77,37 +78,19 @@ static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
 	[CH_SUBSYSTEM] = &nosv_ss_values,
 };
 
-/* ------------- duplicates in prv -------------- */
-
-static const long th_prv_flags[CH_MAX] = {
-	/* Due muxes we need to skip duplicated nulls */
+static const long prv_flags[CH_MAX] = {
 	[CH_TASKID]    = PRV_SKIPDUP,
-	[CH_TYPE]      = PRV_SKIPDUP,
-	[CH_APPID]     = PRV_SKIPDUP,
+	[CH_TYPE]      = PRV_EMITDUP, /* Switch to task of same type */
+	[CH_APPID]     = PRV_EMITDUP, /* Switch to task of same appid */
 	[CH_SUBSYSTEM] = PRV_SKIPDUP,
-	[CH_RANK]      = PRV_SKIPDUP,
+	[CH_RANK]      = PRV_EMITDUP, /* Switch to task of same rank */
 };
 
-static const long cpu_prv_flags[CH_MAX] = {
-	[CH_TASKID]    = PRV_SKIPDUP,
-	[CH_TYPE]      = PRV_SKIPDUP,
-	[CH_APPID]     = PRV_SKIPDUP,
-	[CH_SUBSYSTEM] = PRV_SKIPDUP,
-	[CH_RANK]      = PRV_SKIPDUP,
-};
-
-static const struct model_pvt_spec th_pvt_spec = {
+static const struct model_pvt_spec pvt_spec = {
 	.type = pvt_type,
 	.prefix = pcf_prefix,
 	.label = pcf_labels,
-	.flags = th_prv_flags,
-};
-
-static const struct model_pvt_spec cpu_pvt_spec = {
-	.type = pvt_type,
-	.prefix = pcf_prefix,
-	.label = pcf_labels,
-	.flags = cpu_prv_flags,
+	.flags = prv_flags,
 };
 
 /* ----------------- tracking ------------------ */
@@ -136,7 +119,7 @@ static const struct model_chan_spec th_chan = {
 	.ch_names = chan_name,
 	.ch_stack = chan_stack,
 	.ch_dup = chan_dup,
-	.pvt = &th_pvt_spec,
+	.pvt = &pvt_spec,
 	.track = th_track,
 };
 
@@ -145,7 +128,7 @@ static const struct model_chan_spec cpu_chan = {
 	.prefix = model_name,
 	.ch_names = chan_name,
 	.ch_stack = chan_stack,
-	.pvt = &cpu_pvt_spec,
+	.pvt = &pvt_spec,
 	.track = cpu_track,
 };
 

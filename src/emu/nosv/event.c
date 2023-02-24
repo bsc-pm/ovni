@@ -160,6 +160,7 @@ chan_task_switch(struct emu *emu, struct task *prev, struct task *next, char tr)
 {
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct chan *ch = th->m.ch;
+	struct proc *proc = emu->proc;
 
 	if (!prev || !next) {
 		err("cannot switch to or from a NULL task");
@@ -186,18 +187,24 @@ chan_task_switch(struct emu *emu, struct task *prev, struct task *next, char tr)
 		return -1;
 	}
 
-	/* No need to change the rank or app ID as we will switch 
-	 * to tasks from same thread */
 	if (chan_set(&ch[CH_TASKID], value_int64(next->id)) != 0) {
 		err("chan_set taskid failed");
 		return -1;
 	}
-
-	/* TODO: test when switching to another task with the same type. We
-	 * should emit the same type state value as previous task. */
 	if (chan_set(&ch[CH_TYPE], value_int64(next->type->gid)) != 0) {
 		err("chan_set type failed");
 		return -1;
+	}
+	if (chan_set(&ch[CH_APPID], value_int64(proc->appid)) != 0) {
+		err("chan_set appid failed");
+		return -1;
+	}
+	if (proc->rank >= 0) {
+		struct value vrank = value_int64(proc->rank + 1);
+		if (chan_set(&ch[CH_RANK], vrank) != 0) {
+			err("chan_set rank failed");
+			return -1;
+		}
 	}
 
 	/* Update the subsystem depending if we are pushing (X) or

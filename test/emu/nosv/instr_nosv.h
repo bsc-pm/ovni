@@ -6,7 +6,9 @@
 
 #include "../instr.h"
 
-static inline void
+#include "task.h"
+
+static inline uint32_t
 instr_nosv_type_create(int32_t typeid)
 {
 	struct ovni_ev ev = {0};
@@ -25,6 +27,8 @@ instr_nosv_type_create(int32_t typeid)
 	nbytes += strlen(p) + 1;
 
 	ovni_ev_jumbo_emit(&ev, (uint8_t *) buf, nbytes);
+
+	return task_get_type_gid(p);
 }
 
 INSTR_2ARG(instr_nosv_task_create, "VTc", int32_t, id, uint32_t, typeid)

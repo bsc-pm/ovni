@@ -44,7 +44,7 @@ fi
 # Run any post script that was generated
 ls -1 *.sh | while read sh; do
   echo "Running '$sh'"
-  bash -x $sh
+  bash -ex $sh
 done
 
 #rm -rf $tracedir

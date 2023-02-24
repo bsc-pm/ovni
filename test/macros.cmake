@@ -104,11 +104,17 @@ function(ovni_test source)
 
   include_directories(
     "${CMAKE_SOURCE_DIR}/src/include"
+    "${CMAKE_SOURCE_DIR}/src/emu"
     "${CMAKE_SOURCE_DIR}/src"
     "${CMAKE_SOURCE_DIR}/include"
   )
-  add_executable("${OVNI_TEST_NAME}" "${OVNI_TEST_SOURCE}")
-  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni)
+
+  add_executable("${OVNI_TEST_NAME}"
+    "${OVNI_TEST_SOURCE}"
+    "${CMAKE_SOURCE_DIR}/test/emu/instr.c"
+  )
+
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni emu)
 
   set(driver "${OVNI_TEST_SOURCE_DIR}/ovni-driver.sh")
 

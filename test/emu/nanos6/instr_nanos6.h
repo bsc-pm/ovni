@@ -13,7 +13,7 @@ instr_nanos6_type_create(int32_t typeid)
 	struct ovni_ev ev = {0};
 
 	ovni_ev_set_mcv(&ev, "6Yc");
-	ovni_ev_set_clock(&ev, ovni_clock_now());
+	ovni_ev_set_clock(&ev, get_clock());
 
 	char buf[256];
 	char *p = buf;

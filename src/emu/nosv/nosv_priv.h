@@ -54,10 +54,10 @@ struct nosv_proc {
 	struct task_info task_info;
 };
 
-int nosv_probe(struct emu *emu);
-int nosv_create(struct emu *emu);
-int nosv_connect(struct emu *emu);
-int nosv_event(struct emu *emu);
-int nosv_finish(struct emu *emu);
+int model_nosv_probe(struct emu *emu);
+int model_nosv_create(struct emu *emu);
+int model_nosv_connect(struct emu *emu);
+int model_nosv_event(struct emu *emu);
+int model_nosv_finish(struct emu *emu);
 
 #endif /* NOSV_PRIV_H */

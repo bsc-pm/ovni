@@ -27,10 +27,10 @@ struct kernel_cpu {
 	struct model_cpu m;
 };
 
-int kernel_probe(struct emu *emu);
-int kernel_create(struct emu *emu);
-int kernel_connect(struct emu *emu);
-int kernel_event(struct emu *emu);
-int kernel_finish(struct emu *emu);
+int model_kernel_probe(struct emu *emu);
+int model_kernel_create(struct emu *emu);
+int model_kernel_connect(struct emu *emu);
+int model_kernel_event(struct emu *emu);
+int model_kernel_finish(struct emu *emu);
 
 #endif /* KERNEL_PRIV_H */

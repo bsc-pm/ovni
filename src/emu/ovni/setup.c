@@ -8,11 +8,11 @@ enum { model_id = 'O' };
 struct model_spec model_ovni = {
 	.name = model_name,
 	.model = model_id,
-	.create  = ovni_create,
-	.connect = ovni_connect,
-	.event   = ovni_event,
-	.probe   = ovni_probe,
-	.finish  = ovni_finish,
+	.create  = model_ovni_create,
+	.connect = model_ovni_connect,
+	.event   = model_ovni_event,
+	.probe   = model_ovni_probe,
+	.finish  = model_ovni_finish,
 };
 
 /* ----------------- channels ------------------ */
@@ -100,7 +100,7 @@ static const struct model_thread_spec th_spec = {
 /* ----------------------------------------------------- */
 
 int
-ovni_probe(struct emu *emu)
+model_ovni_probe(struct emu *emu)
 {
 	if (emu->system.nthreads == 0)
 		return 1;
@@ -109,7 +109,7 @@ ovni_probe(struct emu *emu)
 }
 
 int
-ovni_create(struct emu *emu)
+model_ovni_create(struct emu *emu)
 {
 	if (model_thread_create(emu, &th_spec) != 0) {
 		err("model_thread_init failed");
@@ -125,7 +125,7 @@ ovni_create(struct emu *emu)
 }
 
 int
-ovni_connect(struct emu *emu)
+model_ovni_connect(struct emu *emu)
 {
 	if (model_thread_connect(emu, &th_spec) != 0) {
 		err("model_thread_connect failed");
@@ -141,7 +141,7 @@ ovni_connect(struct emu *emu)
 }
 
 int
-ovni_finish(struct emu *emu)
+model_ovni_finish(struct emu *emu)
 {
 	/* Skip the check if the we are stopping prematurely */
 	if (!emu->finished)

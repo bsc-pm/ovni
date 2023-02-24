@@ -8,11 +8,11 @@ enum { model_id = 'D' };
 struct model_spec model_nodes = {
 	.name = model_name,
 	.model = model_id,
-	.create  = nodes_create,
-//	.connect = nodes_connect,
-	.event   = nodes_event,
-	.probe   = nodes_probe,
-	.finish  = nodes_finish,
+	.create  = model_nodes_create,
+//	.connect = model_nodes_connect,
+	.event   = model_nodes_event,
+	.probe   = model_nodes_probe,
+	.finish  = model_nodes_finish,
 };
 
 /* ----------------- channels ------------------ */
@@ -109,7 +109,7 @@ static const struct model_thread_spec th_spec = {
 /* ----------------------------------------------------- */
 
 int
-nodes_probe(struct emu *emu)
+model_nodes_probe(struct emu *emu)
 {
 	if (emu->system.nthreads == 0)
 		return 1;
@@ -118,7 +118,7 @@ nodes_probe(struct emu *emu)
 }
 
 int
-nodes_create(struct emu *emu)
+model_nodes_create(struct emu *emu)
 {
 	if (model_thread_create(emu, &th_spec) != 0) {
 		err("model_thread_init failed");
@@ -134,7 +134,7 @@ nodes_create(struct emu *emu)
 }
 
 int
-nodes_connect(struct emu *emu)
+model_nodes_connect(struct emu *emu)
 {
 	if (model_thread_connect(emu, &th_spec) != 0) {
 		err("model_thread_connect failed");
@@ -180,7 +180,7 @@ end_lint(struct emu *emu)
 }
 
 int
-nodes_finish(struct emu *emu)
+model_nodes_finish(struct emu *emu)
 {
 	/* When running in linter mode perform additional checks */
 	if (emu->args.linter_mode && end_lint(emu) != 0) {

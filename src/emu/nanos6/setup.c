@@ -8,11 +8,11 @@ enum { model_id = '6' };
 struct model_spec model_nanos6 = {
 	.name = model_name,
 	.model = model_id,
-	.create  = nanos6_create,
-//	.connect = nanos6_connect,
-	.event   = nanos6_event,
-	.probe   = nanos6_probe,
-	.finish  = nanos6_finish,
+	.create  = model_nanos6_create,
+//	.connect = model_nanos6_connect,
+	.event   = model_nanos6_event,
+	.probe   = model_nanos6_probe,
+	.finish  = model_nanos6_finish,
 };
 
 /* ----------------- channels ------------------ */
@@ -164,7 +164,7 @@ static const struct model_thread_spec th_spec = {
 /* ----------------------------------------------------- */
 
 int
-nanos6_probe(struct emu *emu)
+model_nanos6_probe(struct emu *emu)
 {
 	if (emu->system.nthreads == 0)
 		return 1;
@@ -187,7 +187,7 @@ init_proc(struct proc *sysproc)
 }
 
 int
-nanos6_create(struct emu *emu)
+model_nanos6_create(struct emu *emu)
 {
 	struct system *sys = &emu->system;
 
@@ -218,7 +218,7 @@ nanos6_create(struct emu *emu)
 }
 
 int
-nanos6_connect(struct emu *emu)
+model_nanos6_connect(struct emu *emu)
 {
 	if (model_thread_connect(emu, &th_spec) != 0) {
 		err("model_thread_connect failed");
@@ -292,7 +292,7 @@ finish_pvt(struct emu *emu, const char *name)
 }
 
 int
-nanos6_finish(struct emu *emu)
+model_nanos6_finish(struct emu *emu)
 {
 	/* Fill task types */
 	if (finish_pvt(emu, "thread") != 0) {

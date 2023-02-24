@@ -506,12 +506,12 @@ process_ev(struct emu *emu)
 }
 
 int
-nanos6_event(struct emu *emu)
+model_nanos6_event(struct emu *emu)
 {
 	static int enabled = 0;
 
 	if (!enabled) {
-		if (nanos6_connect(emu) != 0) {
+		if (model_nanos6_connect(emu) != 0) {
 			err("nanos6_connect failed");
 			return -1;
 		}

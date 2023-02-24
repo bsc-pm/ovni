@@ -73,10 +73,10 @@ struct nanos6_proc {
 	struct task_info task_info;
 };
 
-int nanos6_probe(struct emu *emu);
-int nanos6_create(struct emu *emu);
-int nanos6_connect(struct emu *emu);
-int nanos6_event(struct emu *emu);
-int nanos6_finish(struct emu *emu);
+int model_nanos6_probe(struct emu *emu);
+int model_nanos6_create(struct emu *emu);
+int model_nanos6_connect(struct emu *emu);
+int model_nanos6_event(struct emu *emu);
+int model_nanos6_finish(struct emu *emu);
 
 #endif /* NANOS6_PRIV_H */

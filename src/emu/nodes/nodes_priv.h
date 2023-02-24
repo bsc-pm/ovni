@@ -34,10 +34,10 @@ struct nodes_cpu {
 	struct model_cpu m;
 };
 
-int nodes_probe(struct emu *emu);
-int nodes_create(struct emu *emu);
-int nodes_connect(struct emu *emu);
-int nodes_event(struct emu *emu);
-int nodes_finish(struct emu *emu);
+int model_nodes_probe(struct emu *emu);
+int model_nodes_create(struct emu *emu);
+int model_nodes_connect(struct emu *emu);
+int model_nodes_event(struct emu *emu);
+int model_nodes_finish(struct emu *emu);
 
 #endif /* NODES_PRIV_H */

@@ -39,10 +39,10 @@ struct ovni_cpu {
 	struct model_cpu m;
 };
 
-int ovni_probe(struct emu *emu);
-int ovni_create(struct emu *emu);
-int ovni_connect(struct emu *emu);
-int ovni_event(struct emu *emu);
-int ovni_finish(struct emu *emu);
+int model_ovni_probe(struct emu *emu);
+int model_ovni_create(struct emu *emu);
+int model_ovni_connect(struct emu *emu);
+int model_ovni_event(struct emu *emu);
+int model_ovni_finish(struct emu *emu);
 
 #endif /* OVNI_PRIV_H */

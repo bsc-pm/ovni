@@ -8,11 +8,11 @@ enum { model_id = 'V' };
 struct model_spec model_nosv = {
 	.name = model_name,
 	.model = model_id,
-	.create  = nosv_create,
-//	.connect = nosv_connect,
-	.event   = nosv_event,
-	.probe   = nosv_probe,
-	.finish  = nosv_finish,
+	.create  = model_nosv_create,
+//	.connect = model_nosv_connect,
+	.event   = model_nosv_event,
+	.probe   = model_nosv_probe,
+	.finish  = model_nosv_finish,
 };
 
 /* ----------------- channels ------------------ */
@@ -166,7 +166,7 @@ static const struct model_cpu_spec cpu_spec = {
 /* ----------------------------------------------------- */
 
 int
-nosv_probe(struct emu *emu)
+model_nosv_probe(struct emu *emu)
 {
 	if (emu->system.nthreads == 0)
 		return 1;
@@ -189,7 +189,7 @@ init_proc(struct proc *sysproc)
 }
 
 int
-nosv_create(struct emu *emu)
+model_nosv_create(struct emu *emu)
 {
 	struct system *sys = &emu->system;
 
@@ -220,7 +220,7 @@ nosv_create(struct emu *emu)
 }
 
 int
-nosv_connect(struct emu *emu)
+model_nosv_connect(struct emu *emu)
 {
 	if (model_thread_connect(emu, &th_spec) != 0) {
 		err("model_thread_connect failed");
@@ -294,7 +294,7 @@ finish_pvt(struct emu *emu, const char *name)
 }
 
 int
-nosv_finish(struct emu *emu)
+model_nosv_finish(struct emu *emu)
 {
 	/* Fill task types */
 	if (finish_pvt(emu, "thread") != 0) {

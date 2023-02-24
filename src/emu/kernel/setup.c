@@ -8,10 +8,10 @@ enum { model_id = 'K' };
 struct model_spec model_kernel = {
 	.name = model_name,
 	.model = model_id,
-	.create  = kernel_create,
-//	.connect = kernel_connect,
-	.event   = kernel_event,
-	.probe   = kernel_probe,
+	.create  = model_kernel_create,
+//	.connect = model_kernel_connect,
+	.event   = model_kernel_event,
+	.probe   = model_kernel_probe,
 };
 
 /* ----------------- channels ------------------ */
@@ -101,7 +101,7 @@ static const struct model_thread_spec th_spec = {
 /* ----------------------------------------------------- */
 
 int
-kernel_probe(struct emu *emu)
+model_kernel_probe(struct emu *emu)
 {
 	if (emu->system.nthreads == 0)
 		return 1;
@@ -110,7 +110,7 @@ kernel_probe(struct emu *emu)
 }
 
 int
-kernel_create(struct emu *emu)
+model_kernel_create(struct emu *emu)
 {
 	if (model_thread_create(emu, &th_spec) != 0) {
 		err("model_thread_init failed");
@@ -126,7 +126,7 @@ kernel_create(struct emu *emu)
 }
 
 int
-kernel_connect(struct emu *emu)
+model_kernel_connect(struct emu *emu)
 {
 	if (model_thread_connect(emu, &th_spec) != 0) {
 		err("model_thread_connect failed");

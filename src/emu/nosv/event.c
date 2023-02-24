@@ -505,12 +505,12 @@ process_ev(struct emu *emu)
 }
 
 int
-nosv_event(struct emu *emu)
+model_nosv_event(struct emu *emu)
 {
 	static int enabled = 0;
 
 	if (!enabled) {
-		if (nosv_connect(emu) != 0) {
+		if (model_nosv_connect(emu) != 0) {
 			err("nosv_connect failed");
 			return -1;
 		}

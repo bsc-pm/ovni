@@ -453,7 +453,7 @@ process_ev(struct emu *emu)
 }
 
 int
-ovni_event(struct emu *emu)
+model_ovni_event(struct emu *emu)
 {
 	if (emu->ev->m != 'O') {
 		err("unexpected event model %c\n", emu->ev->m);

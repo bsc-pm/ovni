@@ -222,8 +222,8 @@ task_end(struct task_stack *stack, struct task *task)
 	return 0;
 }
 
-static uint32_t
-get_task_type_gid(const char *label)
+uint32_t
+task_get_type_gid(const char *label)
 {
 	uint32_t gid;
 
@@ -266,7 +266,7 @@ task_type_create(struct task_info *info, uint32_t type_id, const char *label)
 		return -1;
 	}
 
-	type->gid = get_task_type_gid(label);
+	type->gid = task_get_type_gid(label);
 	int n = snprintf(type->label, MAX_PCF_LABEL, "%s", label);
 	if (n >= MAX_PCF_LABEL) {
 		err("task type label too long: %s", label);

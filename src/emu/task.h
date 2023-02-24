@@ -63,6 +63,7 @@ int task_end(struct task_stack *stack, struct task *task);
 
 struct task_type *task_type_find(struct task_type *types, uint32_t type_id);
 int task_type_create(struct task_info *info, uint32_t type_id, const char *label);
+uint32_t task_get_type_gid(const char *label);
 
 int task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types);
 struct task *task_get_running(struct task_stack *stack);

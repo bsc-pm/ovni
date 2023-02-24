@@ -1,5 +1,7 @@
 #include "nosv_priv.h"
 
+#include "emu_prv.h"
+
 static const char model_name[] = "nosv";
 enum { model_id = 'V' };
 
@@ -35,11 +37,11 @@ static const int chan_dup[CH_MAX] = {
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[] = {
-	[CH_TASKID]    = 10,
-	[CH_TYPE]      = 11,
-	[CH_APPID]     = 12,
-	[CH_SUBSYSTEM] = 13,
-	[CH_RANK]      = 14,
+	[CH_TASKID]    = PRV_NOSV_TASKID,
+	[CH_TYPE]      = PRV_NOSV_TYPE,
+	[CH_APPID]     = PRV_NOSV_APPID,
+	[CH_SUBSYSTEM] = PRV_NOSV_SUBSYSTEM,
+	[CH_RANK]      = PRV_NOSV_RANK,
 };
 
 static const char *pcf_prefix[CH_MAX] = {

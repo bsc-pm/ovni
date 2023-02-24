@@ -1,5 +1,7 @@
 #include "ovni_priv.h"
 
+#include "emu_prv.h"
+
 static const char model_name[] = "ovni";
 enum { model_id = 'O' };
 
@@ -24,7 +26,7 @@ static const int chan_stack[CH_MAX] = { 0 };
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[] = {
-	[CH_FLUSH] = 7,
+	[CH_FLUSH] = PRV_OVNI_FLUSH,
 };
 
 static const char *pcf_prefix[CH_MAX] = {

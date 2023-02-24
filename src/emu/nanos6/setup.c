@@ -1,5 +1,7 @@
 #include "nanos6_priv.h"
 
+#include "emu_prv.h"
+
 static const char model_name[] = "nanos6";
 enum { model_id = '6' };
 
@@ -31,11 +33,11 @@ static const int chan_stack[CH_MAX] = {
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[] = {
-	[CH_TASKID]    = 35,
-	[CH_TYPE]      = 36,
-	[CH_SUBSYSTEM] = 37,
-	[CH_RANK]      = 38,
-	[CH_THREAD]    = 39,
+	[CH_TASKID]    = PRV_NANOS6_TASKID,
+	[CH_TYPE]      = PRV_NANOS6_TYPE,
+	[CH_SUBSYSTEM] = PRV_NANOS6_SUBSYSTEM,
+	[CH_RANK]      = PRV_NANOS6_RANK,
+	[CH_THREAD]    = PRV_NANOS6_THREAD,
 };
 
 static const char *pcf_prefix[CH_MAX] = {

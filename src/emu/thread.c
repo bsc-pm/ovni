@@ -3,6 +3,7 @@
 
 #include "thread.h"
 
+#include "emu_prv.h"
 #include "path.h"
 #include "bay.h"
 #include <errno.h>
@@ -15,9 +16,9 @@ static const char *chan_name[] = {
 };
 
 static const int chan_type[] = {
-	[TH_CHAN_CPU]   = 6,
-	[TH_CHAN_TID]   = 2,
-	[TH_CHAN_STATE] = 4,
+	[TH_CHAN_CPU]   = PRV_THREAD_CPU,
+	[TH_CHAN_TID]   = PRV_THREAD_TID,
+	[TH_CHAN_STATE] = PRV_THREAD_STATE,
 };
 
 static const long prv_flags[] = {

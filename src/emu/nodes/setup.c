@@ -1,5 +1,7 @@
 #include "nodes_priv.h"
 
+#include "emu_prv.h"
+
 static const char model_name[] = "nodes";
 enum { model_id = 'D' };
 
@@ -26,7 +28,7 @@ static const int chan_stack[CH_MAX] = {
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[] = {
-	[CH_SUBSYSTEM] = 30,
+	[CH_SUBSYSTEM] = PRV_NODES_SUBSYSTEM,
 };
 
 static const char *pcf_prefix[CH_MAX] = {

@@ -1,5 +1,7 @@
 #include "kernel_priv.h"
 
+#include "emu_prv.h"
+
 static const char model_name[] = "kernel";
 enum { model_id = 'K' };
 
@@ -25,7 +27,7 @@ static const int chan_stack[CH_MAX] = {
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[] = {
-	[CH_CS] = 45,
+	[CH_CS] = PRV_KERNEL_CS,
 };
 
 static const char *pcf_prefix[CH_MAX] = {

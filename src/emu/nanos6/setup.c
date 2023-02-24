@@ -30,6 +30,12 @@ static const int chan_stack[CH_MAX] = {
 	[CH_THREAD] = 1,
 };
 
+static const int chan_dup[CH_MAX] = {
+	[CH_TYPE] = 1,
+	[CH_RANK] = 1,
+};
+
+
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[] = {
@@ -96,9 +102,9 @@ static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
 
 static const long prv_flags[CH_MAX] = {
 	[CH_TASKID]    = PRV_SKIPDUP,
-	[CH_TYPE]      = PRV_SKIPDUP,
+	[CH_TYPE]      = PRV_EMITDUP, /* Switch to task of same type */
 	[CH_SUBSYSTEM] = PRV_SKIPDUP,
-	[CH_RANK]      = PRV_SKIPDUP,
+	[CH_RANK]      = PRV_EMITDUP, /* Switch to task of same rank */
 	[CH_THREAD]    = PRV_SKIPDUP,
 };
 
@@ -134,6 +140,7 @@ static const struct model_chan_spec th_chan = {
 	.prefix = model_name,
 	.ch_names = chan_name,
 	.ch_stack = chan_stack,
+	.ch_dup = chan_dup,
 	.pvt = &pvt_spec,
 	.track = th_track,
 };
@@ -143,6 +150,7 @@ static const struct model_chan_spec cpu_chan = {
 	.prefix = model_name,
 	.ch_names = chan_name,
 	.ch_stack = chan_stack,
+	.ch_dup = chan_dup,
 	.pvt = &pvt_spec,
 	.track = cpu_track,
 };

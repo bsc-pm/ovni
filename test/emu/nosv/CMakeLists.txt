@@ -7,3 +7,4 @@ ovni_test(nested-tasks-bad.c SHOULD_FAIL
 ovni_test(task-types.c MP)
 ovni_test(pause.c MP)
 ovni_test(mp-rank.c MP)
+ovni_test(switch-same-type.c)

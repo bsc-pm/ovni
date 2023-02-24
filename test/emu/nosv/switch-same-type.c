@@ -1,0 +1,47 @@
+/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+#include "instr_nosv.h"
+
+#include "emu_prv.h"
+
+int
+main(void)
+{
+	/* Tests that switching to a nested task of the same type produces a
+	 * duplicated event in the Paraver trace with the task type. */
+
+	instr_start(0, 1);
+
+	uint32_t typeid = 100;
+	uint32_t gid = instr_nosv_type_create(typeid);
+
+	/* Create two tasks of the same type */
+	instr_nosv_task_create(1, typeid);
+	instr_nosv_task_create(2, typeid);
+
+	instr_nosv_task_execute(1);
+	/* Change subsystem to prevent duplicates */
+	instr_nosv_submit_enter();
+	/* Run another nested task with same type id */
+	instr_nosv_task_execute(2);
+
+	/* Match the PRV line in the trace */
+	FILE *f = fopen("match.sh", "w");
+	if (f == NULL)
+		die("fopen failed:");
+	int prvtype = PRV_NOSV_TYPE;
+	int64_t t = get_delta();
+	fprintf(f, "grep ':%ld:%d:%d' ovni/thread.prv\n", t, prvtype, gid);
+	fprintf(f, "grep ':%ld:%d:%d' ovni/cpu.prv\n", t, prvtype, gid);
+	fclose(f);
+
+	/* Exit from tasks and subsystem */
+	instr_nosv_task_end(2);
+	instr_nosv_submit_exit();
+	instr_nosv_task_end(1);
+
+	instr_end();
+
+	return 0;
+}

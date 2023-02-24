@@ -8,8 +8,9 @@
 int
 main(void)
 {
-	/* Tests that switching to a nested task of the same type produces a
-	 * duplicated event in the Paraver trace with the task type. */
+	/* Tests that switching to a nested nOS-V task (inline if0) of the same
+	 * type produces a duplicated event in the Paraver trace with the task
+	 * type, appid and rank. */
 
 	instr_start(0, 1);
 
@@ -30,10 +31,24 @@ main(void)
 	FILE *f = fopen("match.sh", "w");
 	if (f == NULL)
 		die("fopen failed:");
+
+	/* Check the task type */
 	int prvtype = PRV_NOSV_TYPE;
 	int64_t t = get_delta();
-	fprintf(f, "grep ':%ld:%d:%d' ovni/thread.prv\n", t, prvtype, gid);
-	fprintf(f, "grep ':%ld:%d:%d' ovni/cpu.prv\n", t, prvtype, gid);
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, prvtype, gid);
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, prvtype, gid);
+
+	/* Check the task appid */
+	prvtype = PRV_NOSV_APPID;
+	int appid = 1; /* Starts at one */
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, prvtype, appid);
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, prvtype, appid);
+
+	/* Check the rank */
+	prvtype = PRV_NOSV_RANK;
+	int rank = 0 + 1; /* Starts at one */
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, prvtype, rank);
+	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, prvtype, rank);
 	fclose(f);
 
 	/* Exit from tasks and subsystem */

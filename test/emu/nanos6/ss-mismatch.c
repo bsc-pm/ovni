@@ -6,6 +6,9 @@
 int
 main(void)
 {
+	/* Test that a thread ending while the subsystem still has a value in
+	 * the stack causes the emulator to fail */
+
 	instr_start(0, 1);
 
 	instr_nanos6_worker_loop_enter();

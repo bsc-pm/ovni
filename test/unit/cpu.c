@@ -1,12 +1,13 @@
 #include "emu/cpu.h"
 #include "emu/loom.h"
 #include "common.h"
+#include "unittest.h"
 
 static void
 test_oversubscription(void)
 {
 	struct loom loom;
-	loom_init_begin(&loom, "loom.0");
+	OK(loom_init_begin(&loom, "loom.0"));
 
 	struct cpu cpu;
 

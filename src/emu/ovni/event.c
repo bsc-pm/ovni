@@ -35,10 +35,16 @@ pre_thread_execute(struct emu *emu, struct thread *th)
 	dbg("thread %d runs in %s", th->tid, cpu->name);
 
 	/* First set the CPU in the thread */
-	thread_set_cpu(th, cpu);
+	if (thread_set_cpu(th, cpu) != 0) {
+		err("thread_set_cpu failed");
+		return -1;
+	}
 
 	/* Then set the thread to running state */
-	thread_set_state(th, TH_ST_RUNNING);
+	if (thread_set_state(th, TH_ST_RUNNING) != 0) {
+		err("thread_set_state failed");
+		return -1;
+	}
 
 	/* And then add the thread to the CPU, so tracking channels see the
 	 * updated thread state */

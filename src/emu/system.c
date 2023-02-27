@@ -543,7 +543,10 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 			return -1;
 		}
 
-		cpu_add_to_pcf_type(cpu, affinity_type);
+		if (cpu_add_to_pcf_type(cpu, affinity_type) == NULL) {
+			err("cpu_add_to_pcf_type failed for cpu '%s'", cpu->name);
+			return -1;
+		}
 	}
 
 	return 0;

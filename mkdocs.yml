@@ -19,19 +19,20 @@ markdown_extensions:
       separator: "_"
 nav:
   - index.md
-  - concepts.md
-  - installation.md
-  - 'Runtime':
-    - runtime/tracing.md
-    - runtime/distributed.md
-    - runtime/kernel.md
-    - runtime/trace_spec.md
-  - 'Emulation':
-    - emulation/index.md
-    - emulation/ovni.md
-    - emulation/nosv.md
-    - emulation/nanos6.md
-    - emulation/events.md
+  - 'User guide':
+    - user/concepts.md
+    - user/installation.md
+    - 'Runtime':
+      - user/runtime/tracing.md
+      - user/runtime/distributed.md
+      - user/runtime/kernel.md
+      - user/runtime/trace_spec.md
+    - 'Emulation':
+      - user/emulation/index.md
+      - user/emulation/ovni.md
+      - user/emulation/nosv.md
+      - user/emulation/nanos6.md
+      - user/emulation/events.md
   - 'Developer guide':
     - dev/index.md
     - dev/channels.md

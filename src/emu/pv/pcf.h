@@ -1,8 +1,8 @@
 /* Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#ifndef OVNI_PCF_H
-#define OVNI_PCF_H
+#ifndef PCF_H
+#define PCF_H
 
 #include "uthash.h"
 #include <stdio.h>
@@ -49,4 +49,4 @@ struct pcf_type *pcf_add_type(struct pcf *pcf, int type_id, const char *label);
 struct pcf_value *pcf_add_value(struct pcf_type *type, int value, const char *label);
 struct pcf_value *pcf_find_value(struct pcf_type *type, int value);
 
-#endif /* OVNI_PCF_H */
+#endif /* PCF_H */

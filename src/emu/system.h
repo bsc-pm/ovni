@@ -41,8 +41,8 @@ struct system {
 	struct lpt *lpt;
 };
 
-int system_init(struct system *sys, struct emu_args *args, struct trace *trace);
-int system_connect(struct system *sys, struct bay *bay, struct recorder *rec);
-struct lpt *system_get_lpt(struct stream *stream);
+USE_RET int system_init(struct system *sys, struct emu_args *args, struct trace *trace);
+USE_RET int system_connect(struct system *sys, struct bay *bay, struct recorder *rec);
+USE_RET struct lpt *system_get_lpt(struct stream *stream);
 
 #endif /* EMU_SYSTEM_H */

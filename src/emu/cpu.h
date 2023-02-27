@@ -78,7 +78,7 @@ USE_RET int cpu_add_thread(struct cpu *cpu, struct thread *thread);
 USE_RET int cpu_remove_thread(struct cpu *cpu, struct thread *thread);
 USE_RET int cpu_migrate_thread(struct cpu *cpu, struct thread *thread, struct cpu *newcpu);
 
-struct chan *cpu_get_th_chan(struct cpu *cpu, enum track_th mode);
-struct pcf_value *cpu_add_to_pcf_type(struct cpu *cpu, struct pcf_type *type);
+USE_RET struct chan *cpu_get_th_chan(struct cpu *cpu, enum track_th mode);
+USE_RET struct pcf_value *cpu_add_to_pcf_type(struct cpu *cpu, struct pcf_type *type);
 
 #endif /* CPU_H */

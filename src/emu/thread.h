@@ -72,23 +72,21 @@ struct thread {
 	UT_hash_handle hh; /* threads in the process */
 };
 
-int thread_relpath_get_tid(const char *relpath, int *tid);
-int thread_init_begin(struct thread *thread, const char *relpath);
-int thread_init_end(struct thread *thread);
-int thread_set_state(struct thread *th, enum thread_state state);
-int thread_set_cpu(struct thread *th, struct cpu *cpu);
-int thread_unset_cpu(struct thread *th);
-int thread_migrate_cpu(struct thread *th, struct cpu *cpu);
-int thread_get_tid(struct thread *thread);
-void thread_set_gindex(struct thread *th, int64_t gindex);
-void thread_set_proc(struct thread *th, struct proc *proc);
-int thread_connect(struct thread *th, struct bay *bay, struct recorder *rec);
-
-int thread_select_active(struct mux *mux, struct value value, struct mux_input **input);
-int thread_select_running(struct mux *mux, struct value value, struct mux_input **input);
-int thread_select_any(struct mux *mux, struct value value, struct mux_input **input);
-
-int thread_create_pcf_types(struct pcf *pcf);
-struct pcf_type *thread_get_affinity_pcf_type(struct pcf *pcf);
+USE_RET int thread_relpath_get_tid(const char *relpath, int *tid);
+USE_RET int thread_init_begin(struct thread *thread, const char *relpath);
+USE_RET int thread_init_end(struct thread *thread);
+USE_RET int thread_set_state(struct thread *th, enum thread_state state);
+USE_RET int thread_set_cpu(struct thread *th, struct cpu *cpu);
+USE_RET int thread_unset_cpu(struct thread *th);
+USE_RET int thread_migrate_cpu(struct thread *th, struct cpu *cpu);
+USE_RET int thread_get_tid(struct thread *thread);
+        void thread_set_gindex(struct thread *th, int64_t gindex);
+        void thread_set_proc(struct thread *th, struct proc *proc);
+USE_RET int thread_connect(struct thread *th, struct bay *bay, struct recorder *rec);
+USE_RET int thread_select_active(struct mux *mux, struct value value, struct mux_input **input);
+USE_RET int thread_select_running(struct mux *mux, struct value value, struct mux_input **input);
+USE_RET int thread_select_any(struct mux *mux, struct value value, struct mux_input **input);
+USE_RET int thread_create_pcf_types(struct pcf *pcf);
+USE_RET struct pcf_type *thread_get_affinity_pcf_type(struct pcf *pcf);
 
 #endif /* THREAD_H */

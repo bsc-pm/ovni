@@ -4,6 +4,7 @@
 #ifndef CLKOFF_H
 #define CLKOFF_H
 
+#include "common.h"
 #include "uthash.h"
 
 #include <stdio.h>
@@ -24,9 +25,9 @@ struct clkoff {
 	struct clkoff_entry **index;
 };
 
-void clkoff_init(struct clkoff *table);
-int clkoff_load(struct clkoff *table, FILE *file);
-int clkoff_count(struct clkoff *table);
-struct clkoff_entry *clkoff_get(struct clkoff *table, int i);
+        void clkoff_init(struct clkoff *table);
+USE_RET int clkoff_load(struct clkoff *table, FILE *file);
+USE_RET int clkoff_count(struct clkoff *table);
+USE_RET struct clkoff_entry *clkoff_get(struct clkoff *table, int i);
 
 #endif /* CLKOFF_H */

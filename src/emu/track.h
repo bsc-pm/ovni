@@ -28,12 +28,10 @@ struct track {
 	struct mux mux;
 };
 
-int track_init(struct track *track, struct bay *bay, enum track_type type, int mode, const char *fmt, ...);
-int track_set_select(struct track *track, struct chan *sel, mux_select_func_t fsel, int64_t ninputs);
-int track_set_input(struct track *track, int64_t index, struct chan *inp);
-
-struct chan *track_get_output(struct track *track);
-
-int track_connect_thread(struct track *tracks, struct chan *chans, struct chan *sel, int n);
+USE_RET int track_init(struct track *track, struct bay *bay, enum track_type type, int mode, const char *fmt, ...);
+USE_RET int track_set_select(struct track *track, struct chan *sel, mux_select_func_t fsel, int64_t ninputs);
+USE_RET int track_set_input(struct track *track, int64_t index, struct chan *inp);
+USE_RET struct chan *track_get_output(struct track *track);
+USE_RET int track_connect_thread(struct track *tracks, struct chan *chans, struct chan *sel, int n);
 
 #endif /* TRACK_H */

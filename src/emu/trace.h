@@ -15,6 +15,6 @@ struct trace {
 	struct stream *streams;
 };
 
-int trace_load(struct trace *trace, const char *tracedir);
+USE_RET int trace_load(struct trace *trace, const char *tracedir);
 
 #endif /* EMU_TRACE_H */

@@ -53,19 +53,16 @@ struct task_stack {
 	struct thread *thread;
 };
 
-struct task *task_find(struct task *tasks, uint32_t task_id);
-
-int task_create(struct task_info *info, uint32_t type_id, uint32_t task_id);
-int task_execute(struct task_stack *stack, struct task *task);
-int task_pause(struct task_stack *stack, struct task *task);
-int task_resume(struct task_stack *stack, struct task *task);
-int task_end(struct task_stack *stack, struct task *task);
-
-struct task_type *task_type_find(struct task_type *types, uint32_t type_id);
-int task_type_create(struct task_info *info, uint32_t type_id, const char *label);
-uint32_t task_get_type_gid(const char *label);
-
-int task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types);
-struct task *task_get_running(struct task_stack *stack);
+USE_RET struct task *task_find(struct task *tasks, uint32_t task_id);
+USE_RET int task_create(struct task_info *info, uint32_t type_id, uint32_t task_id);
+USE_RET int task_execute(struct task_stack *stack, struct task *task);
+USE_RET int task_pause(struct task_stack *stack, struct task *task);
+USE_RET int task_resume(struct task_stack *stack, struct task *task);
+USE_RET int task_end(struct task_stack *stack, struct task *task);
+USE_RET struct task_type *task_type_find(struct task_type *types, uint32_t type_id);
+USE_RET int task_type_create(struct task_info *info, uint32_t type_id, const char *label);
+USE_RET uint32_t task_get_type_gid(const char *label);
+USE_RET int task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types);
+USE_RET struct task *task_get_running(struct task_stack *stack);
 
 #endif /* TASK_H */

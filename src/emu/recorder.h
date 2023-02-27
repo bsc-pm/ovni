@@ -15,10 +15,10 @@ struct recorder {
 	struct pvt *pvt; /* Hash table by name */
 };
 
-int recorder_init(struct recorder *rec, const char *dir);
-struct pvt *recorder_find_pvt(struct recorder *rec, const char *name);
-struct pvt *recorder_add_pvt(struct recorder *rec, const char *name, long nrows);
-int recorder_advance(struct recorder *rec, int64_t time);
-int recorder_finish(struct recorder *rec);
+USE_RET int recorder_init(struct recorder *rec, const char *dir);
+USE_RET struct pvt *recorder_find_pvt(struct recorder *rec, const char *name);
+USE_RET struct pvt *recorder_add_pvt(struct recorder *rec, const char *name, long nrows);
+USE_RET int recorder_advance(struct recorder *rec, int64_t time);
+USE_RET int recorder_finish(struct recorder *rec);
 
 #endif /* RECORDER_H */

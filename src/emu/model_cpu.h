@@ -11,6 +11,7 @@ struct model_cpu_spec;
 #include "track.h"
 #include "model.h"
 #include "model_chan.h"
+#include "common.h"
 
 struct model_cpu_spec {
 	size_t size;
@@ -24,7 +25,7 @@ struct model_cpu {
 	struct track *track;
 };
 
-int model_cpu_create(struct emu *emu, const struct model_cpu_spec *spec);
-int model_cpu_connect(struct emu *emu, const struct model_cpu_spec *spec);
+USE_RET int model_cpu_create(struct emu *emu, const struct model_cpu_spec *spec);
+USE_RET int model_cpu_connect(struct emu *emu, const struct model_cpu_spec *spec);
 
 #endif /* MODEL_CPU_H */

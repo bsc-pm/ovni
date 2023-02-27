@@ -6,7 +6,8 @@
 
 #include "loom.h"
 #include "proc.h"
+#include "common.h"
 
-int metadata_load(const char *path, struct loom *loom, struct proc *proc);
+USE_RET int metadata_load(const char *path, struct loom *loom, struct proc *proc);
 
 #endif /* METADATA_H */

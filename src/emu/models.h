@@ -6,7 +6,6 @@
 
 #include "model.h"
 
-int
-models_register(struct model *model);
+USE_RET int models_register(struct model *model);
 
 #endif /* MODELS_H */

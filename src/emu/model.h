@@ -5,6 +5,7 @@
 #define MODEL_H
 
 #include "emu_hook.h"
+#include "common.h"
 
 struct model_spec {
 	const char *name;
@@ -25,13 +26,12 @@ struct model {
 	int enabled[MAX_MODELS];
 };
 
-void model_init(struct model *model);
-int model_register(struct model *model, struct model_spec *spec);
-
-int model_probe(struct model *model, struct emu *emu);
-int model_create(struct model *model, struct emu *emu);
-int model_connect(struct model *model, struct emu *emu);
-int model_event(struct model *model, struct emu *emu, int index);
-int model_finish(struct model *model, struct emu *emu);
+        void model_init(struct model *model);
+USE_RET int model_register(struct model *model, struct model_spec *spec);
+USE_RET int model_probe(struct model *model, struct emu *emu);
+USE_RET int model_create(struct model *model, struct emu *emu);
+USE_RET int model_connect(struct model *model, struct emu *emu);
+USE_RET int model_event(struct model *model, struct emu *emu, int index);
+USE_RET int model_finish(struct model *model, struct emu *emu);
 
 #endif /* MODEL_H */

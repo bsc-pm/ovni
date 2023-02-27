@@ -44,16 +44,16 @@ struct proc {
 	struct extend ext;
 };
 
-int proc_relpath_get_pid(const char *relpath, int *pid);
-int proc_init_begin(struct proc *proc, const char *id);
-int proc_init_end(struct proc *proc);
-int proc_get_pid(struct proc *proc);
-void proc_set_gindex(struct proc *proc, int64_t gindex);
-void proc_set_loom(struct proc *proc, struct loom *loom);
-void proc_sort(struct proc *proc);
-int proc_load_metadata(struct proc *proc, JSON_Object *meta);
-struct thread *proc_find_thread(struct proc *proc, int tid);
-int proc_add_thread(struct proc *proc, struct thread *thread);
-void proc_sort(struct proc *proc);
+USE_RET int proc_relpath_get_pid(const char *relpath, int *pid);
+USE_RET int proc_init_begin(struct proc *proc, const char *id);
+USE_RET int proc_init_end(struct proc *proc);
+USE_RET int proc_get_pid(struct proc *proc);
+        void proc_set_gindex(struct proc *proc, int64_t gindex);
+        void proc_set_loom(struct proc *proc, struct loom *loom);
+        void proc_sort(struct proc *proc);
+USE_RET int proc_load_metadata(struct proc *proc, JSON_Object *meta);
+USE_RET struct thread *proc_find_thread(struct proc *proc, int tid);
+USE_RET int proc_add_thread(struct proc *proc, struct thread *thread);
+        void proc_sort(struct proc *proc);
 
 #endif /* PROC_H */

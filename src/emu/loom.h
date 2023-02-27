@@ -13,6 +13,7 @@ struct loom;
 #include "cpu.h"
 #include "proc.h"
 #include "thread.h"
+#include "common.h"
 
 struct loom {
 	size_t gindex;
@@ -47,22 +48,22 @@ struct loom {
 	struct loom *next;
 	struct loom *prev;
 
-	//struct model_ctx ctx;
+	struct extend ext;
 };
 
-int loom_matches(const char *relpath);
-int loom_init_begin(struct loom *loom, const char *name);
-int loom_init_end(struct loom *loom);
-int loom_add_cpu(struct loom *loom, struct cpu *cpu);
-int64_t loom_get_gindex(struct loom *loom);
-void loom_set_gindex(struct loom *loom, int64_t gindex);
-struct cpu *loom_find_cpu(struct loom *loom, int phyid);
-struct cpu *loom_get_cpu(struct loom *loom, int index);
-void loom_set_vcpu(struct loom *loom, struct cpu *vcpu);
-struct cpu *loom_get_vcpu(struct loom *loom);
-struct proc *loom_find_proc(struct loom *loom, pid_t pid);
-struct thread *loom_find_thread(struct loom *loom, int tid);
-int loom_add_proc(struct loom *loom, struct proc *proc);
-void loom_sort(struct loom *loom);
+USE_RET int loom_matches(const char *relpath);
+USE_RET int loom_init_begin(struct loom *loom, const char *name);
+USE_RET int loom_init_end(struct loom *loom);
+USE_RET int loom_add_cpu(struct loom *loom, struct cpu *cpu);
+USE_RET int64_t loom_get_gindex(struct loom *loom);
+        void loom_set_gindex(struct loom *loom, int64_t gindex);
+USE_RET struct cpu *loom_find_cpu(struct loom *loom, int phyid);
+USE_RET struct cpu *loom_get_cpu(struct loom *loom, int index);
+        void loom_set_vcpu(struct loom *loom, struct cpu *vcpu);
+USE_RET struct cpu *loom_get_vcpu(struct loom *loom);
+USE_RET struct proc *loom_find_proc(struct loom *loom, pid_t pid);
+USE_RET struct thread *loom_find_thread(struct loom *loom, int tid);
+USE_RET int loom_add_proc(struct loom *loom, struct proc *proc);
+        void loom_sort(struct loom *loom);
 
 #endif /* LOOM_H */

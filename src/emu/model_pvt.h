@@ -6,6 +6,7 @@
 
 #include "emu.h"
 #include "pv/pcf.h"
+#include "common.h"
 
 struct model_pvt_spec {
 	const int *type;
@@ -18,7 +19,7 @@ struct model_pvt_spec {
 #include "model_cpu.h"
 #include "model_thread.h"
 
-int model_pvt_connect_cpu(struct emu *emu, const struct model_cpu_spec *spec);
-int model_pvt_connect_thread(struct emu *emu, const struct model_thread_spec *spec);
+USE_RET int model_pvt_connect_cpu(struct emu *emu, const struct model_cpu_spec *spec);
+USE_RET int model_pvt_connect_thread(struct emu *emu, const struct model_thread_spec *spec);
 
 #endif /* MODEL_PRV_H */

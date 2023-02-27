@@ -22,11 +22,11 @@ struct player {
 	struct emu_ev ev;
 };
 
-int player_init(struct player *player, struct trace *trace, int unsorted);
-int player_step(struct player *player);
-struct emu_ev *player_ev(struct player *player);
-struct stream *player_stream(struct player *player);
-double player_progress(struct player *player);
-int64_t player_nprocessed(struct player *player);
+USE_RET int player_init(struct player *player, struct trace *trace, int unsorted);
+USE_RET int player_step(struct player *player);
+USE_RET struct emu_ev *player_ev(struct player *player);
+USE_RET struct stream *player_stream(struct player *player);
+USE_RET double player_progress(struct player *player);
+USE_RET int64_t player_nprocessed(struct player *player);
 
 #endif /* EMU_PLAYER_H */

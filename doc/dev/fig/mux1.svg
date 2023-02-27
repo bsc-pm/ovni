@@ -8,7 +8,7 @@
    version="1.1"
    id="svg5"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
-   sodipodi:docname="mux.svg"
+   sodipodi:docname="mux1.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -24,9 +24,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="2.139236"
-     inkscape:cx="348.72263"
-     inkscape:cy="452.03054"
+     inkscape:zoom="1.069618"
+     inkscape:cx="399.20794"
+     inkscape:cy="315.06575"
      inkscape:window-width="1914"
      inkscape:window-height="1025"
      inkscape:window-x="0"
@@ -167,7 +167,7 @@
          style="font-size:2.82222px;text-align:center;text-anchor:middle;fill:#aa0000;stroke-width:0.264583"
          x="66.196129"
          y="94.225426"
-         id="tspan7725">value=0</tspan></text>
+         id="tspan7176">value=null</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#marker1653)"
        d="M 66.145833,87.312499 V 82.020832 76.729166"
@@ -368,7 +368,7 @@
          style="font-size:2.82222px;text-align:center;text-anchor:middle;fill:#aa0000;stroke-width:0.264583"
          x="66.183037"
          y="171.2674"
-         id="tspan7727">value=Running</tspan></text>
+         id="tspan7178">value=Cooling</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
@@ -590,7 +590,7 @@
        ry="7.1054274e-15" />
     <path
        style="fill:#ff0000;stroke:#ff0000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:0.8, 0.4;stroke-dashoffset:0;stroke-opacity:1"
-       d="M 153.45833,39.687501 V 174.625"
+       d="M 171.97916,39.687501 V 174.625"
        id="path3425"
        sodipodi:nodetypes="cc" />
     <text
@@ -606,13 +606,23 @@
          id="tspan4268">nanos6.cpu0.subsystem.run</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:1.2, 1.2;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 58.208333,37.041667 15.874999,15.875"
+       d="m 66.145833,52.916667 h 7.937499"
        id="path388"
        sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:1.2, 1.2;stroke-dashoffset:0;stroke-opacity:1"
        d="m 58.208333,132.29167 h 15.875"
        id="path1061"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#marker1653)"
+       d="M 64.822916,54.239584 67.468749,51.59375"
+       id="path6325"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-mid:url(#marker1653)"
+       d="M 67.46875,54.239584 64.822915,51.593751"
+       id="path6327"
        sodipodi:nodetypes="cc" />
   </g>
 </svg>

@@ -7,7 +7,7 @@
 int
 main(void)
 {
-#pragma oss task for
+	#pragma oss task for
 	for (int i = 0; i < 1024; i++)
 		usleep(1000);
 

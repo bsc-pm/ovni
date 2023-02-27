@@ -51,7 +51,7 @@ do_run(void)
 		nanos6_unblock_task(handle[t]);
 	}
 
-#pragma oss taskwait
+	#pragma oss taskwait
 }
 
 static int

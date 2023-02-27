@@ -4,7 +4,7 @@
 int
 main(void)
 {
-#pragma oss task
+	#pragma oss task
 	{
 	}
 	return 0;

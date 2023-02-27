@@ -7,7 +7,7 @@
 int
 main(void)
 {
-#pragma oss task if (0)
+	#pragma oss task if (0)
 	{
 		usleep(1000);
 	}

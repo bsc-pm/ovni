@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
 #ifndef OVNI_H

@@ -1,3 +1,6 @@
+/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
 #include "nodes_priv.h"
 
 enum { PUSH = 1, POP = 2, IGN = 3 };

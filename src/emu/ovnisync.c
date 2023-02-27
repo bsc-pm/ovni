@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #define _POSIX_C_SOURCE 200809L

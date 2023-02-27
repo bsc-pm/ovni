@@ -1,8 +1,8 @@
-/*
- * heap.h - basic heap with intrusive structures.
- * Copyright (C) 2021 Barcelona Supercomputing Center (BSC)
- * Author: David Alvarez
+/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* Author: David Alvarez
+ * heap.h - basic heap with intrusive structures. */
 
 #ifndef HEAP_H
 #define HEAP_H

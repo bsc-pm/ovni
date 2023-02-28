@@ -6,6 +6,7 @@
 
 struct emu_args {
 	int linter_mode;
+	int breakdown;
 	char *clock_offset_file;
 	char *tracedir;
 };

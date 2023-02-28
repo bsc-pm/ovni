@@ -29,6 +29,7 @@ add_library(emu STATIC
   loom.c
   metadata.c
   mux.c
+  sort.c
   path.c
   proc.c
   pv/pcf.c

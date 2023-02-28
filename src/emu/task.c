@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "thread.h"
+#include "pv/pcf.h"
 #include "utlist.h"
 
 struct task *
@@ -232,14 +233,15 @@ task_get_type_gid(const char *label)
 
 	HASH_VALUE(label, strlen(label), gid);
 
-	/* Use non-negative values */
-	gid &= 0x7FFFFFFF;
-
 	/* Avoid bad colors for "Unlabeled0" and "main" */
 	gid += 666;
 
-	if (gid == 0)
-		gid++;
+	/* Use non-negative values */
+	gid &= 0x7FFFFFFF;
+
+	/* Avoid reserved values */
+	if (gid < PCF_RESERVED)
+		gid += PCF_RESERVED;
 
 	return gid;
 }

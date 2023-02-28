@@ -10,6 +10,10 @@
 
 #define MAX_PCF_LABEL 512
 
+enum pcf_values {
+	PCF_RESERVED = 1000,
+};
+
 struct pcf_value {
 	int value;
 	char label[MAX_PCF_LABEL];

@@ -17,6 +17,7 @@ enum nanos6_chan {
 	CH_SUBSYSTEM,
 	CH_RANK,
 	CH_THREAD,
+	CH_IDLE,
 	CH_MAX,
 };
 
@@ -58,6 +59,10 @@ enum nanos6_thread_type {
 	ST_TH_MAIN = 2,
 	ST_TH_WORKER = 3,
 	ST_TH_EXTERNAL = 4,
+};
+
+enum nanos6_worker_idle {
+	ST_WORKER_IDLE = 1,
 };
 
 struct nanos6_thread {

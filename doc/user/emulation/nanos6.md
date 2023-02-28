@@ -76,6 +76,13 @@ This view shows the type of each thread:
 - External: used for external threads that attach to Nanos6 (currently
   there are not in use).
 
+## Idle view
+
+This view shows the idle state of the worker thread. A worker becomes idle when
+it has nothing to do. In particular, when attempting to get a task in the
+DelegationLock, after the first iteration the worker is considered idle.
+Similarly, when a worker serves tasks, all the time is not moving tasks from the
+queues is considered idle too.
 
 ## Subsystem view
 

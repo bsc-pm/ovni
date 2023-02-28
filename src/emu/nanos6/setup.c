@@ -47,11 +47,13 @@ static const char *chan_name[CH_MAX] = {
 	[CH_SUBSYSTEM] = "subsystem",
 	[CH_RANK]      = "rank",
 	[CH_THREAD]    = "thread_type",
+	[CH_IDLE]      = "idle",
 };
 
 static const int chan_stack[CH_MAX] = {
 	[CH_SUBSYSTEM] = 1,
 	[CH_THREAD] = 1,
+	[CH_IDLE] = 1,
 };
 
 static const int chan_dup[CH_MAX] = {
@@ -68,6 +70,7 @@ static const int pvt_type[] = {
 	[CH_SUBSYSTEM] = PRV_NANOS6_SUBSYSTEM,
 	[CH_RANK]      = PRV_NANOS6_RANK,
 	[CH_THREAD]    = PRV_NANOS6_THREAD,
+	[CH_IDLE]      = PRV_NANOS6_IDLE,
 };
 
 static const char *pcf_prefix[CH_MAX] = {
@@ -76,6 +79,7 @@ static const char *pcf_prefix[CH_MAX] = {
 	[CH_SUBSYSTEM] = "Nanos6 subsystem",
 	[CH_RANK]      = "Nanos6 task MPI rank",
 	[CH_THREAD]    = "Nanos6 thread type",
+	[CH_IDLE]      = "Nanos6 idle state",
 };
 
 static const struct pcf_value_label nanos6_ss_values[] = {
@@ -119,9 +123,15 @@ static const struct pcf_value_label nanos6_thread_type[] = {
 	{ -1, NULL },
 };
 
-static const struct pcf_value_label *pcf_labels[CH_MAX] = {
-	[CH_SUBSYSTEM] = nanos6_ss_values,
-	[CH_THREAD]    = nanos6_thread_type,
+static const struct pcf_value_label nanos6_worker_idle[] = {
+	{ ST_WORKER_IDLE,   "Idle" },
+	{ -1, NULL },
+};
+
+static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
+	[CH_SUBSYSTEM] = &nanos6_ss_values,
+	[CH_THREAD]    = &nanos6_thread_type,
+	[CH_IDLE]      = &nanos6_worker_idle,
 };
 
 static const long prv_flags[CH_MAX] = {
@@ -130,6 +140,7 @@ static const long prv_flags[CH_MAX] = {
 	[CH_SUBSYSTEM] = PRV_SKIPDUP,
 	[CH_RANK]      = PRV_EMITDUP, /* Switch to task of same rank */
 	[CH_THREAD]    = PRV_SKIPDUP,
+	[CH_IDLE]      = PRV_SKIPDUP,
 };
 
 static const struct model_pvt_spec pvt_spec = {
@@ -147,6 +158,7 @@ static const int th_track[CH_MAX] = {
 	[CH_SUBSYSTEM] = TRACK_TH_ACT,
 	[CH_RANK]      = TRACK_TH_RUN,
 	[CH_THREAD]    = TRACK_TH_ANY,
+	[CH_IDLE]      = TRACK_TH_ANY,
 };
 
 static const int cpu_track[CH_MAX] = {
@@ -155,6 +167,7 @@ static const int cpu_track[CH_MAX] = {
 	[CH_SUBSYSTEM] = TRACK_TH_RUN,
 	[CH_RANK]      = TRACK_TH_RUN,
 	[CH_THREAD]    = TRACK_TH_RUN,
+	[CH_IDLE]      = TRACK_TH_RUN,
 };
 
 /* ----------------- chan_spec ------------------ */

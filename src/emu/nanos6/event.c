@@ -36,6 +36,8 @@ static const int ss_table[256][256][3] = {
 		['r'] = { CHSS, PUSH, ST_RESUME },
 		['R'] = { CHSS, POP,  ST_RESUME },
 		['*'] = { CHSS, IGN,  -1 },
+		['i'] = { CH_IDLE, PUSH, ST_WORKER_IDLE },
+		['I'] = { CH_IDLE, POP,  ST_WORKER_IDLE },
 	},
 	['P'] = { /* TODO: Ignore progress events for now */
 		['r'] = { CHSS, IGN,  -1 },

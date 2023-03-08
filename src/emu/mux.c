@@ -223,11 +223,6 @@ mux_set_input(struct mux *mux, int64_t index, struct chan *chan)
 		return -1;
 	}
 
-	if (chan == mux->select) {
-		err("cannot use same input channel as select");
-		return -1;
-	}
-
 	struct mux_input *input = &mux->inputs[index];
 
 	if (input->chan != NULL) {

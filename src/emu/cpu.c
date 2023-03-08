@@ -1,6 +1,8 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+//#define ENABLE_DEBUG
+
 #include "cpu.h"
 #include <stdio.h>
 #include <string.h>
@@ -248,6 +250,9 @@ cpu_update(struct cpu *cpu)
 		err("chan_set pid failed");
 		return -1;
 	}
+	char buf[128];
+	dbg("cpu%ld sets th_running to %s",
+			cpu->gindex, value_str(gid_running, buf));
 	if (chan_set(&cpu->chan[CPU_CHAN_THRUN], gid_running) != 0) {
 		err("chan_set gid_running failed");
 		return -1;

@@ -172,7 +172,7 @@ propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 	DL_FOREACH(bchan->cb[type], cur) {
 		dbg("calling cb %p", cur->func);
 		if (cur->func(bchan->chan, cur->arg) != 0) {
-			err("callback failed");
+			err("callback failed for %s", bchan->chan->name);
 			return -1;
 		}
 	}

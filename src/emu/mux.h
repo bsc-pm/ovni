@@ -31,6 +31,7 @@ struct mux {
 	mux_select_func_t select_func;
 	struct chan *select;
 	struct chan *output;
+	struct value def;
 };
 
 void mux_input_init(struct mux_input *mux,
@@ -53,5 +54,7 @@ USE_RET struct mux_input *mux_get_input(struct mux *mux,
 
 USE_RET int mux_register(struct mux *mux,
 		struct bay *bay);
+
+void mux_set_default(struct mux *mux, struct value def);
 
 #endif /* MUX_H */

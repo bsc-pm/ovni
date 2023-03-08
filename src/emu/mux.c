@@ -97,12 +97,14 @@ cb_select(struct chan *sel_chan, void *ptr)
 				value_str(sel_value), input->chan->name);
 	}
 
-	/* Set to null by default */
-	struct value out_value = value_null();
+	struct value out_value = mux->def;
 	if (input != NULL && chan_read(input->chan, &out_value) != 0) {
 		err("chan_read() failed");
 		return -1;
 	}
+
+	dbg("setting output chan %s to %s",
+			mux->output->name, value_str(out_value, buf));
 
 	if (chan_set(mux->output, out_value) != 0) {
 		err("chan_set() failed");
@@ -180,6 +182,7 @@ mux_init(struct mux *mux,
 	mux->output = output;
 	mux->ninputs = ninputs;
 	mux->inputs = calloc(ninputs, sizeof(struct mux_input));
+	mux->def = value_null();
 
 	if (mux->inputs == NULL) {
 		err("calloc failed:");
@@ -244,4 +247,10 @@ mux_set_input(struct mux *mux, int64_t index, struct chan *chan)
 	}
 
 	return 0;
+}
+
+void
+mux_set_default(struct mux *mux, struct value def)
+{
+	mux->def = def;
 }

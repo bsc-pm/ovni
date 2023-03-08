@@ -126,6 +126,7 @@ static const struct pcf_value_label nanos6_thread_type[] = {
 
 static const struct pcf_value_label nanos6_worker_idle[] = {
 	{ ST_WORKER_IDLE,   "Idle" },
+	{ ST_WORKER_BUSY,   "Busy" },
 	{ -1, NULL },
 };
 

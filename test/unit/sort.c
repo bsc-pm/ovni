@@ -32,46 +32,39 @@ test_sort(void)
 	bay_init(&bay);
 
 	struct chan inputs[N];
-	struct chan outputs[N];
 
-	for (int i = 0; i < N; i++) {
+	for (int i = 0; i < N; i++)
 		chan_init(&inputs[i], CHAN_SINGLE, "input.%d", i);
-		chan_init(&outputs[i], CHAN_SINGLE, "output.%d", i);
-	}
 
 	/* Register all channels in the bay */
-	for (int i = 0; i < N; i++) {
+	for (int i = 0; i < N; i++)
 		OK(bay_register(&bay, &inputs[i]));
-		OK(bay_register(&bay, &outputs[i]));
-	}
 
 	/* Setup channel values */
-	for (int i = 0; i < N; i++) {
+	for (int i = 0; i < N; i++)
 		OK(chan_set(&inputs[i], value_int64(0)));
-	}
 
 	OK(bay_propagate(&bay));
 
 	struct sort sort;
-	OK(sort_init(&sort, &bay, N));
+	OK(sort_init(&sort, &bay, N, "sort0"));
 
-	for (int i = 0; i < N; i++) {
+	for (int i = 0; i < N; i++)
 		OK(sort_set_input(&sort, i, &inputs[i]));
-		OK(sort_set_output(&sort, i, &outputs[i]));
-	}
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++)
 		OK(chan_set(&inputs[i], value_int64(1)));
-	}
 
 	OK(bay_propagate(&bay));
 
 	/* Check the outputs */
 	for (int i = 0; i < N - 2; i++) {
-		check_output(&outputs[i], value_int64(0));
+		struct chan *out = sort_get_output(&sort, i);
+		check_output(out, value_int64(0));
 	}
 	for (int i = N - 2; i < N; i++) {
-		check_output(&outputs[i], value_int64(1));
+		struct chan *out = sort_get_output(&sort, i);
+		check_output(out, value_int64(1));
 	}
 }
 

@@ -6,9 +6,12 @@
 
 #include <stdio.h>
 
+extern int is_debug_enabled;
+
 /* Debug macros */
 
 void progname_set(char *name);
+void enable_debug(void);
 void verr(const char *prefix, const char *func, const char *errstr, ...);
 void vdie(const char *prefix, const char *func, const char *errstr, ...);
 
@@ -20,11 +23,9 @@ void vdie(const char *prefix, const char *func, const char *errstr, ...);
 #define info(...) verr("INFO", NULL, __VA_ARGS__)
 #define warn(...) verr("WARN", NULL, __VA_ARGS__)
 
-#ifdef ENABLE_DEBUG
-# define dbg(...) verr("DEBUG", __func__, __VA_ARGS__)
-#else
-# define dbg(...) do { if (0) { verr("DEBUG", __func__, __VA_ARGS__); } } while(0)
-#endif
+#define dbg(...) do { \
+	if (unlikely(is_debug_enabled)) verr("DEBUG", __func__, __VA_ARGS__); \
+} while (0);
 
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)

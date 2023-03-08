@@ -10,11 +10,18 @@
 #include <stdlib.h>
 
 char *progname = NULL;
+int is_debug_enabled = 0;
 
 void
 progname_set(char *name)
 {
 	progname = name;
+}
+
+void
+enable_debug(void)
+{
+	is_debug_enabled = 1;
 }
 
 static void

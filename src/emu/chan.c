@@ -204,7 +204,7 @@ chan_pop(struct chan *chan, struct value evalue)
 static void
 get_value(struct chan *chan, struct value *value)
 {
-	if (chan->type == CHAN_SINGLE) {
+	if (likely(chan->type == CHAN_SINGLE)) {
 		 *value = chan->data.value;
 	} else {
 		struct chan_stack *stack = &chan->data.stack;
@@ -213,15 +213,6 @@ get_value(struct chan *chan, struct value *value)
 		else
 			*value = value_null();
 	}
-}
-
-/** Reads the current value of a channel */
-int
-chan_read(struct chan *chan, struct value *value)
-{
-	get_value(chan, value);
-
-	return 0;
 }
 
 /** Remove the dirty state */

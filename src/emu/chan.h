@@ -53,11 +53,27 @@ struct chan {
 	char name[MAX_CHAN_NAME];
 };
 
+/** Reads the current value of a channel */
+USE_RET static inline int
+chan_read(struct chan *chan, struct value *value)
+{
+	if (likely(chan->type == CHAN_SINGLE)) {
+		 *value = chan->data.value;
+	} else {
+		struct chan_stack *stack = &chan->data.stack;
+		if (stack->n > 0)
+			*value = stack->values[stack->n - 1];
+		else
+			*value = value_null();
+	}
+
+	return 0;
+}
+
         void chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...);
 USE_RET int chan_set(struct chan *chan, struct value value);
 USE_RET int chan_push(struct chan *chan, struct value value);
 USE_RET int chan_pop(struct chan *chan, struct value expected);
-USE_RET int chan_read(struct chan *chan, struct value *value);
 USE_RET enum chan_type chan_get_type(struct chan *chan);
 USE_RET int chan_flush(struct chan *chan);
         void chan_prop_set(struct chan *chan, enum chan_prop prop, int value);

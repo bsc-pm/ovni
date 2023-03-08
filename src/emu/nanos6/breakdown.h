@@ -45,6 +45,7 @@ struct breakdown_cpu {
 };
 
 struct breakdown_emu {
+	int64_t nphycpus;
 	struct sort sort;
 	struct pvt *pvt;
 };

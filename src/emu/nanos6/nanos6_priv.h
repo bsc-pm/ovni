@@ -10,6 +10,7 @@
 #include "model_cpu.h"
 #include "model_thread.h"
 #include "breakdown.h"
+#include "pv/pcf.h"
 
 /* Private enums */
 
@@ -96,5 +97,7 @@ int model_nanos6_finish(struct emu *emu);
 
 int model_nanos6_breakdown_create(struct emu *emu);
 int model_nanos6_breakdown_connect(struct emu *emu);
+int model_nanos6_breakdown_finish(struct emu *emu,
+		const struct pcf_value_label (**labels)[]);
 
 #endif /* NANOS6_PRIV_H */

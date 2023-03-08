@@ -393,6 +393,11 @@ model_nanos6_finish(struct emu *emu)
 		return -1;
 	}
 
+	if (model_nanos6_breakdown_finish(emu, pcf_labels) != 0) {
+		err("model_nanos6_breakdown_finish failed");
+		return -1;
+	}
+
 	/* When running in linter mode perform additional checks */
 	if (emu->args.linter_mode && end_lint(emu) != 0) {
 		err("end_lint failed");

@@ -8,6 +8,7 @@
 #include "common.h"
 #include "emu_args.h"
 #include "emu_stat.h"
+#include "extend.h"
 #include "model.h"
 #include "player.h"
 #include "recorder.h"
@@ -33,6 +34,8 @@ struct emu {
 	struct thread *thread;
 	struct proc *proc;
 	struct loom *loom;
+
+	struct extend ext;
 };
 
 USE_RET int emu_init(struct emu *emu, int argc, char *argv[]);

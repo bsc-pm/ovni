@@ -62,8 +62,8 @@ emu_stat_report(struct emu_stat *stat, struct player *player, int last)
 				nprocessed, time_elapsed);
 	} else {
 		int tmin = (int) (time_left / 60.0);
-		int tsec = (int) ((time_left / 60.0 - tmin) * 60.0);
-		info("%5.1f%% done at %.0f kev/s (%d min %d s left)   \r",
+		double tsec = ((time_left / 60.0 - tmin) * 60.0);
+		info("%5.1f%% done at %.0f kev/s (%d min %.1f s left)   \r",
 				progress * 100.0, speed * 1e-3, tmin, tsec);
 	}
 

@@ -99,6 +99,7 @@ static const struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_BLK_WAITFOR,      "Blocking: Wait for deadline" },
 	{ ST_HANDLING_TASK,    "Worker: Handling task" },
 	{ ST_WORKER_LOOP,      "Worker: Looking for work" },
+	{ ST_WORKER_INIT,      "Worker: Starting" },
 	{ ST_SWITCH_TO,        "Worker: Switching to another thread" },
 	{ ST_MIGRATE,          "Worker: Migrating CPU" },
 	{ ST_SUSPEND,          "Worker: Suspending thread" },
@@ -158,7 +159,7 @@ static const int th_track[CH_MAX] = {
 	[CH_SUBSYSTEM] = TRACK_TH_ACT,
 	[CH_RANK]      = TRACK_TH_RUN,
 	[CH_THREAD]    = TRACK_TH_ANY,
-	[CH_IDLE]      = TRACK_TH_ANY,
+	[CH_IDLE]      = TRACK_TH_RUN,
 };
 
 static const int cpu_track[CH_MAX] = {
@@ -259,6 +260,19 @@ model_nanos6_create(struct emu *emu)
 		}
 	}
 
+	struct nanos6_emu *e = calloc(1, sizeof(struct nanos6_emu));
+	if (e == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	extend_set(&emu->ext, model_id, e);
+
+	if (model_nanos6_breakdown_create(emu) != 0) {
+		err("model_nanos6_breakdown_connect failed");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -273,6 +287,34 @@ model_nanos6_connect(struct emu *emu)
 	if (model_cpu_connect(emu, &cpu_spec) != 0) {
 		err("model_cpu_connect failed");
 		return -1;
+	}
+
+	if (model_nanos6_breakdown_connect(emu) != 0) {
+		err("model_nanos6_breakdown_connect failed");
+		return -1;
+	}
+
+	for (struct thread *th = emu->system.threads; th; th = th->gnext) {
+		struct nanos6_thread *mth = EXT(th, model_id);
+		struct chan *idle = &mth->m.ch[CH_IDLE];
+		/* By default set all threads as Busy */
+		if (chan_push(idle, value_int64(ST_WORKER_BUSY)) != 0) {
+			err("chan_push idle failed");
+			return -1;
+		}
+		struct chan *ss = &mth->m.ch[CH_SUBSYSTEM];
+		/* And push initial subsystem to worker init */
+		if (chan_push(ss, value_int64(ST_WORKER_INIT)) != 0) {
+			err("chan_push idle failed");
+			return -1;
+		}
+	}
+
+	for (struct cpu *cpu = emu->system.cpus; cpu; cpu = cpu->next) {
+		struct nanos6_cpu *mcpu = EXT(cpu, model_id);
+		struct mux *mux = &mcpu->m.track[CH_IDLE].mux;
+		/* Emit Idle when a CPU has no idle threads */
+		mux_set_default(mux, value_int64(ST_WORKER_IDLE));
 	}
 
 	return 0;
@@ -293,7 +335,7 @@ end_lint(struct emu *emu)
 		struct nanos6_thread *th = EXT(t, model_id);
 		struct chan *ch = &th->m.ch[CH_SUBSYSTEM];
 		int stacked = ch->data.stack.n;
-		if (stacked > 0) {
+		if (stacked > 1) {
 			struct value top;
 			if (chan_read(ch, &top) != 0) {
 				err("chan_read failed for subsystem");

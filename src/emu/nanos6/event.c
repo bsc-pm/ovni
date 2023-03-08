@@ -60,8 +60,8 @@ static const int ss_table[256][256][3] = {
 		[']'] = { CHSS, POP,  ST_TASK_FOR },
 	},
 	['t'] = {
-		['['] = { CHSS, PUSH, ST_TASK_BODY },
-		[']'] = { CHSS, POP,  ST_TASK_BODY },
+		['['] = { CHSS, IGN, -1 },
+		[']'] = { CHSS, IGN, -1 },
 	},
 	['M'] = {
 		['a'] = { CHSS, PUSH, ST_ALLOCATING },
@@ -378,6 +378,27 @@ enforce_task_rules(struct emu *emu, char tr, struct task *next)
 }
 
 static int
+update_task_ss_channel(struct emu *emu, char tr)
+{
+	struct nanos6_thread *th = EXT(emu->thread, '6');
+	struct chan *ss = &th->m.ch[CH_SUBSYSTEM];
+
+	if (tr == 'x') {
+		if (chan_push(ss, value_int64(ST_TASK_BODY)) != 0) {
+			err("chan_push subsystem failed");
+			return -1;
+		}
+	} else if (tr == 'e') {
+		if (chan_pop(ss, value_int64(ST_TASK_BODY)) != 0) {
+			err("chan_pop subsystem failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
 update_task(struct emu *emu)
 {
 	struct nanos6_thread *th = EXT(emu->thread, '6');
@@ -393,6 +414,12 @@ update_task(struct emu *emu)
 
 	struct task *next = task_get_running(stack);
 
+	/* Update the subsystem channel */
+	if (update_task_ss_channel(emu, emu->ev->v) != 0) {
+		err("update_task_ss_channel failed");
+		return -1;
+	}
+
 	int was_running = (prev != NULL);
 	int runs_now = (next != NULL);
 	char tr;
@@ -402,7 +429,10 @@ update_task(struct emu *emu)
 	}
 
 	/* Update the task related channels now */
-	update_task_channels(emu, tr, prev, next);
+	if (update_task_channels(emu, tr, prev, next) != 0) {
+		err("update_task_channels failed");
+		return -1;
+	}
 
 	if (enforce_task_rules(emu, tr, next) != 0) {
 		err("enforce_task_rules failed");

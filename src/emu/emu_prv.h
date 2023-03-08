@@ -25,6 +25,7 @@ enum emu_prv_types {
 	PRV_NANOS6_RANK      = 38,
 	PRV_NANOS6_THREAD    = 39,
 	PRV_NANOS6_IDLE      = 40,
+	PRV_NANOS6_BREAKDOWN = 41,
 	PRV_KERNEL_CS        = 45,
 	PRV_RESERVED         = 100,
 };

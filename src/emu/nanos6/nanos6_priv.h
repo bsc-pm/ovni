@@ -6,8 +6,10 @@
 
 #include "emu.h"
 #include "task.h"
+#include "sort.h"
 #include "model_cpu.h"
 #include "model_thread.h"
+#include "breakdown.h"
 
 /* Private enums */
 
@@ -40,6 +42,7 @@ enum nanos6_ss_state {
 	ST_FREEING,
 	ST_HANDLING_TASK,
 	ST_WORKER_LOOP,
+	ST_WORKER_INIT,
 	ST_SWITCH_TO,
 	ST_MIGRATE,
 	ST_SUSPEND,
@@ -62,7 +65,9 @@ enum nanos6_thread_type {
 };
 
 enum nanos6_worker_idle {
-	ST_WORKER_IDLE = 1,
+	/* Can mix with subsystem values */
+	ST_WORKER_IDLE = 100,
+	ST_WORKER_BUSY = 101,
 };
 
 struct nanos6_thread {
@@ -72,10 +77,15 @@ struct nanos6_thread {
 
 struct nanos6_cpu {
 	struct model_cpu m;
+	struct breakdown_cpu brk;
 };
 
 struct nanos6_proc {
 	struct task_info task_info;
+};
+
+struct nanos6_emu {
+	struct breakdown_emu brk;
 };
 
 int model_nanos6_probe(struct emu *emu);
@@ -83,5 +93,8 @@ int model_nanos6_create(struct emu *emu);
 int model_nanos6_connect(struct emu *emu);
 int model_nanos6_event(struct emu *emu);
 int model_nanos6_finish(struct emu *emu);
+
+int model_nanos6_breakdown_create(struct emu *emu);
+int model_nanos6_breakdown_connect(struct emu *emu);
 
 #endif /* NANOS6_PRIV_H */

@@ -15,10 +15,9 @@ enum value_type {
 	VALUE_DOUBLE
 };
 
-/* Packed allows the struct to be hashable, as we don't have any
- * unitialized data */
-struct __attribute__((packed)) value {
-	enum value_type type;
+/* Ensure no padding holes */
+struct value {
+	int64_t type;
 	union {
 		int64_t i;
 		double d;

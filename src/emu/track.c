@@ -24,8 +24,10 @@ track_init(struct track *track, struct bay *bay, enum track_type type, int mode,
 
 	int n = ARRAYLEN(track->name);
 	int ret = vsnprintf(track->name, n, fmt, ap);
-	if (ret >= n)
-		die("track name too long\n");
+	if (ret >= n) {
+		err("track name too long");
+		return -1;
+	}
 	va_end(ap);
 
 	track->type = type;
@@ -97,7 +99,8 @@ track_th_input_chan(struct track *track, struct chan *sel, struct chan *inp)
 			fsel = thread_select_active;
 			break;
 		default:
-			die("wrong mode");
+			err("wrong mode");
+			return -1;
 	};
 
 	/* Create all thread tracking modes */

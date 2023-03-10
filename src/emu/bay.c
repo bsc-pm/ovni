@@ -222,7 +222,7 @@ bay_propagate(struct bay *bay)
 	 * begin the emit stage */
 	bay->state = BAY_EMITTING;
 	DL_FOREACH(bay->dirty, cur) {
-		/* May add more dirty channels */
+		/* Cannot add more dirty channels */
 		if (propagate_chan(cur, BAY_CB_EMIT) != 0) {
 			err("bay_propagate: propagate_chan failed\n");
 			return -1;

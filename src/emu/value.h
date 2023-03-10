@@ -27,17 +27,7 @@ struct value {
 static inline int
 value_is_equal(struct value *a, struct value *b)
 {
-	if (a->type != b->type)
-		return 0;
-
-	if (a->type == VALUE_INT64 && a->i == b->i)
-		return 1;
-	else if (a->type == VALUE_DOUBLE && a->d == b->d)
-		return 1;
-	else if (a->type == VALUE_NULL && b->type == VALUE_NULL)
-		return 1;
-	else
-		return 0;
+	return memcmp(a, b, sizeof(struct value)) == 0;
 }
 
 static inline struct value

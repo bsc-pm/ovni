@@ -27,10 +27,8 @@ static int chan_type[] = {
 	[CPU_CHAN_THACT] = -1,
 };
 
-static long chan_flags[] = {
-	[CPU_CHAN_PID]  = PRV_SKIPDUP,
-	[CPU_CHAN_TID]  = PRV_SKIPDUP,
-	[CPU_CHAN_NRUN] = PRV_SKIPDUP | PRV_ZERO,
+static long prv_flags[] = {
+	[CPU_CHAN_NRUN] = PRV_ZERO,
 };
 
 void
@@ -116,11 +114,12 @@ cpu_init_end(struct cpu *cpu)
 				chan_fmt, cpu->gindex, chan_name[i]);
 	}
 
-	chan_prop_set(&cpu->chan[CPU_CHAN_NRUN],  CHAN_ALLOW_DUP, 1);
-	chan_prop_set(&cpu->chan[CPU_CHAN_TID],   CHAN_ALLOW_DUP, 1);
-	chan_prop_set(&cpu->chan[CPU_CHAN_PID],   CHAN_ALLOW_DUP, 1);
-	chan_prop_set(&cpu->chan[CPU_CHAN_THRUN], CHAN_ALLOW_DUP, 1);
-	chan_prop_set(&cpu->chan[CPU_CHAN_THACT], CHAN_ALLOW_DUP, 1);
+	/* Duplicates may be written when a thread changes the state */
+	chan_prop_set(&cpu->chan[CPU_CHAN_NRUN],  CHAN_IGNORE_DUP, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_TID],   CHAN_IGNORE_DUP, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_PID],   CHAN_IGNORE_DUP, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_THRUN], CHAN_IGNORE_DUP, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_THACT], CHAN_IGNORE_DUP, 1);
 
 	cpu->is_init = 1;
 
@@ -155,7 +154,7 @@ cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec)
 			continue;
 
 		long row = cpu->gindex;
-		long flags = chan_flags[i];
+		long flags = prv_flags[i];
 		if (prv_register(prv, row, type, bay, c, flags)) {
 			err("prv_register failed");
 			return -1;

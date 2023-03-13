@@ -22,8 +22,11 @@ static const int chan_type[] = {
 };
 
 static const long prv_flags[] = {
-	[TH_CHAN_CPU]   = PRV_SKIPDUP | PRV_NEXT, /* Add one to the cpu gindex */
-	[TH_CHAN_TID]   = PRV_SKIPDUP,
+	/* Add one to the zero-based cpu gindex */
+	[TH_CHAN_CPU] = PRV_NEXT,
+
+	/* FIXME: Only needed for delayed connect, as the state channel is used
+	 * as select in the muxes, which is set to dirty when connecting it. */
 	[TH_CHAN_STATE] = PRV_SKIPDUP,
 };
 
@@ -144,7 +147,9 @@ thread_init_end(struct thread *th)
 				chan_fmt, th->gindex, chan_name[i]);
 	}
 
-	chan_prop_set(&th->chan[TH_CHAN_TID], CHAN_ALLOW_DUP, 1);
+	/* The transition Running -> Cooling causes a duplicate (the thread is
+	 * still active) */
+	chan_prop_set(&th->chan[TH_CHAN_TID], CHAN_IGNORE_DUP, 1);
 
 	th->is_init = 1;
 	return 0;

@@ -96,7 +96,7 @@ void
 path_remove_trailing(char *path)
 {
 	int n = strlen(path);
-	for (int i = n - 1; path[i] == '/'; i--) {
+	for (int i = n - 1; i >= 0 && path[i] == '/'; i--) {
 		path[i] = '\0';
 	}
 }

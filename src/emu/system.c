@@ -58,7 +58,7 @@ create_proc(struct loom *loom, const char *tracedir, const char *relpath)
 	proc = malloc(sizeof(struct proc));
 
 	if (proc == NULL) {
-		err("calloc failed:");
+		err("malloc failed:");
 		return NULL;
 	}
 
@@ -120,7 +120,7 @@ create_loom(struct system *sys, const char *relpath)
 		loom = malloc(sizeof(struct loom));
 
 		if (loom == NULL) {
-			err("calloc failed:");
+			err("malloc failed:");
 			return NULL;
 		}
 

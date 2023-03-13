@@ -25,7 +25,7 @@ init_chan(struct model_thread *th, const struct model_chan_spec *spec, int64_t g
 
 		if (spec->ch_dup != NULL) {
 			int dup = spec->ch_dup[i];
-			chan_prop_set(c, CHAN_DUPLICATES, dup);
+			chan_prop_set(c, CHAN_ALLOW_DUP, dup);
 		}
 
 		if (bay_register(th->bay, c) != 0) {

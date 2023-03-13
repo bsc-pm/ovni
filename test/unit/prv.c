@@ -80,7 +80,7 @@ test_duplicate(const char *path)
 	chan_init(&chan, CHAN_SINGLE, "testchan");
 
 	/* Allow setting the same value in the channel */
-	chan_prop_set(&chan, CHAN_DUPLICATES, 1);
+	chan_prop_set(&chan, CHAN_ALLOW_DUP, 1);
 
 	if (bay_register(&bay, &chan) != 0)
 		die("bay_register failed\n");
@@ -130,7 +130,7 @@ test_same_type(const char *path)
 	chan_init(&chan, CHAN_SINGLE, "testchan");
 
 	/* Allow setting the same value in the channel */
-	chan_prop_set(&chan, CHAN_DUPLICATES, 1);
+	chan_prop_set(&chan, CHAN_ALLOW_DUP, 1);
 
 	OK(bay_register(&bay, &chan));
 	OK(prv_register(&prv, row, type, &bay, &chan, 0));

@@ -116,11 +116,11 @@ cpu_init_end(struct cpu *cpu)
 				chan_fmt, cpu->gindex, chan_name[i]);
 	}
 
-	chan_prop_set(&cpu->chan[CPU_CHAN_NRUN], CHAN_DUPLICATES, 1);
-	chan_prop_set(&cpu->chan[CPU_CHAN_TID], CHAN_DUPLICATES, 1);
-	chan_prop_set(&cpu->chan[CPU_CHAN_PID], CHAN_DUPLICATES, 1);
-	chan_prop_set(&cpu->chan[CPU_CHAN_THRUN], CHAN_DUPLICATES, 1);
-	chan_prop_set(&cpu->chan[CPU_CHAN_THACT], CHAN_DUPLICATES, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_NRUN],  CHAN_ALLOW_DUP, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_TID],   CHAN_ALLOW_DUP, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_PID],   CHAN_ALLOW_DUP, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_THRUN], CHAN_ALLOW_DUP, 1);
+	chan_prop_set(&cpu->chan[CPU_CHAN_THACT], CHAN_ALLOW_DUP, 1);
 
 	cpu->is_init = 1;
 

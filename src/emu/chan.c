@@ -67,7 +67,7 @@ static int
 check_duplicates(struct chan *chan, struct value *v)
 {
 	/* If duplicates are allowed just skip the check */
-	if (chan->prop[CHAN_DUPLICATES])
+	if (chan->prop[CHAN_ALLOW_DUP])
 		return 0;
 
 	if (value_is_equal(&chan->last_value, v)) {

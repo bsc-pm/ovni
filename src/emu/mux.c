@@ -171,7 +171,7 @@ mux_init(struct mux *mux,
 
 	/* Similarly, we may switch to an input channel that has the same value
 	 * as the last output value, so we allow duplicates too */
-	chan_prop_set(output, CHAN_DUPLICATES, 1);
+	chan_prop_set(output, CHAN_ALLOW_DUP, 1);
 
 	memset(mux, 0, sizeof(struct mux));
 	mux->select = select;

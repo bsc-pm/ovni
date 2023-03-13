@@ -91,7 +91,7 @@ test_duplicate(void)
 		die("chan_set didn't fail\n");
 
 	/* Now enable duplicates */
-	chan_prop_set(&chan, CHAN_DUPLICATES, 1);
+	chan_prop_set(&chan, CHAN_ALLOW_DUP, 1);
 
 	/* Then it should allow writting the same value */
 	if (chan_set(&chan, value_int64(1)) != 0)

@@ -144,7 +144,7 @@ thread_init_end(struct thread *th)
 				chan_fmt, th->gindex, chan_name[i]);
 	}
 
-	chan_prop_set(&th->chan[TH_CHAN_TID], CHAN_DUPLICATES, 1);
+	chan_prop_set(&th->chan[TH_CHAN_TID], CHAN_ALLOW_DUP, 1);
 
 	th->is_init = 1;
 	return 0;

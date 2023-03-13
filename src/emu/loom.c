@@ -10,11 +10,13 @@
 #include "uthash.h"
 #include "utlist.h"
 
+static const char *loom_prefix = "loom.";
+
 static void
 set_hostname(char host[PATH_MAX], const char name[PATH_MAX])
 {
 	/* Skip prefix */
-	const char *start = name + strlen("loom.");
+	const char *start = name + strlen(loom_prefix);
 
 	/* Copy until dot or end */
 	int i;
@@ -40,7 +42,7 @@ has_prefix(const char *path, const char *prefix)
 int
 loom_matches(const char *path)
 {
-	return has_prefix(path, "loom.");
+	return has_prefix(path, loom_prefix);
 }
 
 int
@@ -48,9 +50,8 @@ loom_init_begin(struct loom *loom, const char *name)
 {
 	memset(loom, 0, sizeof(struct loom));
 
-	char prefix[] = "loom.";
-	if (!has_prefix(name, prefix)) {
-		err("loom name must start with '%s': %s", prefix, name);
+	if (!has_prefix(name, loom_prefix)) {
+		err("loom name must start with '%s': %s", loom_prefix, name);
 		return -1;
 	}
 

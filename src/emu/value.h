@@ -9,6 +9,12 @@
 #include <stdio.h>
 #include "common.h"
 
+#define VALUE_NBUF 32
+#define VALUE_BUFSIZE 128
+
+extern char value_buffers[VALUE_NBUF][VALUE_BUFSIZE];
+extern size_t value_nextbuf;
+
 enum value_type {
 	VALUE_NULL = 0,
 	VALUE_INT64,
@@ -51,21 +57,32 @@ value_is_null(struct value a)
 }
 
 static inline char *
-value_str(struct value a, char *buf)
+value_str(struct value a)
 {
+	char *buf = value_buffers[value_nextbuf];
+	int ret = 0;
+	size_t n = VALUE_BUFSIZE;
+
 	switch (a.type) {
 		case VALUE_NULL:
-			sprintf(buf, "{NULL}");
+			ret = snprintf(buf, n, "{NULL}");
 			break;
 		case VALUE_INT64:
-			sprintf(buf, "{int64_t %ld}", a.i);
+			ret = snprintf(buf, n, "{int64_t %ld}", a.i);
 			break;
 		case VALUE_DOUBLE:
-			sprintf(buf, "{double %e}", a.d);
+			ret = snprintf(buf, n, "{double %e}", a.d);
 			break;
 		default:
 			die("value_str: unexpected value type\n");
 	}
+
+	if (ret >= (int) n)
+		die("value string too long");
+
+	value_nextbuf++;
+	if (value_nextbuf > VALUE_NBUF)
+		value_nextbuf = 0;
 
 	return buf;
 }

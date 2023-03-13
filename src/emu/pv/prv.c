@@ -88,7 +88,6 @@ emit(struct prv *prv, struct prv_chan *rchan)
 {
 	struct value value;
 	struct chan *chan = rchan->chan;
-	char buf[128];
 	if (chan_read(chan, &value) != 0) {
 		err("chan_read %s failed\n", chan->name);
 		return -1;
@@ -106,7 +105,7 @@ emit(struct prv *prv, struct prv_chan *rchan)
 				return 0;
 
 			err("error duplicated value %s for channel %s\n",
-					value_str(value, buf), chan->name);
+					value_str(value), chan->name);
 			return -1;
 		}
 
@@ -125,7 +124,7 @@ emit(struct prv *prv, struct prv_chan *rchan)
 			if (~rchan->flags & PRV_ZERO && val == 0) {
 				err("forbidden value 0 in %s: %s\n",
 						chan->name,
-						value_str(value, buf));
+						value_str(value));
 				return -1;
 			}
 			break;
@@ -134,13 +133,13 @@ emit(struct prv *prv, struct prv_chan *rchan)
 			break;
 		default:
 			err("chan_read %s only int64 and null supported: %s\n",
-					chan->name, value_str(value, buf));
+					chan->name, value_str(value));
 			return -1;
 	}
 
 	write_line(prv, rchan->row_base1, rchan->type, val);
 
-	dbg("written %s for chan %s", value_str(value, buf), chan->name);
+	dbg("written %s for chan %s", value_str(value), chan->name);
 
 
 	return 0;

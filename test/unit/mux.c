@@ -14,11 +14,9 @@ check_output(struct mux *mux, struct value expected)
 		die("chan_read() failed for output channel\n");
 
 	if (!value_is_equal(&out_value, &expected)) {
-		char buf1[128];
-		char buf2[128];
 		die("unexpected value found %s in output (expected %s)\n",
-				value_str(out_value, buf1),
-				value_str(expected, buf2));
+				value_str(out_value),
+				value_str(expected));
 	}
 
 	err("----- output ok -----\n");

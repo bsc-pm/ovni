@@ -71,9 +71,8 @@ check_duplicates(struct chan *chan, struct value *v)
 		return 0;
 
 	if (value_is_equal(&chan->last_value, v)) {
-		char buf[128];
 		err("%s: same value as last_value %s",
-				chan->name, value_str(chan->last_value, buf));
+				chan->name, value_str(chan->last_value));
 		return -1;
 	}
 
@@ -98,10 +97,7 @@ chan_set(struct chan *chan, struct value value)
 		return -1;
 	}
 
-#ifdef ENABLE_DEBUG
-	char buf[128];
-	dbg("%s: sets value to %s", chan->name, value_str(value, buf));
-#endif
+	dbg("%s: sets value to %s", chan->name, value_str(value));
 	chan->data.value = value;
 
 	if (set_dirty(chan) != 0) {

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 include_directories(
@@ -42,6 +42,7 @@ add_library(emu STATIC
   track.c
   thread.c
   extend.c
+  value.c
   ovni/event.c
   ovni/setup.c
   nanos6/setup.c

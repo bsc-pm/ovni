@@ -77,7 +77,7 @@ cb_select(struct chan *sel_chan, void *ptr)
 	char buf[128];
 	UNUSED(buf);
 	dbg("select channel got value %s\n",
-			value_str(sel_value, buf));
+			value_str(sel_value));
 
 	struct mux_input *input = NULL;
 	if (select_input(mux, sel_value, &input) != 0) {
@@ -90,7 +90,7 @@ cb_select(struct chan *sel_chan, void *ptr)
 		input->selected = 1;
 		mux->selected = input->index;
 		dbg("mux selects input key=%s chan=%s\n",
-				value_str(sel_value, buf), input->chan->name);
+				value_str(sel_value), input->chan->name);
 	}
 
 	/* Set to null by default */
@@ -123,9 +123,8 @@ cb_input(struct chan *in_chan, void *ptr)
 		return -1;
 	}
 
-	char buf[128];
 	dbg("setting output chan %s to value %s",
-			input->output->name, value_str(out_value, buf));
+			input->output->name, value_str(out_value));
 
 	if (chan_set(input->output, out_value) != 0) {
 		err("chan_set() failed");

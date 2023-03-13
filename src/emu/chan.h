@@ -19,6 +19,7 @@ enum chan_type {
 enum chan_prop {
 	CHAN_DIRTY_WRITE = 0,
 	CHAN_ALLOW_DUP,
+	CHAN_IGNORE_DUP,
 	CHAN_MAXPROP,
 };
 

@@ -63,22 +63,6 @@ set_dirty(struct chan *chan)
 	return 0;
 }
 
-static int
-check_duplicates(struct chan *chan, struct value *v)
-{
-	/* If duplicates are allowed just skip the check */
-	if (chan->prop[CHAN_ALLOW_DUP])
-		return 0;
-
-	if (value_is_equal(&chan->last_value, v)) {
-		err("%s: same value as last_value %s",
-				chan->name, value_str(chan->last_value));
-		return -1;
-	}
-
-	return 0;
-}
-
 int
 chan_set(struct chan *chan, struct value value)
 {
@@ -92,9 +76,19 @@ chan_set(struct chan *chan, struct value value)
 		return -1;
 	}
 
-	if (check_duplicates(chan, &value) != 0) {
-		err("%s: cannot set duplicated value", chan->name);
-		return -1;
+	/* If duplicates are allowed just skip the check */
+	if (!chan->prop[CHAN_ALLOW_DUP]) {
+		if (value_is_equal(&chan->last_value, &value)) {
+			if (chan->prop[CHAN_IGNORE_DUP]) {
+				dbg("%s: value already set to %s",
+						chan->name, value_str(value));
+				return 0;
+			} else {
+				err("%s: same value as last_value %s",
+						chan->name, value_str(chan->last_value));
+				return -1;
+			}
+		}
 	}
 
 	dbg("%s: sets value to %s", chan->name, value_str(value));
@@ -127,9 +121,19 @@ chan_push(struct chan *chan, struct value value)
 		return -1;
 	}
 
-	if (check_duplicates(chan, &value) != 0) {
-		err("%s: cannot push a duplicated value", chan->name);
-		return -1;
+	/* If duplicates are allowed just skip the check */
+	if (!chan->prop[CHAN_ALLOW_DUP]) {
+		if (value_is_equal(&chan->last_value, &value)) {
+			if (chan->prop[CHAN_IGNORE_DUP]) {
+				dbg("%s: value already set to %s",
+						chan->name, value_str(value));
+				return 0;
+			} else {
+				err("%s: same value as last_value %s",
+						chan->name, value_str(chan->last_value));
+				return -1;
+			}
+		}
 	}
 
 	struct chan_stack *stack = &chan->data.stack;

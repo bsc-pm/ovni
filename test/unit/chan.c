@@ -41,6 +41,8 @@ test_dirty(void)
 
 	if (chan_flush(&chan) != 0)
 		die("chan_flush failed\n");
+
+	err("OK");
 }
 
 static void
@@ -72,10 +74,14 @@ test_single(void)
 
 	if (!value_is_equal(&value, &one))
 		die("chan_read returned unexpected value\n");
+
+	err("OK");
 }
 
+/* Test that writting the same value to a channel raises an error, but not if we
+ * set the CHAN_ALLOW_DUP flag */
 static void
-test_duplicate(void)
+test_allow_dup(void)
 {
 	struct chan chan;
 	chan_init(&chan, CHAN_SINGLE, "testchan");
@@ -90,12 +96,44 @@ test_duplicate(void)
 	if (chan_set(&chan, value_int64(1)) == 0)
 		die("chan_set didn't fail\n");
 
-	/* Now enable duplicates */
+	/* Allow duplicates */
 	chan_prop_set(&chan, CHAN_ALLOW_DUP, 1);
 
 	/* Then it should allow writting the same value */
 	if (chan_set(&chan, value_int64(1)) != 0)
 		die("chan_set failed\n");
+
+	/* Also ensure the channel is dirty */
+	if (!chan.is_dirty)
+		die("chan is not dirty");
+
+	err("OK");
+}
+
+/* Test that writting the same value to a channel with the flag CHAN_IGNORE_DUP,
+ * causes the channel to remain clean (without the is_dirty flag set) */
+static void
+test_ignore_dup(void)
+{
+	struct chan chan;
+	chan_init(&chan, CHAN_SINGLE, "testchan");
+	chan_prop_set(&chan, CHAN_IGNORE_DUP, 1);
+
+	if (chan_set(&chan, value_int64(1)) != 0)
+		die("chan_set failed\n");
+
+	if (chan_flush(&chan) != 0)
+		die("chan_flush failed\n");
+
+	/* Write the same value */
+	if (chan_set(&chan, value_int64(1)) != 0)
+		die("chan_set failed");
+
+	/* And ensure the channel is not dirty */
+	if (chan.is_dirty)
+		die("chan is dirty");
+
+	err("OK");
 }
 
 //static void
@@ -159,7 +197,8 @@ int main(void)
 {
 	test_single();
 	test_dirty();
-	test_duplicate();
+	test_allow_dup();
+	test_ignore_dup();
 	//test_stack();
 	return 0;
 }

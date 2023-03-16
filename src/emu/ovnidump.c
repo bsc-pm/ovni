@@ -23,7 +23,7 @@ emit(struct player *player)
 	struct stream *stream = player_stream(player);
 
 	/* Use raw clock in the ovni event */
-	int64_t rel = ev->rclock - c;
+	int64_t rel = stream->deltaclock;
 	c = ev->rclock;
 
 	printf("%s  %10ld  %+10ld  %c%c%c",

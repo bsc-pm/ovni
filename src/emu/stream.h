@@ -15,6 +15,7 @@ struct stream {
 	uint8_t *buf;
 	int64_t size;
 	int64_t lastclock;
+	int64_t deltaclock;
 	int64_t clock_offset;
 
 	heap_node_t hh;

@@ -232,6 +232,7 @@ stream_step(struct stream *stream)
 		}
 	}
 
+	stream->deltaclock = clock - stream->lastclock;
 	stream->lastclock = clock;
 
 	return 0;

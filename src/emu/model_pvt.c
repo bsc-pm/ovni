@@ -18,8 +18,12 @@ create_values(const struct model_pvt_spec *pvt,
 	if (q == NULL)
 		return 0;
 
-	for (const struct pcf_value_label *p = q; p->label != NULL; p++)
-		pcf_add_value(t, p->value, p->label);
+	for (const struct pcf_value_label *p = q; p->label != NULL; p++) {
+		if (pcf_add_value(t, p->value, p->label) == NULL) {
+			err("pcf_add_value failed");
+			return -1;
+		}
+	}
 
 	return 0;
 }
@@ -47,6 +51,10 @@ create_type(const struct model_pvt_spec *pvt,
 	}
 
 	struct pcf_type *pcftype = pcf_add_type(pcf, type, label);
+	if (pcftype == NULL) {
+		err("pcf_add_type failed");
+		return -1;
+	}
 
 	if (create_values(pvt, pcftype, i) != 0) {
 		err("create_values failed");

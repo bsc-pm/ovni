@@ -28,11 +28,15 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (emu_init(emu, argc, argv) != 0)
-		die("emu_init failed\n");
+	if (emu_init(emu, argc, argv) != 0) {
+		err("emu_init failed\n");
+		return 1;
+	}
 
-	if (emu_connect(emu) != 0)
-		die("emu_connect failed\n");
+	if (emu_connect(emu) != 0) {
+		err("emu_connect failed\n");
+		return 1;
+	}
 
 	signal(SIGINT, stop_emulation);
 

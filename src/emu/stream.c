@@ -147,7 +147,7 @@ int
 stream_clkoff_set(struct stream *stream, int64_t clkoff)
 {
 	if (stream->cur_ev) {
-		die("cannot set clokoff in started stream '%s'",
+		err("cannot set clokoff in started stream '%s'",
 				stream->relpath);
 		return -1;
 	}

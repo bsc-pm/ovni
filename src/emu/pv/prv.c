@@ -34,8 +34,7 @@ prv_open(struct prv *prv, long nrows, const char *path)
 	FILE *f = fopen(path, "w");
 
 	if (f == NULL) {
-		die("cannot open file '%s' for writting: %s\n",
-				path, strerror(errno));
+		err("cannot open file '%s' for writting:", path);
 		return -1;
 	}
 

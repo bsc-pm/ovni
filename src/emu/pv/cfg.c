@@ -69,7 +69,7 @@ copy_recursive(const char *src, const char *dst)
 
 	char *newdst = calloc(1, PATH_MAX);
 	if (newdst == NULL) {
-		die("calloc failed:");
+		err("calloc failed:");
 		return -1;
 	}
 

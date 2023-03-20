@@ -107,8 +107,10 @@ cpu_init_end(struct cpu *cpu)
 	}
 
 	for (int i = 0; i < CPU_CHAN_MAX; i++) {
-		if (chan_name[i] == NULL)
-			die("chan_name is null");
+		if (chan_name[i] == NULL) {
+			err("chan_name is null");
+			return -1;
+		}
 
 		chan_init(&cpu->chan[i], CHAN_SINGLE,
 				chan_fmt, cpu->gindex, chan_name[i]);

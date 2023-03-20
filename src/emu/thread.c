@@ -163,8 +163,12 @@ create_values(struct pcf_type *t, int i)
 	if (q == NULL)
 		return 0;
 
-	for (const struct pcf_value_label *p = *q; p->label != NULL; p++)
-		pcf_add_value(t, p->value, p->label);
+	for (const struct pcf_value_label *p = *q; p->label != NULL; p++) {
+		if (pcf_add_value(t, p->value, p->label) == NULL) {
+			err("pcf_add_value failed");
+			return -1;
+		}
+	}
 
 	return 0;
 }
@@ -179,6 +183,10 @@ create_type(struct pcf *pcf, int i)
 
 	const char *label = pvt_name[i];
 	struct pcf_type *pcftype = pcf_add_type(pcf, type, label);
+	if (pcftype == NULL) {
+		err("pcf_add_type failed");
+		return -1;
+	}
 
 	if (create_values(pcftype, i) != 0) {
 		err("create_values failed");
@@ -255,7 +263,7 @@ thread_set_state(struct thread *th, enum thread_state state)
 {
 	/* The state must be updated when a cpu is set */
 	if (th->cpu == NULL) {
-		die("thread %d doesn't have a CPU", th->tid);
+		err("thread %d doesn't have a CPU", th->tid);
 		return -1;
 	}
 
@@ -385,12 +393,12 @@ int
 thread_set_cpu(struct thread *th, struct cpu *cpu)
 {
 	if (cpu == NULL) {
-		err("thread_set_cpu: CPU is NULL\n");
+		err("CPU is NULL");
 		return -1;
 	}
 
 	if (th->cpu != NULL) {
-		err("thread_set_cpu: thread %d already has a CPU\n", th->tid);
+		err("thread %d already has a CPU", th->tid);
 		return -1;
 	}
 
@@ -399,7 +407,7 @@ thread_set_cpu(struct thread *th, struct cpu *cpu)
 	/* Update cpu channel */
 	struct chan *c = &th->chan[TH_CHAN_CPU];
 	if (chan_set(c, value_int64(cpu->gindex)) != 0) {
-		err("thread_set_cpu: chan_set failed\n");
+		err("chan_set failed");
 		return -1;
 	}
 
@@ -410,7 +418,7 @@ int
 thread_unset_cpu(struct thread *th)
 {
 	if (th->cpu == NULL) {
-		err("thread_unset_cpu: thread %d doesn't have a CPU\n", th->tid);
+		err("thread %d doesn't have a CPU", th->tid);
 		return -1;
 	}
 
@@ -418,7 +426,7 @@ thread_unset_cpu(struct thread *th)
 
 	struct chan *c = &th->chan[TH_CHAN_CPU];
 	if (chan_set(c, value_null()) != 0) {
-		err("thread_set_cpu: chan_set failed\n");
+		err("chan_set failed");
 		return -1;
 	}
 
@@ -429,7 +437,7 @@ int
 thread_migrate_cpu(struct thread *th, struct cpu *cpu)
 {
 	if (th->cpu == NULL) {
-		die("thread_migrate_cpu: thread %d doesn't have a CPU\n", th->tid);
+		err("thread %d doesn't have a CPU", th->tid);
 		return -1;
 	}
 
@@ -437,7 +445,7 @@ thread_migrate_cpu(struct thread *th, struct cpu *cpu)
 
 	struct chan *c = &th->chan[TH_CHAN_CPU];
 	if (chan_set(c, value_int64(cpu->gindex)) != 0) {
-		err("thread_set_cpu: chan_set failed\n");
+		err("chan_set failed");
 		return -1;
 	}
 

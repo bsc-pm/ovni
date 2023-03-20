@@ -300,7 +300,10 @@ task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
 			}
 		}
 
-		pcf_add_value(pcftype, tt->gid, tt->label);
+		if (pcf_add_value(pcftype, tt->gid, tt->label) == NULL) {
+			err("pcf_add_value failed");
+			return -1;
+		}
 	}
 
 	return ret;

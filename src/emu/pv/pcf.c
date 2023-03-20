@@ -153,20 +153,26 @@ pcf_add_type(struct pcf *pcf, int type_id, const char *label)
 {
 	struct pcf_type *pcftype = pcf_find_type(pcf, type_id);
 
-	if (pcftype != NULL)
-		die("PCF type %d already defined\n", type_id);
+	if (pcftype != NULL) {
+		err("PCF type %d already defined", type_id);
+		return NULL;
+	}
 
 	pcftype = calloc(1, sizeof(struct pcf_type));
-	if (pcftype == NULL)
-		die("calloc failed: %s\n", strerror(errno));
+	if (pcftype == NULL) {
+		err("calloc failed:");
+		return NULL;
+	}
 
 	pcftype->id = type_id;
 	pcftype->values = NULL;
 	pcftype->nvalues = 0;
 
 	int len = snprintf(pcftype->label, MAX_PCF_LABEL, "%s", label);
-	if (len >= MAX_PCF_LABEL)
-		die("PCF type label too long\n");
+	if (len >= MAX_PCF_LABEL) {
+		err("PCF type label too long");
+		return NULL;
+	}
 
 	HASH_ADD_INT(pcf->types, id, pcftype);
 
@@ -193,18 +199,24 @@ pcf_add_value(struct pcf_type *type, int value, const char *label)
 {
 	struct pcf_value *pcfvalue = pcf_find_value(type, value);
 
-	if (pcfvalue != NULL)
-		die("PCF value %d already in type %d\n", value, type->id);
+	if (pcfvalue != NULL) {
+		err("PCF value %d already in type %d", value, type->id);
+		return NULL;
+	}
 
 	pcfvalue = calloc(1, sizeof(struct pcf_value));
-	if (pcfvalue == NULL)
-		die("calloc failed: %s\n", strerror(errno));
+	if (pcfvalue == NULL) {
+		err("calloc failed:");
+		return NULL;
+	}
 
 	pcfvalue->value = value;
 
 	int len = snprintf(pcfvalue->label, MAX_PCF_LABEL, "%s", label);
-	if (len >= MAX_PCF_LABEL)
-		die("PCF value label too long\n");
+	if (len >= MAX_PCF_LABEL) {
+		err("PCF value label too long");
+		return NULL;
+	}
 
 	HASH_ADD_INT(type->values, value, pcfvalue);
 

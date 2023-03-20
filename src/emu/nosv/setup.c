@@ -77,8 +77,8 @@ static const struct pcf_value_label nosv_ss_values[] = {
 	{ -1, NULL },
 };
 
-static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
-	[CH_SUBSYSTEM] = &nosv_ss_values,
+static const struct pcf_value_label *pcf_labels[CH_MAX] = {
+	[CH_SUBSYSTEM] = nosv_ss_values,
 };
 
 static const long prv_flags[CH_MAX] = {

@@ -42,8 +42,8 @@ static const struct pcf_value_label kernel_cs_values[] = {
 	{ -1, NULL },
 };
 
-static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
-	[CH_CS] = &kernel_cs_values,
+static const struct pcf_value_label *pcf_labels[CH_MAX] = {
+	[CH_CS] = kernel_cs_values,
 };
 
 static const long prv_flags[CH_MAX] = {

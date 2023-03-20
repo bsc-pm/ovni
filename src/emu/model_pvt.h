@@ -13,7 +13,7 @@ struct model_pvt_spec {
 	const char **prefix;
 	const char **suffix;
 	const long *flags;
-	const struct pcf_value_label (**label)[];
+	const struct pcf_value_label **label;
 };
 
 #include "model_cpu.h"

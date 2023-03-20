@@ -13,12 +13,12 @@ static int
 create_values(const struct model_pvt_spec *pvt,
 		struct pcf_type *t, int i)
 {
-	const struct pcf_value_label(*q)[] = pvt->label[i];
+	const struct pcf_value_label *q = pvt->label[i];
 
 	if (q == NULL)
 		return 0;
 
-	for (const struct pcf_value_label *p = *q; p->label != NULL; p++)
+	for (const struct pcf_value_label *p = q; p->label != NULL; p++)
 		pcf_add_value(t, p->value, p->label);
 
 	return 0;

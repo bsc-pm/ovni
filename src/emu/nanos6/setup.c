@@ -98,9 +98,9 @@ static const struct pcf_value_label nanos6_thread_type[] = {
 	{ -1, NULL },
 };
 
-static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
-	[CH_SUBSYSTEM] = &nanos6_ss_values,
-	[CH_THREAD]    = &nanos6_thread_type,
+static const struct pcf_value_label *pcf_labels[CH_MAX] = {
+	[CH_SUBSYSTEM] = nanos6_ss_values,
+	[CH_THREAD]    = nanos6_thread_type,
 };
 
 static const long prv_flags[CH_MAX] = {

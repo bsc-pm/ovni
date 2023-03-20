@@ -1,4 +1,4 @@
-/* Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "uthash.h"
@@ -598,6 +598,9 @@ hook_pre_nanos6(struct ovni_emu *emu)
 			break;
 		case 'M':
 			pre_memory(emu);
+			break;
+		case 'P':
+			/* Ignore progress events */
 			break;
 		default:
 			edie(emu, "unknown Nanos6 event category\n");

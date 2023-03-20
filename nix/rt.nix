@@ -1,6 +1,6 @@
 let
   pkgs = import (builtins.fetchTarball
-    "https://pm.bsc.es/gitlab/rarias/bscpkgs/-/archive/update-bscpkgs/bscpkgs-master.tar.gz");
+    "https://pm.bsc.es/gitlab/rarias/bscpkgs/-/archive/master/bscpkgs-master.tar.gz");
 
   rWrapper = pkgs.rWrapper.override {
     packages = with pkgs.rPackages; [ tidyverse rjson jsonlite egg viridis ];

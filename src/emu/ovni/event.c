@@ -442,11 +442,13 @@ pre_flush(struct emu *emu)
 	return 0;
 }
 
-static int
-process_ev(struct emu *emu)
+int
+model_ovni_event(struct emu *emu)
 {
-	if (emu->ev->m != 'O')
+	if (emu->ev->m != 'O') {
+		err("unexpected event model %c\n", emu->ev->m);
 		return -1;
+	}
 
 	switch (emu->ev->c) {
 		case 'H':
@@ -469,15 +471,4 @@ process_ev(struct emu *emu)
 	}
 
 	return 0;
-}
-
-int
-model_ovni_event(struct emu *emu)
-{
-	if (emu->ev->m != 'O') {
-		err("unexpected event model %c\n", emu->ev->m);
-		return -1;
-	}
-
-	return process_ev(emu);
 }

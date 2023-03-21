@@ -3,38 +3,24 @@
 
 #include "kernel_priv.h"
 
-enum { PUSH = 1, POP = 2, IGN = 3 };
-
-static const int ss_table[256][256][3] = {
-	['C'] = {
-		['O'] = { CH_CS, PUSH, ST_CSOUT },
-		['I'] = { CH_CS, POP,  ST_CSOUT },
-	},
-};
-
 static int
-simple(struct emu *emu)
+context_switch(struct emu *emu)
 {
-	const int *entry = ss_table[emu->ev->c][emu->ev->v];
-	int chind = entry[0];
-	int action = entry[1];
-	int st = entry[2];
-
 	struct kernel_thread *th = EXT(emu->thread, 'K');
-	struct chan *ch = &th->m.ch[chind];
+	struct chan *ch = &th->m.ch[CH_CS];
 
-	if (action == PUSH) {
-		return chan_push(ch, value_int64(st));
-	} else if (action == POP) {
-		return chan_pop(ch, value_int64(st));
-	} else if (action == IGN) {
-		return 0; /* do nothing */
-	} else {
-		err("unknown event");
-		return -1;
+	switch (emu->ev->v) {
+		case 'O':
+			return chan_push(ch, value_int64(ST_CSOUT));
+		case 'I':
+			return chan_pop(ch, value_int64(ST_CSOUT));
+		default:
+			err("unknown context switch event");
+			return -1;
 	}
 
-	return 0;
+	/* Not reached */
+	return -1;
 }
 
 static int
@@ -42,7 +28,7 @@ process_ev(struct emu *emu)
 {
 	switch (emu->ev->c) {
 		case 'C':
-			return simple(emu);
+			return context_switch(emu);
 		default:
 			err("unknown Kernel event category");
 			return -1;
@@ -64,7 +50,6 @@ model_kernel_event(struct emu *emu)
 		}
 		enabled = 1;
 	}
-
 
 	dbg("in kernel_event");
 	if (emu->ev->m != 'K') {

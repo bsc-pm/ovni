@@ -397,6 +397,9 @@ pre_burst(struct emu *emu)
 	info("%s burst stats: median/avg/max = %3.0f/%3.0f/%3.0f ns\n",
 			emu->loom->id, median, avg, maxdelta);
 
+	if (median > 100)
+		warn("large median burst time of %.0f ns, expect overhead", median);
+
 	th->nbursts = 0;
 
 	return 0;

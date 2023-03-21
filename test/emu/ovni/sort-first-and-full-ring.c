@@ -58,7 +58,7 @@ main(void)
 	/* Fill the ring buffer */
 	long n = 1000000 + 10;
 
-	err("using n=%ld events\n", n);
+	err("using n=%ld events", n);
 
 	/* Go back 100 ns for each event (with some space) */
 	int64_t delta = 10000;
@@ -66,7 +66,7 @@ main(void)
 
 	for (long i = 0; i < n; i++) {
 		if (t <= t0 || t >= t1)
-			die("bad time\n");
+			die("bad time");
 		emit("OB.", t);
 		t += 33;
 	}

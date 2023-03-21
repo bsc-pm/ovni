@@ -5,6 +5,7 @@
 
 #include "emu/bay.h"
 #include "common.h"
+#include "unittest.h"
 #include <time.h>
 
 #define N 10000
@@ -28,23 +29,20 @@ populate(struct bay *bay)
 
 	channels = calloc(N, sizeof(struct chan));
 	if (channels == NULL)
-		die("calloc failed\n");
+		die("calloc failed");
 
 	for (long i = 0; i < N; i++) {
 		sprintf(name, "%s.%ld", BASE, i);
 		chan_init(&channels[i], CHAN_SINGLE, name);
-		if (bay_register(bay, &channels[i]) != 0)
-			die("bay_register failed\n");
+		OK(bay_register(bay, &channels[i]));
 	}
 }
 
 static void
 dummy_work(struct chan *c)
 {
-	if (chan_set(c, value_int64(dummy_value++)) != 0)
-		die("chan_set failed\n");
-	if (chan_flush(c) != 0)
-		die("chan_flush failed\n");
+	OK(chan_set(c, value_int64(dummy_value++)));
+	OK(chan_flush(c));
 }
 
 static double
@@ -62,14 +60,14 @@ measure_hash(struct bay *bay, double T)
 		sprintf(name, "%s.%ld", BASE, i);
 		struct chan *c = bay_find(bay, name);
 		if (c == NULL)
-			die("bay_find failed\n");
+			die("bay_find failed");
 		dummy_work(c);
 		nlookups++;
 	}
 
 	double speed = (double) nlookups / T;
 
-	err("bay_find: %e lookups/s\n", speed);
+	err("%e lookups/s", speed);
 	return speed;
 }
 
@@ -90,7 +88,7 @@ measure_direct(double T)
 
 	double speed = (double) nlookups / T;
 
-	err("direct: %e lookups/s\n", speed);
+	err("%e lookups/s", speed);
 	return speed;
 }
 
@@ -101,10 +99,10 @@ test_speed(struct bay *bay)
 	double hash = measure_hash(bay, T);
 	double direct = measure_direct(T);
 	double slowdown = hash / direct;
-	err("slowdown speed_hash/speed_direct = %f\n", slowdown);
+	err("slowdown speed_hash/speed_direct = %f", slowdown);
 
 	if (slowdown < 0.2)
-		die("hash speed is too slow\n");
+		die("hash speed is too slow");
 }
 
 int main(void)

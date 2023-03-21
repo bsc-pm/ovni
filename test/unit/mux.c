@@ -3,6 +3,7 @@
 
 #include "emu/mux.h"
 #include "common.h"
+#include "unittest.h"
 
 #define N 10
 
@@ -10,28 +11,22 @@ static void
 check_output(struct mux *mux, struct value expected)
 {
 	struct value out_value = value_null();
-	if (chan_read(mux->output, &out_value) != 0)
-		die("chan_read() failed for output channel\n");
+	OK(chan_read(mux->output, &out_value));
 
 	if (!value_is_equal(&out_value, &expected)) {
-		die("unexpected value found %s in output (expected %s)\n",
+		die("unexpected value found %s in output (expected %s)",
 				value_str(out_value),
 				value_str(expected));
 	}
-
-	err("----- output ok -----\n");
 }
 
 static void
 test_select(struct mux *mux, int key)
 {
-	if (chan_set(mux->select, value_int64(key)) != 0)
-		die("chan_set failed\n");
-
-	if (bay_propagate(mux->bay) != 0)
-		die("bay_propagate failed\n");
-
+	OK(chan_set(mux->select, value_int64(key)));
+	OK(bay_propagate(mux->bay));
 	check_output(mux, value_int64(1000 + key));
+	err("OK");
 }
 
 static void
@@ -45,15 +40,12 @@ test_input(struct mux *mux, int key)
 	/* Then change that channel */
 	struct mux_input *mi = mux_get_input(mux, key);
 	if (mi == NULL)
-		die("mux_get_input failed to locate input %d\n", key);
+		die("mux_get_input failed to locate input %d", key);
 
-	if (chan_set(mi->chan, value_int64(new_value)) != 0)
-		die("chan_set failed\n");
-
-	if (bay_propagate(mux->bay) != 0)
-		die("bay_propagate failed\n");
-
+	OK(chan_set(mi->chan, value_int64(new_value)));
+	OK(bay_propagate(mux->bay));
 	check_output(mux, value_int64(new_value));
+	err("OK");
 }
 
 static void
@@ -61,24 +53,22 @@ test_select_and_input(struct mux *mux, int key)
 {
 	/* Set the select channel to the selected key, but don't
 	 * propagate the changes yet */
-	if (chan_set(mux->select, value_int64(key)) != 0)
-		die("chan_set failed\n");
+	OK(chan_set(mux->select, value_int64(key)));
 
 	int new_value = 2000 + key;
 
 	/* Also change that channel */
 	struct mux_input *mi = mux_get_input(mux, key);
 	if (mi == NULL)
-		die("mux_get_input failed to locate input %d\n", key);
+		die("mux_get_input failed to locate input %d", key);
 
-	if (chan_set(mi->chan, value_int64(new_value)) != 0)
-		die("chan_set failed\n");
+	OK(chan_set(mi->chan, value_int64(new_value)));
 
 	/* Write twice to the output */
-	if (bay_propagate(mux->bay) != 0)
-		die("bay_propagate failed\n");
+	OK(bay_propagate(mux->bay));
 
 	check_output(mux, value_int64(new_value));
+	err("OK");
 }
 
 static void
@@ -89,20 +79,18 @@ test_input_and_select(struct mux *mux, int key)
 	/* First change the input */
 	struct mux_input *mi = mux_get_input(mux, key);
 	if (mi == NULL)
-		die("mux_get_input failed to locate input %d\n", key);
+		die("mux_get_input failed to locate input %d", key);
 
-	if (chan_set(mi->chan, value_int64(new_value)) != 0)
-		die("chan_set failed\n");
+	OK(chan_set(mi->chan, value_int64(new_value)));
 
 	/* Then change select */
-	if (chan_set(mux->select, value_int64(key)) != 0)
-		die("chan_set failed\n");
+	OK(chan_set(mux->select, value_int64(key)));
 
 	/* Write twice to the output */
-	if (bay_propagate(mux->bay) != 0)
-		die("bay_propagate failed\n");
+	OK(bay_propagate(mux->bay));
 
 	check_output(mux, value_int64(new_value));
+	err("OK");
 }
 
 static void
@@ -112,21 +100,15 @@ test_mid_propagate(struct mux *mux, int key)
 
 	struct mux_input *mi = mux_get_input(mux, key);
 	if (mi == NULL)
-		die("mux_get_input failed to locate input %d\n", key);
+		die("mux_get_input failed to locate input %d", key);
 
-	if (chan_set(mi->chan, value_int64(new_value)) != 0)
-		die("chan_set failed\n");
-
-	if (bay_propagate(mux->bay) != 0)
-		die("bay_propagate failed\n");
-
-	if (chan_set(mux->select, value_int64(key)) != 0)
-		die("chan_set failed\n");
-
-	if (bay_propagate(mux->bay) != 0)
-		die("bay_propagate failed\n");
+	OK(chan_set(mi->chan, value_int64(new_value)));
+	OK(bay_propagate(mux->bay));
+	OK(chan_set(mux->select, value_int64(key)));
+	OK(bay_propagate(mux->bay));
 
 	check_output(mux, value_int64(new_value));
+	err("OK");
 }
 
 static void
@@ -136,35 +118,27 @@ test_duplicate_output(struct mux *mux, int key1, int key2)
 
 	struct mux_input *in1 = mux_get_input(mux, key1);
 	if (in1 == NULL)
-		die("mux_get_input failed to locate input1 %d\n", key1);
+		die("mux_get_input failed to locate input1 %d", key1);
 
 	struct mux_input *in2 = mux_get_input(mux, key2);
 	if (in2 == NULL)
-		die("mux_get_input failed to locate input2 %d\n", key2);
+		die("mux_get_input failed to locate input2 %d", key2);
 
-	if (chan_set(in1->chan, value_int64(new_value)) != 0)
-		die("chan_set failed\n");
-
-	if (chan_set(in2->chan, value_int64(new_value)) != 0)
-		die("chan_set failed\n");
+	OK(chan_set(in1->chan, value_int64(new_value)));
+	OK(chan_set(in2->chan, value_int64(new_value)));
 
 	/* Select input 1 */
-	if (chan_set(mux->select, value_int64(key1)) != 0)
-		die("chan_set failed\n");
-
-	if (bay_propagate(mux->bay) != 0)
-		die("bay_propagate failed\n");
+	OK(chan_set(mux->select, value_int64(key1)));
+	OK(bay_propagate(mux->bay));
 
 	check_output(mux, value_int64(new_value));
 
 	/* Now switch to input 2, which has the same value */
-	if (chan_set(mux->select, value_int64(key2)) != 0)
-		die("chan_set failed\n");
-
-	if (bay_propagate(mux->bay) != 0)
-		die("bay_propagate failed\n");
+	OK(chan_set(mux->select, value_int64(key2)));
+	OK(bay_propagate(mux->bay));
 
 	check_output(mux, value_int64(new_value));
+	err("OK");
 }
 
 /* Ensure that the output of a mux is correct while the mux is connected
@@ -183,42 +157,31 @@ test_delayed_connect(void)
 	chan_init(&input, CHAN_SINGLE, "input.0");
 
 	/* Register all channels in the bay */
-	if (bay_register(&bay, &select) != 0)
-		die("bay_register failed\n");
-
-	if (bay_register(&bay, &output) != 0)
-		die("bay_register failed\n");
-
-	if (bay_register(&bay, &input) != 0)
-		die("bay_register failed\n");
+	OK(bay_register(&bay, &select));
+	OK(bay_register(&bay, &output));
+	OK(bay_register(&bay, &input));
 
 	/* Setup channel values */
-	if (chan_set(&select, value_int64(0)) != 0)
-		die("chan_set failed\n");
-	if (chan_set(&input, value_int64(1000)) != 0)
-		die("chan_set failed\n");
+	OK(chan_set(&select, value_int64(0)));
+	OK(chan_set(&input, value_int64(1000)));
 
 	/* Propagate now so they are clean */
-	if (bay_propagate(&bay) != 0)
-		die("bay_propagate failed\n");
+	OK(bay_propagate(&bay));
 
 	/* ----- delayed connect ----- */
 
 	struct mux mux;
-	if (mux_init(&mux, &bay, &select, &output, NULL, 1) != 0)
-		die("mux_init failed\n");
-
-	if (mux_set_input(&mux, 0, &input) != 0)
-		die("mux_add_input failed\n");
+	OK(mux_init(&mux, &bay, &select, &output, NULL, 1));
+	OK(mux_set_input(&mux, 0, &input));
 
 	/* Don't modify the input of the select until propagation, the
 	 * mux_init must have marked the select as dirty. */
 
-	if (bay_propagate(&bay) != 0)
-		die("bay_propagate failed\n");
+	OK(bay_propagate(&bay));
 
 	/* The mux must have selected the first input */
 	check_output(&mux, value_int64(1000));
+	err("OK");
 }
 
 int
@@ -241,39 +204,26 @@ main(void)
 	}
 
 	/* Register all channels in the bay */
-	if (bay_register(&bay, &select) != 0)
-		die("bay_register failed\n");
+	OK(bay_register(&bay, &select));
 
-	for (int i = 0; i < N; i++) {
-		if (bay_register(&bay, &inputs[i]) != 0)
-			die("bay_register failed\n");
-	}
+	for (int i = 0; i < N; i++)
+		OK(bay_register(&bay, &inputs[i]));
 
 	struct mux mux;
 	/* Attempt to init the mux without registering the output */
-	if (mux_init(&mux, &bay, &select, &output, NULL, N) == 0)
-		die("mux_init didn't fail\n");
+	ERR(mux_init(&mux, &bay, &select, &output, NULL, N));
+	OK(bay_register(&bay, &output));
+	OK(mux_init(&mux, &bay, &select, &output, NULL, N));
 
-	if (bay_register(&bay, &output) != 0)
-		die("bay_register failed\n");
-
-	if (mux_init(&mux, &bay, &select, &output, NULL, N) != 0)
-		die("mux_init failed\n");
-
-	for (int i = 0; i < N; i++) {
-		if (mux_set_input(&mux, i, &inputs[i]) != 0)
-			die("mux_add_input failed\n");
-	}
+	for (int i = 0; i < N; i++)
+		OK(mux_set_input(&mux, i, &inputs[i]));
 
 	/* Write something to the input channels */
-	for (int i = 0; i < N; i++) {
-		if (chan_set(&inputs[i], value_int64(1000 + i)) != 0)
-			die("chan_set failed\n");
-	}
+	for (int i = 0; i < N; i++)
+		OK(chan_set(&inputs[i], value_int64(1000 + i)));
 
 	/* Propagate values and call the callbacks */
-	if (bay_propagate(&bay) != 0)
-		die("bay_propagate failed\n");
+	OK(bay_propagate(&bay));
 
 	test_select(&mux, 1);
 	test_input(&mux, 2);
@@ -283,7 +233,7 @@ main(void)
 	test_duplicate_output(&mux, 6, 7);
 	test_delayed_connect();
 
-	err("OK\n");
+	err("OK");
 
 	return 0;
 }

@@ -104,7 +104,7 @@ instr_start(int rank, int nranks)
 
 	int curcpu = rank;
 
-	dbg("thread %d has cpu %d (ncpus=%d)\n",
+	dbg("thread %d has cpu %d (ncpus=%d)",
 			gettid(), curcpu, nranks);
 
 	instr_thread_execute(curcpu, -1, 0);

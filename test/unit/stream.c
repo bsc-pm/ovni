@@ -5,6 +5,7 @@
 
 #include "emu/emu.h"
 #include "common.h"
+#include "unittest.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -15,7 +16,7 @@ test_ok(char *fname)
 	FILE *f = fopen(fname, "w");
 
 	if (f == NULL)
-		die("fopen failed\n");
+		die("fopen failed:");
 
 	/* Write bogus header */
 	struct ovni_stream_header header;
@@ -23,17 +24,18 @@ test_ok(char *fname)
 	header.version = OVNI_STREAM_VERSION;
 
 	if (fwrite(&header, sizeof(header), 1, f) != 1)
-		die("fwrite failed\n");
+		die("fwrite failed:");
 
 	fclose(f);
 
 	struct stream stream;
 	const char *relpath = &fname[5];
-	if (stream_load(&stream, "/tmp", relpath) != 0)
-		die("stream_load failed");
+	OK(stream_load(&stream, "/tmp", relpath));
 
 	if (stream.active)
-		die("stream is active\n");
+		die("stream is active");
+
+	err("OK");
 }
 
 static void
@@ -42,7 +44,7 @@ test_bad(char *fname)
 	FILE *f = fopen(fname, "w");
 
 	if (f == NULL)
-		die("fopen failed\n");
+		die("fopen failed:");
 
 	/* Write bogus header */
 	struct ovni_stream_header header;
@@ -50,14 +52,15 @@ test_bad(char *fname)
 	header.version = 1234; /* Wrong version */
 
 	if (fwrite(&header, sizeof(header), 1, f) != 1)
-		die("fwrite failed\n");
+		die("fwrite failed:");
 
 	fclose(f);
 
 	struct stream stream;
 	const char *relpath = &fname[5];
-	if (stream_load(&stream, "/tmp", relpath) == 0)
-		die("stream_load didn't fail");
+	ERR(stream_load(&stream, "/tmp", relpath));
+
+	err("OK");
 }
 
 int main(void)
@@ -66,11 +69,12 @@ int main(void)
 	char fname[] = "/tmp/ovni.stream.XXXXXX";
 	int fd = mkstemp(fname);
 	if (fd < 0)
-		die("mkstemp failed\n");
+		die("mkstemp failed:");
 
 	test_ok(fname);
 	test_bad(fname);
 
 	close(fd);
 
+	return 0;
 }

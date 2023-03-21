@@ -19,9 +19,9 @@ test_holes(void)
 	 * compare two values, so we don't have problems with
 	 * unitialized holes due to alignment */
 	if (memcmp(&a, &b, sizeof(struct value)) != 0)
-		die("values are not the same\n");
+		die("values are not the same");
 
-	err("OK\n");
+	err("OK");
 }
 
 /* Ensure value_null results in values being equal */
@@ -39,7 +39,7 @@ test_null_init(void)
 	if (!value_is_equal(&a, &b))
 		die("null not equal");
 
-	err("OK\n");
+	err("OK");
 }
 
 /* Test that we can printf at least 8 values without overwritting the

@@ -53,7 +53,7 @@ start_delayed(int rank, int nranks)
 
 	int curcpu = rank;
 
-	dbg("thread %d has cpu %d (ncpus=%d)\n",
+	dbg("thread %d has cpu %d (ncpus=%d)",
 			gettid(), curcpu, nranks);
 
 	delta = ((int64_t) rank) * 2LL * 3600LL * 1000LL * 1000LL * 1000LL;

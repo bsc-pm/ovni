@@ -31,22 +31,18 @@ test_emit(const char *path)
 		sprintf(buf, "testchan.%d", i);
 		chan_init(&chan[i], CHAN_SINGLE, buf);
 
-		if (bay_register(&bay, &chan[i]) != 0)
-			die("bay_register failed\n");
+		OK(bay_register(&bay, &chan[i]));
 	}
 
 	for (int i = 0; i < NROWS; i++)
-		if (prv_register(&prv, i, type, &bay, &chan[i], 0) != 0)
-			die("prv_register failed\n");
+		OK(prv_register(&prv, i, type, &bay, &chan[i], 0));
 
 	for (int i = 0; i < NROWS; i++)
-		if (chan_set(&chan[i], value_int64(value_base + i)) != 0)
-			die("chan_set failed\n");
+		OK(chan_set(&chan[i], value_int64(value_base + i)));
 
 	OK(prv_advance(&prv, 10000));
 
-	if (bay_propagate(&bay) != 0)
-		die("bay_propagate failed\n");
+	OK(bay_propagate(&bay));
 
 	/* Ensure all writes are flushed to the buffer and
 	 * the header has been fixed */
@@ -59,7 +55,7 @@ test_emit(const char *path)
 	}
 	fclose(f);
 
-	err("test emit OK\n");
+	err("OK");
 }
 
 static void
@@ -82,29 +78,18 @@ test_duplicate(const char *path)
 	/* Allow setting the same value in the channel */
 	chan_prop_set(&chan, CHAN_ALLOW_DUP, 1);
 
-	if (bay_register(&bay, &chan) != 0)
-		die("bay_register failed\n");
-
-	if (prv_register(&prv, 0, type, &bay, &chan, 0) != 0)
-		die("prv_register failed\n");
-
-	if (chan_set(&chan, value_int64(1000)) != 0)
-		die("chan_set failed\n");
-
-	if (prv_advance(&prv, 10000) != 0)
-		die("prv_advance failed\n");
-
-	if (bay_propagate(&bay) != 0)
-		die("bay_propagate failed\n");
+	OK(bay_register(&bay, &chan));
+	OK(prv_register(&prv, 0, type, &bay, &chan, 0));
+	OK(chan_set(&chan, value_int64(1000)));
+	OK(prv_advance(&prv, 10000));
+	OK(bay_propagate(&bay));
 
 	/* Set the same value again, which shouldn't fail */
-	if (chan_set(&chan, value_int64(1000)) != 0)
-		die("chan_set failed\n");
+	OK(chan_set(&chan, value_int64(1000)));
 
 	/* Now the propagation phase must fail, as we cannot write the same
 	 * value in the prv trace */
-	if (bay_propagate(&bay) == 0)
-		die("bay_propagate didn't fail\n");
+	ERR(bay_propagate(&bay));
 
 	/* Ensure all writes are flushed to the buffer and
 	 * the header has been fixed */
@@ -136,7 +121,7 @@ test_same_type(const char *path)
 	OK(prv_register(&prv, row, type, &bay, &chan, 0));
 	ERR(prv_register(&prv, row, type, &bay, &chan, 0));
 
-	err("ok");
+	err("OK");
 }
 
 int main(void)
@@ -145,7 +130,7 @@ int main(void)
 	char fname[] = "/tmp/ovni.prv.XXXXXX";
 	int fd = mkstemp(fname);
 	if (fd < 0)
-		die("mkstemp failed\n");
+		die("mkstemp failed:");
 
 	test_emit(fname);
 	test_duplicate(fname);

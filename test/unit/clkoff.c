@@ -5,6 +5,7 @@
 
 #include "emu/clkoff.h"
 #include "common.h"
+#include "unittest.h"
 #include <stdio.h>
 
 static int
@@ -20,22 +21,21 @@ test_ok(void)
 	FILE *f = fmemopen(table_str, ARRAYLEN(table_str), "r");
 
 	if (f == NULL)
-		die("fmemopen failed\n");
+		die("fmemopen failed:");
 
 	struct clkoff table;
 	clkoff_init(&table);
-	if (clkoff_load(&table, f) != 0)
-		die("clkoff_load failed\n");
+	OK(clkoff_load(&table, f));
 
 	if (clkoff_count(&table) != 4)
-		die("clkoff_count failed\n");
+		die("clkoff_count failed");
 
 	struct clkoff_entry *entry = clkoff_get(&table, 3);
 	if (entry == NULL)
-		die("clkoff_get returned NULL\n");
+		die("clkoff_get returned NULL");
 
 	if (entry->index != 3)
-		die("clkoff_get returned wrong index\n");
+		die("clkoff_get returned wrong index");
 
 	fclose(f);
 
@@ -55,13 +55,12 @@ test_dup(void)
 	FILE *f = fmemopen(table_str, ARRAYLEN(table_str), "r");
 
 	if (f == NULL)
-		die("fmemopen failed\n");
+		die("fmemopen failed:");
 
 	struct clkoff table;
 
 	clkoff_init(&table);
-	if (clkoff_load(&table, f) == 0)
-		die("clkoff_load didn't fail\n");
+	ERR(clkoff_load(&table, f));
 
 	fclose(f);
 

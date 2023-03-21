@@ -16,14 +16,14 @@ test_underflow_trailing(void)
 
 	if (memcmp(in, out, sizeof(in)) != 0) {
 		for (size_t i = 0; i < sizeof(in); i++) {
-			err("i=%3d, in[i]=%02x out[i]=%02x\n", i,
+			err("i=%3d, in[i]=%02x out[i]=%02x", i,
 					(unsigned char) in[i],
 					(unsigned char) out[i]);
 		}
 		die("path mismatch");
 	}
 
-	err("OK\n");
+	err("OK");
 }
 
 int

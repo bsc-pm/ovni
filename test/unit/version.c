@@ -34,14 +34,14 @@ int main(void)
 		int tuple[3] = { 0 };
 
 		if (version_parse(c->version, tuple) != c->rc)
-			die("wrong return value\n");
+			die("wrong return value");
 
 		if (c->rc != 0)
 			continue;
 
 		for (int j = 0; j < 3; j++) {
 			if (tuple[j] != c->tuple[j])
-				die("wrong parsed version\n");
+				die("wrong parsed version");
 		}
 	}
 

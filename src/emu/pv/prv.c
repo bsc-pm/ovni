@@ -94,8 +94,7 @@ emit(struct prv *prv, struct prv_chan *rchan)
 
 	/* Only test for duplicates if not emitting them */
 	if (~rchan->flags & PRV_EMITDUP) {
-		int is_dup = is_value_dup(rchan, &value);
-		if (is_dup) {
+		if (is_value_dup(rchan, &value)) {
 			if (rchan->flags & PRV_SKIPDUP)
 				return 0;
 

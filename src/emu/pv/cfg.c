@@ -34,14 +34,20 @@ copy_file(const char *src, const char *dst)
 		return -1;
 	}
 
+	int ret = 0;
 	size_t bytes;
-	while ((bytes = fread(buffer, 1, sizeof(buffer), infile)) > 0)
-		fwrite(buffer, 1, bytes, outfile);
+	while ((bytes = fread(buffer, 1, sizeof(buffer), infile)) > 0) {
+		if (fwrite(buffer, 1, bytes, outfile) != bytes) {
+			err("fwrite failed");
+			ret = -1;
+			break;
+		}
+	}
 
 	fclose(outfile);
 	fclose(infile);
 
-	return 0;
+	return ret;
 }
 
 static int

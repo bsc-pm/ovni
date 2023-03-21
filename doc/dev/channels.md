@@ -15,7 +15,7 @@ Channels become dirty when a new value is written to them. No other
 modifications are allowed by default until the channel is flushed by calling
 `chan_flush()`. This behavior can be controlled with the `CHAN_DIRTY_WRITE`
 property. By default, a duplicated value cannot be written into a channel,
-unless the `CHAN_DUPLICATES` property is set.
+unless the `CHAN_ALLOW_DUP` or `CHAN_IGNORE_DUP` properties are set.
 
 A channel has an unique name used to identify the channel when debugging and
 also to create derived channels. The name can be set following the printf style
@@ -51,8 +51,14 @@ written to a channel and multiple data types can be stored in the stack.
 
 Channels have properties that can be set by `chan_prop_set()`. Setting the
 `CHAN_DIRTY_WRITE` property to true allows a channel to modify its value while
-being in the dirty state. The `CHAN_DUPLICATES` property determines is a channel
-can write the same value to the channel twice.
+being in the dirty state.
+
+## Duplicate values
+
+By default, writing the same value to a channel twice is forbidden and will
+result in a error. The property `CHAN_ALLOW_DUP` allows writing the same value
+to the channel. However, the property `CHAN_IGNORE_DUP` will ignore the attempt
+to write the duplicated value with no error.
 
 ## Callback
 

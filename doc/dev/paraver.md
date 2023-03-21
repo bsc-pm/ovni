@@ -16,8 +16,15 @@ A channel can be connected to each row in a trace with `prv_register()`, so the
 new values of the channel get written in the trace. Only null and int64 data
 values are supported for now.
 
-Duplicated values cause an error by default, unless the channel is registered
-with the flag `PRV_DUP`.
-
 The emission phase is controlled by the [patch bay](../patchbay) and runs all
 the emit callbacks at once for all dirty channels.
+
+## Duplicate values
+
+When a channel feeds a duplicated value, it causes an error by default. The
+behavior of each row when a duplicate value is found can be controlled by the
+`flags` in `prv_register()`:
+
+- `PRV_EMITDUP` will emit the duplicate values from the channel to the trace.
+
+- `PRV_SKIPDUP` ignore any duplicate values and don't emit them.

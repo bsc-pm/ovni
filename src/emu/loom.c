@@ -125,7 +125,6 @@ loom_add_cpu(struct loom *loom, struct cpu *cpu)
 	}
 
 	HASH_ADD_INT(loom->cpus, phyid, cpu);
-	//DL_SORT2(loom->cpus, cmp_cpus, lprev, lnext); // Maybe?
 	loom->ncpus++;
 
 	cpu_set_loom(cpu, loom);

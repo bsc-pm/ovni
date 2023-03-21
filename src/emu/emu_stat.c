@@ -84,14 +84,6 @@ emu_stat_update(struct emu_stat *stat, struct player *player)
 	stat->ncalls = 0;
 
 	double t = get_time();
-	//double dt = t - stat->last_time;
-	//if (dt > 300.0e-6) {
-	//	struct emu_ev *ev = player_ev(player);
-	//	struct stream *stream = player_stream(player);
-	//	err("event mcv=%s took %.3f us in %s",
-	//			ev->mcv, stream->relpath,
-	//			dt * 1e6);
-	//}
 
 	stat->last_time = t;
 

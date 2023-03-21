@@ -337,7 +337,7 @@ load_clock_offsets(struct clkoff *clkoff, struct emu_args *args)
 	FILE *f = fopen(offset_file, "r");
 
 	if (f == NULL) {
-		if (is_optional)
+		if (is_optional && errno == ENOENT)
 			return 0;
 
 		err("fopen %s failed:", offset_file);

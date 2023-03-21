@@ -33,11 +33,11 @@ static const int pvt_type[] = {
 };
 
 static const char *pcf_prefix[CH_MAX] = {
-	[CH_FLUSH]    = "Flushing ovni buffer",
+	[CH_FLUSH] = "Flushing ovni buffer",
 };
 
 static const struct pcf_value_label flushing_values[] = {
-	{ ST_FLUSHING,        "Flushing" },
+	{ ST_FLUSHING, "Flushing" },
 	{ -1, NULL },
 };
 
@@ -59,11 +59,11 @@ static const struct model_pvt_spec pvt_spec = {
 /* ----------------- tracking ------------------ */
 
 static const int th_track[CH_MAX] = {
-	[CH_FLUSH]    = TRACK_TH_ANY,
+	[CH_FLUSH] = TRACK_TH_ANY,
 };
 
 static const int cpu_track[CH_MAX] = {
-	[CH_FLUSH]    = TRACK_TH_RUN,
+	[CH_FLUSH] = TRACK_TH_RUN,
 };
 
 /* ----------------- chan_spec ------------------ */

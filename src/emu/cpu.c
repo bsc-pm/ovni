@@ -296,7 +296,7 @@ cpu_remove_thread(struct cpu *cpu, struct thread *thread)
 
 	/* Not found, abort */
 	if (t == NULL) {
-		err("cannot remove missing thread %d from cpu %s\n",
+		err("cannot remove missing thread %d from cpu %s",
 				thread->tid, cpu->name);
 		return -1;
 	}

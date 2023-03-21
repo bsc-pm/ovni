@@ -53,7 +53,7 @@ model_kernel_event(struct emu *emu)
 
 	dbg("in kernel_event");
 	if (emu->ev->m != 'K') {
-		err("unexpected event model %c\n", emu->ev->m);
+		err("unexpected event model %c", emu->ev->m);
 		return -1;
 	}
 

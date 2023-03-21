@@ -111,7 +111,7 @@ proc_load_metadata(struct proc *proc, JSON_Object *meta)
 
 	JSON_Value *appid_val = json_object_get_value(meta, "app_id");
 	if (appid_val == NULL) {
-		err("missing attribute 'app_id' in metadata\n");
+		err("missing attribute 'app_id' in metadata");
 		return -1;
 	}
 

@@ -67,7 +67,7 @@ parse_args(int argc, char *argv[])
 	}
 
 	if (optind >= argc) {
-		err("bad usage: missing directory\n");
+		err("bad usage: missing directory");
 		usage();
 	}
 

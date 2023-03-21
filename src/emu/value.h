@@ -74,7 +74,7 @@ value_str(struct value a)
 			ret = snprintf(buf, n, "{double %e}", a.d);
 			break;
 		default:
-			die("value_str: unexpected value type\n");
+			die("value_str: unexpected value type");
 	}
 
 	if (ret >= (int) n)

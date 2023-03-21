@@ -109,7 +109,7 @@ model_nodes_event(struct emu *emu)
 
 	dbg("in nodes_event");
 	if (emu->ev->m != 'D') {
-		err("unexpected event model %c\n", emu->ev->m);
+		err("unexpected event model %c", emu->ev->m);
 		return -1;
 	}
 

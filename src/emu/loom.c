@@ -53,7 +53,7 @@ loom_init_begin(struct loom *loom, const char *name)
 	}
 
 	if (snprintf(loom->name, PATH_MAX, "%s", name) >= PATH_MAX) {
-		err("name too long: %s\n", name);
+		err("name too long: %s", name);
 		return -1;
 	}
 

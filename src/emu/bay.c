@@ -18,13 +18,13 @@ cb_chan_is_dirty(struct chan *chan, void *arg)
 	struct bay *bay = bchan->bay;
 
 	if (bay->state != BAY_READY && bay->state != BAY_PROPAGATING) {
-		err("cannot add dirty channel %s in current bay state\n",
+		err("cannot add dirty channel %s in current bay state",
 				chan->name);
 		return -1;
 	}
 
 	if (bchan->is_dirty) {
-		err("channel %s already on dirty list\n", chan->name);
+		err("channel %s already on dirty list", chan->name);
 		return -1;
 	}
 
@@ -162,7 +162,7 @@ propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 
 	UNUSED(propname);
 
-	dbg("- propagating channel '%s' phase %s\n",
+	dbg("- propagating channel '%s' phase %s",
 			bchan->chan->name, propname[type]);
 
 	struct bay_cb *cur = NULL;

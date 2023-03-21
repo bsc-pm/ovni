@@ -88,7 +88,7 @@ static int
 pre_thread_pause(struct thread *th)
 {
 	if (th->state != TH_ST_RUNNING && th->state != TH_ST_COOLING) {
-		err("cannot pause thread %d: state not running or cooling\n",
+		err("cannot pause thread %d: state not running or cooling",
 				th->tid);
 		return -1;
 	}
@@ -153,7 +153,7 @@ static int
 pre_thread_warm(struct thread *th)
 {
 	if (th->state != TH_ST_PAUSED) {
-		err("cannot warm thread %d: state not paused\n", th->tid);
+		err("cannot warm thread %d: state not paused", th->tid);
 		return -1;
 	}
 
@@ -178,7 +178,7 @@ pre_thread(struct emu *emu)
 
 	switch (ev->v) {
 		case 'C': /* create */
-			dbg("thread %d creates a new thread at cpu=%d with args=%x %x\n",
+			dbg("thread %d creates a new thread at cpu=%d with args=%x %x",
 					th->tid,
 					ev->payload->u32[0],
 					ev->payload->u32[1],
@@ -198,7 +198,7 @@ pre_thread(struct emu *emu)
 		case 'w':
 			return pre_thread_warm(th);
 		default:
-			err("unknown thread event value %c\n", ev->v);
+			err("unknown thread event value %c", ev->v);
 			return -1;
 	}
 	return 0;
@@ -247,7 +247,7 @@ pre_affinity_set(struct emu *emu)
 		return -1;
 	}
 
-	dbg("thread %d now runs in %s\n", th->tid, newcpu->name);
+	dbg("thread %d now runs in %s", th->tid, newcpu->name);
 
 	return 0;
 }
@@ -323,7 +323,7 @@ pre_affinity(struct emu *emu)
 		case 'r':
 			return pre_affinity_remote(emu);
 		default:
-			err("unknown affinity event value %c\n",
+			err("unknown affinity event value %c",
 					emu->ev->v);
 			return -1;
 	}
@@ -339,7 +339,7 @@ pre_cpu(struct emu *emu)
 			err("ignoring old event OCn");
 			return 0;
 		default:
-			err("unknown cpu event value %c\n",
+			err("unknown cpu event value %c",
 					emu->ev->v);
 			return -1;
 	}
@@ -394,7 +394,7 @@ pre_burst(struct emu *emu)
 	avg /= (double) n;
 	double median = deltas[n / 2];
 
-	info("%s burst stats: median/avg/max = %3.0f/%3.0f/%3.0f ns\n",
+	info("%s burst stats: median/avg/max = %3.0f/%3.0f/%3.0f ns",
 			emu->loom->id, median, avg, maxdelta);
 
 	if (median > 100)
@@ -434,7 +434,7 @@ pre_flush(struct emu *emu)
 						emu->thread->tid);
 			break;
 		default:
-			err("unexpected value '%c' (expecting '[' or ']')\n",
+			err("unexpected value '%c' (expecting '[' or ']')",
 					emu->ev->v);
 			return -1;
 	}
@@ -446,7 +446,7 @@ int
 model_ovni_event(struct emu *emu)
 {
 	if (emu->ev->m != 'O') {
-		err("unexpected event model %c\n", emu->ev->m);
+		err("unexpected event model %c", emu->ev->m);
 		return -1;
 	}
 
@@ -465,7 +465,7 @@ model_ovni_event(struct emu *emu)
 			/* Ignore sorting events */
 			return 0;
 		default:
-			err("unknown ovni event category %c\n",
+			err("unknown ovni event category %c",
 					emu->ev->c);
 			return -1;
 	}

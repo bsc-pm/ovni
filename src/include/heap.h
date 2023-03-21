@@ -162,7 +162,7 @@ heap_pop_max(heap_head_t *head, heap_node_compare_t cmp)
 	size_t size = head->size;
 	heap_node_t *change = heap_get(head, size);
 	if (change == NULL)
-		die("heap_pop_max: heap_get() failed\n");
+		die("heap_get() failed");
 
 	head->size--;
 
@@ -194,10 +194,10 @@ heap_pop_max(heap_head_t *head, heap_node_compare_t cmp)
 			change->parent->left = NULL;
 
 		if (change->left)
-			die("heap_pop_max: change->left not NULL\n");
+			die("change->left not NULL");
 
 		if (change->right)
-			die("heap_pop_max: change->right not NULL\n");
+			die("change->right not NULL");
 
 		change->left = max->left;
 		if (change->left)
@@ -235,11 +235,11 @@ heap_insert(heap_head_t *head, heap_node_t *node, heap_node_compare_t cmp)
 	// Right child
 	if (head->size % 2) {
 		if (parent->right)
-			die("heap_insert: parent->right already set\n");
+			die("parent->right already set");
 		parent->right = node;
 	} else {
 		if (parent->left)
-			die("heap_insert: parent->left already set\n");
+			die("parent->left already set");
 		parent->left = node;
 	}
 

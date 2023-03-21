@@ -19,13 +19,13 @@ static int
 cadd(struct clkoff *table, struct clkoff_entry e)
 {
 	if (cfind(table, e.name) != NULL) {
-		err("entry with name '%s' already exists\n", e.name);
+		err("entry with name '%s' already exists", e.name);
 		return -1;
 	}
 
 	struct clkoff_entry *entry = calloc(1, sizeof(struct clkoff_entry));
 	if (entry == NULL) {
-		err("calloc failed\n");
+		err("calloc failed");
 		return -1;
 	}
 
@@ -43,7 +43,7 @@ cparse(struct clkoff *table, FILE *file)
 	/* Ignore header line */
 	char buf[1024];
 	if (fgets(buf, 1024, file) == NULL) {
-		err("missing header line in clock offset\n");
+		err("missing header line in clock offset");
 		return -1;
 	}
 
@@ -66,18 +66,18 @@ cparse(struct clkoff *table, FILE *file)
 			break;
 
 		if (ret == EOF && errno != 0) {
-			err("fscanf() failed in line %d\n", line);
+			err("fscanf() failed in line %d", line);
 			return -1;
 		}
 
 		if (ret != 5) {
-			err("fscanf() read %d instead of 5 fields in line %d\n",
+			err("fscanf() read %d instead of 5 fields in line %d",
 					ret, line);
 			return -1;
 		}
 
 		if (cadd(table, e) != 0) {
-			err("cannot add entry of line %d\n",
+			err("cannot add entry of line %d",
 					line);
 			return -1;
 		}
@@ -90,14 +90,14 @@ static int
 cindex(struct clkoff *table)
 {
 	if (table->nentries < 1) {
-		err("no entries\n");
+		err("no entries");
 		return -1;
 	}
 
 	table->index = calloc(table->nentries, sizeof(struct clkoff_entry *));
 
 	if (table->index == NULL) {
-		err("calloc failed\n");
+		err("calloc failed");
 		return -1;
 	}
 

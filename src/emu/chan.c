@@ -19,7 +19,7 @@ chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...)
 	int n = ARRAYLEN(chan->name);
 	int ret = vsnprintf(chan->name, n, fmt, ap);
 	if (ret >= n)
-		die("channel name too long\n");
+		die("channel name too long");
 	va_end(ap);
 
 	chan->type = type;
@@ -46,7 +46,7 @@ set_dirty(struct chan *chan)
 		if (chan->prop[CHAN_DIRTY_WRITE])
 			return 0;
 
-		err("%s: already dirty\n", chan->name);
+		err("%s: already dirty", chan->name);
 		return -1;
 	}
 
@@ -193,7 +193,7 @@ chan_pop(struct chan *chan, struct value evalue)
 	stack->n--;
 
 	if (set_dirty(chan) != 0) {
-		err("%s: set_dirty failed\n", chan->name);
+		err("%s: set_dirty failed", chan->name);
 		return -1;
 	}
 
@@ -248,7 +248,7 @@ chan_dirty(struct chan *chan)
 		return 0;
 
 	if (set_dirty(chan) != 0) {
-		err("%s: set_dirty failed\n", chan->name);
+		err("%s: set_dirty failed", chan->name);
 		return -1;
 	}
 

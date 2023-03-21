@@ -239,7 +239,7 @@ end_lint(struct emu *emu)
 				return -1;
 			}
 
-			err("thread %d ended with %d stacked nosv subsystems\n",
+			err("thread %d ended with %d stacked nosv subsystems",
 					t->tid, stacked);
 			return -1;
 		}

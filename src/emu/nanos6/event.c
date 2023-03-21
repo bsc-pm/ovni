@@ -530,7 +530,7 @@ model_nanos6_event(struct emu *emu)
 	}
 
 	if (emu->ev->m != '6') {
-		err("unexpected event model %c\n", emu->ev->m);
+		err("unexpected event model %c", emu->ev->m);
 		return -1;
 	}
 

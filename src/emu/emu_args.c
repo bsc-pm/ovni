@@ -55,7 +55,7 @@ emu_args_init(struct emu_args *args, int argc, char *argv[])
 	}
 
 	if (optind >= argc) {
-		err("missing tracedir\n");
+		err("missing tracedir");
 		usage();
 	}
 

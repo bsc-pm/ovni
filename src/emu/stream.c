@@ -16,7 +16,7 @@ check_stream_header(struct stream *stream)
 	int ret = 0;
 
 	if (stream->size < (int64_t) sizeof(struct ovni_stream_header)) {
-		err("stream '%s': incomplete stream header\n",
+		err("stream '%s': incomplete stream header",
 				stream->path);
 		return -1;
 	}
@@ -28,13 +28,13 @@ check_stream_header(struct stream *stream)
 		char magic[5];
 		memcpy(magic, h->magic, 4);
 		magic[4] = '\0';
-		err("stream '%s': wrong stream magic '%s' (expected '%s')\n",
+		err("stream '%s': wrong stream magic '%s' (expected '%s')",
 				stream->path, magic, OVNI_STREAM_MAGIC);
 		ret = -1;
 	}
 
 	if (h->version != OVNI_STREAM_VERSION) {
-		err("stream '%s': stream version mismatch %u (expected %u)\n",
+		err("stream '%s': stream version mismatch %u (expected %u)",
 				stream->path, h->version, OVNI_STREAM_VERSION);
 		ret = -1;
 	}

@@ -19,13 +19,13 @@ emu_init(struct emu *emu, int argc, char *argv[])
 
 	/* Load the streams into the trace */
 	if (trace_load(&emu->trace, emu->args.tracedir) != 0) {
-		err("cannot load trace '%s'\n", emu->args.tracedir);
+		err("cannot load trace '%s'", emu->args.tracedir);
 		return -1;
 	}
 
 	/* Parse the trace and build the emu_system */
 	if (system_init(&emu->system, &emu->args, &emu->trace) != 0) {
-		err("cannot init system for trace '%s'\n",
+		err("cannot init system for trace '%s'",
 				emu->args.tracedir);
 		return -1;
 	}
@@ -46,7 +46,7 @@ emu_init(struct emu *emu, int argc, char *argv[])
 	}
 
 	if (player_init(&emu->player, &emu->trace, 0) != 0) {
-		err("cannot init player for trace '%s'\n",
+		err("cannot init player for trace '%s'",
 				emu->args.tracedir);
 		return -1;
 	}

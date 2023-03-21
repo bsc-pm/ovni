@@ -226,31 +226,30 @@ init_global_lists(struct system *sys)
 static void
 print_system(struct system *sys)
 {
-	err("content of system:\n");
+	err("content of system: ");
 	for (struct loom *l = sys->looms; l; l = l->next) {
-		err("%s gindex=%d\n", l->id, l->gindex);
-		err("+ %ld processes:\n", l->nprocs);
+		err("%s gindex=%d", l->id, l->gindex);
+		err("+ %ld processes: ", l->nprocs);
 		for (struct proc *p = l->procs; p; p = p->hh.next) {
-			err("| %s gindex=%d pid=%d\n",
+			err("| %s gindex=%d pid=%d",
 					p->id, p->gindex, p->pid);
-			err("| + %ld threads:\n", p->nthreads);
+			err("| + %ld threads: ", p->nthreads);
 			for (struct thread *t = p->threads; t; t = t->hh.next) {
-				err("| | %s tid=%d\n",
+				err("| | %s tid=%d",
 						t->id, t->tid);
 			}
 		}
-		err("+ %ld phy cpus:\n", l->ncpus);
+		err("+ %ld phy cpus: ", l->ncpus);
 		for (struct cpu *cpu = l->cpus; cpu; cpu = cpu->hh.next) {
-			err("| %s gindex=%ld phyid=%d\n",
+			err("| %s gindex=%ld phyid=%d",
 					cpu->name,
 					cpu->gindex,
 					cpu->phyid);
-			//err("  - i %d\n", cpu->i);
 		}
 
-		err("+ 1 virtual cpu:\n", l->ncpus);
+		err("+ 1 virtual cpu: ", l->ncpus);
 		struct cpu *cpu = &l->vcpu;
-		err("| %s gindex=%ld phyid=%d\n",
+		err("| %s gindex=%ld phyid=%d",
 				cpu->name,
 				cpu->gindex,
 				cpu->phyid);
@@ -504,7 +503,7 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 
 	for (struct thread *th = sys->threads; th; th = th->gnext) {
 		if (thread_connect(th, bay, rec) != 0) {
-			err("thread_connect failed\n");
+			err("thread_connect failed");
 			return -1;
 		}
 
@@ -533,7 +532,7 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 
 	for (struct cpu *cpu = sys->cpus; cpu; cpu = cpu->next) {
 		if (cpu_connect(cpu, bay, rec) != 0) {
-			err("cpu_connect failed\n");
+			err("cpu_connect failed");
 			return -1;
 		}
 

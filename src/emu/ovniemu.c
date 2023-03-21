@@ -29,12 +29,12 @@ main(int argc, char *argv[])
 	}
 
 	if (emu_init(emu, argc, argv) != 0) {
-		err("emu_init failed\n");
+		err("emu_init failed");
 		return 1;
 	}
 
 	if (emu_connect(emu) != 0) {
-		err("emu_connect failed\n");
+		err("emu_connect failed");
 		return 1;
 	}
 

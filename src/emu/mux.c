@@ -41,11 +41,11 @@ select_input(struct mux *mux,
 {
 	if (mux->select_func == NULL) {
 		if (default_select(mux, key, input) != 0) {
-			err("default_select failed\n");
+			err("default_select failed");
 			return -1;
 		}
 	} else if (mux->select_func(mux, key, input) != 0) {
-		err("select_func failed\n");
+		err("select_func failed");
 		return -1;
 	}
 
@@ -76,12 +76,12 @@ cb_select(struct chan *sel_chan, void *ptr)
 
 	char buf[128];
 	UNUSED(buf);
-	dbg("select channel got value %s\n",
+	dbg("select channel got value %s",
 			value_str(sel_value));
 
 	struct mux_input *input = NULL;
 	if (select_input(mux, sel_value, &input) != 0) {
-		err("select_input failed\n");
+		err("select_input failed");
 		return -1;
 	}
 
@@ -89,7 +89,7 @@ cb_select(struct chan *sel_chan, void *ptr)
 		bay_enable_cb(input->cb);
 		input->selected = 1;
 		mux->selected = input->index;
-		dbg("mux selects input key=%s chan=%s\n",
+		dbg("mux selects input key=%s chan=%s",
 				value_str(sel_value), input->chan->name);
 	}
 
@@ -119,7 +119,7 @@ cb_input(struct chan *in_chan, void *ptr)
 	struct value out_value;
 
 	if (chan_read(in_chan, &out_value) != 0) {
-		err("chan_read() failed\n");
+		err("chan_read() failed");
 		return -1;
 	}
 

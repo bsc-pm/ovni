@@ -88,7 +88,7 @@ emit(struct prv *prv, struct prv_chan *rchan)
 	struct value value;
 	struct chan *chan = rchan->chan;
 	if (chan_read(chan, &value) != 0) {
-		err("chan_read %s failed\n", chan->name);
+		err("chan_read %s failed", chan->name);
 		return -1;
 	}
 
@@ -98,7 +98,7 @@ emit(struct prv *prv, struct prv_chan *rchan)
 			if (rchan->flags & PRV_SKIPDUP)
 				return 0;
 
-			err("error duplicated value %s for channel %s\n",
+			err("error duplicated value %s for channel %s",
 					value_str(value), chan->name);
 			return -1;
 		}

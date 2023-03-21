@@ -15,7 +15,6 @@
 
 #include <ctype.h>
 #include <dirent.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <linux/limits.h>
 #include <stdatomic.h>
@@ -97,7 +96,7 @@ find_destination(struct ring *r, uint64_t clock)
 	for (ssize_t i = start; i != end; i = i - 1 < 0 ? r->size - 1 : i - 1) {
 		last_clock = r->ev[i]->header.clock;
 		if (last_clock < clock) {
-			dbg("found suitable position %ld events backwards\n",
+			dbg("found suitable position %ld events backwards",
 					nback);
 			return i;
 		}
@@ -109,16 +108,16 @@ find_destination(struct ring *r, uint64_t clock)
 	 * before the sort window. So simply return the first marker. */
 	if (nback < (ssize_t) r->size - 1) {
 		if (r->head != 0)
-			die("ring head expected to be 0\n");
+			die("ring head expected to be 0");
 		if (r->tail >= r->size - 1)
-			die("ring tail=%ld expected to be less than %ld\n", r->tail, r->size - 1);
+			die("ring tail=%ld expected to be less than %ld", r->tail, r->size - 1);
 
-		dbg("starting of ring with nback=%ld\n", nback);
+		dbg("starting of ring with nback=%ld", nback);
 		return r->head;
 	}
 
-	err("cannot find a event previous to clock %lu\n", clock);
-	err("nback=%ld, last_clock=%lu\n", nback, last_clock);
+	err("cannot find a event previous to clock %lu", clock);
+	err("nback=%ld, last_clock=%lu", nback, last_clock);
 
 	return -1;
 }
@@ -167,10 +166,10 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 			break;
 
 		if ((uint8_t *) ev > srcnext)
-			die("exceeded srcnext while sorting\n");
+			die("exceeded srcnext while sorting");
 
 		if (bufsize < evsize)
-			die("no space left in the sort buffer\n");
+			die("no space left in the sort buffer");
 
 		memcpy(buf, ev, evsize);
 		buf += evsize;
@@ -178,7 +177,7 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize,
 		injected++;
 	}
 
-	dbg("injected %ld events in the past\n", injected);
+	dbg("injected %ld events in the past", injected);
 }
 
 static void
@@ -189,7 +188,7 @@ write_stream(int fd, void *base, void *dst, const void *src, size_t size)
 		ssize_t written = pwrite(fd, src, size, offset);
 
 		if (written < 0)
-			die("pwrite failed: %s\n", strerror(errno));
+			die("pwrite failed:");
 
 		size -= written;
 		src = (void *) (((uint8_t *) src) + written);
@@ -200,12 +199,12 @@ write_stream(int fd, void *base, void *dst, const void *src, size_t size)
 static int
 execute_sort_plan(struct sortplan *sp)
 {
-	dbg("attempt to sort: start clock %ld\n", sp->bad0->header.clock);
+	dbg("attempt to sort: start clock %ld", sp->bad0->header.clock);
 
 	/* Cannot sort in one pass; just fail for now */
 	int64_t i0 = find_destination(sp->r, sp->bad0->header.clock);
 	if (i0 < 0) {
-		err("cannot find destination for region starting at clock %ld\n",
+		err("cannot find destination for region starting at clock %ld",
 				sp->bad0->header.clock);
 
 		return -1;
@@ -218,11 +217,11 @@ execute_sort_plan(struct sortplan *sp)
 	int64_t bufsize = ((int64_t) sp->next) - ((int64_t) first);
 
 	if (bufsize <= 0)
-		die("bufsize is non-positive\n");
+		die("bufsize is non-positive");
 
 	uint8_t *buf = malloc(bufsize);
 	if (!buf)
-		die("malloc failed: %s\n", strerror(errno));
+		die("malloc failed:");
 
 	sort_buf((uint8_t *) first, buf, bufsize,
 			(uint8_t *) sp->bad0, (uint8_t *) sp->next);
@@ -277,10 +276,10 @@ stream_winsort(struct stream *stream, struct ring *r)
 			if (ends_unsorted_region(ev)) {
 				updated = 1;
 				sp.next = ev;
-				dbg("executing sort plan for stream %s\n",
+				dbg("executing sort plan for stream %s",
 						stream->relpath);
 				if (execute_sort_plan(&sp) < 0) {
-					err("sort failed for stream %s\n",
+					err("sort failed for stream %s",
 							stream->relpath);
 					return -1;
 				}
@@ -302,14 +301,14 @@ stream_winsort(struct stream *stream, struct ring *r)
 	}
 
 	if (empty_regions > 0)
-		warn("stream %s contains %ld empty sort regions\n",
+		warn("stream %s contains %ld empty sort regions",
 				stream->relpath, empty_regions);
 
 	if (updated && fdatasync(fd) < 0)
-		die("fdatasync %s failed: %s\n", fn, strerror(errno));
+		die("fdatasync %s failed:", fn);
 
 	if (close(fd) < 0)
-		die("close %s failed: %s\n", fn, strerror(errno));
+		die("close %s failed:", fn);
 
 	return 0;
 }
@@ -336,7 +335,7 @@ stream_check(struct stream *stream)
 		uint64_t cur_clock = ovni_ev_get_clock(ev);
 
 		if (cur_clock < last_clock) {
-			err("backwards jump in time %ld -> %ld for stream %s\n",
+			err("backwards jump in time %ld -> %ld for stream %s",
 					last_clock, cur_clock, stream->relpath);
 			ret = -1;
 		}
@@ -362,22 +361,22 @@ process_trace(struct trace *trace)
 	ring.ev = malloc(ring.size * sizeof(struct ovni_ev *));
 
 	if (ring.ev == NULL)
-		die("malloc failed: %s\n", strerror(errno));
+		die("malloc failed:");
 
 	for (struct stream *stream = trace->streams; stream; stream = stream->next) {
 		stream_allow_unsorted(stream);
 
 		if (operation_mode == SORT) {
-			dbg("sorting stream %s\n", stream->relpath);
+			dbg("sorting stream %s", stream->relpath);
 			if (stream_winsort(stream, &ring) != 0) {
-				err("sort stream %s failed\n", stream->relpath);
+				err("sort stream %s failed", stream->relpath);
 				/* When sorting, return at the first
 				 * attempt */
 				return -1;
 			}
 		} else {
 			if (stream_check(stream) != 0) {
-				err("stream %s is not sorted\n", stream->relpath);
+				err("stream %s is not sorted", stream->relpath);
 				/* When checking, report all errors and
 				 * then fail */
 				ret = -1;
@@ -389,9 +388,9 @@ process_trace(struct trace *trace)
 
 	if (operation_mode == CHECK) {
 		if (ret == 0) {
-			err("all streams sorted\n");
+			err("all streams sorted");
 		} else {
-			err("streams NOT sorted\n");
+			err("streams NOT sorted");
 		}
 	}
 
@@ -401,21 +400,21 @@ process_trace(struct trace *trace)
 static void
 usage(void)
 {
-	err("Usage: ovnisort [-c] tracedir\n");
-	err("\n");
-	err("Sorts the events in each stream of the trace given in\n");
-	err("tracedir, so they are suitable for the emulator ovniemu.\n");
-	err("Only the events enclosed by OU[ OU] are sorted. At most a\n");
-	err("total of %ld events are looked back to insert the unsorted\n",
+	rerr("Usage: ovnisort [-c] tracedir\n");
+	rerr("\n");
+	rerr("Sorts the events in each stream of the trace given in\n");
+	rerr("tracedir, so they are suitable for the emulator ovniemu.\n");
+	rerr("Only the events enclosed by OU[ OU] are sorted. At most a\n");
+	rerr("total of %ld events are looked back to insert the unsorted\n",
 			max_look_back);
-	err("events, so the sort procedure can fail with an error.\n");
-	err("\n");
-	err("Options:\n");
-	err("  -c          Enable check mode: don't sort, ensure the\n");
-	err("              trace is already sorted.\n");
-	err("\n");
-	err("  tracedir    The trace directory generated by ovni.\n");
-	err("\n");
+	rerr("events, so the sort procedure can fail with an error.\n");
+	rerr("\n");
+	rerr("Options:\n");
+	rerr("  -c          Enable check mode: don't sort, ensure the\n");
+	rerr("              trace is already sorted.\n");
+	rerr("\n");
+	rerr("  tracedir    The trace directory generated by ovni.\n");
+	rerr("\n");
 
 	exit(EXIT_FAILURE);
 }
@@ -436,7 +435,7 @@ parse_args(int argc, char *argv[])
 	}
 
 	if (optind >= argc) {
-		err("missing tracedir\n");
+		err("missing tracedir");
 		usage();
 	}
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later 
 
 # Only run performance sensitive tests on Release builds
@@ -16,3 +16,4 @@ ovni_test(mp-simple.c MP)
 ovni_test(version-good.c)
 ovni_test(version-bad.c SHOULD_FAIL REGEX "version mismatch")
 ovni_test(clockgate.c MP SHOULD_FAIL REGEX "detected large clock gate")
+ovni_test(no-cpus.c SHOULD_FAIL REGEX "loom .* has no physical CPUs")

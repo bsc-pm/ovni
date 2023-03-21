@@ -183,6 +183,14 @@ create_system(struct system *sys, struct trace *trace)
 		stream_data_set(s, lpt);
 	}
 
+	/* Ensure all looms have at least one CPU */
+	for (struct loom *l = sys->looms; l; l = l->next) {
+		if (l->ncpus == 0) {
+			err("loom %s has no physical CPUs", l->id);
+			return -1;
+		}
+	}
+
 	return 0;
 }
 

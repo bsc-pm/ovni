@@ -24,7 +24,7 @@ test_emit(const char *path)
 	bay_init(&bay);
 
 	struct prv prv;
-	prv_open(&prv, NROWS, path);
+	OK(prv_open(&prv, NROWS, path));
 
 	for (int i = 0; i < NROWS; i++) {
 		char buf[MAX_CHAN_NAME];
@@ -43,14 +43,14 @@ test_emit(const char *path)
 		if (chan_set(&chan[i], value_int64(value_base + i)) != 0)
 			die("chan_set failed\n");
 
-	prv_advance(&prv, 10000);
+	OK(prv_advance(&prv, 10000));
 
 	if (bay_propagate(&bay) != 0)
 		die("bay_propagate failed\n");
 
 	/* Ensure all writes are flushed to the buffer and
 	 * the header has been fixed */
-	prv_close(&prv);
+	OK(prv_close(&prv));
 
 	FILE *f = fopen(path, "r");
 	int c;
@@ -74,7 +74,7 @@ test_duplicate(const char *path)
 	bay_init(&bay);
 
 	struct prv prv;
-	prv_open(&prv, NROWS, path);
+	OK(prv_open(&prv, NROWS, path));
 
 	struct chan chan;
 	chan_init(&chan, CHAN_SINGLE, "testchan");
@@ -108,7 +108,7 @@ test_duplicate(const char *path)
 
 	/* Ensure all writes are flushed to the buffer and
 	 * the header has been fixed */
-	prv_close(&prv);
+	OK(prv_close(&prv));
 
 	err("test duplicate OK\n");
 }
@@ -124,7 +124,7 @@ test_same_type(const char *path)
 	bay_init(&bay);
 
 	struct prv prv;
-	prv_open(&prv, NROWS, path);
+	OK(prv_open(&prv, NROWS, path));
 
 	struct chan chan;
 	chan_init(&chan, CHAN_SINGLE, "testchan");

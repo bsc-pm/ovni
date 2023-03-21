@@ -5,25 +5,6 @@
 #include "common.h"
 
 static void
-test_remove(struct bay *bay)
-{
-	struct chan chan;
-	chan_init(&chan, CHAN_SINGLE, "removeme");
-
-	if (bay_register(bay, &chan) != 0)
-		die("bay_register failed\n");
-
-	if (bay_find(bay, chan.name) == NULL)
-		die("bay_find failed\n");
-
-	if (bay_remove(bay, &chan) != 0)
-		die("bay_remove failed\n");
-
-	if (bay_find(bay, chan.name) != NULL)
-		die("bay_find didn't fail\n");
-}
-
-static void
 test_duplicate(struct bay *bay)
 {
 	struct chan chan;
@@ -34,9 +15,6 @@ test_duplicate(struct bay *bay)
 
 	if (bay_register(bay, &chan) == 0)
 		die("bay_register didn't fail\n");
-
-	if (bay_remove(bay, &chan) != 0)
-		die("bay_remove failed\n");
 }
 
 static int
@@ -83,9 +61,6 @@ test_callback(struct bay *bay)
 
 	if (data != 1)
 		die("data didn't change after bay_propagate\n");
-
-	if (bay_remove(bay, &chan) != 0)
-		die("bay_remove failed\n");
 }
 
 int main(void)
@@ -93,7 +68,6 @@ int main(void)
 	struct bay bay;
 	bay_init(&bay);
 
-	test_remove(&bay);
 	test_duplicate(&bay);
 	test_callback(&bay);
 

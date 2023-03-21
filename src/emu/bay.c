@@ -81,28 +81,6 @@ bay_register(struct bay *bay, struct chan *chan)
 	return 0;
 }
 
-int
-bay_remove(struct bay *bay, struct chan *chan)
-{
-	struct bay_chan *bchan = find_bay_chan(bay, chan->name);
-	if (bchan == NULL) {
-		err("channel %s not registered", chan->name);
-		return -1;
-	}
-
-	if (bchan->is_dirty) {
-		err("cannot remote bay channel %s in dirty state", chan->name);
-		return -1;
-	}
-
-	chan_set_dirty_cb(chan, NULL, NULL);
-
-	HASH_DEL(bay->channels, bchan);
-	free(bchan);
-
-	return 0;
-}
-
 struct bay_cb *
 bay_add_cb(struct bay *bay, enum bay_cb_type type,
 		struct chan *chan, bay_cb_func_t func, void *arg, int enabled)

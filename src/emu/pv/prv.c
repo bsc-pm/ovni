@@ -108,33 +108,27 @@ emit(struct prv *prv, struct prv_chan *rchan)
 		rchan->last_value_set = 1;
 	}
 
+	/* Assume null */
 	long val = 0;
-	switch (value.type) {
-		case VALUE_INT64:
-			val = value.i;
-			if (rchan->flags & PRV_NEXT)
-				val++;
+	if (likely(value.type == VALUE_INT64)) {
+		val = value.i;
+		if (rchan->flags & PRV_NEXT)
+			val++;
 
-			if (~rchan->flags & PRV_ZERO && val == 0) {
-				err("forbidden value 0 in %s: %s\n",
-						chan->name,
-						value_str(value));
-				return -1;
-			}
-			break;
-		case VALUE_NULL:
-			val = 0;
-			break;
-		default:
-			err("chan_read %s only int64 and null supported: %s\n",
+		if (~rchan->flags & PRV_ZERO && val == 0) {
+			err("forbidden value 0 in channel %s: %s",
 					chan->name, value_str(value));
 			return -1;
+		}
+	} else if (value.type != VALUE_NULL) {
+		err("in channel %s: only int64 and null supported, found %s",
+				chan->name, value_str(value));
+		return -1;
 	}
 
 	write_line(prv, rchan->row_base1, rchan->type, val);
 
 	dbg("written %s for chan %s", value_str(value), chan->name);
-
 
 	return 0;
 }

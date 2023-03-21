@@ -158,7 +158,7 @@ cfg_generate(const char *tracedir)
 
 	struct stat st;
 	if (stat(dst, &st) == 0) {
-		err("directory '%s' already exists, skipping config copy", dst);
+		warn("directory '%s' already exists, skipping config copy", dst);
 		return -1;
 	}
 

@@ -11,10 +11,13 @@
 #include <string.h>
 
 static char progname[] = "ovniemu";
+static char version[] = "1.0.0";
 
 static void
 usage(void)
 {
+	rerr("%s -- version %s\n", progname, version);
+	rerr("\n");
 	rerr("Usage: %s [-c offsetfile] [-lh] tracedir\n", progname);
 	rerr("\n");
 	rerr("Options:\n");

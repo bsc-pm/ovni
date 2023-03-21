@@ -62,7 +62,7 @@ cb_select(struct chan *sel_chan, void *ptr)
 
 	struct value sel_value;
 	if (chan_read(sel_chan, &sel_value) != 0) {
-		err("cb_select: chan_read(select) failed\n");
+		err("chan_read(select) failed");
 		return -1;
 	}
 
@@ -96,12 +96,12 @@ cb_select(struct chan *sel_chan, void *ptr)
 	/* Set to null by default */
 	struct value out_value = value_null();
 	if (input != NULL && chan_read(input->chan, &out_value) != 0) {
-		err("cb_select: chan_read() failed\n");
+		err("chan_read() failed");
 		return -1;
 	}
 
 	if (chan_set(mux->output, out_value) != 0) {
-		err("cb_select: chan_set() failed\n");
+		err("chan_set() failed");
 		return -1;
 	}
 
@@ -143,24 +143,22 @@ mux_init(struct mux *mux,
 		int64_t ninputs)
 {
 	if (chan_get_type(output) != CHAN_SINGLE) {
-		err("mux_init: output channel must be of type single\n");
+		err("output channel must be of type single");
 		return -1;
 	}
 
 	if (select == output) {
-		err("mux_init: cannot use same channel as select and output\n");
+		err("cannot use same channel as select and output");
 		return -1;
 	}
 
 	/* Ensure both channels are registered */
 	if (bay_find(bay, select->name) == NULL) {
-		err("mux_init: select channel %s not registered in bay\n",
-				select->name);
+		err("select channel %s not registered in bay", select->name);
 		return -1;
 	}
 	if (bay_find(bay, output->name) == NULL) {
-		err("mux_init: output channel %s not registered in bay\n",
-				output->name);
+		err("output channel %s not registered in bay", output->name);
 		return -1;
 	}
 
@@ -213,12 +211,12 @@ int
 mux_set_input(struct mux *mux, int64_t index, struct chan *chan)
 {
 	if (chan == mux->output) {
-		err("mux_init: cannot use same input channel as output\n");
+		err("cannot use same input channel as output");
 		return -1;
 	}
 
 	if (chan == mux->select) {
-		err("mux_init: cannot use same input channel as select\n");
+		err("cannot use same input channel as select");
 		return -1;
 	}
 

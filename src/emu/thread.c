@@ -277,7 +277,7 @@ thread_set_state(struct thread *th, enum thread_state state)
 
 	struct chan *st = &th->chan[TH_CHAN_STATE];
 	if (chan_set(st, value_int64(th->state)) != 0) {
-		err("thread_set_cpu: chan_set() failed");
+		err("chan_set() failed");
 		return -1;
 	}
 

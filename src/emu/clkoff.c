@@ -119,13 +119,13 @@ int
 clkoff_load(struct clkoff *table, FILE *file)
 {
 	if (cparse(table, file) != 0) {
-		err("clkoff_load: failed parsing clock table\n");
+		err("failed parsing clock table");
 		return -1;
 	}
 
 	/* Create index array */
 	if (cindex(table) != 0) {
-		err("clkoff_load: failed indexing table\n");
+		err("failed indexing table");
 		return -1;
 	}
 

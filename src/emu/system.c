@@ -461,7 +461,7 @@ system_init(struct system *sys, struct emu_args *args, struct trace *trace)
 
 	/* Set the offsets of the looms and streams */
 	if (init_offsets(sys, trace) != 0) {
-		err("system_init: init_offsets() failed\n");
+		err("init_offsets() failed");
 		return -1;
 	}
 

@@ -59,14 +59,13 @@ bay_register(struct bay *bay, struct chan *chan)
 {
 	struct bay_chan *bchan = find_bay_chan(bay, chan->name);
 	if (bchan != NULL) {
-		err("bay_register: channel %s already registered\n",
-				chan->name);
+		err("channel %s already registered", chan->name);
 		return -1;
 	}
 
 	bchan = calloc(1, sizeof(struct bay_chan));
 	if (bchan == NULL) {
-		err("bay_register: calloc failed\n");
+		err("calloc failed:");
 		return -1;
 	}
 
@@ -87,14 +86,12 @@ bay_remove(struct bay *bay, struct chan *chan)
 {
 	struct bay_chan *bchan = find_bay_chan(bay, chan->name);
 	if (bchan == NULL) {
-		err("bay_remove: channel %s not registered\n",
-				chan->name);
+		err("channel %s not registered", chan->name);
 		return -1;
 	}
 
 	if (bchan->is_dirty) {
-		err("bay_remove: cannot remote bay channel %s in dirty state\n",
-				chan->name);
+		err("cannot remote bay channel %s in dirty state", chan->name);
 		return -1;
 	}
 
@@ -195,7 +192,7 @@ propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 	DL_FOREACH(bchan->cb[type], cur) {
 		dbg("calling cb %p", cur->func);
 		if (cur->func(bchan->chan, cur->arg) != 0) {
-			err("propagate_chan: callback failed\n");
+			err("callback failed");
 			return -1;
 		}
 	}
@@ -211,7 +208,7 @@ bay_propagate(struct bay *bay)
 	DL_FOREACH(bay->dirty, cur) {
 		/* May add more dirty channels */
 		if (propagate_chan(cur, BAY_CB_DIRTY) != 0) {
-			err("bay_propagate: propagate_chan failed\n");
+			err("propagate_chan failed");
 			return -1;
 		}
 	}
@@ -224,7 +221,7 @@ bay_propagate(struct bay *bay)
 	DL_FOREACH(bay->dirty, cur) {
 		/* Cannot add more dirty channels */
 		if (propagate_chan(cur, BAY_CB_EMIT) != 0) {
-			err("bay_propagate: propagate_chan failed\n");
+			err("propagate_chan failed");
 			return -1;
 		}
 	}
@@ -237,7 +234,7 @@ bay_propagate(struct bay *bay)
 	bay->state = BAY_FLUSHING;
 	DL_FOREACH(bay->dirty, cur) {
 		if (chan_flush(cur->chan) != 0) {
-			err("bay_propagate: chan_flush failed\n");
+			err("chan_flush failed");
 			return -1;
 		}
 		cur->is_dirty = 0;

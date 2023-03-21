@@ -38,7 +38,7 @@ load_stream(struct trace *trace, const char *path)
 	while (relpath[0] == '/') relpath++;
 
 	if (stream_load(stream, trace->tracedir, relpath) != 0) {
-		err("load_stream: emu_steam_load failed\n");
+		err("emu_steam_load failed");
 		return -1;
 	}
 

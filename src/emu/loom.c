@@ -9,6 +9,7 @@
 #include "thread.h"
 #include "uthash.h"
 #include "utlist.h"
+#include "path.h"
 
 static const char *loom_prefix = "loom.";
 

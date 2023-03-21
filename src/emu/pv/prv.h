@@ -14,9 +14,8 @@ struct prv;
 enum prv_flags {
 	PRV_EMITDUP  = 1<<0, /* Emit duplicates (no error, emit) */
 	PRV_SKIPDUP  = 1<<1, /* Skip duplicates (no error, no emit) */
-	PRV_SKIPNULL = 1<<2, /* Skip null duplicates (no error, no emit) */
-	PRV_NEXT     = 1<<3, /* Add one to the channel value */
-	PRV_ZERO     = 1<<4, /* Value 0 is allowed */
+	PRV_NEXT     = 1<<2, /* Add one to the channel value */
+	PRV_ZERO     = 1<<3, /* Value 0 is allowed */
 };
 
 struct prv_chan {

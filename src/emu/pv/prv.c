@@ -99,10 +99,6 @@ emit(struct prv *prv, struct prv_chan *rchan)
 			if (rchan->flags & PRV_SKIPDUP)
 				return 0;
 
-			int is_null = value_is_null(value);
-			if (rchan->flags & PRV_SKIPNULL && is_null)
-				return 0;
-
 			err("error duplicated value %s for channel %s\n",
 					value_str(value), chan->name);
 			return -1;

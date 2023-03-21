@@ -30,19 +30,10 @@ set_hostname(char host[PATH_MAX], const char name[PATH_MAX])
 	host[i] = '\0';
 }
 
-static int
-has_prefix(const char *path, const char *prefix)
-{
-	if (strncmp(path, prefix, strlen(prefix)) != 0)
-		return 0;
-
-	return 1;
-}
-
 int
 loom_matches(const char *path)
 {
-	return has_prefix(path, loom_prefix);
+	return path_has_prefix(path, loom_prefix);
 }
 
 int
@@ -50,7 +41,7 @@ loom_init_begin(struct loom *loom, const char *name)
 {
 	memset(loom, 0, sizeof(struct loom));
 
-	if (!has_prefix(name, loom_prefix)) {
+	if (!path_has_prefix(name, loom_prefix)) {
 		err("loom name must start with '%s': %s", loom_prefix, name);
 		return -1;
 	}

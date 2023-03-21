@@ -45,6 +45,6 @@ USE_RET int64_t stream_evclock(struct stream *stream, struct ovni_ev *ev);
 USE_RET int64_t stream_lastclock(struct stream *stream);
         void stream_allow_unsorted(struct stream *stream);
         void stream_data_set(struct stream *stream, void *data);
-        void *stream_data_get(struct stream *stream);
+USE_RET void *stream_data_get(struct stream *stream);
 
 #endif /* STREAM_H */

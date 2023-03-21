@@ -4,6 +4,7 @@
 #ifndef PCF_H
 #define PCF_H
 
+#include "common.h"
 #include "uthash.h"
 #include <stdio.h>
 
@@ -41,12 +42,12 @@ struct pcf_value_label {
 	char *label;
 };
 
-int pcf_open(struct pcf *pcf, char *path);
-int pcf_close(struct pcf *pcf);
+USE_RET int pcf_open(struct pcf *pcf, char *path);
+USE_RET int pcf_close(struct pcf *pcf);
 
-struct pcf_type *pcf_find_type(struct pcf *pcf, int type_id);
-struct pcf_type *pcf_add_type(struct pcf *pcf, int type_id, const char *label);
-struct pcf_value *pcf_add_value(struct pcf_type *type, int value, const char *label);
-struct pcf_value *pcf_find_value(struct pcf_type *type, int value);
+USE_RET struct pcf_type *pcf_find_type(struct pcf *pcf, int type_id);
+USE_RET struct pcf_type *pcf_add_type(struct pcf *pcf, int type_id, const char *label);
+USE_RET struct pcf_value *pcf_add_value(struct pcf_type *type, int value, const char *label);
+USE_RET struct pcf_value *pcf_find_value(struct pcf_type *type, int value);
 
 #endif /* PCF_H */

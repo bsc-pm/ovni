@@ -37,10 +37,10 @@ struct prv {
 	struct prv_chan *channels;
 };
 
-int prv_open(struct prv *prv, long nrows, const char *path);
-int prv_open_file(struct prv *prv, long nrows, FILE *file);
-int prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan, long flags);
-int prv_advance(struct prv *prv, int64_t time);
-int prv_close(struct prv *prv);
+USE_RET int prv_open(struct prv *prv, long nrows, const char *path);
+USE_RET int prv_open_file(struct prv *prv, long nrows, FILE *file);
+USE_RET int prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan, long flags);
+USE_RET int prv_advance(struct prv *prv, int64_t time);
+USE_RET int prv_close(struct prv *prv);
 
 #endif /* PRV_H */

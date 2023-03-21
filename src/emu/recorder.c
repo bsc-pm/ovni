@@ -80,7 +80,10 @@ recorder_finish(struct recorder *rec)
 	}
 
 	/* TODO: Use configs per pvt */
-	cfg_generate(rec->dir); /* Ignore error */
+	if (cfg_generate(rec->dir) != 0) {
+		err("cfg_generate failed");
+		/* Ignore error */
+	}
 
 	return 0;
 }

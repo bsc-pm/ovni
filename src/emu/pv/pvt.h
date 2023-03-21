@@ -20,11 +20,11 @@ struct pvt {
 	struct UT_hash_handle hh; /* For recorder */
 };
 
-int pvt_open(struct pvt *pvt, long nrows, const char *dir, const char *name);
-struct prv *pvt_get_prv(struct pvt *pvt);
-struct pcf *pvt_get_pcf(struct pvt *pvt);
-struct prf *pvt_get_prf(struct pvt *pvt);
-int pvt_advance(struct pvt *pvt, int64_t time);
-int pvt_close(struct pvt *pvt);
+USE_RET int pvt_open(struct pvt *pvt, long nrows, const char *dir, const char *name);
+USE_RET struct prv *pvt_get_prv(struct pvt *pvt);
+USE_RET struct pcf *pvt_get_pcf(struct pvt *pvt);
+USE_RET struct prf *pvt_get_prf(struct pvt *pvt);
+USE_RET int pvt_advance(struct pvt *pvt, int64_t time);
+USE_RET int pvt_close(struct pvt *pvt);
 
 #endif /* PVT_H */

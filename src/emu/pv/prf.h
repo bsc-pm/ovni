@@ -4,6 +4,7 @@
 #ifndef PRF_H
 #define PRF_H
 
+#include "common.h"
 #include <stdio.h>
 
 #define MAX_PRF_LABEL 512
@@ -19,9 +20,9 @@ struct prf {
 	struct prf_row *rows;
 };
 
-int prf_open(struct prf *prf, const char *path, long nrows);
-int prf_add(struct prf *prf, long index, const char *name);
-int prf_close(struct prf *prf);
+USE_RET int prf_open(struct prf *prf, const char *path, long nrows);
+USE_RET int prf_add(struct prf *prf, long index, const char *name);
+USE_RET int prf_close(struct prf *prf);
 
 
 #endif /* PRF_H */

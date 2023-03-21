@@ -87,7 +87,12 @@ connect_cpu(struct emu *emu, struct cpu *scpu, int id)
 		/* Choose select CPU channel based on tracking mode (only
 		 * TRACK_TH_RUN allowed, as active may cause collisions) */
 		int mode = chan_spec->track[i];
-		struct chan *sel = cpu_get_th_chan(scpu, mode);
+		if (mode != TRACK_TH_RUN) {
+			err("only TRACK_TH_RUN allowed");
+			return -1;
+		}
+
+		struct chan *sel = cpu_get_th_chan(scpu);
 
 		int64_t nthreads = emu->system.nthreads;
 		if (track_set_select(track, sel, NULL, nthreads) != 0) {

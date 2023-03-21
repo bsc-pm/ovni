@@ -24,6 +24,10 @@ static const int ss_table[256][256][3] = {
 		['R'] = { CHSS, POP,  ST_RESUME },
 		['*'] = { CHSS, IGN,  -1 },
 	},
+	['P'] = { /* TODO: Ignore progress events for now */
+		['r'] = { CHSS, IGN,  -1 },
+		['p'] = { CHSS, IGN,  -1 },
+	},
 	['C'] = {
 		['['] = { CHSS, PUSH, ST_TASK_CREATING },
 		[']'] = { CHSS, POP,  ST_TASK_CREATING },
@@ -497,6 +501,7 @@ process_ev(struct emu *emu)
 		case 'B':
 		case 'W':
 		case 'M':
+		case 'P':
 			return simple(emu);
 		case 'T':
 			return pre_task(emu);

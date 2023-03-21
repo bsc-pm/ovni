@@ -219,6 +219,11 @@ pre_affinity_set(struct emu *emu)
 		return -1;
 	}
 
+	if (emu->ev->payload_size != 4) {
+		err("unexpected payload size %d", emu->ev->payload_size);
+		return -1;
+	}
+
 	/* Migrate current cpu to the one at index */
 	int index = emu->ev->payload->i32[0];
 	struct cpu *newcpu = loom_get_cpu(emu->loom, index);
@@ -250,6 +255,11 @@ pre_affinity_set(struct emu *emu)
 static int
 pre_affinity_remote(struct emu *emu)
 {
+	if (emu->ev->payload_size != 8) {
+		err("unexpected payload size %d", emu->ev->payload_size);
+		return -1;
+	}
+
 	int32_t index = emu->ev->payload->i32[0];
 	int32_t tid = emu->ev->payload->i32[1];
 

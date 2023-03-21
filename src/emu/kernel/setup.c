@@ -34,11 +34,11 @@ static const int pvt_type[] = {
 };
 
 static const char *pcf_prefix[CH_MAX] = {
-	[CH_CS]   = "Kernel context switch",
+	[CH_CS] = "Kernel context switch",
 };
 
 static const struct pcf_value_label kernel_cs_values[] = {
-	{ ST_CSOUT,      "Context switch: Out of the CPU" },
+	{ ST_CSOUT, "Context switch: Out of the CPU" },
 	{ -1, NULL },
 };
 

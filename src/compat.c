@@ -4,8 +4,9 @@
 #define _GNU_SOURCE /* Only here */
 
 #include "compat.h"
-#include <unistd.h>
 #include <errno.h>
+#include <features.h>
+#include <unistd.h>
 
 /* Define gettid for older glibc versions (below 2.30) */
 #if defined(__GLIBC__)

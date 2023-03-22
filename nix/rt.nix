@@ -11,6 +11,20 @@ let
     mpi = last.impi;
     #mpi = last.openmpi;
 
+    include-what-you-use = let
+      gcc = pkgs.gcc;
+      targetConfig = pkgs.stdenv.targetPlatform.config;
+    in pkgs.wrapCCWith rec {
+      cc = pkgs.include-what-you-use;
+      extraBuildCommands = ''
+        echo "--gcc-toolchain=${gcc}" >> $out/nix-support/cc-cflags
+        echo "-B${gcc.cc}/lib/gcc/${targetConfig}/${gcc.version}" >> $out/nix-support/cc-cflags
+        echo "-isystem${gcc.cc}/lib/gcc/${targetConfig}/${gcc.version}/include" >> $out/nix-support/cc-cflags
+        wrap include-what-you-use $wrapper $ccPath/include-what-you-use
+        substituteInPlace "$out/bin/include-what-you-use" --replace 'dontLink=0' 'dontLink=1'
+      '';
+    };
+
     ovni = last.callPackage ./ovni.nix { };
 
     # Use a fixed version to compile Nanos6 and nOS-V, so we don't need to
@@ -132,6 +146,7 @@ let
     }).overrideAttrs (old: {
       __noChroot = true;
       buildInputs = old.buildInputs ++ [
+        last.include-what-you-use
         pkgs.gdb
         last.nosv
         last.nanos6

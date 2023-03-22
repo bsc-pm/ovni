@@ -2,13 +2,12 @@
   stdenv
 , cmake
 , mpi
-, include-what-you-use
 }:
 
 stdenv.mkDerivation rec {
   name = "ovni";
 
-  buildInputs = [ cmake mpi include-what-you-use ];
+  buildInputs = [ cmake mpi ];
 
   # Prevent accidental reutilization of previous builds, as we are taking the
   # current directory as-is

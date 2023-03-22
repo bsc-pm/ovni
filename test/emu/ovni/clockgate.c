@@ -37,7 +37,7 @@ start_delayed(int rank, int nranks)
 	ovni_version_check();
 	ovni_proc_init(1, rankname, getpid());
 	ovni_proc_set_rank(rank, nranks);
-	ovni_thread_init(gettid());
+	ovni_thread_init(get_tid());
 
 	/* All ranks inform CPUs */
 	for (int i = 0; i < nranks; i++)
@@ -46,7 +46,7 @@ start_delayed(int rank, int nranks)
 	int curcpu = rank;
 
 	dbg("thread %d has cpu %d (ncpus=%d)",
-			gettid(), curcpu, nranks);
+			get_tid(), curcpu, nranks);
 
 	delta = ((int64_t) rank) * 2LL * 3600LL * 1000LL * 1000LL * 1000LL;
 	thread_execute_delayed(curcpu, -1, 0);

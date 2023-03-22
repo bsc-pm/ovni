@@ -20,7 +20,7 @@ init(void)
 	}
 
 	ovni_proc_init(0, hostname, getpid());
-	ovni_thread_init(gettid());
+	ovni_thread_init(get_tid());
 	ovni_add_cpu(0, 0);
 }
 

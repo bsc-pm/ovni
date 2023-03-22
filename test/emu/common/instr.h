@@ -89,7 +89,7 @@ instr_start(int rank, int nranks)
 	ovni_version_check();
 	ovni_proc_init(1, rankname, getpid());
 	ovni_proc_set_rank(rank, nranks);
-	ovni_thread_init(gettid());
+	ovni_thread_init(get_tid());
 
 	/* All ranks inform CPUs */
 	for (int i = 0; i < nranks; i++)
@@ -98,7 +98,7 @@ instr_start(int rank, int nranks)
 	int curcpu = rank;
 
 	dbg("thread %d has cpu %d (ncpus=%d)",
-			gettid(), curcpu, nranks);
+			get_tid(), curcpu, nranks);
 
 	instr_thread_execute(curcpu, -1, 0);
 }

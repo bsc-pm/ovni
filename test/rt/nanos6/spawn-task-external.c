@@ -46,7 +46,7 @@ polling_func(void *arg)
 static inline void
 instr_thread_start(int32_t cpu, int32_t creator_tid, uint64_t tag)
 {
-	ovni_thread_init(gettid());
+	ovni_thread_init(get_tid());
 
 	struct ovni_ev ev = {0};
 

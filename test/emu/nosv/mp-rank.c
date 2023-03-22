@@ -55,7 +55,7 @@ instr_start(int rank, int nranks)
 
 	ovni_proc_set_rank(rank, nranks);
 
-	ovni_thread_init(gettid());
+	ovni_thread_init(get_tid());
 
 	/* Only the rank 0 inform about all CPUs */
 	if (rank == 0) {
@@ -67,7 +67,7 @@ instr_start(int rank, int nranks)
 	int curcpu = rank;
 
 	fprintf(stderr, "thread %d has cpu %d (ncpus=%d)\n",
-			gettid(), curcpu, nranks);
+			get_tid(), curcpu, nranks);
 
 	instr_thread_execute(curcpu, -1, 0);
 }

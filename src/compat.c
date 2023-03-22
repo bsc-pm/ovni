@@ -1,20 +1,19 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
-#ifndef COMPAT_H
-#define COMPAT_H
+#define _GNU_SOURCE /* Only here */
 
-#include <sys/types.h>
-pid_t gettid(void);
+#include "compat.h"
+#include <unistd.h>
+#include <errno.h>
 
 /* Define gettid for older glibc versions (below 2.30) */
 #if defined(__GLIBC__)
 #if !__GLIBC_PREREQ(2, 30)
 
 #include <sys/syscall.h>
-#include <unistd.h>
 
-static inline pid_t
+static pid_t
 gettid(void)
 {
 	return (pid_t) syscall(SYS_gettid);
@@ -23,12 +22,13 @@ gettid(void)
 #endif /* !__GLIBC_PREREQ(2, 30) */
 #endif /* defined(__GLIBC__) */
 
-/* usleep is deprecated */
+pid_t
+get_tid(void)
+{
+	return gettid();
+}
 
-#include <time.h>
-#include <errno.h>
-
-static inline int
+int
 sleep_us(long usec)
 {
 	struct timespec ts;
@@ -48,5 +48,3 @@ sleep_us(long usec)
 
 	return res;
 }
-
-#endif /* COMPAT_H */

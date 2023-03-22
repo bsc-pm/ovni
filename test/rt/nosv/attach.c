@@ -1,12 +1,11 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _DEFAULT_SOURCE
-
 #include <nosv.h>
 #include <unistd.h>
 
 #include "common.h"
+#include "compat.h"
 
 int
 main(void)
@@ -23,7 +22,7 @@ main(void)
 	if (nosv_attach(&task, type, 0, NULL, 0) != 0)
 		die("nosv_attach failed");
 
-	usleep(100);
+	sleep_us(100);
 
 	if (nosv_detach(0) != 0)
 		die("nosv_detach failed");

@@ -4,11 +4,13 @@
 #ifndef PVT_H
 #define PVT_H
 
-#include "prv.h"
+#include <limits.h>
+#include <stdint.h>
+#include "common.h"
 #include "pcf.h"
 #include "prf.h"
+#include "prv.h"
 #include "uthash.h"
-#include <linux/limits.h>
 
 struct pvt {
 	char dir[PATH_MAX];

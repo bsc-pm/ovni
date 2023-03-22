@@ -6,9 +6,9 @@
 
 /* Records data into files (Paraver traces only for now) */
 
-#include "pv/pvt.h"
-
-#include <linux/limits.h>
+#include <limits.h>
+#include <stdint.h>
+#include "common.h"
 
 struct recorder {
 	char dir[PATH_MAX]; /* To place the traces */

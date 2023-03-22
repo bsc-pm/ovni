@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
 
 char *progname = NULL;
 

@@ -1,6 +1,10 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#include <stdint.h>
+#include <stdlib.h>
+#include "compat.h"
+#include "instr.h"
 #include "instr_nanos6.h"
 
 int
@@ -17,13 +21,13 @@ main(void)
 	instr_nanos6_type_create(typeid);
 
 	instr_nanos6_task_create_and_execute(taskid, typeid);
-	usleep(us);
+	sleep_us(us);
 	instr_nanos6_block_enter();
 	instr_nanos6_task_pause(taskid);
-	usleep(us);
+	sleep_us(us);
 	instr_nanos6_task_resume(taskid);
 	instr_nanos6_block_exit();
-	usleep(us);
+	sleep_us(us);
 	instr_nanos6_task_end(taskid);
 	instr_nanos6_task_body_exit();
 

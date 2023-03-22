@@ -1,6 +1,7 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#include "instr.h"
 #include "instr_nanos6.h"
 
 int

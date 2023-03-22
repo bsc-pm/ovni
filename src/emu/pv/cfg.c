@@ -1,17 +1,13 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200112L
-
 #include "cfg.h"
-
 #include <dirent.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <stdio.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
-
+#include <sys/stat.h>
 #include "common.h"
 #include "config.h"
 

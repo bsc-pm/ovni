@@ -5,7 +5,11 @@
 
 #include "prv.h"
 #include <stdio.h>
-#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include "bay.h"
+#include "chan.h"
+#include "common.h"
 
 static void
 write_header(FILE *f, long long duration, int nrows)

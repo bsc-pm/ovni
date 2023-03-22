@@ -4,10 +4,11 @@
 #ifndef EMU_PLAYER_H
 #define EMU_PLAYER_H
 
-#include "trace.h"
+#include <stdint.h>
+#include "common.h"
 #include "emu_ev.h"
-
-#include <linux/limits.h>
+#include "heap.h"
+struct trace;
 
 struct player {
 	struct trace *trace;

@@ -1,9 +1,12 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#include "instr_nanos6.h"
-
+#include <stdint.h>
+#include <stdio.h>
+#include "common.h"
 #include "emu_prv.h"
+#include "instr.h"
+#include "instr_nanos6.h"
 #include "nanos6/nanos6_priv.h"
 
 int

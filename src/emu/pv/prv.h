@@ -4,12 +4,13 @@
 #ifndef PRV_H
 #define PRV_H
 
-#include "chan.h"
-#include "bay.h"
-#include "uthash.h"
+#include <stdint.h>
 #include <stdio.h>
-
-struct prv;
+#include "common.h"
+#include "uthash.h"
+#include "value.h"
+struct bay;
+struct chan;
 
 enum prv_flags {
 	PRV_EMITDUP  = 1<<0, /* Emit duplicates (no error, emit) */

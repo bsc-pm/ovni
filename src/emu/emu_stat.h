@@ -4,7 +4,8 @@
 #ifndef EMU_STAT_H
 #define EMU_STAT_H
 
-#include "player.h"
+#include <stdint.h>
+struct player;
 
 /* Easier to parse emulation event */
 struct emu_stat {

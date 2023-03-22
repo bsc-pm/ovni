@@ -2,8 +2,21 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "model_cpu.h"
-
+#include <stdint.h>
+#include <stdlib.h>
+#include "chan.h"
+#include "common.h"
+#include "cpu.h"
+#include "emu.h"
+#include "extend.h"
+#include "model.h"
+#include "model_chan.h"
+#include "model_pvt.h"
 #include "model_thread.h"
+#include "system.h"
+#include "thread.h"
+#include "track.h"
+struct bay;
 
 static struct model_cpu *
 get_model_cpu(struct cpu *cpu, int id)

@@ -2,14 +2,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "loom.h"
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
-#include "proc.h"
-#include "thread.h"
-#include "uthash.h"
-#include "utlist.h"
 #include "path.h"
+#include "proc.h"
+#include "uthash.h"
 
 static const char *loom_prefix = "loom.";
 

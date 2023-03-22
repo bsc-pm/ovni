@@ -4,16 +4,14 @@
 #ifndef LOOM_H
 #define LOOM_H
 
-struct loom;
-
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <linux/limits.h>
 #include <sys/types.h>
-#include "cpu.h"
-#include "proc.h"
-#include "thread.h"
 #include "common.h"
+#include "cpu.h"
+#include "extend.h"
+struct proc;
 
 struct loom {
 	size_t gindex;

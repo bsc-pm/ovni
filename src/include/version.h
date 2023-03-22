@@ -1,8 +1,6 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
-#define _GNU_SOURCE
-
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>

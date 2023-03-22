@@ -1,21 +1,11 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200112L
-#define _GNU_SOURCE
-
-#include <limits.h>
-#include <linux/limits.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "compat.h"
+#include "instr.h"
 #include "ovni.h"
-#include "../instr.h"
 
 static void
 emit_jumbo(uint8_t *buf, size_t size, int64_t clock)
@@ -44,7 +34,7 @@ main(void)
 	instr_start(0, 1);
 
 	/* Leave some room to prevent clashes */
-	usleep(100); /* 100000 us */
+	sleep_us(100); /* 100000 us */
 
 	int64_t t0 = ovni_clock_now();
 
@@ -64,7 +54,7 @@ main(void)
 
 	/* Sleep a bit to prevent early OU] */
 	while ((int64_t) ovni_clock_now() < t)
-		usleep(10);
+		sleep_us(10);
 
 	emit("OU]", ovni_clock_now());
 

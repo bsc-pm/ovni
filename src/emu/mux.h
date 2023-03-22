@@ -5,9 +5,10 @@
 #define MUX_H
 
 #include <stdint.h>
-#include "bay.h"
-#include "uthash.h"
-
+#include "common.h"
+#include "value.h"
+struct bay;
+struct chan;
 struct mux;
 
 struct mux_input {

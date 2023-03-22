@@ -1,8 +1,9 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#include "unittest.h"
+#include "common.h"
 #include "emu/thread.h"
+#include "unittest.h"
 
 /* Ensure we can load the old trace format */
 static void

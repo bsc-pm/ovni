@@ -4,9 +4,8 @@
 #ifndef EMU_TRACE_H
 #define EMU_TRACE_H
 
-#include "stream.h"
-
-#include <linux/limits.h>
+#include <limits.h>
+#include "common.h"
 
 struct trace {
 	char tracedir[PATH_MAX];

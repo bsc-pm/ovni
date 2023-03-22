@@ -1,12 +1,12 @@
-# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-ovni_test(nested-tasks.c)
-ovni_test(nested-tasks-bad.c SHOULD_FAIL
+test_emu(nested-tasks.c)
+test_emu(nested-tasks-bad.c SHOULD_FAIL
   REGEX "cannot execute task 1: state is not created")
-ovni_test(task-types.c MP)
-ovni_test(blocking.c MP)
-ovni_test(ss-mismatch.c SHOULD_FAIL
+test_emu(task-types.c MP)
+test_emu(blocking.c MP)
+test_emu(ss-mismatch.c SHOULD_FAIL
   REGEX "thread [0-9]\\+ ended with 1 stacked nanos6 subsystems")
-ovni_test(delayed-connect-ss.c)
-ovni_test(switch-same-type.c)
+test_emu(delayed-connect-ss.c)
+test_emu(switch-same-type.c)

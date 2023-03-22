@@ -1,10 +1,10 @@
-# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-ovni_test(nested-tasks.c)
-ovni_test(nested-tasks-bad.c SHOULD_FAIL
+test_emu(nested-tasks.c)
+test_emu(nested-tasks-bad.c SHOULD_FAIL
   REGEX "cannot execute task 1: state is not created")
-ovni_test(task-types.c MP)
-ovni_test(pause.c MP)
-ovni_test(mp-rank.c MP)
-ovni_test(switch-same-type.c)
+test_emu(task-types.c MP)
+test_emu(pause.c MP)
+test_emu(mp-rank.c MP)
+test_emu(switch-same-type.c)

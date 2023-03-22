@@ -2,9 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "track.h"
-
-#include "thread.h"
 #include <stdarg.h>
+#include <stdio.h>
+#include "bay.h"
+#include "thread.h"
 
 static const char *th_suffix[TRACK_TH_MAX] = {
 	[TRACK_TH_ANY] = ".any",

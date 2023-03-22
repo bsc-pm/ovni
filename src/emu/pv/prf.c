@@ -4,6 +4,7 @@
 #include "prf.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include "common.h"
 
 int

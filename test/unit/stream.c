@@ -1,14 +1,14 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _GNU_SOURCE
-
-#include "emu/emu.h"
-#include "common.h"
-#include "unittest.h"
-
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include "common.h"
+#include "emu/stream.h"
+#include "ovni.h"
+#include "unittest.h"
 
 static void
 test_ok(char *fname)

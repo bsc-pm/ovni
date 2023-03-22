@@ -4,7 +4,7 @@
 #ifndef INSTR_NOSV_H
 #define INSTR_NOSV_H
 
-#include "../instr.h"
+#include "instr.h"
 
 #include "task.h"
 

@@ -2,6 +2,19 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nanos6_priv.h"
+#include <stdint.h>
+#include <stdlib.h>
+#include "chan.h"
+#include "common.h"
+#include "emu.h"
+#include "emu_ev.h"
+#include "extend.h"
+#include "model_thread.h"
+#include "ovni.h"
+#include "proc.h"
+#include "task.h"
+#include "thread.h"
+#include "value.h"
 
 enum { PUSH = 1, POP = 2, IGN = 3 };
 

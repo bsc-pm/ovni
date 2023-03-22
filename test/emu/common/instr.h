@@ -4,19 +4,12 @@
 #ifndef INSTR_H
 #define INSTR_H
 
-#define _GNU_SOURCE /* For gethostname() */
-
+#include <stdint.h>
+#include <stdio.h>
+#include <unistd.h>
 #include "common.h"
 #include "compat.h"
 #include "ovni.h"
-
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <unistd.h>
 
 extern int first_clock_set;
 extern int64_t first_clock;
@@ -88,7 +81,7 @@ instr_start(int rank, int nranks)
 	char hostname[OVNI_MAX_HOSTNAME];
 	char rankname[OVNI_MAX_HOSTNAME + 64];
 
-	if (gethostname(hostname, HOST_NAME_MAX) != 0)
+	if (gethostname(hostname, OVNI_MAX_HOSTNAME) != 0)
 		die("gethostname failed");
 
 	sprintf(rankname, "%s.%d", hostname, rank);

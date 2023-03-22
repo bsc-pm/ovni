@@ -2,8 +2,24 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nodes_priv.h"
-
+#include <stddef.h>
+#include "chan.h"
+#include "common.h"
+#include "emu.h"
+#include "emu_args.h"
 #include "emu_prv.h"
+#include "extend.h"
+#include "model.h"
+#include "model_chan.h"
+#include "model_cpu.h"
+#include "model_pvt.h"
+#include "model_thread.h"
+#include "pv/pcf.h"
+#include "pv/prv.h"
+#include "system.h"
+#include "thread.h"
+#include "track.h"
+#include "value.h"
 
 static const char model_name[] = "nodes";
 enum { model_id = 'D' };

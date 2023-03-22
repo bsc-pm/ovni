@@ -4,8 +4,9 @@
 #ifndef EMU_EV_H
 #define EMU_EV_H
 
-#include "ovni.h"
+#include <stddef.h>
 #include <stdint.h>
+struct ovni_ev;
 
 /* Easier to parse emulation event */
 struct emu_ev {

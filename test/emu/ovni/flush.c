@@ -1,9 +1,11 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _GNU_SOURCE
-
-#include "instr_ovni.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "instr.h"
+#include "ovni.h"
 
 static void
 emit(uint8_t *buf, size_t size)

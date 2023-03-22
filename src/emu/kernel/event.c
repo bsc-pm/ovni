@@ -2,11 +2,19 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "kernel_priv.h"
+#include "chan.h"
+#include "common.h"
+#include "emu.h"
+#include "emu_ev.h"
+#include "extend.h"
+#include "model_thread.h"
+#include "thread.h"
+#include "value.h"
 
 static int
 context_switch(struct emu *emu)
 {
-	struct kernel_thread *th = EXT(emu->thread, 'K');
+	struct kernel_thread *th = extend_get(&emu->thread->ext, 'K');
 	struct chan *ch = &th->m.ch[CH_CS];
 
 	switch (emu->ev->v) {

@@ -2,9 +2,26 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "system.h"
-#include "utlist.h"
-#include "metadata.h"
 #include <errno.h>
+#include <limits.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "cpu.h"
+#include "emu_args.h"
+#include "loom.h"
+#include "metadata.h"
+#include "proc.h"
+#include "pv/prf.h"
+#include "pv/pvt.h"
+#include "recorder.h"
+#include "stream.h"
+#include "thread.h"
+#include "trace.h"
+#include "uthash.h"
+#include "utlist.h"
+struct bay;
 
 static struct thread *
 create_thread(struct proc *proc, const char *relpath)

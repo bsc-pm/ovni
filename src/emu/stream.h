@@ -4,12 +4,11 @@
 #ifndef STREAM_H
 #define STREAM_H
 
-#include "ovni.h"
-#include "heap.h"
+#include <limits.h>
 #include <stdint.h>
-#include <linux/limits.h>
-
-struct stream;
+#include "common.h"
+#include "heap.h"
+struct ovni_ev;
 
 struct stream {
 	struct ovni_ev *cur_ev;

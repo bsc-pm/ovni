@@ -1,20 +1,16 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200809L
-
 #include <errno.h>
-#include <limits.h>
 #include <math.h>
 #include <mpi.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
 #include "ovni.h"
 
 const char progname[] = "ovnisync";

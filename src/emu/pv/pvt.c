@@ -2,6 +2,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "pvt.h"
+#include <stdio.h>
+#include <string.h>
+#include "pv/pcf.h"
+#include "pv/prf.h"
+#include "pv/prv.h"
 
 int
 pvt_open(struct pvt *pvt, long nrows, const char *dir, const char *name)

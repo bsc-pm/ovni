@@ -1,6 +1,10 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#include <stdint.h>
+#include <stdlib.h>
+#include "compat.h"
+#include "instr.h"
 #include "instr_nosv.h"
 
 int
@@ -16,11 +20,11 @@ main(void)
 	instr_nosv_type_create(typeid);
 	instr_nosv_task_create(1, typeid);
 	instr_nosv_task_execute(1);
-	usleep(us);
+	sleep_us(us);
 	instr_nosv_task_pause(1);
-	usleep(us);
+	sleep_us(us);
 	instr_nosv_task_resume(1);
-	usleep(us);
+	sleep_us(us);
 	instr_nosv_task_end(1);
 
 	instr_end();

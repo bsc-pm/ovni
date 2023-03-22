@@ -4,6 +4,10 @@
 //#define ENABLE_DEBUG
 
 #include "mux.h"
+#include <stdlib.h>
+#include <string.h>
+#include "bay.h"
+#include "chan.h"
 
 static int
 default_select(struct mux *mux,

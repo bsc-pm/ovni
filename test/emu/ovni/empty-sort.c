@@ -1,9 +1,10 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _GNU_SOURCE
-
-#include "instr_ovni.h"
+#include <stdint.h>
+#include "compat.h"
+#include "instr.h"
+#include "ovni.h"
 
 static void
 emit(char *mcv, int64_t clock)
@@ -20,7 +21,7 @@ main(void)
 	instr_start(0, 1);
 
 	/* Leave some room to prevent clashes */
-	usleep(100); /* 100000 us */
+	sleep_us(100); /* 100000 us */
 
 	int64_t t0 = ovni_clock_now();
 

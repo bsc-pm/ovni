@@ -2,11 +2,21 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "thread.h"
-
-#include "emu_prv.h"
-#include "path.h"
-#include "bay.h"
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "bay.h"
+#include "cpu.h"
+#include "emu_prv.h"
+#include "mux.h"
+#include "path.h"
+#include "pv/pcf.h"
+#include "pv/prv.h"
+#include "pv/pvt.h"
+#include "recorder.h"
+#include "value.h"
+struct proc;
 
 static const char chan_fmt[] = "thread%lu.%s";
 static const char *chan_name[] = {

@@ -1,11 +1,15 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _GNU_SOURCE
-
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
-
+#include "common.h"
+#include "emu_ev.h"
+#include "ovni.h"
 #include "player.h"
+#include "stream.h"
 #include "trace.h"
 
 char *tracedir;

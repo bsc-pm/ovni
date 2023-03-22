@@ -4,10 +4,20 @@
 //#define ENABLE_DEBUG
 
 #include "ovni_priv.h"
-
-#include "emu.h"
-#include "loom.h"
+#include <stdint.h>
+#include <stdlib.h>
+#include "chan.h"
 #include "common.h"
+#include "cpu.h"
+#include "emu.h"
+#include "emu_ev.h"
+#include "extend.h"
+#include "loom.h"
+#include "model_thread.h"
+#include "ovni.h"
+#include "proc.h"
+#include "thread.h"
+#include "value.h"
 
 static int
 pre_thread_execute(struct emu *emu, struct thread *th)

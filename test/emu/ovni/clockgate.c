@@ -1,18 +1,10 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200112L
-#define _GNU_SOURCE
-
-#include <limits.h>
-#include <linux/limits.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
+#include <stdlib.h>
 #include <unistd.h>
-
 #include "common.h"
 #include "compat.h"
 #include "ovni.h"
@@ -37,7 +29,7 @@ start_delayed(int rank, int nranks)
 	char hostname[OVNI_MAX_HOSTNAME];
 	char rankname[OVNI_MAX_HOSTNAME + 64];
 
-	if (gethostname(hostname, HOST_NAME_MAX) != 0)
+	if (gethostname(hostname, OVNI_MAX_HOSTNAME) != 0)
 		die("gethostname failed");
 
 	sprintf(rankname, "%s.%d", hostname, rank);

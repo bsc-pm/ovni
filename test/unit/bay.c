@@ -1,9 +1,13 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#include "emu/bay.h"
+#include <stddef.h>
+#include <stdint.h>
 #include "common.h"
+#include "emu/bay.h"
+#include "emu/chan.h"
 #include "unittest.h"
+#include "value.h"
 
 static void
 test_duplicate(struct bay *bay)

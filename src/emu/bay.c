@@ -4,7 +4,9 @@
 //#define ENABLE_DEBUG
 
 #include "bay.h"
-
+#include <stdlib.h>
+#include <string.h>
+#include "chan.h"
 #include "common.h"
 #include "uthash.h"
 #include "utlist.h"

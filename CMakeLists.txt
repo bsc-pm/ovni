@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.20)
@@ -15,6 +15,7 @@ add_compile_options(-Wall -Wextra -Wformat
 )
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_EXTENSIONS FALSE)
 
 option(ENABLE_DEBUG_LOG "Enable debug messages (very verbose)")
@@ -22,6 +23,8 @@ option(ENABLE_DEBUG_LOG "Enable debug messages (very verbose)")
 if(ENABLE_DEBUG_LOG)
   add_definitions(-DENABLE_DEBUG)
 endif()
+
+add_definitions(-D_POSIX_C_SOURCE=200809L)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -58,6 +61,15 @@ set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_DEBUG} \
 
 set(CMAKE_C_FLAGS_UBSAN "${CMAKE_C_FLAGS_DEBUG} -fsanitize=undefined"
   CACHE STRING "Flags used by the C compiler during UndefinedBehaviorSanitizer builds." FORCE)
+
+find_program(IWYU NAMES include-what-you-use iwyu)
+
+if(IWYU)
+  set(IWYU_CMD ${IWYU} -Xiwyu --no_comments)
+  set(CMAKE_C_INCLUDE_WHAT_YOU_USE ${IWYU_CMD})
+else()
+  message(WARNING "IWYU not found, skipping")
+endif()
 
 # Required for clock_gettime() in glibc <= 2.17
 include(CheckLibraryExists)

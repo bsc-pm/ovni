@@ -2,7 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "task.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "thread.h"
 #include "utlist.h"
 
 struct task *

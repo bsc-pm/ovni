@@ -5,14 +5,14 @@
 #define EMU_H
 
 #include "bay.h"
-#include "trace.h"
+#include "common.h"
 #include "emu_args.h"
-#include "system.h"
-#include "player.h"
-#include "model.h"
-#include "emu_ev.h"
-#include "recorder.h"
 #include "emu_stat.h"
+#include "model.h"
+#include "player.h"
+#include "recorder.h"
+#include "system.h"
+#include "trace.h"
 
 struct emu {
 	struct bay bay;

@@ -4,7 +4,7 @@
 #ifndef INSTR_NANOS6_H
 #define INSTR_NANOS6_H
 
-#include "../instr.h"
+#include "instr.h"
 
 #include "task.h"
 

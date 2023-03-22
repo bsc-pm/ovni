@@ -4,14 +4,11 @@
 #ifndef BAY_H
 #define BAY_H
 
-#include "chan.h"
+#include "common.h"
 #include "uthash.h"
+struct chan;
 
 /* Handle connections between channels and callbacks */
-
-struct bay;
-struct bay_cb;
-struct bay_chan;
 
 enum bay_cb_type {
 	BAY_CB_DIRTY = 0,

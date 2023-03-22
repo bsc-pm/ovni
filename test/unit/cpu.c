@@ -2,8 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/cpu.h"
-#include "emu/loom.h"
 #include "common.h"
+#include "emu/loom.h"
+#include "emu/proc.h"
+#include "emu/thread.h"
 #include "unittest.h"
 
 static void

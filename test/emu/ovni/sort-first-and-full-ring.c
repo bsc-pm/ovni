@@ -1,28 +1,20 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200112L
-#define _GNU_SOURCE
-
-#include <limits.h>
-#include <linux/limits.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
+#include <stdlib.h>
 #include <unistd.h>
-
-#include "compat.h"
 #include "common.h"
+#include "compat.h"
 #include "ovni.h"
 
 static inline void
 init(void)
 {
-	char hostname[HOST_NAME_MAX];
+	char hostname[OVNI_MAX_HOSTNAME];
 
-	if (gethostname(hostname, HOST_NAME_MAX) != 0) {
+	if (gethostname(hostname, OVNI_MAX_HOSTNAME) != 0) {
 		perror("gethostname failed");
 		exit(EXIT_FAILURE);
 	}
@@ -49,7 +41,7 @@ main(void)
 	int64_t t0 = ovni_clock_now();
 
 	/* Leave some room to prevent clashes */
-	usleep(100000); /* 100000000 ns */
+	sleep_us(100000); /* 100000000 ns */
 
 	int64_t t1 = ovni_clock_now();
 

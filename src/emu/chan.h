@@ -4,8 +4,9 @@
 #ifndef CHAN_H
 #define CHAN_H
 
-#include <stdint.h>
+#include "common.h"
 #include "value.h"
+struct chan;
 
 #define MAX_CHAN_STACK 512
 #define MAX_CHAN_NAME 512
@@ -38,8 +39,6 @@ union chan_data {
 	struct chan_stack stack;
 	struct value value;
 };
-
-struct chan;
 
 typedef int (*chan_cb_t)(struct chan *chan, void *ptr);
 

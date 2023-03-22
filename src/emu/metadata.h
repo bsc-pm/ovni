@@ -4,9 +4,9 @@
 #ifndef METADATA_H
 #define METADATA_H
 
-#include "loom.h"
-#include "proc.h"
 #include "common.h"
+struct loom;
+struct proc;
 
 USE_RET int metadata_load(const char *path, struct loom *loom, struct proc *proc);
 

@@ -4,17 +4,18 @@
 #ifndef CPU_H
 #define CPU_H
 
-struct cpu; /* Needed for thread and loom */
-struct loom;
-
-#include "thread.h"
+#include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
 #include "chan.h"
-#include "track.h"
-#include "bay.h"
-#include "uthash.h"
-#include "recorder.h"
+#include "common.h"
 #include "extend.h"
-#include <linux/limits.h>
+#include "uthash.h"
+struct bay;
+struct loom;
+struct pcf_type;
+struct recorder;
+struct thread;
 
 enum cpu_chan {
 	CPU_CHAN_NRUN = 0,

@@ -2,8 +2,19 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "kernel_priv.h"
-
+#include <stddef.h>
+#include "common.h"
+#include "emu.h"
 #include "emu_prv.h"
+#include "model.h"
+#include "model_chan.h"
+#include "model_cpu.h"
+#include "model_pvt.h"
+#include "model_thread.h"
+#include "pv/pcf.h"
+#include "pv/prv.h"
+#include "system.h"
+#include "track.h"
 
 static const char model_name[] = "kernel";
 enum { model_id = 'K' };

@@ -4,14 +4,9 @@
 #ifndef MODEL_CPU_H
 #define MODEL_CPU_H
 
-struct model_cpu_spec;
-
-#include "emu.h"
-#include "bay.h"
-#include "track.h"
-#include "model.h"
-#include "model_chan.h"
+#include <stddef.h>
 #include "common.h"
+struct emu;
 
 struct model_cpu_spec {
 	size_t size;

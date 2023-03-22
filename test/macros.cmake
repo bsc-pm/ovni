@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 include(CMakeParseArguments)
@@ -109,10 +109,7 @@ function(ovni_test source)
     "${CMAKE_SOURCE_DIR}/include"
   )
 
-  add_executable("${OVNI_TEST_NAME}"
-    "${OVNI_TEST_SOURCE}"
-    "${CMAKE_SOURCE_DIR}/test/emu/instr.c"
-  )
+  add_executable("${OVNI_TEST_NAME}" "${OVNI_TEST_SOURCE}")
 
   target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni emu)
 

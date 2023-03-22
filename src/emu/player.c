@@ -2,8 +2,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "player.h"
-
+#include <stdlib.h>
+#include <string.h>
 #include "heap.h"
+#include "stream.h"
+#include "trace.h"
 #include "utlist.h"
 
 /*

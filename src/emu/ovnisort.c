@@ -11,23 +11,14 @@
  * that we will look back is limited by N.
  */
 
-#define _GNU_SOURCE
-
-#include <ctype.h>
-#include <dirent.h>
 #include <fcntl.h>
-#include <linux/limits.h>
-#include <stdatomic.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
 #include <unistd.h>
-
-#include "emu.h"
+#include "common.h"
 #include "ovni.h"
+#include "stream.h"
 #include "trace.h"
 
 struct ring {

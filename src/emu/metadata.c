@@ -2,9 +2,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "metadata.h"
-
+#include <stdlib.h>
+#include <string.h>
+#include "cpu.h"
+#include "loom.h"
 #include "ovni.h"
 #include "parson.h"
+#include "proc.h"
 
 static JSON_Object *
 load_json(const char *path)

@@ -4,8 +4,9 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "emu_hook.h"
 #include "common.h"
+#include "emu_hook.h"
+struct emu;
 
 struct model_spec {
 	const char *name;

@@ -4,6 +4,7 @@
 #include "models.h"
 
 #include "common.h"
+#include "model.h"
 #include <stdlib.h>
 
 extern struct model_spec model_ovni;

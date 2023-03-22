@@ -1,19 +1,13 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _GNU_SOURCE
-
-#include "compat.h"
-#include "ovni.h"
-
-#include <assert.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
+#include "compat.h"
+#include "ovni.h"
 
 static void
 fail(const char *msg)
@@ -52,9 +46,9 @@ instr_thread_end(void)
 static inline void
 instr_start(int rank, int nranks)
 {
-	char hostname[HOST_NAME_MAX];
+	char hostname[OVNI_MAX_HOSTNAME];
 
-	if (gethostname(hostname, HOST_NAME_MAX) != 0)
+	if (gethostname(hostname, OVNI_MAX_HOSTNAME) != 0)
 		fail("gethostname failed");
 
 	ovni_proc_init(1, hostname, getpid());
@@ -125,7 +119,7 @@ task(int32_t id, uint32_t typeid, int us)
 	ovni_payload_add(&ev, (uint8_t *) &id, sizeof(id));
 	ovni_ev_emit(&ev);
 
-	usleep(us);
+	sleep_us(us);
 
 	memset(&ev, 0, sizeof(ev));
 

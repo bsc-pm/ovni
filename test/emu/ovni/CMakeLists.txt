@@ -3,17 +3,17 @@
 
 # Only run performance sensitive tests on Release builds
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  ovni_test(flush-overhead.c)
+  test_emu(flush-overhead.c)
 endif()
 
-ovni_test(flush.c)
-ovni_test(sort.c SORT)
-ovni_test(empty-sort.c SORT)
-ovni_test(sort-first-and-full-ring.c SORT
+test_emu(flush.c)
+test_emu(sort.c SORT)
+test_emu(empty-sort.c SORT)
+test_emu(sort-first-and-full-ring.c SORT
   SHOULD_FAIL REGEX "cannot find a event previous to clock")
-ovni_test(burst-stats.c REGEX "burst stats: median/avg/max =  33/ 33/ 33 ns")
-ovni_test(mp-simple.c MP)
-ovni_test(version-good.c)
-ovni_test(version-bad.c SHOULD_FAIL REGEX "version mismatch")
-ovni_test(clockgate.c MP SHOULD_FAIL REGEX "detected large clock gate")
-ovni_test(no-cpus.c SHOULD_FAIL REGEX "loom .* has no physical CPUs")
+test_emu(burst-stats.c REGEX "burst stats: median/avg/max =  33/ 33/ 33 ns")
+test_emu(mp-simple.c MP)
+test_emu(version-good.c)
+test_emu(version-bad.c SHOULD_FAIL REGEX "version mismatch")
+test_emu(clockgate.c MP SHOULD_FAIL REGEX "detected large clock gate")
+test_emu(no-cpus.c SHOULD_FAIL REGEX "loom .* has no physical CPUs")

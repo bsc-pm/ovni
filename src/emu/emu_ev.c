@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu_ev.h"
+#include "ovni.h"
 
 void
 emu_ev(struct emu_ev *ev, const struct ovni_ev *oev,

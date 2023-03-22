@@ -2,10 +2,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "proc.h"
-
-#include "utlist.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "path.h"
-#include <errno.h>
+#include "thread.h"
 
 static int
 get_pid(const char *id, int *pid)

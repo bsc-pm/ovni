@@ -4,14 +4,14 @@
 #ifndef PROC_H
 #define PROC_H
 
-/* No loom dependency here */
-#include "thread.h"
+#include <limits.h>
+#include <stdint.h>
+#include "common.h"
+#include "extend.h"
 #include "parson.h"
 #include "uthash.h"
-#include "extend.h"
-#include <stddef.h>
-#include <stdint.h>
-#include <linux/limits.h>
+struct loom;
+struct thread;
 
 struct proc {
 	int64_t gindex;

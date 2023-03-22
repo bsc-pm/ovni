@@ -4,9 +4,10 @@
 #ifndef MODEL_PRV_H
 #define MODEL_PRV_H
 
-#include "emu.h"
-#include "pv/pcf.h"
 #include "common.h"
+struct emu;
+struct model_cpu_spec;
+struct model_thread_spec;
 
 struct model_pvt_spec {
 	const int *type;
@@ -15,9 +16,6 @@ struct model_pvt_spec {
 	const long *flags;
 	const struct pcf_value_label **label;
 };
-
-#include "model_cpu.h"
-#include "model_thread.h"
 
 USE_RET int model_pvt_connect_cpu(struct emu *emu, const struct model_cpu_spec *spec);
 USE_RET int model_pvt_connect_thread(struct emu *emu, const struct model_thread_spec *spec);

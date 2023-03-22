@@ -2,8 +2,19 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "model_thread.h"
-
+#include <stdint.h>
+#include <stdlib.h>
+#include "bay.h"
+#include "chan.h"
+#include "common.h"
+#include "emu.h"
+#include "extend.h"
+#include "model.h"
+#include "model_chan.h"
 #include "model_pvt.h"
+#include "system.h"
+#include "thread.h"
+#include "track.h"
 
 static int
 init_chan(struct model_thread *th, const struct model_chan_spec *spec, int64_t gindex)

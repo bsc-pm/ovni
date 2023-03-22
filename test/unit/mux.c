@@ -2,7 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/mux.h"
+#include <stdio.h>
 #include "common.h"
+#include "emu/bay.h"
+#include "emu/chan.h"
 #include "unittest.h"
 
 #define N 10

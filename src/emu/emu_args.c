@@ -1,14 +1,13 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 2
-
 #include "emu_args.h"
 
 #include "common.h"
 #include "path.h"
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
 static char progname[] = "ovniemu";
 static char version[] = "1.0.0";

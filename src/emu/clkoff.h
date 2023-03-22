@@ -4,11 +4,11 @@
 #ifndef CLKOFF_H
 #define CLKOFF_H
 
+#include <limits.h>
+#include <stdint.h>
+#include <stdio.h>
 #include "common.h"
 #include "uthash.h"
-
-#include <stdio.h>
-#include <linux/limits.h>
 
 struct clkoff_entry {
 	int64_t index;

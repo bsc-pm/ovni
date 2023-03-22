@@ -1,20 +1,18 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
-#define _GNU_SOURCE
-
 #include <dirent.h>
-#include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/mman.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "common.h"
-#include "compat.h"
 #include "ovni.h"
 #include "parson.h"
 #include "version.h"

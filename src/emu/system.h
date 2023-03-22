@@ -4,16 +4,14 @@
 #ifndef EMU_SYSTEM_H
 #define EMU_SYSTEM_H
 
-#include "emu_args.h"
-#include "trace.h"
-#include "stream.h"
-#include "loom.h"
-#include "proc.h"
-#include "thread.h"
-#include "cpu.h"
-#include "clkoff.h"
-#include "recorder.h"
 #include <stddef.h>
+#include "clkoff.h"
+#include "common.h"
+struct bay;
+struct emu_args;
+struct recorder;
+struct stream;
+struct trace;
 
 /* Map from stream to lpt */
 struct lpt {

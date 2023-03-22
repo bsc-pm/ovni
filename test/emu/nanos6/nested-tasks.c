@@ -1,6 +1,9 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#include <stdint.h>
+#include "compat.h"
+#include "instr.h"
 #include "instr_nanos6.h"
 
 int
@@ -17,7 +20,7 @@ main(void)
 	for (int i = 0; i < ntasks; i++) {
 		instr_nanos6_handle_task_enter();
 		instr_nanos6_task_create_and_execute(i + 1, typeid);
-		usleep(500);
+		sleep_us(500);
 	}
 
 	/* End the tasks in the opposite order */

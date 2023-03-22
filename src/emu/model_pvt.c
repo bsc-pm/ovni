@@ -2,6 +2,22 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "model_pvt.h"
+#include <stdio.h>
+#include "common.h"
+#include "cpu.h"
+#include "emu.h"
+#include "extend.h"
+#include "model.h"
+#include "model_chan.h"
+#include "model_cpu.h"
+#include "model_thread.h"
+#include "pv/pcf.h"
+#include "pv/prv.h"
+#include "pv/pvt.h"
+#include "recorder.h"
+#include "system.h"
+#include "thread.h"
+#include "track.h"
 
 static const char *pcf_suffix[TRACK_TH_MAX] = {
 	[TRACK_TH_ANY] = "",

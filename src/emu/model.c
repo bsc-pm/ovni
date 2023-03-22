@@ -4,9 +4,9 @@
 //#define ENABLE_DEBUG
 
 #include "model.h"
-
-#include "common.h"
 #include <string.h>
+#include "common.h"
+struct emu;
 
 void
 model_init(struct model *model)

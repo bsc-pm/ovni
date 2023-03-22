@@ -1,15 +1,12 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _GNU_SOURCE
-
 #include "emu/pv/cfg.h"
-#include "common.h"
-
+#include <limits.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <sys/stat.h>
-#include <linux/limits.h>
+#include "common.h"
 
 int main(void)
 {

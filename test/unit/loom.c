@@ -2,10 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/loom.h"
+#include <string.h>
+#include "common.h"
 #include "emu/cpu.h"
 #include "emu/proc.h"
-#include "common.h"
-#include "utlist.h"
 #include "unittest.h"
 
 char testloom[] = "loom.0";

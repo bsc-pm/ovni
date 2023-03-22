@@ -1,6 +1,9 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#include <stdlib.h>
+#include "compat.h"
+#include "instr.h"
 #include "instr_nosv.h"
 
 int
@@ -20,7 +23,7 @@ main(void)
 	for (int i = 0; i < ntasks; i++) {
 		instr_nosv_task_create(i + 1, (i % ntypes) + 1);
 		instr_nosv_task_execute(i + 1);
-		usleep(500);
+		sleep_us(500);
 		instr_nosv_task_end(i + 1);
 	}
 

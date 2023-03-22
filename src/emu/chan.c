@@ -4,9 +4,10 @@
 //#define ENABLE_DEBUG
 
 #include "chan.h"
-#include "common.h"
-#include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include "common.h"
 
 void
 chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...)

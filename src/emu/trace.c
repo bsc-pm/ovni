@@ -4,11 +4,14 @@
 #define _XOPEN_SOURCE 500
 
 #include "trace.h"
-#include "utlist.h"
-#include "path.h"
+#include <ftw.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ftw.h>
+#include "ovni.h"
+#include "path.h"
+#include "stream.h"
+#include "utlist.h"
 
 /* See the nftw(3) manual to see why we need a global variable here:
  * https://pubs.opengroup.org/onlinepubs/9699919799/functions/nftw.html */

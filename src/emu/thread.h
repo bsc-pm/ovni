@@ -4,18 +4,21 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-struct thread; /* Needed for cpu */
-
-#include "cpu.h"
-#include "proc.h"
-#include "chan.h"
-#include "bay.h"
-#include "uthash.h"
-#include "recorder.h"
-#include "extend.h"
-#include "mux.h"
+#include <limits.h>
 #include <stddef.h>
-#include <linux/limits.h>
+#include <stdint.h>
+#include "chan.h"
+#include "common.h"
+#include "extend.h"
+#include "uthash.h"
+struct bay;
+struct cpu;
+struct mux;
+struct mux_input;
+struct pcf;
+struct proc;
+struct recorder;
+struct value;
 
 /* Emulated thread runtime status */
 enum thread_state {

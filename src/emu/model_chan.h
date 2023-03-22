@@ -4,7 +4,7 @@
 #ifndef MODEL_CHAN_H
 #define MODEL_CHAN_H
 
-#include "model_pvt.h"
+struct model_pvt_spec;
 
 struct model_chan_spec {
 	int nch;

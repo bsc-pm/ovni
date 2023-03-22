@@ -4,7 +4,11 @@
 #ifndef TRACK_H
 #define TRACK_H
 
+#include <stdint.h>
+#include "chan.h"
+#include "common.h"
 #include "mux.h"
+struct bay;
 
 enum track_type {
 	TRACK_TYPE_TH = 0,

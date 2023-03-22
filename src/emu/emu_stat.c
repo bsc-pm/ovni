@@ -1,12 +1,11 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 200112L
-
 #include "emu_stat.h"
-
-#include <time.h>
 #include <string.h>
+#include <time.h>
+#include "common.h"
+#include "player.h"
 
 static double
 get_time(void)

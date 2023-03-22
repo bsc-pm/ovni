@@ -4,14 +4,11 @@
 #ifndef PCF_H
 #define PCF_H
 
+#include <stdio.h>
 #include "common.h"
 #include "uthash.h"
-#include <stdio.h>
 
 #define MAX_PCF_LABEL 512
-
-struct pcf_value;
-struct pcf_type;
 
 struct pcf_value {
 	int value;

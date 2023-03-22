@@ -2,13 +2,20 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "cpu.h"
-
-#include "loom.h"
+#include <stdio.h>
+#include <string.h>
+#include "bay.h"
 #include "chan.h"
-#include "value.h"
-#include "utlist.h"
-#include "pv/pvt.h"
 #include "emu_prv.h"
+#include "loom.h"
+#include "proc.h"
+#include "pv/pcf.h"
+#include "pv/prv.h"
+#include "pv/pvt.h"
+#include "recorder.h"
+#include "thread.h"
+#include "utlist.h"
+#include "value.h"
 
 static const char chan_fmt[] = "cpu%ld.%s";
 static const char *chan_name[] = {

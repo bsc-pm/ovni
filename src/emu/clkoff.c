@@ -2,9 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "clkoff.h"
-
-#include "common.h"
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include "common.h"
 
 static struct clkoff_entry *
 cfind(struct clkoff *off, const char *name)

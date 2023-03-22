@@ -5,9 +5,9 @@
 #define TASK_H
 
 #include <stdint.h>
-#include "uthash.h"
+#include "common.h"
 #include "pv/pcf.h"
-#include "thread.h"
+#include "uthash.h"
 
 enum task_state {
 	TASK_ST_CREATED,

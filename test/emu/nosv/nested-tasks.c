@@ -1,6 +1,9 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#include <stdint.h>
+#include "compat.h"
+#include "instr.h"
 #include "instr_nosv.h"
 
 static void
@@ -10,7 +13,7 @@ create_and_run(int32_t id, uint32_t typeid, int us)
 	/* Change subsystem to prevent duplicates */
 	instr_nosv_submit_enter();
 	instr_nosv_task_execute(id);
-	usleep(us);
+	sleep_us(us);
 }
 
 int

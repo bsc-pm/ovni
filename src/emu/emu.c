@@ -1,14 +1,13 @@
 /* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
-#define _POSIX_C_SOURCE 2
-
 //#define ENABLE_DEBUG
 
 #include "emu.h"
-
-#include <unistd.h>
+#include <string.h>
+#include "emu_ev.h"
 #include "models.h"
+#include "stream.h"
 
 int
 emu_init(struct emu *emu, int argc, char *argv[])

@@ -4,7 +4,8 @@
 #ifndef MODELS_H
 #define MODELS_H
 
-#include "model.h"
+#include "common.h"
+struct model;
 
 USE_RET int models_register(struct model *model);
 

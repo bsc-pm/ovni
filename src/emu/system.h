@@ -27,6 +27,7 @@ struct system {
 	size_t nthreads;
 	size_t nprocs;
 	size_t ncpus; /* Including virtual cpus */
+	size_t nphycpus;
 
 	struct loom *looms;
 	struct proc *procs;

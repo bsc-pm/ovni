@@ -297,8 +297,12 @@ init_global_indices(struct system *sys)
 		thread_set_gindex(t, sys->nthreads++);
 
 	sys->ncpus = 0;
-	for (struct cpu *c = sys->cpus; c; c = c->next)
+	sys->nphycpus = 0;
+	for (struct cpu *c = sys->cpus; c; c = c->next) {
 		cpu_set_gindex(c, sys->ncpus++);
+		if (!c->is_virtual)
+			sys->nphycpus++;
+	}
 }
 
 static int

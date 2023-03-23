@@ -81,7 +81,7 @@ value_str(struct value a)
 		die("value string too long");
 
 	value_nextbuf++;
-	if (value_nextbuf > VALUE_NBUF)
+	if (value_nextbuf >= VALUE_NBUF)
 		value_nextbuf = 0;
 
 	return buf;

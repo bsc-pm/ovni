@@ -18,10 +18,13 @@ progname_set(char *name)
 }
 
 static void
-vaerr(const char *func, const char *errstr, va_list ap)
+vaerr(const char *prefix, const char *func, const char *errstr, va_list ap)
 {
 	if (progname != NULL)
 		fprintf(stderr, "%s: ", progname);
+
+	if (prefix != NULL)
+		fprintf(stderr, "%s: ", prefix);
 
 	if (func != NULL)
 		fprintf(stderr, "%s: ", func);
@@ -40,20 +43,20 @@ vaerr(const char *func, const char *errstr, va_list ap)
 }
 
 void
-verr(const char *func, const char *errstr, ...)
+verr(const char *prefix, const char *func, const char *errstr, ...)
 {
 	va_list ap;
 	va_start(ap, errstr);
-	vaerr(func, errstr, ap);
+	vaerr(prefix, func, errstr, ap);
 	va_end(ap);
 }
 
 void
-vdie(const char *func, const char *errstr, ...)
+vdie(const char *prefix, const char *func, const char *errstr, ...)
 {
 	va_list ap;
 	va_start(ap, errstr);
-	vaerr(func, errstr, ap);
+	vaerr(prefix, func, errstr, ap);
 	va_end(ap);
 	abort();
 }

@@ -9,21 +9,21 @@
 /* Debug macros */
 
 void progname_set(char *name);
-void verr(const char *func, const char *errstr, ...);
-void vdie(const char *func, const char *errstr, ...);
+void verr(const char *prefix, const char *func, const char *errstr, ...);
+void vdie(const char *prefix, const char *func, const char *errstr, ...);
 
 /* clang-format off */
 
 #define rerr(...) fprintf(stderr, __VA_ARGS__)
-#define err(...) verr(__func__, __VA_ARGS__)
-#define die(...) vdie(__func__, __VA_ARGS__)
-#define info(...) verr("INFO", __VA_ARGS__)
-#define warn(...) verr("WARN", __VA_ARGS__)
+#define err(...)  verr("ERROR", __func__, __VA_ARGS__)
+#define die(...)  vdie("FATAL", __func__, __VA_ARGS__)
+#define info(...) verr("INFO", NULL, __VA_ARGS__)
+#define warn(...) verr("WARN", NULL, __VA_ARGS__)
 
 #ifdef ENABLE_DEBUG
-# define dbg(...) verr(__func__, __VA_ARGS__)
+# define dbg(...) verr("DEBUG", __func__, __VA_ARGS__)
 #else
-# define dbg(...) do { if (0) { verr(__func__, __VA_ARGS__); } } while(0)
+# define dbg(...) do { if (0) { verr("DEBUG", __func__, __VA_ARGS__); } } while(0)
 #endif
 
 #define likely(x) __builtin_expect(!!(x), 1)

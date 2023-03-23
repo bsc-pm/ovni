@@ -40,31 +40,39 @@ main(int argc, char *argv[])
 
 	signal(SIGINT, stop_emulation);
 
-	err("emulation starts");
+	info("emulation starts");
 	int ret = 0;
+	int partial = 0;
 	while (run && (ret = emu_step(emu)) == 0);
 
 	if (ret < 0) {
 		err("emu_step failed");
 		ret = 1;
 		/* continue to close the trace files */
-		err("emulation aborts!");
+		info("emulation aborts!");
 	} else {
 		ret = 0;
 	}
 
-	if (run == 0)
-		err("stopping emulation by user (^C again to abort)");
+	if (run == 0) {
+		info("stopping emulation by user (^C again to abort)");
+		partial = 1;
+	}
 
 	if (emu_finish(emu) != 0) {
 		err("emu_finish failed");
 		ret = 1;
 	}
 
-	if (ret == 0)
-		err("emulation finished ok");
-	else
-		err("emulation finished with errors");
+	if (ret == 0) {
+		if (partial) {
+			info("emulation finished partially but ok");
+		} else {
+			info("emulation finished ok");
+		}
+	} else {
+		info("emulation finished with errors");
+	}
 
 	free(emu);
 

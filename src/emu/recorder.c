@@ -72,7 +72,7 @@ recorder_advance(struct recorder *rec, int64_t time)
 int
 recorder_finish(struct recorder *rec)
 {
-	err("writting the traces to disk, please wait");
+	info("writing traces to disk, please wait");
 
 	for (struct pvt *pvt = rec->pvt; pvt; pvt = pvt->hh.next) {
 		if (pvt_close(pvt) != 0) {
@@ -84,7 +84,7 @@ recorder_finish(struct recorder *rec)
 	/* TODO: Use configs per pvt */
 	if (cfg_generate(rec->dir) != 0) {
 		err("cfg_generate failed");
-		/* Ignore error */
+		return -1;
 	}
 
 	return 0;

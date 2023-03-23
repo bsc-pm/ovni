@@ -30,7 +30,7 @@ load_stream(struct trace *trace, const char *path)
 	struct stream *stream = calloc(1, sizeof(struct stream));
 
 	if (stream == NULL) {
-		perror("calloc failed");
+		err("calloc failed:");
 		return -1;
 	}
 
@@ -136,7 +136,7 @@ trace_load(struct trace *trace, const char *tracedir)
 	/* Sort the streams */
 	DL_SORT(trace->streams, cmp_streams);
 
-	err("loaded %ld streams", trace->nstreams);
+	info("loaded %ld streams", trace->nstreams);
 
 	return 0;
 }

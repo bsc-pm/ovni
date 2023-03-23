@@ -332,6 +332,10 @@ init_end_system(struct system *sys)
 			return -1;
 		}
 	}
+
+	info("loaded %ld looms, %ld processes, %ld threads and %ld cpus",
+			sys->nlooms, sys->nprocs, sys->nthreads, sys->nphycpus);
+
 	return 0;
 }
 
@@ -374,7 +378,7 @@ load_clock_offsets(struct clkoff *clkoff, struct emu_args *args)
 		return -1;
 	}
 
-	err("loaded clock offset table from '%s' with %d entries",
+	info("loaded clock offset table from '%s' with %d entries",
 			offset_file, clkoff_count(clkoff));
 
 	fclose(f);

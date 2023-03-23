@@ -16,7 +16,9 @@
  * 	< 0 if a < b
  * 	= 0 if a == b
  *
- * Invert the comparison function to get a min-heap instead
+ * Invert the comparison function to get a min-heap instead.
+ * TODO: Consider using an offset from heap_node_t to the int64_t to be
+ * compared, so we can optimize the heap insertion.
  */
 static inline int
 stream_cmp(heap_node_t *a, heap_node_t *b)

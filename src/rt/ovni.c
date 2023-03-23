@@ -44,9 +44,9 @@ void ovni_version_check_str(const char *version)
 				expected[0], OVNI_LIB_VERSION);
 	}
 
-	/* Only fail if the minor is older */
-	if (provided[1] < expected[1]) {
-		die("ovni minor version too old: found %d (%s), expected %d (%s)",
+	/* Only fail if the minor is newer */
+	if (provided[1] > expected[1]) {
+		die("ovni minor version too new: found %d (%s), expected %d (%s)",
 				provided[1], version,
 				expected[1], OVNI_LIB_VERSION);
 	}

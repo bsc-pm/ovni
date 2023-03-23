@@ -7,11 +7,16 @@ measure the time since boot).
 
 To generate a coherent Paraver trace, the offsets of the clocks need to be
 provided to the emulator too. To do so, run the `ovnisync` program using MPI on
-the same nodes your workload will use. If you are using SLURM, you may want to
-use something like:
+the same nodes your workload will use.
+
+!!! warning
+
+    Run only one MPI process of ovnisync per node.
+
+If you are using SLURM, you may want to use something like:
 
 	% srun ./application
-	% srun ovnisync
+	% srun --ntasks-per-node=1 ovnisync
 
 !!! warning
 

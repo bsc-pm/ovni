@@ -88,7 +88,6 @@ USE_RET int thread_get_tid(struct thread *thread);
 USE_RET int thread_connect(struct thread *th, struct bay *bay, struct recorder *rec);
 USE_RET int thread_select_active(struct mux *mux, struct value value, struct mux_input **input);
 USE_RET int thread_select_running(struct mux *mux, struct value value, struct mux_input **input);
-USE_RET int thread_select_any(struct mux *mux, struct value value, struct mux_input **input);
 USE_RET int thread_create_pcf_types(struct pcf *pcf);
 USE_RET struct pcf_type *thread_get_affinity_pcf_type(struct pcf *pcf);
 

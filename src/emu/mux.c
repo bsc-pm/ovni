@@ -195,8 +195,9 @@ mux_init(struct mux *mux,
 		return -1;
 	}
 
-	/* Mark the select channel as dirty, so it runs the select
-	 * callback even if it doesn't have a new value */
+	/* FIXME: Mark the select channel as dirty, so it runs the select
+	 * callback even if it doesn't have a new value. This hack must be
+	 * removed when we get rid of the delayed connect. */
 	if (chan_dirty(select) != 0) {
 		err("chan_dirty failed");
 		return -1;

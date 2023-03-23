@@ -20,7 +20,7 @@ specified in the `pid` argument to `ovni_proc_init()`.
 Each process directory contains:
 
 - The metadata file `metadata.json`.
-- The thread streams with prefix `thread.`.
+- The thread streams like `thread.123.obs`.
 
 ## Process metadata
 

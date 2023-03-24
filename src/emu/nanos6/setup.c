@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include "chan.h"
+#include "cpu.h"
 #include "common.h"
 #include "emu.h"
 #include "emu_args.h"

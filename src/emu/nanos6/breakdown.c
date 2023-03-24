@@ -5,7 +5,10 @@
 
 #include "nanos6_priv.h"
 
+#include "cpu.h"
 #include "emu_prv.h"
+#include "proc.h"
+#include "track.h"
 
 static int
 create_cpu(struct bay *bay, struct breakdown_cpu *bcpu, int64_t gindex)

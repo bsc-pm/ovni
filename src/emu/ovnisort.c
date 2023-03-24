@@ -367,7 +367,7 @@ process_trace(struct trace *trace)
 			}
 		} else {
 			if (stream_check(stream) != 0) {
-				err("stream %s is not sorted", stream->relpath);
+				info("stream %s is not sorted", stream->relpath);
 				/* When checking, report all errors and
 				 * then fail */
 				ret = -1;
@@ -379,9 +379,9 @@ process_trace(struct trace *trace)
 
 	if (operation_mode == CHECK) {
 		if (ret == 0) {
-			err("all streams sorted");
+			info("all streams sorted");
 		} else {
-			err("streams NOT sorted");
+			info("streams NOT sorted");
 		}
 	}
 
@@ -458,13 +458,12 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (process_trace(trace) != 0) {
-		err("failed to process trace: %s", tracedir);
-		return 1;
-	}
-
+	int ret = process_trace(trace);
 
 	free(trace);
+
+	if (ret)
+		return 1;
 
 	return 0;
 }

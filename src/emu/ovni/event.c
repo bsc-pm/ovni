@@ -346,7 +346,7 @@ pre_cpu(struct emu *emu)
 {
 	switch (emu->ev->v) {
 		case 'n':
-			err("ignoring old event OCn");
+			warn("ignoring old event OCn");
 			return 0;
 		default:
 			err("unknown cpu event value %c",

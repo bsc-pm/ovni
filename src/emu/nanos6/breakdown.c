@@ -77,7 +77,6 @@ model_nanos6_breakdown_create(struct emu *emu)
 		return -1;
 	}
 
-	int64_t i = 0;
 	for (struct cpu *cpu = sys->cpus; cpu; cpu = cpu->next) {
 		if (cpu->is_virtual)
 			continue;
@@ -89,8 +88,6 @@ model_nanos6_breakdown_create(struct emu *emu)
 			err("create_cpu failed");
 			return -1;
 		}
-
-		i++;
 	}
 
 	return 0;

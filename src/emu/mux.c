@@ -78,8 +78,6 @@ cb_select(struct chan *sel_chan, void *ptr)
 		mux->selected = -1;
 	}
 
-	char buf[128];
-	UNUSED(buf);
 	dbg("select channel got value %s",
 			value_str(sel_value));
 
@@ -104,7 +102,7 @@ cb_select(struct chan *sel_chan, void *ptr)
 	}
 
 	dbg("setting output chan %s to %s",
-			mux->output->name, value_str(out_value, buf));
+			mux->output->name, value_str(out_value));
 
 	if (chan_set(mux->output, out_value) != 0) {
 		err("chan_set() failed");

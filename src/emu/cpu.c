@@ -250,9 +250,8 @@ cpu_update(struct cpu *cpu)
 		err("chan_set pid failed");
 		return -1;
 	}
-	char buf[128];
 	dbg("cpu%ld sets th_running to %s",
-			cpu->gindex, value_str(gid_running, buf));
+			cpu->gindex, value_str(gid_running));
 	if (chan_set(&cpu->chan[CPU_CHAN_THRUN], gid_running) != 0) {
 		err("chan_set gid_running failed");
 		return -1;

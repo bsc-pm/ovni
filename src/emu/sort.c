@@ -4,6 +4,8 @@
 //#define ENABLE_DEBUG
 
 #include "sort.h"
+#include "chan.h"
+#include "value.h"
 
 static int
 cmp_int64(const void *a, const void *b)
@@ -119,9 +121,8 @@ sort_cb_input(struct chan *in_chan, void *ptr)
 		if (value_is_equal(&last, &val))
 			continue;
 
-		char buf[128];
 		dbg("writting value %s into channel %s",
-				value_str(val, buf),
+				value_str(val),
 				sort->outputs[i].name);
 
 		if (chan_set(&sort->outputs[i], val) != 0) {
@@ -171,7 +172,7 @@ sort_init(struct sort *sort, struct bay *bay, int64_t n, const char *name)
 
 		/* No duplicate checks are done by sort module, so we
 		 * simply allow them */
-		chan_prop_set(out, CHAN_DUPLICATES, 1);
+		chan_prop_set(out, CHAN_ALLOW_DUP, 1);
 
 		if (bay_register(bay, out) != 0) {
 			err("bay_register out%ld failed", i);

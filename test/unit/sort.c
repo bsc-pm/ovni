@@ -2,8 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/sort.h"
+#include "chan.h"
 #include "common.h"
 #include "unittest.h"
+#include "value.h"
 
 #define N 10
 
@@ -14,15 +16,13 @@ check_output(struct chan *chan, struct value expected)
 	if (chan_read(chan, &out_value) != 0)
 		die("chan_read() failed for channel %s", chan->name);
 
-	char buf1[128];
 	if (!value_is_equal(&out_value, &expected)) {
-		char buf2[128];
 		die("unexpected value found %s in output (expected %s)\n",
-				value_str(out_value, buf1),
-				value_str(expected, buf2));
+				value_str(out_value),
+				value_str(expected));
 	}
 
-	err("output ok: chan=%s val=%s", chan->name, value_str(out_value, buf1));
+	err("output ok: chan=%s val=%s", chan->name, value_str(out_value));
 }
 
 static void

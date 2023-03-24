@@ -105,8 +105,7 @@ select_tr(struct mux *mux, struct value value, struct mux_input **input)
 static int
 select_idle(struct mux *mux, struct value value, struct mux_input **input)
 {
-	char buf[128];
-	dbg("value is %s", value_str(value, buf));
+	dbg("value is %s", value_str(value));
 	if (value.type == VALUE_INT64 && value.i == ST_WORKER_IDLE) {
 		dbg("selecting input 1 (idle)");
 		*input = mux_get_input(mux, 1);

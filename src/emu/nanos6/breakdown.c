@@ -278,7 +278,7 @@ model_nanos6_breakdown_finish(struct emu *emu,
 	struct prf *prf = pvt_get_prf(bemu->pvt);
 	for (int64_t row = 0; row < bemu->nphycpus; row++) {
 		char name[128];
-		if (snprintf(name, 128, "~CPU %3ld", bemu->nphycpus - row) >= 128) {
+		if (snprintf(name, 128, "~CPU %4ld", bemu->nphycpus - row) >= 128) {
 			err("label too long");
 			return -1;
 		}

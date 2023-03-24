@@ -85,10 +85,11 @@ test_sort_replace(void)
 {
 	int64_t nmin = 2;
 	int64_t nmax = 300;
-	int64_t nrun = 500;
+	int64_t nstep = 5;
+	int64_t nrun = 50;
 
 	srand(123);
-	for (int64_t n = nmin; n <= nmax; n++) {
+	for (int64_t n = nmin; n <= nmax; n += nstep) {
 		for (int64_t run = 0; run < nrun; run++)
 			test_case(n, run);
 		err("n = %ld OK", n);

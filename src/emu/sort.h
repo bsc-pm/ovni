@@ -5,9 +5,9 @@
 #define SORT_H
 
 #include <stdint.h>
-#include "bay.h"
-
-struct sort;
+#include "common.h"
+struct bay;
+struct chan;
 
 struct sort_input {
 	int64_t index;

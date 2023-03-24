@@ -3,12 +3,32 @@
 
 //#define ENABLE_DEBUG
 
-#include "nanos6_priv.h"
-
+#include "breakdown.h"
+#include <stdint.h>
+#include <stdio.h>
+#include "bay.h"
+#include "chan.h"
+#include "common.h"
 #include "cpu.h"
+#include "emu.h"
+#include "emu_args.h"
 #include "emu_prv.h"
+#include "extend.h"
+#include "model_cpu.h"
+#include "mux.h"
+#include "nanos6_priv.h"
 #include "proc.h"
+#include "pv/pcf.h"
+#include "pv/prf.h"
+#include "pv/prv.h"
+#include "pv/pvt.h"
+#include "recorder.h"
+#include "sort.h"
+#include "system.h"
+#include "task.h"
 #include "track.h"
+#include "value.h"
+
 
 static int
 create_cpu(struct bay *bay, struct breakdown_cpu *bcpu, int64_t gindex)

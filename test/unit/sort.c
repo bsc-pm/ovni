@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/sort.h"
+#include "bay.h"
 #include "chan.h"
 #include "common.h"
 #include "unittest.h"

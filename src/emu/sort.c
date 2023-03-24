@@ -4,6 +4,9 @@
 //#define ENABLE_DEBUG
 
 #include "sort.h"
+#include <stdlib.h>
+#include <string.h>
+#include "bay.h"
 #include "chan.h"
 #include "value.h"
 

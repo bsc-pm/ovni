@@ -32,10 +32,10 @@
  *                 +------+       +-----+
  */
 
-#include "mux.h"
+#include <stdint.h>
 #include "chan.h"
+#include "mux.h"
 #include "sort.h"
-#include "pv/pvt.h"
 
 struct breakdown_cpu {
 	struct mux  mux0;

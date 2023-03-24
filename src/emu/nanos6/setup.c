@@ -16,6 +16,7 @@
 #include "model_cpu.h"
 #include "model_pvt.h"
 #include "model_thread.h"
+#include "mux.h"
 #include "proc.h"
 #include "pv/pcf.h"
 #include "pv/prv.h"

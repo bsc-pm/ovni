@@ -98,6 +98,6 @@ int model_nanos6_finish(struct emu *emu);
 int model_nanos6_breakdown_create(struct emu *emu);
 int model_nanos6_breakdown_connect(struct emu *emu);
 int model_nanos6_breakdown_finish(struct emu *emu,
-		const struct pcf_value_label (**labels)[]);
+		const struct pcf_value_label **labels);
 
 #endif /* NANOS6_PRIV_H */

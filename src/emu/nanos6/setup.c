@@ -131,10 +131,10 @@ static const struct pcf_value_label nanos6_worker_idle[] = {
 	{ -1, NULL },
 };
 
-static const struct pcf_value_label (*pcf_labels[CH_MAX])[] = {
-	[CH_SUBSYSTEM] = &nanos6_ss_values,
-	[CH_THREAD]    = &nanos6_thread_type,
-	[CH_IDLE]      = &nanos6_worker_idle,
+static const struct pcf_value_label *pcf_labels[CH_MAX] = {
+	[CH_SUBSYSTEM] = nanos6_ss_values,
+	[CH_THREAD]    = nanos6_thread_type,
+	[CH_IDLE]      = nanos6_worker_idle,
 };
 
 static const long prv_flags[CH_MAX] = {

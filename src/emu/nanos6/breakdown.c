@@ -217,7 +217,7 @@ model_nanos6_breakdown_connect(struct emu *emu)
 
 int
 model_nanos6_breakdown_finish(struct emu *emu,
-		const struct pcf_value_label (**labels)[])
+		const struct pcf_value_label **labels)
 {
 	if (emu->args.breakdown == 0)
 		return 0;
@@ -231,12 +231,20 @@ model_nanos6_breakdown_finish(struct emu *emu,
 	const struct pcf_value_label *v = NULL;
 
 	/* Emit subsystem values */
-	for (v = *labels[CH_SUBSYSTEM]; v->label; v++)
-		pcf_add_value(pcftype, v->value, v->label);
+	for (v = labels[CH_SUBSYSTEM]; v->label; v++) {
+		if (pcf_add_value(pcftype, v->value, v->label) != 0) {
+			err("pcf_add_value failed");
+			return -1;
+		}
+	}
 
 	/* Emit idle values */
-	for (v = *labels[CH_IDLE]; v->label; v++)
-		pcf_add_value(pcftype, v->value, v->label);
+	for (v = labels[CH_IDLE]; v->label; v++) {
+		if (pcf_add_value(pcftype, v->value, v->label) != 0) {
+			err("pcf_add_value failed");
+			return -1;
+		}
+	}
 
 	/* Emit task_type values */
 	struct system *sys = &emu->system;

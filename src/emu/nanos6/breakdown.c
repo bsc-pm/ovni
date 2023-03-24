@@ -249,16 +249,16 @@ model_nanos6_breakdown_finish(struct emu *emu,
 
 	/* Emit subsystem values */
 	for (v = labels[CH_SUBSYSTEM]; v->label; v++) {
-		if (pcf_add_value(pcftype, v->value, v->label) != 0) {
-			err("pcf_add_value failed");
+		if (pcf_add_value(pcftype, v->value, v->label) == NULL) {
+			err("pcf_add_value ss failed");
 			return -1;
 		}
 	}
 
 	/* Emit idle values */
 	for (v = labels[CH_IDLE]; v->label; v++) {
-		if (pcf_add_value(pcftype, v->value, v->label) != 0) {
-			err("pcf_add_value failed");
+		if (pcf_add_value(pcftype, v->value, v->label) == NULL) {
+			err("pcf_add_value idle failed");
 			return -1;
 		}
 	}

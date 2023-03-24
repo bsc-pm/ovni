@@ -305,12 +305,6 @@ model_nanos6_connect(struct emu *emu)
 			err("chan_push idle failed");
 			return -1;
 		}
-		struct chan *ss = &mth->m.ch[CH_SUBSYSTEM];
-		/* And push initial subsystem to worker init */
-		if (chan_push(ss, value_int64(ST_WORKER_INIT)) != 0) {
-			err("chan_push idle failed");
-			return -1;
-		}
 	}
 
 	for (struct cpu *cpu = emu->system.cpus; cpu; cpu = cpu->next) {
@@ -338,7 +332,7 @@ end_lint(struct emu *emu)
 		struct nanos6_thread *th = EXT(t, model_id);
 		struct chan *ch = &th->m.ch[CH_SUBSYSTEM];
 		int stacked = ch->data.stack.n;
-		if (stacked > 1) {
+		if (stacked > 0) {
 			struct value top;
 			if (chan_read(ch, &top) != 0) {
 				err("chan_read failed for subsystem");

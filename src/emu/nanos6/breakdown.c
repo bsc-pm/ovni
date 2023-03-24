@@ -113,6 +113,23 @@ select_tr(struct mux *mux, struct value value, struct mux_input **input)
 		if (tt.type == VALUE_NULL)
 			in_body = 0;
 	}
+
+	if (!in_body) {
+		/* Only select ss if not NULL */
+		struct value ss;
+		struct mux_input *ssinput = mux_get_input(mux, 0);
+		if (chan_read(ssinput->chan, &ss) != 0) {
+			err("chan_read failed");
+			return -1;
+		}
+
+		/* Don't select anything, so the default output is shown */
+		if (ss.type == VALUE_NULL) {
+			dbg("not selecting anything");
+			*input = NULL;
+			return 0;
+		}
+	}
 	
 	int64_t i = in_body;
 	char *inputs[] = { "subsystem", "task_type" };
@@ -125,7 +142,8 @@ select_tr(struct mux *mux, struct value value, struct mux_input **input)
 static int
 select_idle(struct mux *mux, struct value value, struct mux_input **input)
 {
-	dbg("value is %s", value_str(value));
+	dbg("selecting tri output for value %s", value_str(value));
+
 	if (value.type == VALUE_INT64 && value.i == ST_WORKER_IDLE) {
 		dbg("selecting input 1 (idle)");
 		*input = mux_get_input(mux, 1);
@@ -164,6 +182,9 @@ connect_cpu(struct bay *bay, struct nanos6_cpu *mcpu)
 		err("mux_set_input tt failed");
 		return -1;
 	}
+
+	/* Emit unknown subsystem on NULL */
+	mux_set_default(&bcpu->mux0, value_int64(ST_UNKNOWN_SS));
 
 	/* Connect mux 1 using idle as select */
 	if (mux_init(&bcpu->mux1, bay, idle, tri, select_idle, 2) != 0) {

@@ -320,6 +320,7 @@ stream_check(struct stream *stream)
 
 	struct ovni_ev *ev = stream_ev(stream);
 	uint64_t last_clock = ev->header.clock;
+	int backjump = 0;
 
 	while ((ret = stream_step(stream)) == 0) {
 		ev = stream_ev(stream);
@@ -328,7 +329,7 @@ stream_check(struct stream *stream)
 		if (cur_clock < last_clock) {
 			err("backwards jump in time %ld -> %ld for stream %s",
 					last_clock, cur_clock, stream->relpath);
-			ret = -1;
+			backjump = 1;
 		}
 
 		last_clock = cur_clock;
@@ -339,7 +340,10 @@ stream_check(struct stream *stream)
 		return -1;
 	}
 
-	return ret;
+	if (backjump)
+		return -1;
+
+	return 0;
 }
 
 static int

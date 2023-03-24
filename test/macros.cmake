@@ -53,7 +53,7 @@ function(unit_test source)
 endfunction(unit_test)
 
 function(ovni_test source)
-	set(switches MP SHOULD_FAIL SORT UNIT)
+  set(switches MP SHOULD_FAIL SORT UNIT BREAKDOWN)
   set(single NPROC REGEX NAME)
   set(multi ENV)
 
@@ -100,6 +100,10 @@ function(ovni_test source)
 
   if(OVNI_TEST_SORT)
     list(APPEND OVNI_TEST_ENV "OVNI_DO_SORT=1")
+  endif()
+
+  if(OVNI_TEST_BREAKDOWN)
+    list(APPEND OVNI_TEST_ENV "OVNI_EMU_ARGS=-b")
   endif()
 
   include_directories(

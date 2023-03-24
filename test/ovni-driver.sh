@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2021 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set -ex
@@ -39,7 +39,7 @@ if [ -n "$OVNI_DO_SORT" ]; then
 fi
 
 # Then launch the emulator in lint mode
-"$emubin" -l "$tracedir"
+"$emubin" $OVNI_EMU_ARGS -l "$tracedir"
 
 # Run any post script that was generated
 ls -1 *.sh | while read sh; do

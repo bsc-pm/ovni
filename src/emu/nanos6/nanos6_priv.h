@@ -24,8 +24,10 @@ enum nanos6_chan {
 	CH_MAX,
 };
 
+/* Same order as shown in breakdown view */
 enum nanos6_ss_state {
 	ST_TASK_BODY = 1,
+	ST_UNKNOWN_SS,
 	ST_TASK_CREATING,
 	ST_TASK_SUBMIT,
 	ST_TASK_SPAWNING,
@@ -43,7 +45,6 @@ enum nanos6_ss_state {
 	ST_FREEING,
 	ST_HANDLING_TASK,
 	ST_WORKER_LOOP,
-	ST_WORKER_INIT,
 	ST_SWITCH_TO,
 	ST_MIGRATE,
 	ST_SUSPEND,

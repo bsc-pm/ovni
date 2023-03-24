@@ -85,6 +85,7 @@ static const char *pcf_prefix[CH_MAX] = {
 };
 
 static const struct pcf_value_label nanos6_ss_values[] = {
+	{ ST_UNKNOWN_SS,       "Unknown subsystem" },
 	{ ST_TASK_BODY,        "Task: Running body" },
 	{ ST_TASK_CREATING,    "Task: Creating" },
 	{ ST_TASK_SUBMIT,      "Task: Submitting" },
@@ -101,7 +102,6 @@ static const struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_BLK_WAITFOR,      "Blocking: Wait for deadline" },
 	{ ST_HANDLING_TASK,    "Worker: Handling task" },
 	{ ST_WORKER_LOOP,      "Worker: Looking for work" },
-	{ ST_WORKER_INIT,      "Worker: Starting" },
 	{ ST_SWITCH_TO,        "Worker: Switching to another thread" },
 	{ ST_MIGRATE,          "Worker: Migrating CPU" },
 	{ ST_SUSPEND,          "Worker: Suspending thread" },

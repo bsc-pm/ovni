@@ -565,6 +565,9 @@ model_nanos6_event(struct emu *emu)
 	static int enabled = 0;
 
 	if (!enabled) {
+		struct nanos6_emu *memu = EXT(emu, '6');
+		memu->event = 1;
+
 		if (model_nanos6_connect(emu) != 0) {
 			err("nanos6_connect failed");
 			return -1;

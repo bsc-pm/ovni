@@ -87,6 +87,8 @@ struct nanos6_proc {
 };
 
 struct nanos6_emu {
+	int connected;
+	int event;
 	struct breakdown_emu brk;
 };
 

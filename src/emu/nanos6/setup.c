@@ -35,7 +35,7 @@ struct model_spec model_nanos6 = {
 	.name = model_name,
 	.model = model_id,
 	.create  = model_nanos6_create,
-//	.connect = model_nanos6_connect,
+	.connect = model_nanos6_connect,
 	.event   = model_nanos6_event,
 	.probe   = model_nanos6_probe,
 	.finish  = model_nanos6_finish,
@@ -282,6 +282,16 @@ model_nanos6_create(struct emu *emu)
 int
 model_nanos6_connect(struct emu *emu)
 {
+	struct nanos6_emu *memu = EXT(emu, model_id);
+
+	if (memu->connected)
+		return 0;
+
+	/* Only skip connection if event not reached and
+	 * breakdown not enabled */
+	if (!memu->event && !emu->args.breakdown)
+		return 0;
+
 	if (model_thread_connect(emu, &th_spec) != 0) {
 		err("model_thread_connect failed");
 		return -1;
@@ -313,6 +323,8 @@ model_nanos6_connect(struct emu *emu)
 		/* Emit Idle when a CPU has no idle threads */
 		mux_set_default(mux, value_int64(ST_WORKER_IDLE));
 	}
+
+	memu->connected = 1;
 
 	return 0;
 }

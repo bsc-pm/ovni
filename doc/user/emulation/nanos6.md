@@ -200,6 +200,30 @@ The complete list of subsystems and sections is shown below.
     subsystem in Nanos6. Tasks will continue to be in the running state until
     paused or finished.
 
+## Breakdown view (experimental)
+
+The breakdown view shows the **number** of CPUs in a given state, stacking
+similar states together. Its a mix of the task type, subsystem and idle views.
+
+!!! Important
+
+	This view is only generated with the `-b` option of ovniemu. This
+	feature is experimental, new changes may break compatibility.
+
+Here is an example of the Heat mini-app.
+
+![Breakdown example](fig/breakdown.png)
+
+The *Idle* state shows when a CPU has no threads running or when the worker is
+Stalled (is not making progress). Below the Idle state the tasks are shown by
+their label, in this case only *block computation* is running. Above the Idle
+state, the runtime subsystems are shown.
+
+This view gives a quick overview of the usage of the CPUs over time and which
+tasks are taking more time. It also shows which sections are unable to use all
+the CPUs, showing potential problems with the parallelization. In this example
+not all the CPUs can be filled with *block computation* tasks.
+
 ## Limitations
 
 The task for clause is partially supported, as currently the emulator uses a

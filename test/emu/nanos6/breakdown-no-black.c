@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdio.h>
@@ -11,7 +11,7 @@
  * thread that emits the first Nanos6 event later than the ovni thread execute
  * event OHx. When the breakdown model is enabled, the output breakdown PRV
  * trace should contain already a value for time=0, which is when OHx is
- * emitted. We also test that on 6W[ we emit another non-zero state. 
+ * emitted. We also test that on 6W[ we emit another non-zero state.
  *
  *               .              .
  *               OHx            6W[

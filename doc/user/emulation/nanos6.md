@@ -78,11 +78,12 @@ This view shows the type of each thread:
 
 ## Idle view
 
-This view shows the idle state of the worker thread. A worker becomes idle when
-it has nothing to do. In particular, when attempting to get a task in the
-DelegationLock, after the first iteration the worker is considered idle.
-Similarly, when a worker serves tasks, all the time is not moving tasks from the
-queues is considered idle too.
+The idle view shows when CPUs become *Idle*. This state is displayed when no
+thread is *Running* in the CPU or when a worker is marked as Stalled (not making
+progress) such as when busy waiting but still *Running* in the CPU.
+
+In particular, a worker requesting a new task will become Stalled after entering
+the delegation lock and performing a complete iteration without receiving work.
 
 ## Subsystem view
 

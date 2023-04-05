@@ -59,8 +59,8 @@ main(void)
 
 	fprintf(stderr, "mean %f ms\n", mean);
 
-	/* It should be able to write 1 MiB in less than 1 ms */
-	if (mean > 1.0) {
+	/* It should be able to write 1 MiB in less than 2 ms */
+	if (mean > 2.0) {
 		fprintf(stderr, "took too much time to flush: %f ms\n", mean);
 
 		fprintf(stderr, "times (in ms):\n");

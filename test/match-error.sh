@@ -1,5 +1,5 @@
-#!/bin/bash
-# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+#!/usr/bin/env bash
+# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # This script return 0 if and only if the given program returns non-zero

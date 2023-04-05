@@ -395,7 +395,7 @@ parse_clkoff_entry(struct loom *looms, struct clkoff_entry *entry)
 	size_t matches = 0;
 
 	/* Use the median as the offset */
-	size_t offset = entry->median;
+	int64_t offset = (int64_t) entry->median;
 	const char *host = entry->name;
 
 	struct loom *loom;

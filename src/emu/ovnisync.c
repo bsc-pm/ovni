@@ -364,32 +364,25 @@ print_drift_row(FILE *out, struct offset_table *table)
 static void
 print_table_detailed(FILE *out, struct offset_table *table)
 {
-	int fail = 0;
-
-	/* Ensure each hostname is unique */
-	for (int i = 0; i < table->nprocs; i++) {
-		struct offset *a = table->offset[i];
-		for (int j = 0; j < i; j++) {
-			struct offset *b = table->offset[j];
-
-			if (strcmp(a->hostname, b->hostname) == 0) {
-				fprintf(stderr, "FATAL: ranks %d and %d run in same hostname %s\n",
-						j, i, a->hostname);
-				fail = 1;
-			}
-		}
-	}
-
-	if (fail) {
-		fprintf(stderr, "Please run %s with one rank per host\n", progname);
-		exit(EXIT_FAILURE);
-	}
-
 	fprintf(out, "%-10s %-20s %-20s %-20s %-20s\n",
 			"rank", "hostname", "offset_median", "offset_mean", "offset_std");
 
 	for (int i = 0; i < table->nprocs; i++) {
 		struct offset *offset = table->offset[i];
+
+		/* Skip the entry if hostname was repeated */
+		int skip = 0;
+		for (int j = 0; j < i; j++) {
+			struct offset *b = table->offset[j];
+			if (strcmp(offset->hostname, b->hostname) == 0) {
+				skip = 1;
+				break;
+			}
+		}
+
+		if (skip)
+			continue;
+
 		fprintf(out, "%-10d %-20s %-20ld %-20f %-20f\n",
 				i, offset->hostname, offset->offset,
 				offset->delta_mean, offset->delta_std);

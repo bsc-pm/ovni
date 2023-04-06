@@ -79,7 +79,7 @@ struct nanos6_thread {
 
 struct nanos6_cpu {
 	struct model_cpu m;
-	struct breakdown_cpu brk;
+	struct breakdown_cpu breakdown;
 };
 
 struct nanos6_proc {
@@ -89,7 +89,7 @@ struct nanos6_proc {
 struct nanos6_emu {
 	int connected;
 	int event;
-	struct breakdown_emu brk;
+	struct breakdown_emu breakdown;
 };
 
 int model_nanos6_probe(struct emu *emu);

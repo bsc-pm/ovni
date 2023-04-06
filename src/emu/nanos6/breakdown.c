@@ -55,7 +55,7 @@ model_nanos6_breakdown_create(struct emu *emu)
 		return 0;
 
 	struct nanos6_emu *memu = EXT(emu, '6');
-	struct breakdown_emu *bemu = &memu->brk;
+	struct breakdown_emu *bemu = &memu->breakdown;
 
 	/* Count phy cpus */
 	struct system *sys = &emu->system;
@@ -80,7 +80,7 @@ model_nanos6_breakdown_create(struct emu *emu)
 			continue;
 
 		struct nanos6_cpu *mcpu = EXT(cpu, '6');
-		struct breakdown_cpu *bcpu = &mcpu->brk;
+		struct breakdown_cpu *bcpu = &mcpu->breakdown;
 
 		if (create_cpu(&emu->bay, bcpu, cpu->gindex) != 0) {
 			err("create_cpu failed");
@@ -156,7 +156,7 @@ select_idle(struct mux *mux, struct value value, struct mux_input **input)
 static int
 connect_cpu(struct bay *bay, struct nanos6_cpu *mcpu)
 {
-	struct breakdown_cpu *bcpu = &mcpu->brk;
+	struct breakdown_cpu *bcpu = &mcpu->breakdown;
 
 	/* Channel aliases */
 	struct chan *ss = &mcpu->m.track[CH_SUBSYSTEM].ch;
@@ -210,7 +210,7 @@ model_nanos6_breakdown_connect(struct emu *emu)
 		return 0;
 
 	struct nanos6_emu *memu = EXT(emu, '6');
-	struct breakdown_emu *bemu = &memu->brk;
+	struct breakdown_emu *bemu = &memu->breakdown;
 	struct bay *bay = &emu->bay;
 	struct system *sys = &emu->system;
 
@@ -220,7 +220,7 @@ model_nanos6_breakdown_connect(struct emu *emu)
 			continue;
 
 		struct nanos6_cpu *mcpu = EXT(cpu, '6');
-		struct breakdown_cpu *bcpu = &mcpu->brk;
+		struct breakdown_cpu *bcpu = &mcpu->breakdown;
 
 		/* Connect tr and tri channels and muxes */
 		if (connect_cpu(bay, mcpu) != 0) {
@@ -259,7 +259,7 @@ model_nanos6_breakdown_finish(struct emu *emu,
 		return 0;
 
 	struct nanos6_emu *memu = EXT(emu, '6');
-	struct breakdown_emu *bemu = &memu->brk;
+	struct breakdown_emu *bemu = &memu->breakdown;
 	struct pcf *pcf = pvt_get_pcf(bemu->pvt);
 	long typeid = PRV_NANOS6_BREAKDOWN;
 	char label[] = "CPU: Nanos6 Runtime/Idle/Task breakdown";

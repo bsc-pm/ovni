@@ -29,6 +29,8 @@ struct system {
 	size_t ncpus; /* Including virtual cpus */
 	size_t nphycpus;
 
+	int sort_by_rank;
+
 	struct loom *looms;
 	struct proc *procs;
 	struct thread *threads;

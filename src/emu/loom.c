@@ -153,6 +153,20 @@ by_pid(struct proc *p1, struct proc *p2)
 }
 
 static int
+by_rank(struct proc *p1, struct proc *p2)
+{
+	int id1 = p1->rank;
+	int id2 = p2->rank;
+
+	if (id1 < id2)
+		return -1;
+	if (id1 > id2)
+		return +1;
+	else
+		return 0;
+}
+
+static int
 by_phyid(struct cpu *c1, struct cpu *c2)
 {
 	int id1 = cpu_get_phyid(c1);
@@ -169,12 +183,15 @@ by_phyid(struct cpu *c1, struct cpu *c2)
 void
 loom_sort(struct loom *loom)
 {
-	HASH_SORT(loom->procs, by_pid);
+	if (loom->rank_enabled)
+		HASH_SORT(loom->procs, by_rank);
+	else
+		HASH_SORT(loom->procs, by_pid);
+
 	HASH_SORT(loom->cpus, by_phyid);
 
-	for (struct proc *p = loom->procs; p; p = p->hh.next) {
+	for (struct proc *p = loom->procs; p; p = p->hh.next)
 		proc_sort(p);
-	}
 }
 
 int
@@ -186,6 +203,21 @@ loom_init_end(struct loom *loom)
 			loom->rank_enabled = 1;
 			break;
 		}
+	}
+
+	/* Ensure that all processes have a rank */
+	if (loom->rank_enabled) {
+		for (struct proc *p = loom->procs; p; p = p->hh.next) {
+			if (p->rank < 0) {
+				err("process %s has no rank information", p->id);
+				return -1;
+			}
+
+			if (p->rank < loom->rank_min)
+				loom->rank_min = p->rank;
+		}
+	} else {
+		loom->rank_min = -1;
 	}
 
 	/* Populate cpus_array */
@@ -248,6 +280,35 @@ loom_add_proc(struct loom *loom, struct proc *proc)
 		err("cannot modify procs of loom initialized");
 		return -1;
 	}
+
+	if (!proc->metadata_loaded) {
+		err("process %d hasn't loaded metadata", pid);
+		return -1;
+	}
+
+	if (loom->rank_enabled && proc->rank < 0) {
+		err("missing rank in process %d", pid);
+		return -1;
+	}
+
+	/* Check previous ranks if any */
+	if (!loom->rank_enabled && proc->rank >= 0) {
+		loom->rank_enabled = 1;
+		loom->rank_min = INT_MAX;
+
+		for (struct proc *p = loom->procs; p; p = p->hh.next) {
+			if (p->rank < 0) {
+				err("missing rank in process %d", p->pid);
+				return -1;
+			}
+
+			if (p->rank < loom->rank_min)
+				loom->rank_min = p->rank;
+		}
+	}
+
+	if (loom->rank_enabled && proc->rank < loom->rank_min)
+		loom->rank_min = proc->rank;
 
 	HASH_ADD_INT(loom->procs, pid, proc);
 	loom->nprocs++;

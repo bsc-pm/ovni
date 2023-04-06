@@ -84,11 +84,6 @@ create_proc(struct loom *loom, const char *tracedir, const char *relpath)
 		return NULL;
 	}
 
-	if (loom_add_proc(loom, proc) != 0) {
-		err("loom_add_proc failed");
-		return NULL;
-	}
-
 	/* Build metadata path */
 	char mpath[PATH_MAX];
 
@@ -101,6 +96,11 @@ create_proc(struct loom *loom, const char *tracedir, const char *relpath)
 	/* Load metadata too */
 	if (metadata_load(mpath, loom, proc) != 0) {
 		err("cannot load metadata from %s", mpath);
+		return NULL;
+	}
+
+	if (loom_add_proc(loom, proc) != 0) {
+		err("loom_add_proc failed");
 		return NULL;
 	}
 
@@ -212,15 +212,32 @@ create_system(struct system *sys, struct trace *trace)
 }
 
 static int
-cmp_loom(struct loom *a, struct loom *b)
+cmp_loom_id(struct loom *a, struct loom *b)
 {
 	return strcmp(a->id, b->id);
+}
+
+static int
+cmp_loom_rank(struct loom *a, struct loom *b)
+{
+	int id1 = a->rank_min;
+	int id2 = b->rank_min;
+
+	if (id1 < id2)
+		return -1;
+	if (id1 > id2)
+		return +1;
+	else
+		return 0;
 }
 
 static void
 sort_lpt(struct system *sys)
 {
-	DL_SORT(sys->looms, cmp_loom);
+	if (sys->sort_by_rank)
+		DL_SORT(sys->looms, cmp_loom_rank);
+	else
+		DL_SORT(sys->looms, cmp_loom_id);
 
 	for (struct loom *l = sys->looms; l; l = l->next)
 		loom_sort(l);
@@ -459,6 +476,29 @@ init_offsets(struct system *sys, struct trace *trace)
 	return 0;
 }
 
+static int
+set_sort_criteria(struct system *sys)
+{
+	for (struct loom *l = sys->looms; l; l = l->next) {
+		if (l->rank_enabled) {
+			sys->sort_by_rank = 1;
+			break;
+		}
+	}
+
+	if (!sys->sort_by_rank)
+		return 0;
+
+	for (struct loom *l = sys->looms; l; l = l->next) {
+		if (!l->rank_enabled) {
+			err("missing rank for loom %s", l->id);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 int
 system_init(struct system *sys, struct emu_args *args, struct trace *trace)
 {
@@ -468,6 +508,11 @@ system_init(struct system *sys, struct emu_args *args, struct trace *trace)
 	/* Parse the trace and create the looms, procs and threads */
 	if (create_system(sys, trace) != 0) {
 		err("create system failed");
+		return -1;
+	}
+
+	if (set_sort_criteria(sys) != 0) {
+		err("set_sort_criteria failed");
 		return -1;
 	}
 

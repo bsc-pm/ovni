@@ -26,6 +26,7 @@ struct loom {
 	size_t ncpus;
 	size_t offset_ncpus;
 	int rank_enabled;
+	int rank_min;
 
 	int64_t clock_offset;
 

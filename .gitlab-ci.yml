@@ -2,7 +2,6 @@ build:debian-testing:
   image: debian:testing
   tags:
     - docker
-    - mestral
   stage: build
   before_script:
     - apt update && apt -y install make autoconf gfortran libopenmpi-dev cmake

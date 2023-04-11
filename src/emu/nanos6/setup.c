@@ -105,6 +105,7 @@ static const struct pcf_value_label nanos6_ss_values[] = {
 	{ ST_MIGRATE,          "Worker: Migrating CPU" },
 	{ ST_SUSPEND,          "Worker: Suspending thread" },
 	{ ST_RESUME,           "Worker: Resuming another thread" },
+	{ ST_SPONGE,           "Worker: Sponge mode" },
 	{ ST_ALLOCATING,       "Memory: Allocating" },
 	{ ST_FREEING,          "Memory: Freeing" },
 

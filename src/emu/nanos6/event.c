@@ -35,6 +35,8 @@ static const int ss_table[256][256][3] = {
 		['S'] = { CHSS, POP,  ST_SUSPEND },
 		['r'] = { CHSS, PUSH, ST_RESUME },
 		['R'] = { CHSS, POP,  ST_RESUME },
+		['g'] = { CHSS, PUSH, ST_SPONGE },
+		['G'] = { CHSS, POP,  ST_SPONGE },
 		['*'] = { CHSS, IGN,  -1 },
 	},
 	['P'] = {

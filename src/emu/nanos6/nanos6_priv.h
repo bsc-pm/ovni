@@ -49,6 +49,7 @@ enum nanos6_ss_state {
 	ST_MIGRATE,
 	ST_SUSPEND,
 	ST_RESUME,
+	ST_SPONGE,
 
 	/* Value 51 is broken in old Paraver */
 	EV_SCHED_RECV = 60,

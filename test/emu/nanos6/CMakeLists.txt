@@ -10,5 +10,6 @@ test_emu(ss-mismatch.c SHOULD_FAIL
   REGEX "thread [0-9]\\+ ended with 1 stacked nanos6 subsystems")
 test_emu(delayed-connect-ss.c)
 test_emu(switch-same-type.c)
+test_emu(sponge.c)
 
 test_emu(breakdown-no-black.c BREAKDOWN)

@@ -62,6 +62,8 @@ INSTR_0ARG(instr_nanos6_suspend_enter, "6Ws")
 INSTR_0ARG(instr_nanos6_suspend_exit, "6WS")
 INSTR_0ARG(instr_nanos6_resume_enter, "6Wr")
 INSTR_0ARG(instr_nanos6_resume_exit, "6WR")
+INSTR_0ARG(instr_nanos6_sponge_enter, "6Wg")
+INSTR_0ARG(instr_nanos6_sponge_exit, "6WG")
 INSTR_0ARG(instr_nanos6_signal, "6W*")
 
 INSTR_0ARG(instr_nanos6_submit_task_enter, "6U[")

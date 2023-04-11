@@ -234,10 +234,13 @@ cmp_loom_rank(struct loom *a, struct loom *b)
 static void
 sort_lpt(struct system *sys)
 {
-	if (sys->sort_by_rank)
+	if (sys->sort_by_rank) {
+		info("sorting looms by rank");
 		DL_SORT(sys->looms, cmp_loom_rank);
-	else
+	} else {
+		info("sorting looms by name");
 		DL_SORT(sys->looms, cmp_loom_id);
+	}
 
 	for (struct loom *l = sys->looms; l; l = l->next)
 		loom_sort(l);

@@ -106,6 +106,10 @@ INSTR_0ARG(instr_nanos6_alloc_exit, "6MA")
 INSTR_0ARG(instr_nanos6_free_enter, "6Mf")
 INSTR_0ARG(instr_nanos6_free_exit, "6MF")
 
+INSTR_0ARG(instr_nanos6_progressing, "6Pp")
+INSTR_0ARG(instr_nanos6_resting,     "6Pr")
+INSTR_0ARG(instr_nanos6_absorbing,   "6Pa")
+
 static inline void
 instr_nanos6_task_create_and_execute(int32_t id, uint32_t typeid)
 {

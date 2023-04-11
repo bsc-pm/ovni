@@ -55,7 +55,6 @@ static const char *chan_name[CH_MAX] = {
 static const int chan_stack[CH_MAX] = {
 	[CH_SUBSYSTEM] = 1,
 	[CH_THREAD] = 1,
-	[CH_IDLE] = 1,
 };
 
 static const int chan_dup[CH_MAX] = {
@@ -127,8 +126,9 @@ static const struct pcf_value_label nanos6_thread_type[] = {
 };
 
 static const struct pcf_value_label nanos6_worker_idle[] = {
-	{ ST_WORKER_IDLE,   "Idle" },
-	{ ST_WORKER_BUSY,   "Busy" },
+	{ ST_PROGRESSING,   "Progressing" },
+	{ ST_RESTING,       "Resting" },
+	{ ST_ABSORBING,     "Absorbing noise" },
 	{ -1, NULL },
 };
 
@@ -310,8 +310,8 @@ model_nanos6_connect(struct emu *emu)
 	for (struct thread *th = emu->system.threads; th; th = th->gnext) {
 		struct nanos6_thread *mth = EXT(th, model_id);
 		struct chan *idle = &mth->m.ch[CH_IDLE];
-		/* By default set all threads as Busy */
-		if (chan_push(idle, value_int64(ST_WORKER_BUSY)) != 0) {
+		/* By default set all threads as Progressing */
+		if (chan_set(idle, value_int64(ST_PROGRESSING)) != 0) {
 			err("chan_push idle failed");
 			return -1;
 		}
@@ -320,8 +320,8 @@ model_nanos6_connect(struct emu *emu)
 	for (struct cpu *cpu = emu->system.cpus; cpu; cpu = cpu->next) {
 		struct nanos6_cpu *mcpu = EXT(cpu, model_id);
 		struct mux *mux = &mcpu->m.track[CH_IDLE].mux;
-		/* Emit Idle when a CPU has no idle threads */
-		mux_set_default(mux, value_int64(ST_WORKER_IDLE));
+		/* Emit Resting when a CPU has no running threads */
+		mux_set_default(mux, value_int64(ST_RESTING));
 	}
 
 	memu->connected = 1;

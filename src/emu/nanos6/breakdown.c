@@ -142,12 +142,12 @@ select_idle(struct mux *mux, struct value value, struct mux_input **input)
 {
 	dbg("selecting tri output for value %s", value_str(value));
 
-	if (value.type == VALUE_INT64 && value.i == ST_WORKER_IDLE) {
-		dbg("selecting input 1 (idle)");
-		*input = mux_get_input(mux, 1);
-	} else {
+	if (value.type == VALUE_INT64 && value.i == ST_PROGRESSING) {
 		dbg("selecting input 0 (tr)");
 		*input = mux_get_input(mux, 0);
+	} else {
+		dbg("selecting input 1 (idle)");
+		*input = mux_get_input(mux, 1);
 	}
 
 	return 0;

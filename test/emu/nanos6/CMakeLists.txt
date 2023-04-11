@@ -11,5 +11,5 @@ test_emu(ss-mismatch.c SHOULD_FAIL
 test_emu(delayed-connect-ss.c)
 test_emu(switch-same-type.c)
 test_emu(sponge.c)
-
+test_emu(sponge-breakdown.c BREAKDOWN)
 test_emu(breakdown-no-black.c BREAKDOWN)

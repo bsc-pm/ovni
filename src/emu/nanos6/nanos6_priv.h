@@ -67,10 +67,11 @@ enum nanos6_thread_type {
 	ST_TH_EXTERNAL = 4,
 };
 
-enum nanos6_worker_idle {
+enum nanos6_progress {
 	/* Can mix with subsystem values */
-	ST_WORKER_IDLE = 100,
-	ST_WORKER_BUSY = 101,
+	ST_PROGRESSING = 100,
+	ST_RESTING,
+	ST_ABSORBING,
 };
 
 struct nanos6_thread {

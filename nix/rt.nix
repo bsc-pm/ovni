@@ -44,7 +44,6 @@ let
       gitBranch = "master";
       # Master at 2022-11-14
       #gitCommit = "a6f88173b7d849a453f35029cb0fbee73e8685da";
-      extrae = null;
     }).overrideAttrs (old: {
       buildInputs = old.buildInputs ++ [ last.ovniFixed ];
       configureFlags = old.configureFlags ++ [
@@ -92,7 +91,6 @@ let
       gitUrl = "ssh://git@gitlab-internal.bsc.es/nos-v/nodes.git";
       gitBranch = "master";
       #gitCommit = "8bfbc2dbd8b09b6578aa5c07e57bffedcf5568af";
-      extrae = null;
     }).overrideAttrs (old: {
       name = "nodes";
       configureFlags = old.configureFlags ++ [

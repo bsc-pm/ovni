@@ -14,6 +14,8 @@ add_compile_options(-Wall -Wextra -Wformat
   -Werror
 )
 
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_EXTENSIONS FALSE)

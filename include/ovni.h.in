@@ -4,6 +4,8 @@
 #ifndef OVNI_H
 #define OVNI_H
 
+#pragma GCC visibility push(default)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -170,5 +172,7 @@ void ovni_flush(void);
 #ifdef __cplusplus
 }
 #endif
+
+#pragma GCC visibility pop
 
 #endif /* OVNI_H */

@@ -66,14 +66,19 @@ target_link_libraries(ovnidump emu parson-static ovni-static)
 add_executable(ovnisort ovnisort.c)
 target_link_libraries(ovnisort emu parson-static ovni-static)
 
-# Use <PackageName>_ROOT variables if available, commonly used by MPI
-# installations
-if(POLICY CMP0074)
-  cmake_policy(SET CMP0074 NEW)
+set(USE_MPI ON CACHE BOOL "Use MPI (required by ovnisync)")
+if(USE_MPI)
+  # Use <PackageName>_ROOT variables if available, commonly used by MPI
+  # installations
+  if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+  endif()
+  find_package(MPI REQUIRED)
+  add_executable(ovnisync ovnisync.c)
+  target_link_libraries(ovnisync m MPI::MPI_C)
+  install(TARGETS ovnisync RUNTIME DESTINATION bin)
+else()
+  message(STATUS "Disabling ovnisync as MPI is disabled")
 endif()
 
-find_package(MPI REQUIRED)
-add_executable(ovnisync ovnisync.c)
-target_link_libraries(ovnisync m MPI::MPI_C)
-
-install(TARGETS ovniemu ovnidump ovnisync ovnisort RUNTIME DESTINATION bin)
+install(TARGETS ovniemu ovnidump ovnisort RUNTIME DESTINATION bin)

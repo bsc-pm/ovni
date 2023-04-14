@@ -155,6 +155,12 @@ let
         export NODES_HOME="${last.nodes}"
       '';
     });
+
+    ovni-nompi = last.ovni.overrideAttrs (old: {
+      buildInputs = pkgs.lib.filter (x: x != last.mpi ) old.buildInputs;
+      cmakeFlags = old.cmakeFlags ++ [ "-DUSE_MPI=OFF" ];
+    });
+
   });
 
 in

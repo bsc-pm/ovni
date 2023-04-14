@@ -80,7 +80,10 @@ This view shows the type of each thread:
 
 The idle view shows when CPUs become *Idle*. This state is displayed when no
 thread is *Running* in the CPU or when a worker is marked as Stalled (not making
-progress) such as when busy waiting but still *Running* in the CPU.
+progress) such as when busy waiting but still *Running* in the CPU. The CPUs can
+also be marked as *Absorbing noise*, when they are running a worker in the sponge
+mode, which leaves the CPU free to absorb noise from system processes and
+interruptions to avoid disruption in the other CPUs.
 
 In particular, a worker requesting a new task will become Stalled after entering
 the delegation lock and performing a complete iteration without receiving work.

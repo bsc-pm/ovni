@@ -70,12 +70,12 @@ task_execute(struct task_stack *stack, struct task *task)
 		return -1;
 	}
 
-	if (task->state != TASK_ST_CREATED) {
-		err("cannot execute task %u: state is not created", task->id);
+	if (task->state != TASK_ST_CREATED && task->state != TASK_ST_DEAD) {
+		err("cannot execute task %u: state is not created or dead", task->id);
 		return -1;
 	}
 
-	if (task->thread != NULL) {
+	if (task->thread != NULL && task->state != TASK_ST_DEAD) {
 		err("task already has a thread assigned");
 		return -1;
 	}

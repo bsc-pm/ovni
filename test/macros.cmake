@@ -53,7 +53,7 @@ function(unit_test source)
 endfunction(unit_test)
 
 function(ovni_test source)
-  set(switches MP SHOULD_FAIL SORT UNIT BREAKDOWN)
+  set(switches MP SHOULD_FAIL SORT UNIT BREAKDOWN DISABLED)
   set(single NPROC REGEX NAME)
   set(multi ENV)
 
@@ -155,4 +155,8 @@ function(ovni_test source)
       RUN_SERIAL TRUE
       ENVIRONMENT "${OVNI_TEST_ENV}"
       WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")
+
+  if(OVNI_TEST_DISABLED)
+    set_property(TEST "${OVNI_TEST_NAME}" PROPERTY DISABLED TRUE)
+  endif()
 endfunction(ovni_test)

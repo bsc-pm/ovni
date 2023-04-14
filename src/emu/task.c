@@ -70,12 +70,17 @@ task_execute(struct task_stack *stack, struct task *task)
 		return -1;
 	}
 
-	if (task->state != TASK_ST_CREATED && task->state != TASK_ST_DEAD) {
+	/* FIXME: To support the taskiter we need to transition from Dead to
+	 * Running again. For now we allow the transition until we have a proper
+	 * task state event. */
+	if (task->state == TASK_ST_DEAD) {
+		task->thread = NULL;
+	} else if (task->state != TASK_ST_CREATED) {
 		err("cannot execute task %u: state is not created or dead", task->id);
 		return -1;
 	}
 
-	if (task->thread != NULL && task->state != TASK_ST_DEAD) {
+	if (task->thread != NULL) {
 		err("task already has a thread assigned");
 		return -1;
 	}

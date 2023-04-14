@@ -58,6 +58,7 @@ loom_init_begin(struct loom *loom, const char *name)
 
 	set_hostname(loom->hostname, loom->name);
 	loom->id = loom->name;
+	loom->rank_min = INT_MAX;
 
 	cpu_init_begin(&loom->vcpu, -1, -1, 1);
 	cpu_set_loom(&loom->vcpu, loom);
@@ -212,12 +213,7 @@ loom_init_end(struct loom *loom)
 				err("process %s has no rank information", p->id);
 				return -1;
 			}
-
-			if (p->rank < loom->rank_min)
-				loom->rank_min = p->rank;
 		}
-	} else {
-		loom->rank_min = -1;
 	}
 
 	/* Populate cpus_array */
@@ -294,7 +290,6 @@ loom_add_proc(struct loom *loom, struct proc *proc)
 	/* Check previous ranks if any */
 	if (!loom->rank_enabled && proc->rank >= 0) {
 		loom->rank_enabled = 1;
-		loom->rank_min = INT_MAX;
 
 		for (struct proc *p = loom->procs; p; p = p->hh.next) {
 			if (p->rank < 0) {

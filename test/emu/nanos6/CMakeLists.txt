@@ -13,3 +13,8 @@ test_emu(switch-same-type.c)
 test_emu(sponge.c)
 test_emu(sponge-breakdown.c BREAKDOWN)
 test_emu(breakdown-no-black.c BREAKDOWN)
+
+# FIXME: Disabled to support the taskiter in NODES until we have more detailed
+# task states instrumentation.
+test_emu(rerun-task-bad.c DISABLED SHOULD_FAIL
+  REGEX "task_execute: cannot execute task [0-9]\\+: state is not created")

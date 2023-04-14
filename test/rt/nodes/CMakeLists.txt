@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 find_package(Nodes)
@@ -41,3 +41,4 @@ nodes_rt_test(../nanos6/nested-task.c NAME nested-task SORT)
 nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks SORT)
 nodes_rt_test(../nanos6/if0.c NAME if0 SORT)
 nodes_rt_test(../nanos6/sched-add.c NAME sched-add SORT)
+nodes_rt_test(taskiter.c SORT)

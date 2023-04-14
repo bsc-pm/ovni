@@ -482,22 +482,20 @@ init_offsets(struct system *sys, struct trace *trace)
 static int
 set_sort_criteria(struct system *sys)
 {
+	int some_have = 0;
+	int all_have = 1;
 	for (struct loom *l = sys->looms; l; l = l->next) {
-		if (l->rank_enabled) {
-			sys->sort_by_rank = 1;
-			break;
-		}
+		if (l->rank_enabled)
+			some_have = 1;
+		else
+			all_have = 0;
 	}
 
-	if (!sys->sort_by_rank)
-		return 0;
-
-	for (struct loom *l = sys->looms; l; l = l->next) {
-		if (!l->rank_enabled) {
-			err("missing rank for loom %s", l->id);
-			return -1;
-		}
-	}
+	/* Only sort by rank if all looms have the rank information */
+	if (all_have)
+		sys->sort_by_rank = 1;
+	else if (some_have)
+		warn("missing rank in some looms, cannot sort CPUs by rank");
 
 	return 0;
 }

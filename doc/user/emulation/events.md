@@ -142,7 +142,13 @@ KCI	Is back in the CPU due to a context switch
 6WS	Ends suspending the worker via suspend()
 6Wr	Begins resuming another worker via resume()
 6WR	Ends resuming another worker via resume()
+6Wg	Enters the sponge mode
+6WG	Exits the sponge mode
 6W*	Signals another thread to wake up (punctual event)
+
+6Pp	Set progress state to Progressing
+6Pr	Set progress state to Resting
+6Pa	Set progress state to Absorbing
 
 6U[	Starts to submit a task via submitTask()
 6U]	Ends the submission of a task via submitTask()

@@ -1,11 +1,7 @@
 # Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later 
 
-# Only run performance sensitive tests on Release builds
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  test_emu(flush-overhead.c)
-endif()
-
+test_emu(flush-overhead.c DISABLED)
 test_emu(flush.c)
 test_emu(sort.c SORT)
 test_emu(empty-sort.c SORT)

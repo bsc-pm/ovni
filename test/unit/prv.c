@@ -100,12 +100,15 @@ test_dup(const char *path)
 }
 
 static int
-count_prv_lines(FILE *f, int64_t time, int row0, long type, long value)
+count_prv_lines(char *fpath, int64_t time, int row0, long type, long value)
 {
 	int count = 0;
 	char line[1024];
 
-	rewind(f);
+	FILE *f = fopen(fpath, "r");
+
+	if (f == NULL)
+		die("fopen failed:");
 
 	while (fgets(line, 1024, f) != NULL) {
 		if (line[0] != '2')
@@ -128,33 +131,19 @@ count_prv_lines(FILE *f, int64_t time, int row0, long type, long value)
 		count++;
 	}
 
+	fclose(f);
+
 	return count;
 }
 
 static void
-test_skipdup(void)
+test_skipdup(char *fname)
 {
 	/* Test PRV_SKIPDUP flag (skip duplicates) */
-
-	size_t size = 1024;
-	char *buf = calloc(1, size);
-
-	if (buf == NULL)
-		die("calloc failed:");
-
-	FILE *wf = fmemopen(buf, size, "w");
+	FILE *wf = fopen(fname, "w");
 
 	if (wf == NULL)
 		die("fmemopen failed:");
-
-	FILE *rf = fmemopen(buf, size, "r");
-
-	if (rf == NULL)
-		die("fmemopen failed:");
-
-	/* Disable buffering */
-	setbuf(wf, NULL);
-	setbuf(rf, NULL);
 
 	int64_t time = 0;
 	long type = 100;
@@ -182,9 +171,10 @@ test_skipdup(void)
 
 	/* Propagate will emit the value into the PRV */
 	OK(bay_propagate(&bay));
+	fflush(wf);
 
 	/* Check for the line */
-	if (count_prv_lines(rf, time, 0, type, value) != 1)
+	if (count_prv_lines(fname, time, 0, type, value) != 1)
 		die("expected line not found or multiple matches");
 
 	/* Set the same value again, which shouldn't fail */
@@ -192,41 +182,25 @@ test_skipdup(void)
 
 	/* Propagate again, emitting the value */
 	OK(bay_propagate(&bay));
+	fflush(wf);
 
 	/* Ensure that we didn't write it again */
-	if (count_prv_lines(rf, time, 0, type, value) != 1)
+	if (count_prv_lines(fname, time, 0, type, value) != 1)
 		die("expected line not found or multiple matches");
 
 	fclose(wf);
-	fclose(rf);
 
 	err("OK");
 }
 
 static void
-test_emitdup(void)
+test_emitdup(char *fname)
 {
 	/* Test PRV_EMITDUP flag (emit duplicates) */
-
-	size_t size = 1024;
-	char *buf = calloc(1, size);
-
-	if (buf == NULL)
-		die("calloc failed:");
-
-	FILE *wf = fmemopen(buf, size, "w");
+	FILE *wf = fopen(fname, "w");
 
 	if (wf == NULL)
-		die("fmemopen failed:");
-
-	FILE *rf = fmemopen(buf, size, "r");
-
-	if (rf == NULL)
-		die("fmemopen failed:");
-
-	/* Disable buffering */
-	setbuf(wf, NULL);
-	setbuf(rf, NULL);
+		die("fopen failed:");
 
 	int64_t time = 0;
 	long type = 100;
@@ -254,9 +228,10 @@ test_emitdup(void)
 
 	/* Propagate will emit the value into the PRV */
 	OK(bay_propagate(&bay));
+	fflush(wf);
 
 	/* Check for the line */
-	if (count_prv_lines(rf, time, 0, type, value) != 1)
+	if (count_prv_lines(fname, time, 0, type, value) != 1)
 		die("expected line not found or multiple matches");
 
 	/* Set the same value again, which shouldn't fail */
@@ -264,13 +239,13 @@ test_emitdup(void)
 
 	/* Propagate again, emitting the value */
 	OK(bay_propagate(&bay));
+	fflush(wf);
 
 	/* Ensure that we write it again */
-	if (count_prv_lines(rf, time, 0, type, value) != 2)
+	if (count_prv_lines(fname, time, 0, type, value) != 2)
 		die("expected line not found or multiple matches");
 
 	fclose(wf);
-	fclose(rf);
 
 	err("OK");
 }
@@ -311,8 +286,8 @@ int main(void)
 
 	test_emit(fname);
 	test_dup(fname);
-	test_skipdup();
-	test_emitdup();
+	test_skipdup(fname);
+	test_emitdup(fname);
 	test_same_type(fname);
 
 	close(fd);

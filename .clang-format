@@ -21,6 +21,7 @@ BraceWrapping:
   BeforeElse: false
 ColumnLimit: 0
 ContinuationIndentWidth: 16
+Cpp11BracedListStyle: false
 IncludeBlocks: Preserve
 IndentCaseLabels: true
 IndentWidth: 8

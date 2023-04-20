@@ -7,6 +7,7 @@ BasedOnStyle: LLVM
 AlignAfterOpenBracket: DontAlign
 AlignConsecutiveAssignments: None
 AllowShortBlocksOnASingleLine: false
+AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: true
@@ -15,6 +16,7 @@ BreakBeforeBraces: Custom
 BreakConstructorInitializers: AfterColon
 BraceWrapping:
   AfterControlStatement: false
+  AfterEnum: false
   AfterFunction: true
   AfterStruct: false
   AfterUnion: false

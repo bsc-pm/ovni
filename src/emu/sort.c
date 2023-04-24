@@ -50,7 +50,7 @@ sort_replace(int64_t *arr, int64_t n, int64_t old, int64_t new)
 			;
 
 		/* Copy middle section replacing old */
-		for (; arr[i + 1] <= new && i < n - 1; i++)
+		for (; i < n - 1 && arr[i + 1] <= new; i++)
 			arr[i] = arr[i + 1];
 
 		/* Place new */
@@ -63,7 +63,7 @@ sort_replace(int64_t *arr, int64_t n, int64_t old, int64_t new)
 			;
 
 		/* Shift right to replace old */
-		for (; arr[i - 1] > new && i > 0; i--)
+		for (; i > 0 && arr[i - 1] > new; i--)
 			arr[i] = arr[i - 1];
 
 		/* Invariant: Either i == 0 or arr[i] <= new

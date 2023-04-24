@@ -4,13 +4,14 @@
 #include "emu_args.h"
 
 #include "common.h"
+#include "ovni.h"
 #include "path.h"
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
 
 static char progname[] = "ovniemu";
-static char version[] = "1.0.0";
+static char version[] = OVNI_LIB_VERSION;
 
 static void
 usage(void)

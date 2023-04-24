@@ -7,7 +7,7 @@ add_library(ovni SHARED ovni.c)
 target_link_libraries(ovni parson common)
 target_include_directories(ovni PUBLIC "${CMAKE_SOURCE_DIR}/include")
 set_target_properties(ovni PROPERTIES
-  VERSION 1.1.0
+  VERSION 1.2.0
   SOVERSION 1)
 
 add_library(ovni-static STATIC ovni.c)

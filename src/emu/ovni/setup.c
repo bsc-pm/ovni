@@ -40,7 +40,7 @@ static const int chan_stack[CH_MAX] = { 0 };
 
 /* ----------------- pvt ------------------ */
 
-static const int pvt_type[] = {
+static const int pvt_type[CH_MAX] = {
 	[CH_FLUSH] = PRV_OVNI_FLUSH,
 };
 

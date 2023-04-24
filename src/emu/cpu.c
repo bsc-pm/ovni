@@ -18,7 +18,7 @@
 #include "value.h"
 
 static const char chan_fmt[] = "cpu%ld.%s";
-static const char *chan_name[] = {
+static const char *chan_name[CPU_CHAN_MAX] = {
 	[CPU_CHAN_NRUN]  = "nrunning",
 	[CPU_CHAN_PID]   = "pid_running",
 	[CPU_CHAN_TID]   = "tid_running",
@@ -26,7 +26,7 @@ static const char *chan_name[] = {
 	[CPU_CHAN_THACT] = "th_active",
 };
 
-static int chan_type[] = {
+static int chan_type[CPU_CHAN_MAX] = {
 	[CPU_CHAN_PID]   = PRV_CPU_PID,
 	[CPU_CHAN_TID]   = PRV_CPU_TID,
 	[CPU_CHAN_NRUN]  = PRV_CPU_NRUN,
@@ -34,7 +34,7 @@ static int chan_type[] = {
 	[CPU_CHAN_THACT] = -1,
 };
 
-static long prv_flags[] = {
+static long prv_flags[CPU_CHAN_MAX] = {
 	[CPU_CHAN_NRUN] = PRV_ZERO,
 };
 

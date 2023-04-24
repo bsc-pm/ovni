@@ -46,7 +46,7 @@ static const int chan_stack[CH_MAX] = {
 
 /* ----------------- pvt ------------------ */
 
-static const int pvt_type[] = {
+static const int pvt_type[CH_MAX] = {
 	[CH_SUBSYSTEM] = PRV_NODES_SUBSYSTEM,
 };
 

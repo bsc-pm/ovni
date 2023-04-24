@@ -19,19 +19,19 @@
 struct proc;
 
 static const char chan_fmt[] = "thread%lu.%s";
-static const char *chan_name[] = {
+static const char *chan_name[TH_CHAN_MAX] = {
 	[TH_CHAN_CPU]   = "cpu_gindex",
 	[TH_CHAN_TID]   = "tid_active",
 	[TH_CHAN_STATE] = "state",
 };
 
-static const int chan_type[] = {
+static const int chan_type[TH_CHAN_MAX] = {
 	[TH_CHAN_CPU]   = PRV_THREAD_CPU,
 	[TH_CHAN_TID]   = PRV_THREAD_TID,
 	[TH_CHAN_STATE] = PRV_THREAD_STATE,
 };
 
-static const long prv_flags[] = {
+static const long prv_flags[TH_CHAN_MAX] = {
 	/* Add one to the zero-based cpu gindex */
 	[TH_CHAN_CPU] = PRV_NEXT,
 
@@ -40,7 +40,7 @@ static const long prv_flags[] = {
 	[TH_CHAN_STATE] = PRV_SKIPDUP,
 };
 
-static const char *pvt_name[] = {
+static const char *pvt_name[TH_CHAN_MAX] = {
 	[TH_CHAN_CPU]   = "Thread: CPU affinity",
 	[TH_CHAN_TID]   = "Thread: TID of the ACTIVE thread",
 	[TH_CHAN_STATE] = "Thread: thread state",

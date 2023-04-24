@@ -61,7 +61,7 @@ static const int chan_dup[CH_MAX] = {
 
 /* ----------------- pvt ------------------ */
 
-static const int pvt_type[] = {
+static const int pvt_type[CH_MAX] = {
 	[CH_TASKID]    = PRV_NOSV_TASKID,
 	[CH_TYPE]      = PRV_NOSV_TYPE,
 	[CH_APPID]     = PRV_NOSV_APPID,

@@ -21,6 +21,13 @@ build:rt-tests:
   script:
     - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.ovni-rt
 
+build:asan:
+  stage: build
+  tags:
+    - nix
+  script:
+    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.ovni-asan
+
 build:no-mpi:
   stage: build
   tags:

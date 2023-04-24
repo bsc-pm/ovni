@@ -161,6 +161,14 @@ let
       cmakeFlags = old.cmakeFlags ++ [ "-DUSE_MPI=OFF" ];
     });
 
+    ovni-asan = last.ovni-rt.overrideAttrs (old: {
+      cmakeFlags = old.cmakeFlags ++ [ "-DCMAKE_BUILD_TYPE=Asan" ];
+      # Ignore leaks in tests for now, only check memory errors
+      preCheck = old.preCheck + ''
+        export ASAN_OPTIONS=detect_leaks=0
+      '';
+    });
+
   });
 
 in

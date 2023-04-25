@@ -15,10 +15,9 @@ tracedir="${workdir}/ovni"
 emubin="${OVNI_BUILD_DIR}/ovniemu"
 sortbin="${OVNI_BUILD_DIR}/ovnisort"
 
+rm -rf "${workdir}"
 mkdir -p "${workdir}"
 cd "${workdir}"
-
-rm -rf "$tracedir"
 
 if [ -z "$OVNI_NPROCS" ]; then
   OVNI_NPROCS=1

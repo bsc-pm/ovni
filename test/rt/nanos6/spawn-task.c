@@ -8,6 +8,7 @@
 
 #include <nanos6.h>
 #include <nanos6/library-mode.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include "common.h"
@@ -41,12 +42,16 @@ polling_func(void *arg)
 int
 main(void)
 {
-	double T = 100.0;
+	double *T = malloc(sizeof(double));
+	if (T == NULL)
+		die("malloc failed:");
 
-	nanos6_spawn_function(polling_func, &T, NULL, NULL, "polling_task");
+	*T = 100.0;
+
+	nanos6_spawn_function(polling_func, T, NULL, NULL, "polling_task");
 
 	#pragma oss task label("dummy_task")
-	dummy_work(T);
+	dummy_work(*T);
 
 	#pragma oss taskwait
 

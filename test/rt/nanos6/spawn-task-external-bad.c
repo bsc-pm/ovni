@@ -10,8 +10,9 @@
 
 #include <nanos6.h>
 #include <nanos6/library-mode.h>
-#include <time.h>
 #include <pthread.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "common.h"
 
@@ -45,8 +46,7 @@ polling_func(void *arg)
 static void *
 spawn(void *arg)
 {
-	double ms = *((double *) arg);
-	nanos6_spawn_function(polling_func, &ms, NULL, NULL, "polling_task");
+	nanos6_spawn_function(polling_func, arg, NULL, NULL, "polling_task");
 	return NULL;
 }
 
@@ -54,7 +54,11 @@ int
 main(void)
 {
 	pthread_t th;
-	double T = 100.0;
+	double *T = malloc(sizeof(double));
+	if (T == NULL)
+		die("malloc failed:");
+
+	*T = 100.0;
 
 	if (pthread_create(&th, NULL, spawn, &T) != 0)
 		die("pthread_create failed:");
@@ -63,7 +67,7 @@ main(void)
 		die("pthread_join failed:");
 
 	#pragma oss task label("dummy_task")
-	dummy_work(T);
+	dummy_work(*T);
 
 	#pragma oss taskwait
 

@@ -18,6 +18,8 @@
 #include "compat.h"
 #include "ovni.h"
 
+volatile int complete = 0;
+
 static double
 get_time_ms(void)
 {
@@ -42,6 +44,13 @@ polling_func(void *arg)
 		dummy_work(1.0); /* 1 ms */
 		nanos6_wait_for(1000UL); /* 1 ms */
 	}
+}
+
+static void
+complete_func(void *arg)
+{
+	UNUSED(arg);
+	complete = 1;
 }
 
 static inline void
@@ -82,7 +91,8 @@ spawn(void *arg)
 	/* Inform ovni of this external thread */
 	instr_thread_start(-1, -1, 0);
 
-	nanos6_spawn_function(polling_func, arg, NULL, NULL, "polling_task");
+	nanos6_spawn_function(polling_func, arg,
+			complete_func, NULL, "polling_task");
 
 	/* Then inform that the thread finishes */
 	instr_thread_end();
@@ -110,6 +120,11 @@ main(void)
 	dummy_work(*T);
 
 	#pragma oss taskwait
+
+	while (!complete)
+		sleep_us(100);
+
+	free(T);
 
 	return 0;
 }

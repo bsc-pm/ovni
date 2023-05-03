@@ -15,6 +15,9 @@
 #include <time.h>
 
 #include "common.h"
+#include "compat.h"
+
+volatile int complete = 0;
 
 static double
 get_time_ms(void)
@@ -42,11 +45,19 @@ polling_func(void *arg)
 	}
 }
 
+static void
+complete_func(void *arg)
+{
+	UNUSED(arg);
+	complete = 1;
+}
+
 /* Call the nanos6_spawn_function from an external thread */
 static void *
 spawn(void *arg)
 {
-	nanos6_spawn_function(polling_func, arg, NULL, NULL, "polling_task");
+	nanos6_spawn_function(polling_func, arg,
+			complete_func, NULL, "polling_task");
 	return NULL;
 }
 
@@ -70,6 +81,11 @@ main(void)
 	dummy_work(*T);
 
 	#pragma oss taskwait
+
+	while (!complete)
+		sleep_us(100);
+
+	free(T);
 
 	return 0;
 }

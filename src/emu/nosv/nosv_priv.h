@@ -4,6 +4,7 @@
 #ifndef NOSV_PRIV_H
 #define NOSV_PRIV_H
 
+#include "breakdown.h"
 #include "emu.h"
 #include "task.h"
 #include "model_cpu.h"
@@ -18,6 +19,7 @@ enum nosv_chan {
 	CH_APPID,
 	CH_SUBSYSTEM,
 	CH_RANK,
+	CH_IDLE,
 	CH_MAX,
 };
 
@@ -56,10 +58,24 @@ struct nosv_thread {
 
 struct nosv_cpu {
 	struct model_cpu m;
+	struct nosv_breakdown_cpu breakdown;
 };
 
 struct nosv_proc {
 	struct task_info task_info;
+};
+
+struct nosv_emu {
+	int connected;
+	int event;
+	struct nosv_breakdown_emu breakdown;
+};
+
+enum nosv_progress {
+	/* Can mix with subsystem values */
+	ST_PROGRESSING = 100,
+	ST_RESTING,
+	ST_ABSORBING,
 };
 
 int model_nosv_probe(struct emu *emu);
@@ -67,5 +83,11 @@ int model_nosv_create(struct emu *emu);
 int model_nosv_connect(struct emu *emu);
 int model_nosv_event(struct emu *emu);
 int model_nosv_finish(struct emu *emu);
+
+int model_nosv_breakdown_create(struct emu *emu);
+int model_nosv_breakdown_connect(struct emu *emu);
+int model_nosv_breakdown_finish(struct emu *emu,
+		const struct pcf_value_label **labels);
+
 
 #endif /* NOSV_PRIV_H */

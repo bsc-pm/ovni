@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include "chan.h"
+#include "cpu.h"
 #include "common.h"
 #include "emu.h"
 #include "emu_args.h"
@@ -96,6 +97,7 @@ static const char *chan_name[CH_MAX] = {
 	[CH_APPID]     = "appid",
 	[CH_SUBSYSTEM] = "subsystem",
 	[CH_RANK]      = "rank",
+	[CH_IDLE]      = "idle",
 };
 
 static const int chan_stack[CH_MAX] = {
@@ -121,6 +123,7 @@ static const int pvt_type[CH_MAX] = {
 	[CH_APPID]     = PRV_NOSV_APPID,
 	[CH_SUBSYSTEM] = PRV_NOSV_SUBSYSTEM,
 	[CH_RANK]      = PRV_NOSV_RANK,
+	[CH_IDLE]      = PRV_NOSV_IDLE,
 };
 
 static const char *pcf_prefix[CH_MAX] = {
@@ -130,6 +133,7 @@ static const char *pcf_prefix[CH_MAX] = {
 	[CH_APPID]       = "nOS-V task AppID",
 	[CH_SUBSYSTEM]   = "nOS-V subsystem",
 	[CH_RANK]        = "nOS-V task MPI rank",
+	[CH_IDLE]        = "nOS-V idle state",
 };
 
 static const struct pcf_value_label nosv_ss_values[] = {
@@ -160,8 +164,16 @@ static const struct pcf_value_label nosv_ss_values[] = {
 	{ -1, NULL },
 };
 
+static const struct pcf_value_label nosv_worker_idle[] = {
+	{ ST_PROGRESSING,   "Progressing" },
+	{ ST_RESTING,       "Resting" },
+	{ ST_ABSORBING,     "Absorbing noise" },
+	{ -1, NULL },
+};
+
 static const struct pcf_value_label *pcf_labels[CH_MAX] = {
 	[CH_SUBSYSTEM] = nosv_ss_values,
+	[CH_IDLE]      = nosv_worker_idle,
 };
 
 static const long prv_flags[CH_MAX] = {
@@ -171,6 +183,7 @@ static const long prv_flags[CH_MAX] = {
 	[CH_APPID]     = PRV_SKIPDUPNULL, /* Switch to task of same appid */
 	[CH_SUBSYSTEM] = PRV_SKIPDUPNULL,
 	[CH_RANK]      = PRV_SKIPDUPNULL, /* Switch to task of same rank */
+	[CH_IDLE]      = PRV_SKIPDUPNULL,
 };
 
 static const struct model_pvt_spec pvt_spec = {
@@ -189,6 +202,7 @@ static const int th_track[CH_MAX] = {
 	[CH_APPID]     = TRACK_TH_RUN,
 	[CH_SUBSYSTEM] = TRACK_TH_ACT,
 	[CH_RANK]      = TRACK_TH_RUN,
+	[CH_IDLE]      = TRACK_TH_RUN,
 };
 
 static const int cpu_track[CH_MAX] = {
@@ -198,6 +212,7 @@ static const int cpu_track[CH_MAX] = {
 	[CH_APPID]     = TRACK_TH_RUN,
 	[CH_SUBSYSTEM] = TRACK_TH_RUN,
 	[CH_RANK]      = TRACK_TH_RUN,
+	[CH_IDLE]      = TRACK_TH_RUN,
 };
 
 /* ----------------- chan_spec ------------------ */
@@ -279,6 +294,19 @@ model_nosv_create(struct emu *emu)
 		}
 	}
 
+	struct nosv_emu *e = calloc(1, sizeof(struct nosv_emu));
+	if (e == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	extend_set(&emu->ext, model_id, e);
+
+	if (model_nosv_breakdown_create(emu) != 0) {
+		err("model_nosv_breakdown_create failed");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -293,6 +321,28 @@ model_nosv_connect(struct emu *emu)
 	if (model_cpu_connect(emu, &cpu_spec) != 0) {
 		err("model_cpu_connect failed");
 		return -1;
+	}
+
+	if (emu->args.breakdown && model_nosv_breakdown_connect(emu) != 0) {
+		err("model_nosv_breakdown_connect failed");
+		return -1;
+	}
+
+	for (struct thread *th = emu->system.threads; th; th = th->gnext) {
+		struct nosv_thread *mth = EXT(th, model_id);
+		struct chan *idle = &mth->m.ch[CH_IDLE];
+		/* By default set all threads as Progressing */
+		if (chan_set(idle, value_int64(ST_PROGRESSING)) != 0) {
+			err("chan_push idle failed");
+			return -1;
+		}
+	}
+
+	for (struct cpu *cpu = emu->system.cpus; cpu; cpu = cpu->next) {
+		struct nosv_cpu *mcpu = EXT(cpu, model_id);
+		struct mux *mux = &mcpu->m.track[CH_IDLE].mux;
+		/* Emit Resting when a CPU has no running threads */
+		mux_set_default(mux, value_int64(ST_RESTING));
 	}
 
 	return 0;
@@ -343,6 +393,10 @@ finish_pvt(struct emu *emu, const char *name)
 	struct pcf *pcf = pvt_get_pcf(pvt);
 	long typeid = pvt_type[CH_TYPE];
 	struct pcf_type *pcftype = pcf_find_type(pcf, typeid);
+	if (pcftype == NULL) {
+		err("cannot find %s pcf type %d", name, typeid);
+		return -1;
+	}
 
 	for (struct proc *p = sys->procs; p; p = p->gnext) {
 		struct nosv_proc *proc = EXT(p, model_id);
@@ -367,6 +421,11 @@ model_nosv_finish(struct emu *emu)
 
 	if (finish_pvt(emu, "cpu") != 0) {
 		err("finish_pvt cpu failed");
+		return -1;
+	}
+
+	if (model_nosv_breakdown_finish(emu, pcf_labels) != 0) {
+		err("model_nosv_breakdown_finish failed");
 		return -1;
 	}
 

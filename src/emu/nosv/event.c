@@ -16,7 +16,7 @@
 #include "thread.h"
 #include "value.h"
 
-enum { PUSH = 1, POP = 2, IGN = 3 };
+enum { PUSH = 1, POP = 2, SET = 3, IGN = 4 };
 
 #define CHSS CH_SUBSYSTEM
 
@@ -77,6 +77,11 @@ static const int ss_table[256][256][3] = {
 		['d'] = { CHSS, PUSH, ST_DELEGATE },
 		['D'] = { CHSS, POP,  ST_DELEGATE },
 	},
+	['P'] = {
+		['p'] = { CH_IDLE, SET, ST_PROGRESSING },
+		['r'] = { CH_IDLE, SET, ST_RESTING },
+		['a'] = { CH_IDLE, SET, ST_ABSORBING },
+	},
 };
 
 static int
@@ -94,6 +99,8 @@ simple(struct emu *emu)
 		return chan_push(ch, value_int64(st));
 	} else if (action == POP) {
 		return chan_pop(ch, value_int64(st));
+	} else if (action == SET) {
+		return chan_set(ch, value_int64(st));
 	} else if (action == IGN) {
 		return 0; /* do nothing */
 	} else {
@@ -574,6 +581,7 @@ process_ev(struct emu *emu)
 		case 'M':
 		case 'H':
 		case 'A':
+		case 'P':
 			return simple(emu);
 		case 'T':
 			return pre_task(emu);

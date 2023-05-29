@@ -66,6 +66,9 @@ target_link_libraries(ovnidump emu parson-static ovni-static)
 add_executable(ovnisort ovnisort.c)
 target_link_libraries(ovnisort emu parson-static ovni-static)
 
+add_executable(ovnitop ovnitop.c)
+target_link_libraries(ovnitop emu parson-static ovni-static)
+
 set(USE_MPI ON CACHE BOOL "Use MPI (required by ovnisync)")
 if(USE_MPI)
   # Use <PackageName>_ROOT variables if available, commonly used by MPI
@@ -81,4 +84,4 @@ else()
   message(STATUS "Disabling ovnisync as MPI is disabled")
 endif()
 
-install(TARGETS ovniemu ovnidump ovnisort RUNTIME DESTINATION bin)
+install(TARGETS ovniemu ovnidump ovnisort ovnitop RUNTIME DESTINATION bin)

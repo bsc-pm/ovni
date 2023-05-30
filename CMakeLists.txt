@@ -19,6 +19,7 @@ set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(CMAKE_C_EXTENSIONS FALSE)
 
 option(ENABLE_DEBUG_LOG "Enable debug messages (very verbose)")
+option(ENABLE_ALL_TESTS "Forces the execution of all tests")
 
 if(ENABLE_DEBUG_LOG)
   add_definitions(-DENABLE_DEBUG)

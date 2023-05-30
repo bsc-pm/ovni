@@ -82,6 +82,7 @@ let
         last.nodes
         pkgs.strace
       ];
+      cmakeFlags = old.cmakeFlags ++ [ "-DENABLE_ALL_TESTS=ON" ];
       preConfigure = old.preConfigure + ''
         export NODES_HOME="${last.nodes}"
         export NANOS6_HOME="${last.nanos6}"

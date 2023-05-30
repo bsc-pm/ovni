@@ -82,7 +82,7 @@ let
         last.nodes
         pkgs.strace
       ];
-      preConfigure = ''
+      preConfigure = old.preConfigure + ''
         export NODES_HOME="${last.nodes}"
         export NANOS6_HOME="${last.nanos6}"
       '';

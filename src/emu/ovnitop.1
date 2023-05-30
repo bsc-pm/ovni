@@ -1,0 +1,67 @@
+.Dd May 30, 2023
+.Dt OVNITOP 1
+.Os
+.Sh NAME
+.Nm ovnitop
+.Nd show ocurrences of each event in an ovni trace
+.Sh SYNOPSIS
+.Nm ovnitop
+.Ar tracedir
+.Sh DESCRIPTION
+The
+.Nm
+program reads the events contained in the trace given by
+.Ar tracedir ,
+counts the occurrence of each event and displays the result in
+decreasing order (showing the most common events first).
+.Pp
+The output contains one event per line, with the MCV (model, category
+and value) of the event and the occurrence count.
+.Sh EXIT STATUS 
+.Ex -std
+.Sh EXAMPLES
+Show the top five events in a trace:
+.Bd -literal
+% ovnitop ovni | head -5
+ovnitop: INFO: loaded 175 streams
+ovnitop: INFO: 100.0% done at avg 3019 kev/s
+ovnitop: INFO: processed 23836213 input events in 7.90 s
+OHp    1391787
+OHr    1391787
+6W*    1339094
+6WR    1339094
+6WS    1339094
+.Ed
+.Pp
+Use
+.Xr column 1
+to format the output in columns to ease the reading when
+there are lots of events.
+.Bd -literal
+% ovnitop ovni | column -c72
+ovnitop: INFO: loaded 175 streams
+ovnitop: INFO: 100.0% done at avg 3019 kev/s
+ovnitop: INFO: processed 23836213 input events in 7.90 s
+OHp    1391787	6SP     658916	6Tx       2696	6W[        167
+OHr    1391787	6Sp     658916	6U[       2696	6W]        167
+6W*    1339094	6Tp     657638	6U]       2696	6Yc         72
+6WR    1339094	6Tr     657638	6WT       2696	6BB         21
+6WS    1339094	6BF     657609	6Wt       2696	6BU         21
+6Wr    1339094	6Bf     657609	6t[       2696	6Bb         21
+6Ws    1339094	6S[     399940	6t]       2696	6Bu         21
+OHc    1339094	6S]     399940	6DR       2688	6BW          8
+6WW    1338927	6S@     399849	6Dr       2688	6Bw          8
+6Ww    1338927	6Sr     259260	OB.        400	6F[          8
+6MA     662501	6Ss     259260	OF[        241	6F]          8
+6MF     662501	6C[       2696	OF]        241	6HL          4
+6Ma     662501	6C]       2696	OHe        175	6HM          4
+6Mf     662501	6DU       2696	OHx        175	6Hl          4
+6SA     660606	6Du       2696	OHC        171	6Hm          4
+6Sa     660606	6Tc       2696	6HW        167
+OAr     659731	6Te       2696	6Hw        167
+.Ed
+.Sh SEE ALSO
+.Xr ovniemu 1
+.Xr column 1
+.Sh AUTHORS
+.An "Rodrigo Arias Mallo" Aq Mt "rodrigo.arias@bsc.es"

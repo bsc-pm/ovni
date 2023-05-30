@@ -85,3 +85,4 @@ else()
 endif()
 
 install(TARGETS ovniemu ovnidump ovnisort ovnitop RUNTIME DESTINATION bin)
+install(FILES ovnitop.1 TYPE MAN)

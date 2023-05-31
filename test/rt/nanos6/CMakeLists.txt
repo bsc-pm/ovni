@@ -1,11 +1,8 @@
 # Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-find_package(Nanos6)
-
-include(CheckCCompilerFlag)
-check_c_compiler_flag("-fompss-2" HAVE_FOMPSS2_FLAG)
-if(NOT HAVE_FOMPSS2_FLAG)
+include(CheckOmpSs2Compiler)
+if(NOT OMPSS2_COMPILER_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "Compiler doesn't support -fompss-2 flag, cannot enable Nanos6 RT tests")
   else()
@@ -14,6 +11,7 @@ if(NOT HAVE_FOMPSS2_FLAG)
   return()
 endif()
 
+find_package(Nanos6)
 if(NOT NANOS6_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "Nanos6 not found, cannot enable Nanos6 RT tests")
@@ -32,9 +30,8 @@ function(nanos6_rt_test)
   cmake_parse_arguments(
     NANOS6_TEST "${switches}" "${single}" "${multi}" ${ARGN})
   ovni_test(${ARGN})
-  target_compile_options("${OVNI_TEST_NAME}" PUBLIC "-fompss-2")
-  target_link_options("${OVNI_TEST_NAME}" PUBLIC "-fompss-2")
-  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE Nanos6::nanos6)
+  target_compile_options("${OVNI_TEST_NAME}" PUBLIC "-fompss-2=libnanos6")
+  target_link_options("${OVNI_TEST_NAME}" PUBLIC "-fompss-2=libnanos6")
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "NANOS6_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nanos6/nanos6.toml")
   if(NANOS6_TEST_LEVEL)

@@ -1,11 +1,8 @@
 # Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-find_package(Nodes)
-
-include(CheckCCompilerFlag)
-check_c_compiler_flag("-fompss-2" HAVE_FOMPSS2_FLAG)
-if(NOT HAVE_FOMPSS2_FLAG)
+include(CheckOmpSs2Compiler)
+if(NOT OMPSS2_COMPILER_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "Compiler doesn't support -fompss-2 flag, cannot enable NODES RT tests")
   else()
@@ -14,6 +11,7 @@ if(NOT HAVE_FOMPSS2_FLAG)
   return()
 endif()
 
+find_package(Nodes)
 if(NOT NODES_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "NODES not found, cannot enable NODES RT tests")
@@ -28,14 +26,8 @@ endif()
 function(nodes_rt_test)
   ovni_test(${ARGN})
 
-  target_compile_options("${OVNI_TEST_NAME}" PUBLIC
-    "-fompss-2" "-fdo-not-use-nanos6")
-
-  target_link_options("${OVNI_TEST_NAME}" PUBLIC
-    "-fompss-2" "-fdo-not-use-nanos6" "-z" "lazy"
-    "-rpath" "${NODES_HOME}/lib")
-
-  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE Nodes::nodes Nodes::wrapper)
+  target_compile_options("${OVNI_TEST_NAME}" PUBLIC "-fompss-2=libnodes")
+  target_link_options("${OVNI_TEST_NAME}" PUBLIC "-fompss-2=libnodes")
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "NANOS6_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nodes/nanos6.toml")
 

@@ -61,6 +61,12 @@ report(void)
 
 	for (struct entry *e = table; e; e = e->hh.next)
 		printf("%s %10ld\n", e->mcv, e->count);
+
+	struct entry *e, *tmp;
+	HASH_ITER(hh, table, e, tmp) {
+		HASH_DEL(table, e);
+		free(e);
+	}
 }
 
 static void

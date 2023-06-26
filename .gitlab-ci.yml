@@ -19,39 +19,39 @@ build:rt-tests:
   tags:
     - nix
   script:
-    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.ovni-rt
+    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.ovni-rt
 
 build:asan:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.ovni-asan
+    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.ovni-asan
 
 build:no-mpi:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.ovni-nompi
+    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.ovni-nompi
 
 build:old-gcc:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnis
+    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnis
 
 build:old-gcc-no-lto:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnisNoLTO
+    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnisNoLTO
 
 build:old-gcc-release:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnisRelease
+    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnisRelease

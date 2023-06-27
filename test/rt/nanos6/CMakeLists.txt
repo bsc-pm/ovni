@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 include(CheckOmpSs2Compiler)
@@ -46,6 +46,7 @@ nanos6_rt_test(several-tasks.c)
 nanos6_rt_test(sched-add.c)
 nanos6_rt_test(if0.c)
 #nanos6_rt_test(taskfor.c) #Taskfor no longer supported
+nanos6_rt_test(taskloop.c)
 nanos6_rt_test(spawn-task.c)
 nanos6_rt_test(spawn-task-external.c)
 nanos6_rt_test(spawn-task-external-bad.c SHOULD_FAIL

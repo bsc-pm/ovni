@@ -1,0 +1,8 @@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+
+Name: ovni
+Description: Obtuse but Versatile Nanoscale Instrumentation
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lovni
+Cflags: -I${includedir}

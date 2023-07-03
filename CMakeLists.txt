@@ -36,6 +36,12 @@ include(GNUInstallDirs)
 set(OVNI_CONFIG_RELDIR "${CMAKE_INSTALL_DATADIR}/ovni")
 set(OVNI_CONFIG_DIR "${CMAKE_INSTALL_PREFIX}/${OVNI_CONFIG_RELDIR}")
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/ovni.pc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/ovni.pc
+  @ONLY
+)
+
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_available OUTPUT error LANGUAGES C)
 
@@ -96,3 +102,7 @@ if(BUILD_TESTING)
 endif()
 
 install(DIRECTORY cfg/ DESTINATION "${OVNI_CONFIG_RELDIR}")
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/ovni.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+)

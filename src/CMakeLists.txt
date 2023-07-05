@@ -17,8 +17,12 @@ target_include_directories(parson-static PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 add_library(common-static STATIC common.c compat.c)
 target_include_directories(common-static PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-configure_file("config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h" )
+configure_file("config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+configure_file("ovni.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/ovni.pc" @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ovni.pc
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 add_subdirectory(rt)
 add_subdirectory(emu)

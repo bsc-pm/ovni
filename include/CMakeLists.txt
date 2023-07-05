@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-install(FILES ovni.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

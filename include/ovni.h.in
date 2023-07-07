@@ -34,7 +34,7 @@ typedef struct json_value_t JSON_Value;
 #define OVNI_STREAM_EXT ".obs"
 
 /* Follow https://semver.org rules for versioning */
-#define OVNI_LIB_VERSION "1.2.0"
+#define OVNI_LIB_VERSION "@PROJECT_VERSION@"
 
 /* ----------------------- common ------------------------ */
 

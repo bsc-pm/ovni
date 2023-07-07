@@ -56,6 +56,7 @@ add_library(emu STATIC
   kernel/setup.c
   kernel/event.c
 )
+target_link_libraries(emu ovni-static)
 
 add_executable(ovniemu ovniemu.c)
 target_link_libraries(ovniemu emu parson-static ovni-static)
@@ -78,7 +79,7 @@ if(USE_MPI)
   endif()
   find_package(MPI REQUIRED)
   add_executable(ovnisync ovnisync.c)
-  target_link_libraries(ovnisync m MPI::MPI_C)
+  target_link_libraries(ovnisync ovni-static m MPI::MPI_C)
   install(TARGETS ovnisync)
 else()
   message(STATUS "Disabling ovnisync as MPI is disabled")

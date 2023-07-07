@@ -8,4 +8,4 @@ target_include_directories(instr-static
   PRIVATE "${CMAKE_SOURCE_DIR}/src/include"
   PRIVATE "${CMAKE_SOURCE_DIR}/include"
 )
-target_link_libraries(ovni-static parson-static common-static)
+target_link_libraries(instr-static ovni-static parson-static common-static)

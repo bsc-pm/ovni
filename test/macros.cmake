@@ -115,7 +115,7 @@ function(ovni_test source)
 
   add_executable("${OVNI_TEST_NAME}" "${OVNI_TEST_SOURCE}")
 
-  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni emu)
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE ovni-static emu)
 
   set(driver "${OVNI_TEST_SOURCE_DIR}/ovni-driver.sh")
 

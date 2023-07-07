@@ -31,9 +31,11 @@ function(nodes_rt_test)
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "NANOS6_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nodes/nanos6.toml")
 
-  set_property(TEST "${OVNI_TEST_NAME}" APPEND
-    PROPERTY
-      ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nodes/nosv.toml")
+  set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
+    ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nodes/nosv.toml")
+
+  set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
+    ENVIRONMENT "NODES_OVNI=1")
 endfunction()
 
 nodes_rt_test(../nanos6/simple-task.c NAME simple-task SORT)

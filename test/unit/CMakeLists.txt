@@ -1,6 +1,10 @@
 # Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+function(unit_test)
+  ovni_test(${ARGN} NOEMU)
+endfunction()
+
 #unit_test(bay-hash-speed.c)
 unit_test(bay.c)
 unit_test(cfg.c)

@@ -10,7 +10,7 @@ fi
 
 dir=$(readlink -f "${OVNI_CURRENT_DIR}")
 testname="$dir/$1"
-workdir="${testname}.trace"
+workdir="${testname}.dir"
 tracedir="${workdir}/ovni"
 emubin="${OVNI_BUILD_DIR}/ovniemu"
 sortbin="${OVNI_BUILD_DIR}/ovnisort"
@@ -37,8 +37,10 @@ if [ -n "$OVNI_DO_SORT" ]; then
   "$sortbin" "$tracedir"
 fi
 
-# Then launch the emulator in lint mode
-"$emubin" $OVNI_EMU_ARGS -l "$tracedir"
+if [ -z "$OVNI_NOEMU" ]; then
+  # Then launch the emulator in lint mode
+  "$emubin" $OVNI_EMU_ARGS -l "$tracedir"
+fi
 
 # Run any post script that was generated
 ls -1 *.sh | while read sh; do

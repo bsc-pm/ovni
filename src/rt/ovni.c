@@ -39,16 +39,14 @@ void ovni_version_check_str(const char *version)
 
 	/* Match the major */
 	if (provided[0] != expected[0]) {
-		die("ovni major version mismatch: found %d (%s), expected %d (%s)",
-				provided[0], version,
-				expected[0], OVNI_LIB_VERSION);
+		die("incompatible ovni major version: wants %s, got %s",
+				version, OVNI_LIB_VERSION);
 	}
 
 	/* Only fail if the minor is newer */
 	if (provided[1] > expected[1]) {
-		die("ovni minor version too new: found %d (%s), expected %d (%s)",
-				provided[1], version,
-				expected[1], OVNI_LIB_VERSION);
+		die("incompatible ovni minor version: wants %s, got %s",
+				version, OVNI_LIB_VERSION);
 	}
 
 	/* Ignore the patch number */

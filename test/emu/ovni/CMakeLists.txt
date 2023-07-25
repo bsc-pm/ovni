@@ -11,7 +11,7 @@ test_emu(sort-first-and-full-ring.c SORT
 test_emu(burst-stats.c REGEX "burst stats: median/avg/max =  33/ 33/ 33 ns")
 test_emu(mp-simple.c MP)
 test_emu(version-good.c)
-test_emu(version-bad.c SHOULD_FAIL REGEX "version mismatch")
+test_emu(version-bad.c SHOULD_FAIL REGEX "incompatible .* version")
 test_emu(clockgate.c MP SHOULD_FAIL REGEX "detected large clock gate")
 test_emu(no-cpus.c SHOULD_FAIL REGEX "loom .* has no physical CPUs")
 test_emu(sort-cpus-by-loom.c MP)

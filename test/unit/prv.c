@@ -278,19 +278,13 @@ test_same_type(const char *path)
 
 int main(void)
 {
-	/* Create temporary trace file */
-	char fname[] = "/tmp/ovni.prv.XXXXXX";
-	int fd = mkstemp(fname);
-	if (fd < 0)
-		die("mkstemp failed:");
+	char fname[] = "ovni.prv";
 
 	test_emit(fname);
 	test_dup(fname);
 	test_skipdup(fname);
 	test_emitdup(fname);
 	test_same_type(fname);
-
-	close(fd);
 
 	return 0;
 }

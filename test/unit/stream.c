@@ -5,14 +5,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include "common.h"
 #include "emu/stream.h"
 #include "ovni.h"
 #include "unittest.h"
 
 static void
-test_ok(char *fname)
+test_ok(void)
 {
+	const char *fname = "stream-ok.obs";
 	FILE *f = fopen(fname, "w");
 
 	if (f == NULL)
@@ -29,8 +31,7 @@ test_ok(char *fname)
 	fclose(f);
 
 	struct stream stream;
-	const char *relpath = &fname[5];
-	OK(stream_load(&stream, "/tmp", relpath));
+	OK(stream_load(&stream, ".", fname));
 
 	if (stream.active)
 		die("stream is active");
@@ -39,8 +40,9 @@ test_ok(char *fname)
 }
 
 static void
-test_bad(char *fname)
+test_bad(void)
 {
+	const char *fname = "stream-bad.obs";
 	FILE *f = fopen(fname, "w");
 
 	if (f == NULL)
@@ -57,24 +59,15 @@ test_bad(char *fname)
 	fclose(f);
 
 	struct stream stream;
-	const char *relpath = &fname[5];
-	ERR(stream_load(&stream, "/tmp", relpath));
+	ERR(stream_load(&stream, ".", fname));
 
 	err("OK");
 }
 
 int main(void)
 {
-	/* Create temporary trace file */
-	char fname[] = "/tmp/ovni.stream.XXXXXX";
-	int fd = mkstemp(fname);
-	if (fd < 0)
-		die("mkstemp failed:");
-
-	test_ok(fname);
-	test_bad(fname);
-
-	close(fd);
+	test_ok();
+	test_bad();
 
 	return 0;
 }

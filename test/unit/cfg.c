@@ -10,19 +10,12 @@
 
 int main(void)
 {
-	char dir[] = "/tmp/ovni.trace.XXXXXX";
-	if (mkdtemp(dir) == NULL)
-		die("mkdtemp failed:");
-
-	if (cfg_generate(dir) != 0)
+	if (cfg_generate(".") != 0)
 		die("cfg_generate failed");
 
 	/* Check that one configuration file is present */
-	char cfg[PATH_MAX];
-	sprintf(cfg, "%s/cfg/cpu/ovni/pid.cfg", dir);
-
 	struct stat st;
-	if (stat(cfg, &st) != 0)
+	if (stat("cfg/cpu/ovni/pid.cfg", &st) != 0)
 		die("stat failed");
 
 	return 0;

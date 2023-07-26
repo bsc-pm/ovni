@@ -70,6 +70,9 @@ target_link_libraries(ovnisort emu parson-static ovni-static)
 add_executable(ovnitop ovnitop.c)
 target_link_libraries(ovnitop emu parson-static ovni-static)
 
+add_executable(ovniver ovniver.c)
+target_link_libraries(ovniver ovni)
+
 set(USE_MPI ON CACHE BOOL "Use MPI (required by ovnisync)")
 if(USE_MPI)
   # Use <PackageName>_ROOT variables if available, commonly used by MPI
@@ -85,5 +88,5 @@ else()
   message(STATUS "Disabling ovnisync as MPI is disabled")
 endif()
 
-install(TARGETS ovniemu ovnidump ovnisort ovnitop)
+install(TARGETS ovniemu ovnidump ovnisort ovnitop ovniver)
 install(FILES ovnitop.1 DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")

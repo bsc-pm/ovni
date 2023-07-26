@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add `ovni_version_get()` function.
+- Add the `ovniver` program to report the `libovni.so` version.
 
 ## [1.2.2] - 2022-07-26
 

@@ -4,10 +4,12 @@
 #define _XOPEN_SOURCE 500
 
 #include "trace.h"
+#include <dirent.h>
 #include <ftw.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include "ovni.h"
 #include "path.h"
 #include "stream.h"
@@ -122,6 +124,18 @@ trace_load(struct trace *trace, const char *tracedir)
 
 	if (snprintf(trace->tracedir, PATH_MAX, "%s", tracedir) >= PATH_MAX) {
 		err("path too long: %s", tracedir);
+		return -1;
+	}
+
+	/* Try to open the directory to catch permission errors */
+	DIR *dir = opendir(tracedir);
+	if (dir == NULL) {
+		err("cannot open \"%s\":", tracedir);
+		return -1;
+	}
+
+	if (closedir(dir) != 0) {
+		err("closedir failed:");
 		return -1;
 	}
 

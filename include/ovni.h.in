@@ -129,6 +129,7 @@ struct ovni_rproc {
 
 #define ovni_version_check() ovni_version_check_str(OVNI_LIB_VERSION)
 void ovni_version_check_str(const char *version);
+const char *ovni_version_get(void);
 
 void ovni_proc_init(int app, const char *loom, int pid);
 

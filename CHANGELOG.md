@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `ovni_version_get()` function.
+
 ## [1.2.2] - 2022-07-26
 
 ### Added

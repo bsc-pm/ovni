@@ -23,6 +23,12 @@ struct ovni_rproc rproc = {0};
 /* Data per thread */
 _Thread_local struct ovni_rthread rthread = {0};
 
+const char *
+ovni_version_get(void)
+{
+	return OVNI_LIB_VERSION;
+}
+
 void ovni_version_check_str(const char *version)
 {
 	if (version == NULL)

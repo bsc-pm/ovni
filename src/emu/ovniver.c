@@ -7,8 +7,12 @@
 int
 main(void)
 {
-	printf("libovni version compiled %s, dynamic %s\n",
-			OVNI_LIB_VERSION, ovni_version_get());
+	const char *version, *commit;
+	ovni_version_get(&version, &commit);
+
+	printf("libovni: build v%s (%s), dynamic v%s (%s)\n",
+			OVNI_LIB_VERSION, OVNI_GIT_COMMIT,
+			version, commit);
 
 	return 0;
 }

@@ -22,6 +22,11 @@ set(CMAKE_C_EXTENSIONS FALSE)
 
 option(ENABLE_DEBUG_LOG "Enable debug messages (very verbose)")
 option(ENABLE_ALL_TESTS "Forces the execution of all tests")
+set(OVNI_GIT_COMMIT "unknown" CACHE STRING "Set the git commit")
+
+if("${OVNI_GIT_COMMIT}" STREQUAL "unknown")
+  message(WARNING "OVNI_GIT_COMMIT is unknown, please specify the git commit")
+endif()
 
 if(ENABLE_DEBUG_LOG)
   add_definitions(-DENABLE_DEBUG)

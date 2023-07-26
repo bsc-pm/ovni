@@ -23,10 +23,11 @@ struct ovni_rproc rproc = {0};
 /* Data per thread */
 _Thread_local struct ovni_rthread rthread = {0};
 
-const char *
-ovni_version_get(void)
+void
+ovni_version_get(const char **version, const char **commit)
 {
-	return OVNI_LIB_VERSION;
+	*version = OVNI_LIB_VERSION;
+	*commit = OVNI_GIT_COMMIT;
 }
 
 void ovni_version_check_str(const char *version)

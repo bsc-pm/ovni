@@ -37,6 +37,7 @@ typedef struct json_value_t JSON_Value;
 
 /* Follow https://semver.org rules for versioning */
 #define OVNI_LIB_VERSION "@PROJECT_VERSION@"
+#define OVNI_GIT_COMMIT  "@OVNI_GIT_COMMIT@"
 
 /* ----------------------- common ------------------------ */
 
@@ -129,7 +130,7 @@ struct ovni_rproc {
 
 #define ovni_version_check() ovni_version_check_str(OVNI_LIB_VERSION)
 void ovni_version_check_str(const char *version);
-const char *ovni_version_get(void);
+void ovni_version_get(const char **version, const char **commit);
 
 void ovni_proc_init(int app, const char *loom, int pid);
 

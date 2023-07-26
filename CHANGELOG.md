@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2022-07-26
+
 ### Added
 
 - Add this CHANGELOG.md file to keep track of changes.
@@ -110,6 +112,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://pm.bsc.es/gitlab/rarias/ovni/-/commits/master
+[1.2.2]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.2
 [1.2.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.1
 [1.2.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.0
 [1.1.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.1.0

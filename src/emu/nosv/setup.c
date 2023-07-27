@@ -83,7 +83,7 @@ static const struct pcf_value_label nosv_ss_values[] = {
 	{ ST_SCHED_SUBMITTING, "Scheduler: Submitting" },
 	{ ST_MEM_ALLOCATING,   "Memory: Allocating" },
 	{ ST_MEM_FREEING,      "Memory: Freeing" },
-	{ ST_TASK_RUNNING,     "Task: Running" },
+	{ ST_TASK_BODY,        "Task: In body" },
 	{ ST_API_CREATE,       "API: Create" },
 	{ ST_API_DESTROY,      "API: Destroy" },
 	{ ST_API_SUBMIT,       "API: Submit" },

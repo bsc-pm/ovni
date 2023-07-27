@@ -120,11 +120,6 @@ chan_task_stopped(struct emu *emu)
 		}
 	}
 
-	if (chan_pop(&ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
-		err("chan_pop subsystem failed");
-		return -1;
-	}
-
 	return 0;
 }
 
@@ -167,16 +162,12 @@ chan_task_running(struct emu *emu, struct task *task)
 			return -1;
 		}
 	}
-	if (chan_push(&ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
-		err("chan_push subsystem failed");
-		return -1;
-	}
 
 	return 0;
 }
 
 static int
-chan_task_switch(struct emu *emu, struct task *prev, struct task *next, char tr)
+chan_task_switch(struct emu *emu, struct task *prev, struct task *next)
 {
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct chan *ch = th->m.ch;
@@ -223,20 +214,6 @@ chan_task_switch(struct emu *emu, struct task *prev, struct task *next, char tr)
 		struct value vrank = value_int64(proc->rank + 1);
 		if (chan_set(&ch[CH_RANK], vrank) != 0) {
 			err("chan_set rank failed");
-			return -1;
-		}
-	}
-
-	/* Update the subsystem depending if we are pushing (X) or
-	 * poping (E) a task from the stack */
-	if (tr == 'X') {
-		if (chan_push(&ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
-			err("chan_push subsystem failed");
-			return -1;
-		}
-	} else if (tr == 'E') {
-		if (chan_pop(&ch[CH_SUBSYSTEM], value_int64(ST_TASK_RUNNING)) != 0) {
-			err("chan_pop subsystem failed");
 			return -1;
 		}
 	}
@@ -331,7 +308,7 @@ update_task_channels(struct emu *emu, char tr, struct task *prev, struct task *n
 			/* Additional nested transitions */
 		case 'X':
 		case 'E':
-			ret = chan_task_switch(emu, prev, next, tr);
+			ret = chan_task_switch(emu, prev, next);
 			break;
 		default:
 			err("unexpected transition value %c", tr);
@@ -347,22 +324,8 @@ update_task_channels(struct emu *emu, char tr, struct task *prev, struct task *n
 }
 
 static int
-enforce_task_rules(struct emu *emu, char tr, struct task_stack *stack, struct task *next)
+enforce_task_rules(struct emu *emu, char tr, struct task *next)
 {
-	struct nosv_thread *th = EXT(emu->thread, 'V');
-	struct value ss;
-	if (chan_read(&th->m.ch[CH_SUBSYSTEM], &ss) != 0) {
-		err("chan_read failed");
-		return -1;
-	}
-
-	/* If there is no task in the stack, the subsystem must not be
-	 * running a task */
-	if (stack->top == NULL && ss.type == VALUE_INT64 && ss.i == ST_TASK_RUNNING) {
-		err("task stack empty but subsystem is Task running");
-		return -1;
-	}
-
 	if (tr != 'x' && tr != 'X')
 		return 0;
 
@@ -374,9 +337,38 @@ enforce_task_rules(struct emu *emu, char tr, struct task_stack *stack, struct ta
 		return -1;
 	}
 
-	if (ss.type == VALUE_INT64 && ss.i != ST_TASK_RUNNING) {
+	struct nosv_thread *th = EXT(emu->thread, 'V');
+	struct value ss;
+	if (chan_read(&th->m.ch[CH_SUBSYSTEM], &ss) != 0) {
+		err("chan_read failed");
+		return -1;
+	}
+
+	if (ss.type == VALUE_INT64 && ss.i != ST_TASK_BODY) {
 		err("wrong subsystem state on task begin");
 		return -1;
+	}
+
+	return 0;
+}
+
+static int
+update_task_ss_channel(struct emu *emu, char tr)
+{
+	struct nosv_thread *th = EXT(emu->thread, 'V');
+	struct chan *ss = &th->m.ch[CH_SUBSYSTEM];
+
+	/* Only if starting or ending. Not changed when paused or resumed */
+	if (tr == 'x') {
+		if (chan_push(ss, value_int64(ST_TASK_BODY)) != 0) {
+			err("chan_push subsystem failed");
+			return -1;
+		}
+	} else if (tr == 'e') {
+		if (chan_pop(ss, value_int64(ST_TASK_BODY)) != 0) {
+			err("chan_pop subsystem failed");
+			return -1;
+		}
 	}
 
 	return 0;
@@ -398,6 +390,12 @@ update_task(struct emu *emu)
 
 	struct task *next = task_get_running(stack);
 
+	/* Update the subsystem channel */
+	if (update_task_ss_channel(emu, emu->ev->v) != 0) {
+		err("update_task_ss_channel failed");
+		return -1;
+	}
+
 	char tr;
 	int was_running = (prev != NULL);
 	int runs_now = (next != NULL);
@@ -412,7 +410,7 @@ update_task(struct emu *emu)
 		return -1;
 	}
 
-	if (enforce_task_rules(emu, tr, stack, next) != 0) {
+	if (enforce_task_rules(emu, tr, next) != 0) {
 		err("enforce_task_rules failed");
 		return -1;
 	}

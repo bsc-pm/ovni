@@ -35,8 +35,8 @@ OU]	Exits the region of past events (HACK)
 -------------------- nOS-V (model=V) ----------------------
 
 VTc	Creates a new task (punctual event)
-VTx	Task execute
-VTe	Task end
+VTx	Task execute (enter task body)
+VTe	Task end (exit task body)
 VTp	Task pause
 VTr	Task resume
 

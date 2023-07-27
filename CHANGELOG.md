@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `OVNI_TRACEDIR` envar to change the trace directory (default is `ovni`).
 
+### Changed
+
+- Don't modify nOS-V subsystem state on task pause. The "Task: Running"
+  state is now renamed to "Task: In body" to reflect the change.
+
 ## [1.3.0] - 2023-09-07
 
 ### Added

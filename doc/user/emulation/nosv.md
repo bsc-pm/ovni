@@ -22,3 +22,9 @@ provides two desirable properties:
 For more details, see [this MR][1].
 
 [1]: https://pm.bsc.es/gitlab/rarias/ovni/-/merge_requests/27
+
+## Subsystem view
+
+The subsystem view provides a simplified view on what is the nOS-V
+runtime doing over time. The view follows the same rules described in
+the [subsystem view of Nanos6](../nanos6/#subsystem_view).

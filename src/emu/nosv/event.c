@@ -41,6 +41,10 @@ static const int ss_table[256][256][3] = {
 		['F'] = { CHSS, POP,  ST_MEM_FREEING },
 	},
 	['A'] = {
+		['r'] = { CHSS, PUSH, ST_API_CREATE },
+		['R'] = { CHSS, POP, ST_API_CREATE },
+		['d'] = { CHSS, PUSH, ST_API_DESTROY },
+		['D'] = { CHSS, POP, ST_API_DESTROY },
 		['s'] = { CHSS, PUSH, ST_API_SUBMIT },
 		['S'] = { CHSS, POP,  ST_API_SUBMIT },
 		['p'] = { CHSS, PUSH, ST_API_PAUSE },

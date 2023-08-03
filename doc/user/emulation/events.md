@@ -58,6 +58,10 @@ VMA	Ends allocating memory
 VMf	Starts freeing memory
 VMF	Ends freeing memory
 
+VAr	Enters nosv_create()
+VAR	Exits nosv_create()
+VAd	Enters nosv_destroy()
+VAD	Exits nosv_destroy()
 VAs	Enters nosv_submit()
 VAS	Exits nosv_submit()
 VAp	Enters nosv_pause()

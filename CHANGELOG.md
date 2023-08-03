@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `ovni_version_get()` function.
 - Add the `ovniver` program to report the libovni version and commit.
+- Add nOS-V API subsystem events for `nosv_create()` and `nosv_destroy()`.
 
 ## [1.2.2] - 2022-07-26
 

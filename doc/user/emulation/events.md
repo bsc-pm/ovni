@@ -193,4 +193,36 @@ KCI	Is back in the CPU due to a context switch
 6MA	Ends allocating memory
 6Mf	Begins freeing memory
 6MF	Ends freeing memory
+
+-------------------- TAMPI (model=T) ----------------------
+
+TCi Begins to issue a non-blocking communication operation
+TCI Ends issuing a non-blocking communication operation
+
+TGc Begins to check pending requests from the global array
+TGC Ends checking pending requests from the global array
+
+TLi Begins the library code at an API function
+TLI Ends the library code at an API function
+TLp Begins the library code at a polling function
+TLP Ends the library code at a polling function
+
+TQa Begins to add a ticket/requests to a queue
+TQA Ends adding a ticket/requests to a queue
+TQt Begins to transfer tickets/requests from queues to global array
+TQT Ends transfering tickets/requests from queues to global array
+
+TRc Begins to process a completed request
+TRC Ends processing a completed request
+TRt Begins to test a single request with MPI_Test
+TRT Ends testing a single request with MPI_Test
+TRa Begins to test several requests with MPI_Testall
+TRA Ends testing several requests with MPI_Testall
+TRs Begins to test several requests with MPI_Testsome
+TRS Ends testing several requests with MPI_Testsome
+
+TTc Begins to create a ticket linked to a set of requests and a task
+TTC Ends creating a ticket linked to a set of requests and a task
+TTw Begins to wait a ticket completion
+TTW Ends waiting a ticket completion
 ```

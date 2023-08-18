@@ -53,6 +53,8 @@ add_library(emu STATIC
   nosv/event.c
   nodes/setup.c
   nodes/event.c
+  tampi/setup.c
+  tampi/event.c
   kernel/setup.c
   kernel/event.c
 )

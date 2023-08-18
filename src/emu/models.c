@@ -11,6 +11,7 @@ extern struct model_spec model_ovni;
 extern struct model_spec model_nanos6;
 extern struct model_spec model_nosv;
 extern struct model_spec model_nodes;
+extern struct model_spec model_tampi;
 extern struct model_spec model_kernel;
 
 static struct model_spec *models[] = {
@@ -18,6 +19,7 @@ static struct model_spec *models[] = {
 	&model_nanos6,
 	&model_nosv,
 	&model_nodes,
+	&model_tampi,
 	&model_kernel,
 	NULL
 };

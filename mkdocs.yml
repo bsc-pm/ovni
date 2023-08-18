@@ -32,6 +32,7 @@ nav:
       - user/emulation/ovni.md
       - user/emulation/nosv.md
       - user/emulation/nanos6.md
+      - user/emulation/tampi.md
       - user/emulation/events.md
   - 'Developer guide':
     - dev/index.md

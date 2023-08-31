@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add nOS-V API subsystem events for `nosv_create()` and `nosv_destroy()`.
 - Add TAMPI model with `T` code.
 - Add subsytem events and cfgs for TAMPI model.
+- Add MPI model with `M` code.
+- Add interface events and cfgs for MPI model.
 
 ## [1.2.2] - 2022-07-26
 

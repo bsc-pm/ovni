@@ -226,3 +226,110 @@ TTC Ends creating a ticket linked to a set of requests and a task
 TTw Begins to wait a ticket completion
 TTW Ends waiting a ticket completion
 ```
+
+-------------------- MPI (model=M) -------------------------
+
+MUi Enters MPI_Init
+MUI Exits MPI_Init
+MUt Enters MPI_Init_thread
+MUT Exits MPI_Init_thread
+MUf Enters MPI_Finalize
+MUF Exits MPI_Finalize
+
+MW[ Enters MPI_Wait
+MW] Exits MPI_Wait
+MWa Enters MPI_Waitall
+MWA Exits MPI_Waitall
+MWy Enters MPI_Waitany
+MWY Exits MPI_Waitany
+MWs Enters MPI_Waitsome
+MWS Exits MPI_Waitsome
+
+MT[ Enters MPI_Test
+MT] Exits MPI_Test
+MTa Enters MPI_Testall
+MTA Exits MPI_Testall
+MTy Enters MPI_Testany
+MTY Exits MPI_Testany
+MTs Enters MPI_Testsome
+MTS Exits MPI_Testsome
+
+MS[ Enters MPI_Send
+MS] Exits MPI_Send
+MSb Enters MPI_Bsend
+MSB Exits MPI_Bsend
+MSr Enters MPI_Rsend
+MSR Exits MPI_Rsend
+MSs Enters MPI_Ssend
+MSS Exits MPI_Ssend
+MR[ Enters MPI_Recv
+MR] Exits MPI_Recv
+MRs Enters MPI_Sendrecv
+MRS Exits MPI_Sendrecv
+MRo Enters MPI_Sendrecv_replace
+MRO Exits MPI_Sendrecv_replace
+
+MAg Enters MPI_Allgather
+MAG Exits MPI_Allgather
+MAr Enters MPI_Allreduce
+MAR Exits MPI_Allreduce
+MAa Enters MPI_Alltoall
+MAA Exits MPI_Alltoall
+MCb Enters MPI_Barrier
+MCB Exits MPI_Barrier
+MCe Enters MPI_Exscan
+MCE Exits MPI_Exscan
+MCs Enters MPI_Scan
+MCS Exits MPI_Scan
+MDb Enters MPI_Bcast
+MDB Exits MPI_Bcast
+MDg Enters MPI_Gather
+MDG Exits MPI_Gather
+MDs Enters MPI_Scatter
+MDS Exits MPI_Scatter
+ME[ Enters MPI_Reduce
+ME] Exits MPI_Reduce
+MEs Enters MPI_Reduce_scatter
+MES Exits MPI_Reduce_scatter
+MEb Enters MPI_Reduce_scatter_block
+MEB Exits MPI_Reduce_scatter_block
+
+Ms[ Enters MPI_Isend
+Ms] Exits MPI_Isend
+Msb Enters MPI_Ibsend
+MsB Exits MPI_Ibsend
+Msr Enters MPI_Irsend
+MsR Exits MPI_Irsend
+Mss Enters MPI_Issend
+MsS Exits MPI_Issend
+Mr[ Enters MPI_Irecv
+Mr] Exits MPI_Irecv
+Mrs Enters MPI_Isendrecv
+MrS Exits MPI_Isendrecv
+Mro Enters MPI_Isendrecv_replace
+MrO Exits MPI_Isendrecv_replace
+
+Mag Enters MPI_Iallgather
+MaG Exits MPI_Iallgather
+Mar Enters MPI_Iallreduce
+MaR Exits MPI_Iallreduce
+Maa Enters MPI_Ialltoall
+MaA Exits MPI_Ialltoall
+Mcb Enters MPI_Ibarrier
+McB Exits MPI_Ibarrier
+Mce Enters MPI_Iexscan
+McE Exits MPI_Iexscan
+Mcs Enters MPI_Iscan
+McS Exits MPI_Iscan
+Mdb Enters MPI_Ibcast
+MdB Exits MPI_Ibcast
+Mdg Enters MPI_Igather
+MdG Exits MPI_Igather
+Mds Enters MPI_Iscatter
+MdS Exits MPI_Iscatter
+Me[ Enters MPI_Ireduce
+Me] Exits MPI_Ireduce
+Mes Enters MPI_Ireduce_scatter
+MeS Exits MPI_Ireduce_scatter
+Meb Enters MPI_Ireduce_scatter_block
+MeB Exits MPI_Ireduce_scatter_block

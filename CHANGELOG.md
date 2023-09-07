@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2023-09-07
+
 ### Added
 
 - Add `ovni_version_get()` function.
@@ -15,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add TAMPI model with `T` code.
 - Add subsytem events and cfgs for TAMPI model.
 - Add MPI model with `M` code.
-- Add interface events and cfgs for MPI model.
+- Add function events and cfgs for MPI model.
 
 ## [1.2.2] - 2022-07-26
 
@@ -122,6 +124,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://pm.bsc.es/gitlab/rarias/ovni/-/commits/master
+[1.3.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.3.0
 [1.2.2]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.2
 [1.2.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.1
 [1.2.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.0

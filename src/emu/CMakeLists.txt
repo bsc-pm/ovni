@@ -61,6 +61,8 @@ add_library(emu STATIC
   tampi/event.c
   kernel/setup.c
   kernel/event.c
+  openmp/setup.c
+  openmp/event.c
 )
 target_link_libraries(emu ovni-static)
 

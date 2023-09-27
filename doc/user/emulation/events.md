@@ -429,6 +429,92 @@ List of events for the model *ovni* with identifier **`O`** at version `1.0.0`:
 <dd>leaves unordered event region</dd>
 </dl>
 
+## Model openmp
+
+List of events for the model *openmp* with identifier **`P`** at version `1.1.0`:
+<dl>
+<dt><a id="PA[" href="#PA["><pre>PA[</pre></a></dt>
+<dd>enters the attached state</dd>
+<dt><a id="PA]" href="#PA]"><pre>PA]</pre></a></dt>
+<dd>leaves the attached state</dd>
+<dt><a id="PBj" href="#PBj"><pre>PBj</pre></a></dt>
+<dd>enters a join barrier</dd>
+<dt><a id="PBJ" href="#PBJ"><pre>PBJ</pre></a></dt>
+<dd>leaves a join barrier</dd>
+<dt><a id="PBb" href="#PBb"><pre>PBb</pre></a></dt>
+<dd>enters a barrier</dd>
+<dt><a id="PBB" href="#PBB"><pre>PBB</pre></a></dt>
+<dd>leaves a barrier</dd>
+<dt><a id="PBt" href="#PBt"><pre>PBt</pre></a></dt>
+<dd>enters a tasking barrier</dd>
+<dt><a id="PBT" href="#PBT"><pre>PBT</pre></a></dt>
+<dd>leaves a tasking barrier</dd>
+<dt><a id="PBs" href="#PBs"><pre>PBs</pre></a></dt>
+<dd>enters a spin wait</dd>
+<dt><a id="PBS" href="#PBS"><pre>PBS</pre></a></dt>
+<dd>leaves a spin wait</dd>
+<dt><a id="PWs" href="#PWs"><pre>PWs</pre></a></dt>
+<dd>begins static for</dd>
+<dt><a id="PWS" href="#PWS"><pre>PWS</pre></a></dt>
+<dd>ceases static for</dd>
+<dt><a id="PWd" href="#PWd"><pre>PWd</pre></a></dt>
+<dd>begins dynamic for init</dd>
+<dt><a id="PWD" href="#PWD"><pre>PWD</pre></a></dt>
+<dd>ceases dynamic for init</dd>
+<dt><a id="PWc" href="#PWc"><pre>PWc</pre></a></dt>
+<dd>begins dynamic for chunk</dd>
+<dt><a id="PWC" href="#PWC"><pre>PWC</pre></a></dt>
+<dd>ceases dynamic for chunk</dd>
+<dt><a id="PWi" href="#PWi"><pre>PWi</pre></a></dt>
+<dd>begins single</dd>
+<dt><a id="PWI" href="#PWI"><pre>PWI</pre></a></dt>
+<dd>ceases single</dd>
+<dt><a id="PTr" href="#PTr"><pre>PTr</pre></a></dt>
+<dd>begins releasing task dependencies</dd>
+<dt><a id="PTR" href="#PTR"><pre>PTR</pre></a></dt>
+<dd>ceases releasing task dependencies</dd>
+<dt><a id="PTw" href="#PTw"><pre>PTw</pre></a></dt>
+<dd>begins waiting for taskwait dependencies</dd>
+<dt><a id="PTW" href="#PTW"><pre>PTW</pre></a></dt>
+<dd>ceases waiting for taskwait dependencies</dd>
+<dt><a id="PT[" href="#PT["><pre>PT[</pre></a></dt>
+<dd>begins invoking a task</dd>
+<dt><a id="PT]" href="#PT]"><pre>PT]</pre></a></dt>
+<dd>ceases invoking a task</dd>
+<dt><a id="PTi" href="#PTi"><pre>PTi</pre></a></dt>
+<dd>begins invoking an if0 task</dd>
+<dt><a id="PTI" href="#PTI"><pre>PTI</pre></a></dt>
+<dd>ceases invoking an if0 task</dd>
+<dt><a id="PTa" href="#PTa"><pre>PTa</pre></a></dt>
+<dd>begins task allocation</dd>
+<dt><a id="PTA" href="#PTA"><pre>PTA</pre></a></dt>
+<dd>ceases task allocation</dd>
+<dt><a id="PTs" href="#PTs"><pre>PTs</pre></a></dt>
+<dd>begins scheduling a task</dd>
+<dt><a id="PTS" href="#PTS"><pre>PTS</pre></a></dt>
+<dd>ceases scheduling a task</dd>
+<dt><a id="PTt" href="#PTt"><pre>PTt</pre></a></dt>
+<dd>enters a taskwait</dd>
+<dt><a id="PTT" href="#PTT"><pre>PTT</pre></a></dt>
+<dd>leaves a taskwait</dd>
+<dt><a id="PTy" href="#PTy"><pre>PTy</pre></a></dt>
+<dd>enters a taskyield</dd>
+<dt><a id="PTY" href="#PTY"><pre>PTY</pre></a></dt>
+<dd>leaves a taskyield</dd>
+<dt><a id="PTd" href="#PTd"><pre>PTd</pre></a></dt>
+<dd>begins duplicating a task</dd>
+<dt><a id="PTD" href="#PTD"><pre>PTD</pre></a></dt>
+<dd>ceases duplicating a task</dd>
+<dt><a id="PTc" href="#PTc"><pre>PTc</pre></a></dt>
+<dd>begins checking task dependencies</dd>
+<dt><a id="PTC" href="#PTC"><pre>PTC</pre></a></dt>
+<dd>ceases checking task dependencies</dd>
+<dt><a id="PTg" href="#PTg"><pre>PTg</pre></a></dt>
+<dd>enters a taskgroup</dd>
+<dt><a id="PTG" href="#PTG"><pre>PTG</pre></a></dt>
+<dd>leaves a taskgroup</dd>
+</dl>
+
 ## Model tampi
 
 List of events for the model *tampi* with identifier **`T`** at version `1.0.0`:

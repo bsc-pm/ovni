@@ -14,44 +14,44 @@ build:debian-testing:
     paths:
       - install/
 
-build:rt-tests:
+build:local:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.ovni-rt
+    - nix build -L --no-link .#ovniPackages.local
+
+build:rt:
+  stage: build
+  tags:
+    - nix
+  script:
+    - nix build -L --no-link .#ovniPackages.rt
+
+build:debug:
+  stage: build
+  tags:
+    - nix
+  script:
+    - nix build -L --no-link .#ovniPackages.debug
 
 build:asan:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.ovni-asan
+    - nix build -L --no-link .#ovniPackages.asan
 
-build:no-mpi:
+build:nompi:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.ovni-nompi
+    - nix build -L --no-link .#ovniPackages.nompi
 
-build:old-gcc:
+build:compilers:
   stage: build
   tags:
     - nix
   script:
-    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnis
-
-build:old-gcc-no-lto:
-  stage: build
-  tags:
-    - nix
-  script:
-    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnisNoLTO
-
-build:old-gcc-release:
-  stage: build
-  tags:
-    - nix
-  script:
-    - nix build -L --no-link --tarball-ttl 0 --file nix/rt.nix bsc.oldOvnisRelease
+    - nix build -L --no-link .#ovniPackages.compilers

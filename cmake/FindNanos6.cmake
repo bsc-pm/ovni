@@ -1,3 +1,6 @@
+# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 include(GNUInstallDirs)
 
 find_library(NANOS6_LIBRARY NAMES nanos6)

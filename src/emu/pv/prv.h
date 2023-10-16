@@ -13,10 +13,11 @@ struct bay;
 struct chan;
 
 enum prv_flags {
-	PRV_EMITDUP  = 1<<0, /* Emit duplicates (no error, emit) */
-	PRV_SKIPDUP  = 1<<1, /* Skip duplicates (no error, no emit) */
-	PRV_NEXT     = 1<<2, /* Add one to the channel value */
-	PRV_ZERO     = 1<<3, /* Value 0 is allowed */
+	PRV_EMITDUP     = 1<<0, /* Emit duplicates (no error, emit) */
+	PRV_SKIPDUP     = 1<<1, /* Skip duplicates (no error, no emit) */
+	PRV_NEXT        = 1<<2, /* Add one to the channel value */
+	PRV_ZERO        = 1<<3, /* Value 0 is allowed */
+	PRV_SKIPDUPNULL = 1<<4, /* Skip duplicates if the value is null (no error, no emit) */
 };
 
 struct prv_chan {

@@ -94,15 +94,21 @@ emit(struct prv *prv, struct prv_chan *rchan)
 		return -1;
 	}
 
-	/* Only test for duplicates if not emitting them */
+	/* Only test for duplicates without PRV_EMITDUP */
 	if (~rchan->flags & PRV_EMITDUP) {
 		if (is_value_dup(rchan, &value)) {
 			if (rchan->flags & PRV_SKIPDUP)
 				return 0;
-
-			err("error duplicated value %s for channel %s",
-					value_str(value), chan->name);
-			return -1;
+			else if (rchan->flags & PRV_SKIPDUPNULL) {
+				if (value_is_null(value)) {
+					return 0;
+				}
+				/* Otherwise emit ... */
+			} else {
+				err("error duplicated value %s for channel %s",
+						value_str(value), chan->name);
+				return -1;
+			}
 		}
 
 		/* Only set when caring about duplicates */
@@ -145,6 +151,27 @@ cb_prv(struct chan *chan, void *ptr)
 	return emit(prv, rchan);
 }
 
+static int
+check_flags(long flags)
+{
+	if ((flags & PRV_EMITDUP) && (flags & PRV_SKIPDUPNULL)) {
+		err("flags PRV_EMITDUP and PRV_SKIPDUPNULL are mutually exclusive");
+		return -1;
+	}
+
+	if ((flags & PRV_EMITDUP) && (flags & PRV_SKIPDUP)) {
+		err("flags PRV_EMITDUP and PRV_SKIPDUP are mutually exclusive");
+		return -1;
+	}
+
+	if ((flags & PRV_SKIPDUP) && (flags & PRV_SKIPDUPNULL)) {
+		err("flags PRV_SKIPDUP and PRV_SKIPDUPNULL are mutually exclusive");
+		return -1;
+	}
+
+	return 0;
+}
+
 int
 prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan *chan, long flags)
 {
@@ -159,6 +186,11 @@ prv_register(struct prv *prv, long row, long type, struct bay *bay, struct chan 
 	rchan = calloc(1, sizeof(struct prv_chan));
 	if (rchan == NULL) {
 		err("calloc failed:");
+		return -1;
+	}
+
+	if (check_flags(flags) != 0) {
+		err("check_flags failed");
 		return -1;
 	}
 

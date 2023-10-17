@@ -11,6 +11,7 @@ extern int is_debug_enabled;
 /* Debug macros */
 
 void progname_set(char *name);
+const char *progname_get(void);
 void enable_debug(void);
 void verr(const char *prefix, const char *func, const char *errstr, ...);
 void vdie(const char *prefix, const char *func, const char *errstr, ...);

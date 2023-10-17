@@ -11,9 +11,8 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+#include "common.h"
 #include "ovni.h"
-
-const char progname[] = "ovnisync";
 
 struct offset {
 	/* All in nanoseconds */
@@ -441,6 +440,8 @@ do_work(struct options *options, int rank)
 int
 main(int argc, char *argv[])
 {
+	progname_set("ovnisync");
+
 	MPI_Init(&argc, &argv);
 
 	int rank;

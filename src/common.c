@@ -18,6 +18,12 @@ progname_set(char *name)
 	progname = name;
 }
 
+const char *
+progname_get(void)
+{
+	return progname;
+}
+
 void
 enable_debug(void)
 {

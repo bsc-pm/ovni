@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `OVNI_TRACEDIR` envar to change the trace directory (default is `ovni`).
+
 ## [1.3.0] - 2023-09-07
 
 ### Added

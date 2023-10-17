@@ -216,20 +216,10 @@ ovni_proc_set_rank(int rank, int nranks)
 static void
 mkdir_proc(char *path, const char *tracedir, const char *loom, int pid)
 {
-	snprintf(path, PATH_MAX, "%s", tracedir);
-
-	/* May fail if another loom created the directory already */
-	mkdir(path, 0755);
-
-	snprintf(path, PATH_MAX, "%s/loom.%s", tracedir, loom);
-
-	/* Also may fail */
-	mkdir(path, 0755);
-
-	snprintf(path, PATH_MAX, "%s/loom.%s/proc.%d", tracedir, loom, pid);
+	snprintf(path, PATH_MAX, "%s/loom.%s/proc.%d/", tracedir, loom, pid);
 
 	/* But this one shall not fail */
-	if (mkdir(path, 0755))
+	if (mkpath(path, 0755, /* subdir */ 1))
 		die("mkdir %s failed:", path);
 }
 
@@ -237,14 +227,19 @@ static void
 create_proc_dir(const char *loom, int pid)
 {
 	char *tmpdir = getenv("OVNI_TMPDIR");
+	char *tracedir = getenv("OVNI_TRACEDIR");
+
+	/* Use default tracedir if user did not request any */
+	if (tracedir == NULL)
+		tracedir = OVNI_TRACEDIR;
 
 	if (tmpdir != NULL) {
 		rproc.move_to_final = 1;
 		mkdir_proc(rproc.procdir, tmpdir, loom, pid);
-		mkdir_proc(rproc.procdir_final, OVNI_TRACEDIR, loom, pid);
+		mkdir_proc(rproc.procdir_final, tracedir, loom, pid);
 	} else {
 		rproc.move_to_final = 0;
-		mkdir_proc(rproc.procdir, OVNI_TRACEDIR, loom, pid);
+		mkdir_proc(rproc.procdir, tracedir, loom, pid);
 	}
 }
 

@@ -24,9 +24,11 @@ If you are using SLURM, you may want to use something like:
 	you must invoke srun twice.
 
 By default, it will generate the `ovni/clock-offsets.txt` file, with the
-relative offsets to the rank 0 of MPI. The emulator will automatically pick the
-offsets when processing the trace. Use the ovnisync `-o` option to select a
-different output path (see the `-c` option in ovniemu to load the file).
+relative offsets to the rank 0 of MPI. If the `OVNI_TRACEDIR` environment
+variable is defined, the default file is `$OVNI_TRACEDIR/clock-offsets.txt`.
+The emulator will automatically pick the offsets when processing the trace.
+Use the ovnisync `-o` option to select a different output path (see the `-c`
+option in ovniemu to load the file).
 
 Here is an example table with three nodes, all units are in nanoseconds. The
 standard deviation is less than 1 us:

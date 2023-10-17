@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 #include "common.h"
@@ -48,7 +47,7 @@ struct options {
 	int ndrift_samples;
 	int drift_wait; /* in seconds */
 	int verbose;
-	char *outpath;
+	char outpath[PATH_MAX];
 };
 
 static double
@@ -83,65 +82,31 @@ cmp_double(const void *pa, const void *pb)
 static void
 usage(void)
 {
-	fprintf(stderr, "%s: clock synchronization utility\n", progname);
+	fprintf(stderr, "%s: clock synchronization utility\n", progname_get());
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage: %s [-o outfile] [-d ndrift_samples] [-v] [-n nsamples] [-w drift_delay]\n",
-			progname);
+			progname_get());
 	exit(EXIT_FAILURE);
-}
-
-static int
-try_mkdir(const char *path, mode_t mode)
-{
-	struct stat st;
-
-	if (stat(path, &st) != 0) {
-		/* Directory does not exist */
-		return mkdir(path, mode);
-	} else if (!S_ISDIR(st.st_mode)) {
-		errno = ENOTDIR;
-		return -1;
-	}
-
-	return 0;
-}
-
-static int
-mkpath(const char *path, mode_t mode)
-{
-	char *copypath = strdup(path);
-
-	/* Remove trailing slash */
-	int last = strlen(path) - 1;
-	while (last > 0 && copypath[last] == '/')
-		copypath[last--] = '\0';
-
-	int status = 0;
-	char *pp = copypath;
-	char *sp;
-	while (status == 0 && (sp = strchr(pp, '/')) != 0) {
-		if (sp != pp) {
-			/* Neither root nor double slash in path */
-			*sp = '\0';
-			status = try_mkdir(copypath, mode);
-			*sp = '/';
-		}
-		pp = sp + 1;
-	}
-
-	free(copypath);
-	return status;
 }
 
 static void
 parse_options(struct options *options, int argc, char *argv[])
 {
+	char *filename = "clock-offsets.txt";
+	char *tracedir = getenv("OVNI_TRACEDIR");
+	if (tracedir == NULL)
+		tracedir = OVNI_TRACEDIR;
+
 	/* Default options */
 	options->ndrift_samples = 1;
 	options->nsamples = 100;
 	options->verbose = 0;
 	options->drift_wait = 5;
-	options->outpath = "ovni/clock-offsets.txt";
+
+	if (snprintf(options->outpath, PATH_MAX, "%s/%s", tracedir, filename) >= PATH_MAX) {
+		fprintf(stderr, "output path too long: %s/%s\n", tracedir, filename);
+		exit(EXIT_FAILURE);
+	}
 
 	int opt;
 	while ((opt = getopt(argc, argv, "d:vn:w:o:h")) != -1) {
@@ -159,7 +124,11 @@ parse_options(struct options *options, int argc, char *argv[])
 				options->nsamples = atoi(optarg);
 				break;
 			case 'o':
-				options->outpath = optarg;
+				if (strlen(optarg) >= PATH_MAX - 1) {
+					fprintf(stderr, "output path too long: %s\n", optarg);
+					exit(EXIT_FAILURE);
+				}
+				strcpy(options->outpath, optarg);
 				break;
 			case 'h':
 			default: /* '?' */
@@ -396,7 +365,7 @@ do_work(struct options *options, int rank)
 	int drift_mode = options->ndrift_samples > 1 ? 1 : 0;
 
 	if (rank == 0) {
-		if (mkpath(options->outpath, 0755) != 0) {
+		if (mkpath(options->outpath, 0755, /* not subdir */ 0) != 0) {
 			fprintf(stderr, "mkpath(%s) failed: %s\n",
 					options->outpath, strerror(errno));
 			exit(EXIT_FAILURE);

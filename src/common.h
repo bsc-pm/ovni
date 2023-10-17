@@ -5,8 +5,13 @@
 #define COMMON_H
 
 #include <stdio.h>
+#include <sys/types.h>
 
 extern int is_debug_enabled;
+
+/* Path and file utilities */
+
+int mkpath(const char *path, mode_t mode, int is_dir);
 
 /* Debug macros */
 

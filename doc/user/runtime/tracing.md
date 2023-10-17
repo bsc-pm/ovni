@@ -25,6 +25,12 @@ Compile and link with libovni. When you run your program, a new
 directory ovni will be created in the current directory `$PWD/ovni`
 which contains the execution trace.
 
+You can change the trace directory by defining the `OVNI_TRACEDIR`
+environment variable. The envar accepts a trace directory name, a
+relative path to the trace directory, or its absolute path. In the
+first case, the trace directory will be created in the current
+directory `$PWD`.
+
 ## Rules
 
 Follow these rules to avoid losing events:

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 char *progname = NULL;
 int is_debug_enabled = 0;
@@ -73,3 +74,57 @@ vdie(const char *prefix, const char *func, const char *errstr, ...)
 	va_end(ap);
 	abort();
 }
+
+static int
+mkdir_if_need(const char *path, mode_t mode)
+{
+	errno = 0;
+	if (mkdir(path, mode) == 0)
+		return 0;
+
+	if (errno == EEXIST) {
+		struct stat st;
+		if (stat(path, &st) != 0)
+			return -1;
+
+		if (S_ISDIR(st.st_mode))
+			return 0;
+
+		errno = ENOTDIR;
+		return -1;
+	}
+
+	return -1;
+}
+
+int
+mkpath(const char *path, mode_t mode, int is_dir)
+{
+	char *copypath = strdup(path);
+
+	/* Remove trailing slash */
+	int last = strlen(path) - 1;
+	while (last > 0 && copypath[last] == '/')
+		copypath[last--] = '\0';
+
+	int status = 0;
+	char *pp = copypath;
+	char *sp;
+	while (status == 0 && (sp = strchr(pp, '/')) != 0) {
+		if (sp != pp) {
+			/* Neither root nor double slash in path */
+			*sp = '\0';
+			status = mkdir_if_need(copypath, mode);
+			*sp = '/';
+		}
+		pp = sp + 1;
+	}
+
+	/* Create last component if it is a directory */
+	if (is_dir && status == 0)
+		status = mkdir_if_need(copypath, mode);
+
+	free(copypath);
+	return status;
+}
+

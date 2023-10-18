@@ -12,8 +12,9 @@ dir=$(readlink -f "${OVNI_CURRENT_DIR}")
 testname="$dir/$1"
 workdir="${testname}.dir"
 tracedir="${workdir}/ovni"
-emubin="${OVNI_BUILD_DIR}/ovniemu"
-sortbin="${OVNI_BUILD_DIR}/ovnisort"
+
+export PATH="${OVNI_BUILD_DIR}:$PATH"
+export OVNI_TEST_BIN="$testname"
 
 rm -rf "${workdir}"
 mkdir -p "${workdir}"
@@ -23,23 +24,28 @@ if [ -z "$OVNI_NPROCS" ]; then
   OVNI_NPROCS=1
 fi
 
-if [ "$OVNI_NPROCS" -gt 1 ]; then
-  for i in $(seq 1 "$OVNI_NPROCS"); do
-    # Run the test in the background
-    OVNI_RANK=$(($i-1)) OVNI_NRANKS=$OVNI_NPROCS "$testname" &
-  done
-  wait
+# Let the test run its own driver
+if [ -n "$OVNI_DRIVER" ]; then
+  . "$OVNI_DRIVER"
 else
-  "$testname"
-fi
+  if [ "$OVNI_NPROCS" -gt 1 ]; then
+    for i in $(seq 1 "$OVNI_NPROCS"); do
+      # Run the test in the background
+      OVNI_RANK=$(($i-1)) OVNI_NRANKS=$OVNI_NPROCS "$testname" &
+    done
+    wait
+  else
+    "$testname"
+  fi
 
-if [ -n "$OVNI_DO_SORT" ]; then
-  "$sortbin" "$tracedir"
-fi
+  if [ -n "$OVNI_DO_SORT" ]; then
+    ovnisort "$tracedir"
+  fi
 
-if [ -z "$OVNI_NOEMU" ]; then
-  # Then launch the emulator in lint mode
-  "$emubin" $OVNI_EMU_ARGS -l "$tracedir"
+  if [ -z "$OVNI_NOEMU" ]; then
+    # Then launch the emulator in lint mode
+    ovniemu $OVNI_EMU_ARGS -l "$tracedir"
+  fi
 fi
 
 # Run any post script that was generated

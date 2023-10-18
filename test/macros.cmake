@@ -5,7 +5,7 @@ include(CMakeParseArguments)
 
 function(ovni_test source)
   set(switches MP SHOULD_FAIL NOEMU SORT BREAKDOWN DISABLED)
-  set(single NPROC REGEX NAME)
+  set(single NPROC REGEX NAME DRIVER)
   set(multi ENV)
 
   cmake_parse_arguments(
@@ -59,6 +59,11 @@ function(ovni_test source)
 
   if(OVNI_TEST_BREAKDOWN)
     list(APPEND OVNI_TEST_ENV "OVNI_EMU_ARGS=-b")
+  endif()
+
+  if(OVNI_TEST_DRIVER)
+    list(APPEND OVNI_TEST_ENV
+      "OVNI_DRIVER=${CMAKE_CURRENT_SOURCE_DIR}/${OVNI_TEST_DRIVER}")
   endif()
 
   include_directories(

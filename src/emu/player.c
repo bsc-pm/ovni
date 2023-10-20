@@ -73,6 +73,9 @@ check_clock_gate(struct trace *trace)
 
 	struct stream *stream;
 	DL_FOREACH(trace->streams, stream) {
+		if (!stream->active)
+			continue;
+
 		struct ovni_ev *oev = stream_ev(stream);
 		int64_t sclock = stream_evclock(stream, oev);
 

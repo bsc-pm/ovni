@@ -18,8 +18,8 @@ their functions.
 
 [mpi]: https://www.mpi-forum.org
 [mpi docs]: https://www.mpi-forum.org/docs
-[sonar]: https://pm.bsc.es/gitlab/ovni/sonar
-[sonar docs]: https://pm.bsc.es/gitlab/ovni/sonar/-/blob/main/README.md
+[sonar]: https://github.com/bsc-pm/sonar
+[sonar docs]: https://github.com/bsc-pm/sonar#readme
 
 Sonar requires an installation of the ovni library and an MPI library. Use the
 option `--with-ovni=prefix` when building Sonar to specify the ovni prefix. The

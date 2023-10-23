@@ -7,6 +7,7 @@ endfunction()
 
 #unit_test(bay-hash-speed.c)
 unit_test(bay.c)
+unit_test(body.c)
 unit_test(cfg.c)
 unit_test(chan.c)
 unit_test(clkoff.c)

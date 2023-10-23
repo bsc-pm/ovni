@@ -11,6 +11,7 @@ include_directories(
 add_library(emu STATIC
   ../common.c
   bay.c
+  body.c
   chan.c
   clkoff.c
   cpu.c

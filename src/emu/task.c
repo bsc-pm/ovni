@@ -9,6 +9,12 @@
 #include "pv/pcf.h"
 #include "utlist.h"
 
+uint32_t
+task_get_id(struct task *task)
+{
+	return task->id;
+}
+
 struct task *
 task_find(struct task *tasks, uint32_t task_id)
 {
@@ -28,7 +34,7 @@ task_type_find(struct task_type *types, uint32_t type_id)
 }
 
 int
-task_create(struct task_info *info, uint32_t type_id, uint32_t task_id)
+task_create(struct task_info *info, uint32_t type_id, uint32_t task_id, uint32_t flags)
 {
 	/* Ensure the task id is new */
 	if (task_find(info->tasks, task_id) != NULL) {
@@ -52,8 +58,7 @@ task_create(struct task_info *info, uint32_t type_id, uint32_t task_id)
 
 	task->id = task_id;
 	task->type = type;
-	task->state = TASK_ST_CREATED;
-	task->thread = NULL;
+	task->flags = flags;
 
 	/* Add the new task to the hash table */
 	HASH_ADD_INT(info->tasks, id, task);
@@ -62,173 +67,150 @@ task_create(struct task_info *info, uint32_t type_id, uint32_t task_id)
 	return 0;
 }
 
+static struct body *
+create_body(struct task *task, uint32_t body_id)
+{
+	if (!task_is_parallel(task) && task->nbodies > 0) {
+		err("cannot create more than one body for non-parallel task %u",
+				task->id);
+		return NULL;
+	}
+
+	int flags = 0;
+
+	if (task->flags & TASK_FLAG_RELAX_NESTING)
+		flags |= BODY_FLAG_RELAX_NESTING;
+
+	if (task->flags & TASK_FLAG_RESURRECT)
+		flags |= BODY_FLAG_RESURRECT;
+
+	if (task->flags & TASK_FLAG_PAUSE)
+		flags |= BODY_FLAG_PAUSE;
+
+	struct body *body = body_create(&task->body_info, task, body_id, flags);
+
+	if (body == NULL) {
+		err("body_create failed for task %u", task->id);
+		return NULL;
+	}
+
+	task->nbodies++;
+
+	return body;
+}
+
 int
-task_execute(struct task_stack *stack, struct task *task)
+task_execute(struct task_stack *stack, struct task *task, uint32_t body_id)
 {
 	if (task == NULL) {
 		err("task is NULL");
 		return -1;
 	}
 
-	/* FIXME: To support the taskiter we need to transition from Dead to
-	 * Running again. For now we allow the transition until we have a proper
-	 * task state event. */
-	if (task->state == TASK_ST_DEAD) {
-		task->thread = NULL;
-	} else if (task->state != TASK_ST_CREATED) {
-		err("cannot execute task %u: state is not created or dead", task->id);
+	struct body *body = body_find(&task->body_info, body_id);
+
+	/* Create new body if it doesn't exist. */
+	if (body == NULL) {
+		body = create_body(task, body_id);
+
+		if (body == NULL) {
+			err("create_body failed");
+			return -1;
+		}
+	}
+
+	if (body_execute(&stack->body_stack, body) != 0) {
+		err("body_execute failed for task %u", task->id);
 		return -1;
 	}
 
-	if (task->thread != NULL) {
-		err("task already has a thread assigned");
-		return -1;
-	}
+	dbg("body %u of task %u executes", body_id, task->id);
 
-	if (stack->thread->state != TH_ST_RUNNING) {
-		err("thread state is not running");
-		return -1;
-	}
-
-	if (stack->top == task) {
-		err("thread already has assigned task %u", task->id);
-		return -1;
-	}
-
-	if (stack->top && stack->top->state != TASK_ST_RUNNING) {
-		err("cannot execute a nested task from a non-running task");
-		return -1;
-	}
-
-	task->state = TASK_ST_RUNNING;
-	task->thread = stack->thread;
-
-	DL_PREPEND(stack->tasks, task);
-
-	dbg("task id=%u runs now", task->id);
 	return 0;
 }
 
 int
-task_pause(struct task_stack *stack, struct task *task)
+task_pause(struct task_stack *stack, struct task *task, uint32_t body_id)
 {
 	if (task == NULL) {
-		err("cannot pause: task is NULL");
+		err("task is NULL");
 		return -1;
 	}
 
-	if (task->state != TASK_ST_RUNNING) {
-		err("cannot pause: task state is not running");
+	struct body *body = body_find(&task->body_info, body_id);
+
+	if (body == NULL) {
+		err("cannot find body with id %u in task %u",
+				body_id, task->id);
 		return -1;
 	}
 
-	if (task->thread == NULL) {
-		err("cannot pause: task has no thread assigned");
+	if (body_pause(&stack->body_stack, body) != 0) {
+		err("body_pause failed for task %u", task->id);
 		return -1;
 	}
 
-	if (stack->thread->state != TH_ST_RUNNING) {
-		err("cannot pause: thread state is not running");
-		return -1;
-	}
+	dbg("body %u of task %u pauses", body_id, task->id);
 
-	if (stack->top != task) {
-		err("thread has assigned a different task");
-		return -1;
-	}
-
-	if (stack->thread != task->thread) {
-		err("task is assigned to a different thread");
-		return -1;
-	}
-
-	task->state = TASK_ST_PAUSED;
-
-	dbg("task id=%d pauses", task->id);
 	return 0;
 }
 
 int
-task_resume(struct task_stack *stack, struct task *task)
+task_resume(struct task_stack *stack, struct task *task, uint32_t body_id)
 {
 	if (task == NULL) {
-		err("cannot resume: task is NULL");
+		err("task is NULL");
 		return -1;
 	}
 
-	if (task->state != TASK_ST_PAUSED) {
-		err("task state is not paused");
+	struct body *body = body_find(&task->body_info, body_id);
+
+	if (body == NULL) {
+		err("cannot find body with id %u in task %u",
+				body_id, task->id);
 		return -1;
 	}
 
-	if (task->thread == NULL) {
-		err("cannot resume: task has no thread assigned");
+	if (body_resume(&stack->body_stack, body) != 0) {
+		err("body_resume failed for task %u", task->id);
 		return -1;
 	}
 
-	if (stack->thread->state != TH_ST_RUNNING) {
-		err("thread is not running");
-		return -1;
-	}
+	dbg("body %u of task %u resumes", body_id, task->id);
 
-	if (stack->top != task) {
-		err("thread has assigned a different task");
-		return -1;
-	}
-
-	if (stack->thread != task->thread) {
-		err("task is assigned to a different thread");
-		return -1;
-	}
-
-	task->state = TASK_ST_RUNNING;
-
-	dbg("task id=%d resumes", task->id);
 	return 0;
 }
 
 int
-task_end(struct task_stack *stack, struct task *task)
+task_end(struct task_stack *stack, struct task *task, uint32_t body_id)
 {
 	if (task == NULL) {
-		err("cannot end: task is NULL");
+		err("task is NULL");
 		return -1;
 	}
 
-	if (task->state != TASK_ST_RUNNING) {
-		err("task state is not running");
+	struct body *body = body_find(&task->body_info, body_id);
+
+	if (body == NULL) {
+		err("cannot find body with id %u in task %u",
+				body_id, task->id);
 		return -1;
 	}
 
-	if (task->thread == NULL) {
-		err("cannot end: task has no thread assigned");
+	if (body_end(&stack->body_stack, body) != 0) {
+		err("body_end failed for task %u", task->id);
 		return -1;
 	}
 
-	if (stack->thread->state != TH_ST_RUNNING) {
-		err("cannot end task: thread is not running");
-		return -1;
-	}
+	dbg("body %u of task %u ends", body_id, task->id);
 
-	if (stack->top != task) {
-		err("thread has assigned a different task");
-		return -1;
-	}
-
-	if (stack->thread != task->thread) {
-		err("task is assigned to a different thread");
-		return -1;
-	}
-
-	task->state = TASK_ST_DEAD;
-
-	/* Don't unset the thread from the task, as it will be used
-	 * later to ensure we switch to tasks of the same thread. */
-
-	DL_DELETE(stack->tasks, task);
-
-	dbg("task id=%d ends", task->id);
 	return 0;
+}
+
+int
+task_is_parallel(struct task *task)
+{
+	return (task->flags & TASK_FLAG_PARALLEL);
 }
 
 uint32_t
@@ -319,12 +301,14 @@ task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
 	return ret;
 }
 
-struct task *
+struct body *
 task_get_running(struct task_stack *stack)
 {
-	struct task *task = stack->top;
-	if (task && task->state == TASK_ST_RUNNING)
-		return task;
+	return body_get_running(&stack->body_stack);
+}
 
-	return NULL;
+struct body *
+task_get_top(struct task_stack *stack)
+{
+	return body_get_top(&stack->body_stack);
 }

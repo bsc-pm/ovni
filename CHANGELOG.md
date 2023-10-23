@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The task model now requires the previous task body to be paused before nesting
+  another one. A compatibility flag is still available to still allow the old
+  behavior.
+
 ## [1.7.0] - 2024-03-12
 
 ### Added

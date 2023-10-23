@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="117.73958mm"
+   height="26.458332mm"
+   viewBox="0 0 117.73958 26.458332"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="parallel-tasks.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="1.4289282"
+     inkscape:cx="335.21629"
+     inkscape:cy="58.085495"
+     inkscape:window-width="1914"
+     inkscape:window-height="1025"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       id="grid1"
+       units="px"
+       originx="-9.9999997"
+       originy="-9.9999997"
+       spacingx="0.26458333"
+       spacingy="0.26458334"
+       empcolor="#3f3fff"
+       empopacity="0.25098039"
+       color="#3f3fff"
+       opacity="0.1254902"
+       empspacing="5"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-2.6458333,-2.6458333)">
+    <rect
+       style="fill:none;stroke:none;stroke-width:0.3;stroke-linecap:round"
+       id="rect9"
+       width="117.73958"
+       height="26.458332"
+       x="2.6458333"
+       y="2.6458333" />
+    <rect
+       style="fill:#f2f2f2;stroke:#000000;stroke-width:0.3;stroke-linecap:round"
+       id="rect1"
+       width="44.979168"
+       height="23.8125"
+       x="3.96875"
+       y="3.9687502" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="6.6805291"
+       y="9.5720644"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';stroke-width:0.264583"
+         x="6.6805291"
+         y="9.5720644">Normal task</tspan></text>
+    <rect
+       style="fill:#d5ffd5;stroke:#000000;stroke-width:0.3;stroke-linecap:round"
+       id="rect3"
+       width="39.6875"
+       height="10.583333"
+       x="6.614583"
+       y="14.552083" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="18.784389"
+       y="21.011637"
+       id="text3"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="stroke-width:0.264583"
+         x="18.784389"
+         y="21.011637">Body 1</tspan></text>
+    <rect
+       style="fill:#f2f2f2;stroke:#000000;stroke-width:0.3;stroke-linecap:round"
+       id="rect4"
+       width="67.46875"
+       height="23.8125"
+       x="51.59375"
+       y="3.9687502" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="54.704952"
+       y="9.4792204"
+       id="text4"><tspan
+         sodipodi:role="line"
+         id="tspan4"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans';-inkscape-font-specification:'Droid Sans';stroke-width:0.264583"
+         x="54.704952"
+         y="9.4792204">Parallel task</tspan></text>
+    <rect
+       style="fill:#d5ffd5;stroke:#000000;stroke-width:0.3;stroke-linecap:round"
+       id="rect6"
+       width="21.166662"
+       height="10.583335"
+       x="54.239586"
+       y="14.552083" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="57.148972"
+       y="21.011637"
+       id="text6"><tspan
+         sodipodi:role="line"
+         id="tspan6"
+         style="stroke-width:0.264583"
+         x="57.148972"
+         y="21.011637">Body 1</tspan></text>
+    <rect
+       style="fill:#d5ffd5;stroke:#000000;stroke-width:0.3;stroke-linecap:round"
+       id="rect7"
+       width="21.166662"
+       height="10.583335"
+       x="78.052078"
+       y="14.552084" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="80.997643"
+       y="21.011639"
+       id="text7"><tspan
+         sodipodi:role="line"
+         id="tspan7"
+         style="stroke-width:0.264583"
+         x="80.997643"
+         y="21.011639">Body 2</tspan></text>
+    <rect
+       style="fill:#d5ffd5;stroke:#000000;stroke-width:0.3;stroke-linecap:round"
+       id="rect8"
+       width="14.552085"
+       height="10.583334"
+       x="101.86458"
+       y="14.552084" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="105.3207"
+       y="20.895952"
+       id="text8"><tspan
+         sodipodi:role="line"
+         id="tspan8"
+         style="stroke-width:0.264583"
+         x="105.3207"
+         y="20.895952">...</tspan></text>
+  </g>
+</svg>

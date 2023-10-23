@@ -5,7 +5,7 @@ test_emu(attach.c)
 test_emu(attach-old.c)
 test_emu(nested-tasks.c)
 test_emu(nested-tasks-bad.c SHOULD_FAIL
-  REGEX "cannot execute task 1: state is not created")
+  REGEX "body_execute: body 1 state must be Created but is Running")
 test_emu(task-types.c MP)
 test_emu(pause.c MP)
 #test_emu(mp-rank.c MP)

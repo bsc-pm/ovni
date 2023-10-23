@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Feb 15 2024.
+Built on Mar 13 2024.
 
 ## Model nanos6
 
@@ -615,18 +615,20 @@ List of events for the model *tampi* with identifier **`T`** at version `1.0.0`:
 
 ## Model nosv
 
-List of events for the model *nosv* with identifier **`V`** at version `1.1.0`:
+List of events for the model *nosv* with identifier **`V`** at version `2.0.0`:
 <dl>
 <dt><a id="VTc" href="#VTc"><pre>VTc(u32 taskid, u32 typeid)</pre></a></dt>
 <dd>creates task %{taskid} with type %{typeid}</dd>
-<dt><a id="VTx" href="#VTx"><pre>VTx(u32 taskid)</pre></a></dt>
-<dd>executes the task %{taskid}</dd>
-<dt><a id="VTe" href="#VTe"><pre>VTe(u32 taskid)</pre></a></dt>
-<dd>ends the task %{taskid}</dd>
-<dt><a id="VTp" href="#VTp"><pre>VTp(u32 taskid)</pre></a></dt>
-<dd>pauses the task %{taskid}</dd>
-<dt><a id="VTr" href="#VTr"><pre>VTr(u32 taskid)</pre></a></dt>
-<dd>resumes the task %{taskid}</dd>
+<dt><a id="VTC" href="#VTC"><pre>VTC(u32 taskid, u32 typeid)</pre></a></dt>
+<dd>creates parallel task %{taskid} with type %{typeid}</dd>
+<dt><a id="VTx" href="#VTx"><pre>VTx(u32 taskid, u32 bodyid)</pre></a></dt>
+<dd>executes the task %{taskid} with bodyid %{bodyid}</dd>
+<dt><a id="VTe" href="#VTe"><pre>VTe(u32 taskid, u32 bodyid)</pre></a></dt>
+<dd>ends the task %{taskid} with bodyid %{bodyid}</dd>
+<dt><a id="VTp" href="#VTp"><pre>VTp(u32 taskid, u32 bodyid)</pre></a></dt>
+<dd>pauses the task %{taskid} with bodyid %{bodyid}</dd>
+<dt><a id="VTr" href="#VTr"><pre>VTr(u32 taskid, u32 bodyid)</pre></a></dt>
+<dd>resumes the task %{taskid} with bodyid %{bodyid}</dd>
 <dt><a id="VYc" href="#VYc"><pre>VYc+(u32 typeid, str label)</pre></a></dt>
 <dd>creates task type %{typeid} with label &quot;%{label}&quot;</dd>
 <dt><a id="VSr" href="#VSr"><pre>VSr</pre></a></dt>

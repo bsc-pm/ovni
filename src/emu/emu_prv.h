@@ -18,6 +18,7 @@ enum emu_prv_types {
 	PRV_NOSV_APPID       = 12,
 	PRV_NOSV_SUBSYSTEM   = 13,
 	PRV_NOSV_RANK        = 14,
+	PRV_NOSV_BODYID      = 15,
 	PRV_TAMPI_SUBSYSTEM  = 20,
 	PRV_MPI_FUNCTION     = 25,
 	PRV_NODES_SUBSYSTEM  = 30,

@@ -1,0 +1,9 @@
+digraph {
+	graph [size="6!", ranksep="0.7", nodesep="1"];
+
+	Created -> Running;
+	Running -> Paused [label=BODY_FLAG_PAUSE];
+	Paused -> Running;
+	Running -> Dead;
+	Dead -> Running [label="BODY_FLAG_RESURRECT\niteration++"];
+}

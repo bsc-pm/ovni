@@ -97,12 +97,16 @@ simple(struct emu *emu)
 }
 
 static int
-chan_task_stopped(struct emu *emu)
+chan_body_stopped(struct emu *emu)
 {
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct chan *ch = th->m.ch;
 
 	struct value null = value_null();
+	if (chan_set(&ch[CH_BODYID], null) != 0) {
+		err("chan_set taskid failed");
+		return -1;
+	}
 	if (chan_set(&ch[CH_TASKID], null) != 0) {
 		err("chan_set taskid failed");
 		return -1;
@@ -128,8 +132,9 @@ chan_task_stopped(struct emu *emu)
 }
 
 static int
-chan_task_running(struct emu *emu, struct task *task)
+chan_body_running(struct emu *emu, struct body *body)
 {
+	struct task *task = body_get_task(body);
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct proc *proc = emu->proc;
 	struct chan *ch = th->m.ch;
@@ -147,6 +152,10 @@ chan_task_running(struct emu *emu, struct task *task)
 		return -1;
 	}
 
+	if (chan_set(&ch[CH_BODYID], value_int64(body_get_id(body))) != 0) {
+		err("chan_set bodyid failed");
+		return -1;
+	}
 	if (chan_set(&ch[CH_TASKID], value_int64(task->id)) != 0) {
 		err("chan_set taskid failed");
 		return -1;
@@ -171,21 +180,23 @@ chan_task_running(struct emu *emu, struct task *task)
 }
 
 static int
-chan_task_switch(struct emu *emu, struct task *prev, struct task *next)
+chan_body_switch(struct emu *emu, struct body *bprev, struct body *bnext)
 {
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct chan *ch = th->m.ch;
 	struct proc *proc = emu->proc;
 
-	if (!prev || !next) {
-		err("cannot switch to or from a NULL task");
+	if (!bprev || !bnext) {
+		err("cannot switch to or from a NULL body");
 		return -1;
 	}
 
-	if (prev == next) {
-		err("cannot switch to the same task");
+	if (bprev == bnext) {
+		err("cannot switch to the same body");
 		return -1;
 	}
+
+	struct task *next = body_get_task(bnext);
 
 	if (next->id == 0) {
 		err("next task id cannot be 0");
@@ -197,11 +208,10 @@ chan_task_switch(struct emu *emu, struct task *prev, struct task *next)
 		return -1;
 	}
 
-	if (prev->thread != next->thread) {
-		err("cannot switch to a task of another thread");
+	if (chan_set(&ch[CH_BODYID], value_int64(body_get_id(bnext))) != 0) {
+		err("chan_set taskid failed");
 		return -1;
 	}
-
 	if (chan_set(&ch[CH_TASKID], value_int64(next->id)) != 0) {
 		err("chan_set taskid failed");
 		return -1;
@@ -235,12 +245,15 @@ update_task_state(struct emu *emu)
 
 	uint32_t task_id = emu->ev->payload->u32[0];
 
+	if (emu->ev->payload_size < 8) {
+		err("missing body id in payload");
+		return -1;
+	}
+
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct nosv_proc *proc = EXT(emu->proc, 'V');
-
 	struct task_info *info = &proc->task_info;
 	struct task_stack *stack = &th->task_stack;
-
 	struct task *task = task_find(info->tasks, task_id);
 
 	if (task == NULL) {
@@ -248,19 +261,37 @@ update_task_state(struct emu *emu)
 		return -1;
 	}
 
+	uint32_t body_id = emu->ev->payload->u32[1];
+
+	if (task_is_parallel(task)) {
+		if (body_id == 0) {
+			err("the body_id must be > 0 for parallel task %u",
+					task_get_id(task));
+			return -1;
+		}
+	} else {
+		if (body_id != 0) {
+			err("the body_id must be 0 for non-parallel task %u",
+					task_get_id(task));
+			return -1;
+		}
+		/* We use body_id = 1 internally, as they cannot be zero. */
+		body_id = 1;
+	}
+
 	int ret = 0;
 	switch (emu->ev->v) {
 		case 'x':
-			ret = task_execute(stack, task);
+			ret = task_execute(stack, task, body_id);
 			break;
 		case 'e':
-			ret = task_end(stack, task);
+			ret = task_end(stack, task, body_id);
 			break;
 		case 'p':
-			ret = task_pause(stack, task);
+			ret = task_pause(stack, task, body_id);
 			break;
 		case 'r':
-			ret = task_resume(stack, task);
+			ret = task_resume(stack, task, body_id);
 			break;
 		default:
 			err("unexpected nOS-V task event");
@@ -297,22 +328,22 @@ expand_transition_value(struct emu *emu, int was_running, int runs_now, char *tr
 }
 
 static int
-update_task_channels(struct emu *emu, char tr, struct task *prev, struct task *next)
+update_task_channels(struct emu *emu, char tr, struct body *bprev, struct body *bnext)
 {
 	int ret = 0;
 	switch (tr) {
 		case 'x':
 		case 'r':
-			ret = chan_task_running(emu, next);
+			ret = chan_body_running(emu, bnext);
 			break;
 		case 'e':
 		case 'p':
-			ret = chan_task_stopped(emu);
+			ret = chan_body_stopped(emu);
 			break;
 			/* Additional nested transitions */
 		case 'X':
 		case 'E':
-			ret = chan_task_switch(emu, prev, next);
+			ret = chan_body_switch(emu, bprev, bnext);
 			break;
 		default:
 			err("unexpected transition value %c", tr);
@@ -328,7 +359,7 @@ update_task_channels(struct emu *emu, char tr, struct task *prev, struct task *n
 }
 
 static int
-enforce_task_rules(struct emu *emu, char tr, struct task *next)
+enforce_task_rules(struct emu *emu, char tr, struct body *next)
 {
 	if (tr != 'x' && tr != 'X')
 		return 0;
@@ -336,8 +367,8 @@ enforce_task_rules(struct emu *emu, char tr, struct task *next)
 	/* If a task has just entered the running state, it must show
 	 * the running task body subsystem */
 
-	if (next->state != TASK_ST_RUNNING) {
-		err("task not in running state on begin");
+	if (body_get_state(next) != BODY_ST_RUNNING) {
+		err("body not in running state on begin");
 		return -1;
 	}
 
@@ -384,7 +415,7 @@ update_task(struct emu *emu)
 	struct nosv_thread *th = EXT(emu->thread, 'V');
 	struct task_stack *stack = &th->task_stack;
 
-	struct task *prev = task_get_running(stack);
+	struct body *prev = task_get_running(stack);
 
 	/* Update the emulator state, but don't modify the channels */
 	if (update_task_state(emu) != 0) {
@@ -392,7 +423,7 @@ update_task(struct emu *emu)
 		return -1;
 	}
 
-	struct task *next = task_get_running(stack);
+	struct body *next = task_get_running(stack);
 
 	/* Update the subsystem channel */
 	if (update_task_ss_channel(emu, emu->ev->v) != 0) {
@@ -423,9 +454,9 @@ update_task(struct emu *emu)
 }
 
 static int
-create_task(struct emu *emu)
+create_task(struct emu *emu, char value)
 {
-	if (emu->ev->payload_size != 8) {
+	if (emu->ev->payload_size < 8) {
 		err("unexpected payload size");
 		return -1;
 	}
@@ -433,10 +464,20 @@ create_task(struct emu *emu)
 	uint32_t task_id = emu->ev->payload->u32[0];
 	uint32_t type_id = emu->ev->payload->u32[1];
 
+	int is_parallel = (value == 'C');
+
+	uint32_t flags;
+
+	/* Parallel tasks cannot pause or resurrect */
+	if (is_parallel)
+		flags = TASK_FLAG_PARALLEL;
+	else
+		flags = TASK_FLAG_RESURRECT | TASK_FLAG_PAUSE;
+
 	struct nosv_proc *proc = EXT(emu->proc, 'V');
 	struct task_info *info = &proc->task_info;
 
-	if (task_create(info, type_id, task_id) != 0) {
+	if (task_create(info, type_id, task_id, flags) != 0) {
 		err("task_create failed");
 		return -1;
 	}
@@ -451,8 +492,9 @@ pre_task(struct emu *emu)
 {
 	int ret = 0;
 	switch (emu->ev->v) {
+		case 'C':
 		case 'c':
-			ret = create_task(emu);
+			ret = create_task(emu, emu->ev->v);
 			break;
 		case 'x':
 		case 'e':

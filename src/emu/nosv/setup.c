@@ -32,10 +32,11 @@ enum { model_id = 'V' };
 
 static struct ev_decl model_evlist[] = {
 	{ "VTc(u32 taskid, u32 typeid)", "creates task %{taskid} with type %{typeid}" },
-	{ "VTx(u32 taskid)", "executes the task %{taskid}" },
-	{ "VTe(u32 taskid)", "ends the task %{taskid}" },
-	{ "VTp(u32 taskid)", "pauses the task %{taskid}" },
-	{ "VTr(u32 taskid)", "resumes the task %{taskid}" },
+	{ "VTC(u32 taskid, u32 typeid)", "creates parallel task %{taskid} with type %{typeid}" },
+	{ "VTx(u32 taskid, u32 bodyid)", "executes the task %{taskid} with bodyid %{bodyid}" },
+	{ "VTe(u32 taskid, u32 bodyid)", "ends the task %{taskid} with bodyid %{bodyid}" },
+	{ "VTp(u32 taskid, u32 bodyid)", "pauses the task %{taskid} with bodyid %{bodyid}" },
+	{ "VTr(u32 taskid, u32 bodyid)", "resumes the task %{taskid} with bodyid %{bodyid}" },
 
 	{ "VYc+(u32 typeid, str label)", "creates task type %{typeid} with label \"%{label}\"" },
 
@@ -72,7 +73,7 @@ static struct ev_decl model_evlist[] = {
 
 struct model_spec model_nosv = {
 	.name    = model_name,
-	.version = "1.1.0",
+	.version = "2.0.0",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nosv_create,
@@ -85,6 +86,7 @@ struct model_spec model_nosv = {
 /* ----------------- channels ------------------ */
 
 static const char *chan_name[CH_MAX] = {
+	[CH_BODYID]    = "bodyid",
 	[CH_TASKID]    = "taskid",
 	[CH_TYPE]      = "task_type",
 	[CH_APPID]     = "appid",
@@ -97,6 +99,7 @@ static const int chan_stack[CH_MAX] = {
 };
 
 static const int chan_dup[CH_MAX] = {
+	[CH_BODYID] = 1, /* Switch to another task with body 1 */
 	[CH_APPID] = 1,
 	[CH_TYPE] = 1,
 	[CH_RANK] = 1,
@@ -108,6 +111,7 @@ static const int chan_dup[CH_MAX] = {
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[CH_MAX] = {
+	[CH_BODYID]    = PRV_NOSV_BODYID,
 	[CH_TASKID]    = PRV_NOSV_TASKID,
 	[CH_TYPE]      = PRV_NOSV_TYPE,
 	[CH_APPID]     = PRV_NOSV_APPID,
@@ -116,6 +120,7 @@ static const int pvt_type[CH_MAX] = {
 };
 
 static const char *pcf_prefix[CH_MAX] = {
+	[CH_BODYID]      = "nOS-V task body ID",
 	[CH_TASKID]      = "nOS-V task ID",
 	[CH_TYPE]        = "nOS-V task type",
 	[CH_APPID]       = "nOS-V task AppID",
@@ -152,11 +157,12 @@ static const struct pcf_value_label *pcf_labels[CH_MAX] = {
 };
 
 static const long prv_flags[CH_MAX] = {
-	[CH_TASKID]    = PRV_SKIPDUP,
-	[CH_TYPE]      = PRV_EMITDUP, /* Switch to task of same type */
-	[CH_APPID]     = PRV_EMITDUP, /* Switch to task of same appid */
-	[CH_SUBSYSTEM] = PRV_SKIPDUP,
-	[CH_RANK]      = PRV_EMITDUP, /* Switch to task of same rank */
+	[CH_BODYID]    = PRV_SKIPDUPNULL, /* Switch to different task, same bodyid */
+	[CH_TASKID]    = PRV_SKIPDUPNULL, /* Switch to another body of the same task */
+	[CH_TYPE]      = PRV_SKIPDUPNULL, /* Switch to task of same type */
+	[CH_APPID]     = PRV_SKIPDUPNULL, /* Switch to task of same appid */
+	[CH_SUBSYSTEM] = PRV_SKIPDUPNULL,
+	[CH_RANK]      = PRV_SKIPDUPNULL, /* Switch to task of same rank */
 };
 
 static const struct model_pvt_spec pvt_spec = {
@@ -169,6 +175,7 @@ static const struct model_pvt_spec pvt_spec = {
 /* ----------------- tracking ------------------ */
 
 static const int th_track[CH_MAX] = {
+	[CH_BODYID]    = TRACK_TH_RUN,
 	[CH_TASKID]    = TRACK_TH_RUN,
 	[CH_TYPE]      = TRACK_TH_RUN,
 	[CH_APPID]     = TRACK_TH_RUN,
@@ -177,6 +184,7 @@ static const int th_track[CH_MAX] = {
 };
 
 static const int cpu_track[CH_MAX] = {
+	[CH_BODYID]    = TRACK_TH_RUN,
 	[CH_TASKID]    = TRACK_TH_RUN,
 	[CH_TYPE]      = TRACK_TH_RUN,
 	[CH_APPID]     = TRACK_TH_RUN,
@@ -254,12 +262,6 @@ model_nosv_create(struct emu *emu)
 	if (model_cpu_create(emu, &cpu_spec) != 0) {
 		err("model_cpu_init failed");
 		return -1;
-	}
-
-	/* Init task stack thread pointer */
-	for (struct thread *t = sys->threads; t; t = t->gnext) {
-		struct nosv_thread *th = EXT(t, model_id);
-		th->task_stack.thread = t;
 	}
 
 	for (struct proc *p = sys->procs; p; p = p->gnext) {

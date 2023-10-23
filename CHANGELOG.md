@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add new body model to support parallel tasks in nOS-V (used in taskfor).
+- Add the ability to restrict transitions in the task model states.
+- Add nOS-V support for parallel tasks reading the body id from the
+  event payload.
+
 ### Changed
 
 - The task model now requires the previous task body to be paused before nesting

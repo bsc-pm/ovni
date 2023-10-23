@@ -12,7 +12,8 @@
 /* Private enums */
 
 enum nosv_chan {
-	CH_TASKID = 0,
+	CH_BODYID = 0,
+	CH_TASKID,
 	CH_TYPE,
 	CH_APPID,
 	CH_SUBSYSTEM,

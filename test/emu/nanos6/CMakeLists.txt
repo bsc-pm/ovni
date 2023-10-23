@@ -3,7 +3,7 @@
 
 test_emu(nested-tasks.c)
 test_emu(nested-tasks-bad.c SHOULD_FAIL
-  REGEX "body_execute: body 1 state must be Created but is Running")
+  REGEX "body_execute: body(id=1,taskid=1) state must be Created but is Running")
 test_emu(task-types.c MP)
 test_emu(blocking.c MP)
 test_emu(ss-mismatch.c SHOULD_FAIL
@@ -14,4 +14,4 @@ test_emu(sponge.c)
 test_emu(sponge-breakdown.c BREAKDOWN)
 test_emu(breakdown-no-black.c BREAKDOWN)
 test_emu(rerun-task-bad.c SHOULD_FAIL
-  REGEX "body_execute: body 1 cannot resurrect")
+  REGEX "body_execute: body(id=1,taskid=1) is not allowed to run again")

@@ -22,10 +22,12 @@ main(void)
 		instr_nanos6_handle_task_enter();
 		instr_nanos6_task_create_and_execute(i + 1, typeid);
 		sleep_us(500);
+		instr_nanos6_task_pause(i + 1);
 	}
 
 	/* End the tasks in the opposite order */
 	for (int i = ntasks - 1; i >= 0; i--) {
+		instr_nanos6_task_resume(i + 1);
 		instr_nanos6_task_end(i + 1);
 		instr_nanos6_task_body_exit();
 		instr_nanos6_handle_task_exit();

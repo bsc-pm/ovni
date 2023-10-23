@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -20,13 +20,13 @@ main(void)
 
 	instr_nosv_type_create(typeid);
 	instr_nosv_task_create(1, typeid);
-	instr_nosv_task_execute(1);
+	instr_nosv_task_execute(1, 0);
 	sleep_us(us);
-	instr_nosv_task_pause(1);
+	instr_nosv_task_pause(1, 0);
 	sleep_us(us);
-	instr_nosv_task_resume(1);
+	instr_nosv_task_resume(1, 0);
 	sleep_us(us);
-	instr_nosv_task_end(1);
+	instr_nosv_task_end(1, 0);
 
 	instr_end();
 

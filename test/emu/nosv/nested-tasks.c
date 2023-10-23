@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -6,15 +6,7 @@
 #include "instr.h"
 #include "instr_nosv.h"
 
-static void
-create_and_run(int32_t id, uint32_t typeid, int us)
-{
-	instr_nosv_task_create(id, typeid);
-	/* Change subsystem to prevent duplicates */
-	instr_nosv_submit_enter();
-	instr_nosv_task_execute(id);
-	sleep_us(us);
-}
+/* Create and run tasks, one nested into another */
 
 int
 main(void)
@@ -27,15 +19,19 @@ main(void)
 
 	instr_nosv_type_create(typeid);
 
-	/* Create and run the tasks, one nested into another */
-	for (int i = 0; i < ntasks; i++)
-		create_and_run(i + 1, typeid, 500);
+	for (int id = 1; id <= ntasks; id++)
+		instr_nosv_task_create(id, typeid);
 
-	/* End the tasks in the opposite order */
-	for (int i = ntasks - 1; i >= 0; i--) {
-		instr_nosv_task_end(i + 1);
-		/* Change subsystem to prevent duplicates */
+	for (int id = 1; id <= ntasks; id++) {
+		instr_nosv_task_execute(id, 0);
+		instr_nosv_task_pause(id, 0);
+		instr_nosv_submit_enter();
+	}
+
+	for (int id = ntasks; id >= 1; id--) {
 		instr_nosv_submit_exit();
+		instr_nosv_task_resume(id, 0);
+		instr_nosv_task_end(id, 0);
 	}
 
 	instr_end();

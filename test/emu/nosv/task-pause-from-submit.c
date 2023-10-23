@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -34,7 +34,7 @@ main(void)
 
 	instr_nosv_task_create(1, typeid);
 
-	instr_nosv_task_execute(1);
+	instr_nosv_task_execute(1, 0);
 
 	/* When starting a task, it must cause the subsystems to enter
 	 * the "Task: In body" state */
@@ -44,7 +44,7 @@ main(void)
 	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", get_delta(), prvtype, st);
 
 	instr_nosv_submit_enter(); /* Blocking submit */
-	instr_nosv_task_pause(1);
+	instr_nosv_task_pause(1, 0);
 
 	/* Should be left in the submit state, so no state transition in
 	 * subsystems view */
@@ -58,8 +58,8 @@ main(void)
 	fprintf(f, "grep ':%ld:%d:0$' ovni/cpu.prv\n", get_delta(), prvtype);
 
 	instr_nosv_submit_exit();
-	instr_nosv_task_resume(1);
-	instr_nosv_task_end(1);
+	instr_nosv_task_resume(1, 0);
+	instr_nosv_task_end(1, 0);
 
 	fclose(f);
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -25,11 +25,11 @@ main(void)
 	instr_nosv_task_create(1, typeid);
 	instr_nosv_task_create(2, typeid);
 
-	instr_nosv_task_execute(1);
+	instr_nosv_task_execute(1, 0);
 	/* Change subsystem to prevent duplicates */
 	instr_nosv_submit_enter();
 	/* Run another nested task with same type id */
-	instr_nosv_task_execute(2);
+	instr_nosv_task_execute(2, 0);
 
 	/* Match the PRV line in the trace */
 	FILE *f = fopen("match.sh", "w");
@@ -56,9 +56,9 @@ main(void)
 	fclose(f);
 
 	/* Exit from tasks and subsystem */
-	instr_nosv_task_end(2);
+	instr_nosv_task_end(2, 0);
 	instr_nosv_submit_exit();
-	instr_nosv_task_end(1);
+	instr_nosv_task_end(1, 0);
 
 	instr_end();
 

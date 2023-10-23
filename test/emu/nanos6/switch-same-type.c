@@ -28,6 +28,7 @@ main(void)
 	/* Change subsystem to prevent duplicates */
 	instr_nanos6_task_body_enter();
 	instr_nanos6_task_execute(1);
+	instr_nanos6_task_pause(1);
 	instr_nanos6_submit_task_enter();
 	instr_nanos6_task_body_enter();
 	instr_nanos6_task_execute(2);
@@ -54,6 +55,7 @@ main(void)
 	instr_nanos6_task_end(2);
 	instr_nanos6_task_body_exit();
 	instr_nanos6_submit_task_exit();
+	instr_nanos6_task_resume(1);
 	instr_nanos6_task_end(1);
 	instr_nanos6_task_body_exit();
 

@@ -37,11 +37,12 @@ instr_nosv_type_create(int32_t typeid)
 	return task_get_type_gid(p);
 }
 
-INSTR_2ARG(instr_nosv_task_create, "VTc", int32_t, id, uint32_t, typeid)
-INSTR_1ARG(instr_nosv_task_execute, "VTx", int32_t, id)
-INSTR_1ARG(instr_nosv_task_pause, "VTp", int32_t, id)
-INSTR_1ARG(instr_nosv_task_resume, "VTr", int32_t, id)
-INSTR_1ARG(instr_nosv_task_end, "VTe", int32_t, id)
+INSTR_2ARG(instr_nosv_task_create,     "VTc", uint32_t, taskid, uint32_t, typeid)
+INSTR_2ARG(instr_nosv_task_create_par, "VTC", uint32_t, taskid, uint32_t, typeid)
+INSTR_2ARG(instr_nosv_task_execute,    "VTx", uint32_t, taskid, uint32_t, bodyid)
+INSTR_2ARG(instr_nosv_task_pause,      "VTp", uint32_t, taskid, uint32_t, bodyid)
+INSTR_2ARG(instr_nosv_task_resume,     "VTr", uint32_t, taskid, uint32_t, bodyid)
+INSTR_2ARG(instr_nosv_task_end,        "VTe", uint32_t, taskid, uint32_t, bodyid)
 
 INSTR_0ARG(instr_nosv_submit_enter, "VAs")
 INSTR_0ARG(instr_nosv_submit_exit,  "VAS")

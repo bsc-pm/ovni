@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdio.h>
@@ -53,9 +53,9 @@ main(void)
 	uint32_t typeid = 1;
 	instr_nosv_type_create(typeid);
 	instr_nosv_task_create(1, typeid);
-	instr_nosv_task_execute(1);
+	instr_nosv_task_execute(1, 0);
 	sleep_us(10000);
-	instr_nosv_task_end(1);
+	instr_nosv_task_end(1, 0);
 
 	instr_end();
 

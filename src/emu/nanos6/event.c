@@ -224,11 +224,6 @@ chan_task_switch(struct emu *emu,
 		return -1;
 	}
 
-	if (prev->thread != next->thread) {
-		err("cannot switch to a task of another thread");
-		return -1;
-	}
-
 	if (chan_set(&th->m.ch[CH_TASKID], value_int64(next->id)) != 0) {
 		err("chan_set taskid failed");
 		return -1;
@@ -271,19 +266,22 @@ update_task_state(struct emu *emu)
 		return -1;
 	}
 
+	/* Nanos6 doesn't have parallel tasks */
+	uint32_t body_id = 1;
+
 	int ret = 0;
 	switch (emu->ev->v) {
 		case 'x':
-			ret = task_execute(stack, task);
+			ret = task_execute(stack, task, body_id);
 			break;
 		case 'e':
-			ret = task_end(stack, task);
+			ret = task_end(stack, task, body_id);
 			break;
 		case 'p':
-			ret = task_pause(stack, task);
+			ret = task_pause(stack, task, body_id);
 			break;
 		case 'r':
-			ret = task_resume(stack, task);
+			ret = task_resume(stack, task, body_id);
 			break;
 		default:
 			err("unexpected Nanos6 task event");
@@ -352,7 +350,7 @@ update_task_channels(struct emu *emu,
 }
 
 static int
-enforce_task_rules(struct emu *emu, char tr, struct task *next)
+enforce_task_rules(struct emu *emu, char tr, struct body *bnext)
 {
 	if (tr != 'x' && tr != 'X')
 		return 0;
@@ -360,8 +358,9 @@ enforce_task_rules(struct emu *emu, char tr, struct task *next)
 	/* If a task has just entered the running state, it must show
 	 * the running task body subsystem */
 
-	if (next->state != TASK_ST_RUNNING) {
-		err("task not in running state on begin");
+	if (body_get_state(bnext) != BODY_ST_RUNNING) {
+		err("task body %u not in running state on begin",
+				body_get_id(bnext));
 		return -1;
 	}
 
@@ -407,7 +406,8 @@ update_task(struct emu *emu)
 	struct nanos6_thread *th = EXT(emu->thread, '6');
 	struct task_stack *stack = &th->task_stack;
 
-	struct task *prev = task_get_running(stack);
+	struct body *bprev = task_get_running(stack);
+	struct task *prev = bprev == NULL ? NULL : body_get_task(bprev);
 
 	/* Update the emulator state, but don't modify the channels */
 	if (update_task_state(emu) != 0) {
@@ -415,7 +415,8 @@ update_task(struct emu *emu)
 		return -1;
 	}
 
-	struct task *next = task_get_running(stack);
+	struct body *bnext = task_get_running(stack);
+	struct task *next = bnext == NULL ? NULL : body_get_task(bnext);
 
 	/* Update the subsystem channel */
 	if (update_task_ss_channel(emu, emu->ev->v) != 0) {
@@ -437,7 +438,7 @@ update_task(struct emu *emu)
 		return -1;
 	}
 
-	if (enforce_task_rules(emu, tr, next) != 0) {
+	if (enforce_task_rules(emu, tr, bnext) != 0) {
 		err("enforce_task_rules failed");
 		return -1;
 	}
@@ -459,7 +460,14 @@ create_task(struct emu *emu)
 	struct nanos6_proc *proc = EXT(emu->proc, '6');
 	struct task_info *info = &proc->task_info;
 
-	if (task_create(info, type_id, task_id) != 0) {
+	/* Only allow pausing the tasks, no parallel or resurrect */
+	int flags = TASK_FLAG_PAUSE;
+
+	/* TODO: Nanos6 still submits inline tasks without pausing the previous
+	 * task, so we relax the model to allow this for now. */
+	flags |= TASK_FLAG_RELAX_NESTING;
+
+	if (task_create(info, type_id, task_id, flags) != 0) {
 		err("task_create failed");
 		return -1;
 	}

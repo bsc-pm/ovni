@@ -297,12 +297,6 @@ model_nanos6_create(struct emu *emu)
 		return -1;
 	}
 
-	/* Init task stack thread pointer */
-	for (struct thread *t = sys->threads; t; t = t->gnext) {
-		struct nanos6_thread *th = EXT(t, model_id);
-		th->task_stack.thread = t;
-	}
-
 	for (struct proc *p = sys->procs; p; p = p->gnext) {
 		if (init_proc(p) != 0) {
 			err("init_proc failed");

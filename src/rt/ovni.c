@@ -17,6 +17,45 @@
 #include "parson.h"
 #include "version.h"
 
+/* State of each thread on runtime */
+struct ovni_rthread {
+	/* Current thread id */
+	pid_t tid;
+
+	/* Stream trace file descriptor */
+	int streamfd;
+
+	int ready;
+
+	/* The number of bytes filled with events */
+	size_t evlen;
+
+	/* Buffer to write events */
+	uint8_t *evbuf;
+};
+
+/* State of each process on runtime */
+struct ovni_rproc {
+	/* Where the process trace is finally copied */
+	char procdir_final[PATH_MAX];
+
+	/* Where the process trace is flushed */
+	char procdir[PATH_MAX];
+
+	/* If needs to be moved at the end */
+	int move_to_final;
+
+	int app;
+	int pid;
+	char loom[OVNI_MAX_HOSTNAME];
+	int ncpus;
+	clockid_t clockid;
+
+	int ready;
+
+	JSON_Value *meta;
+};
+
 /* Data per process */
 struct ovni_rproc rproc = {0};
 

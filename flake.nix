@@ -67,7 +67,7 @@
         # We need to be able to exit the chroot to run Nanos6 tests, as they
         # require access to /sys for hwloc
         __noChroot = true;
-        buildInputs = old.buildInputs ++ (with pkgs; [ nosv nanos6 nodes ]);
+        buildInputs = old.buildInputs ++ (with pkgs; [ pkg-config nosv nanos6 nodes ]);
         cmakeFlags = old.cmakeFlags ++ [ "-DENABLE_ALL_TESTS=ON" ];
         preConfigure = old.preConfigure or "" + ''
           export NODES_HOME="${pkgs.nodes}"

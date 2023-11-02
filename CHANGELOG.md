@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Don't modify nOS-V subsystem state on task pause. The "Task: Running"
   state is now renamed to "Task: In body" to reflect the change.
+- Use pkg-config to locate the nOS-V library and get the version. Use
+  `PKG_CONFIG_LIBDIR=/path/to/nosv/install/lib/pkgconfig` to use a custom
+  installation path.
 
 ## [1.3.0] - 2023-09-07
 

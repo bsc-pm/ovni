@@ -103,3 +103,6 @@ if(BUILD_TESTING)
 endif()
 
 install(DIRECTORY cfg/ DESTINATION "${OVNI_CONFIG_RELDIR}")
+
+include(FeatureSummary)
+feature_summary(WHAT ALL)

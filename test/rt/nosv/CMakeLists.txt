@@ -15,13 +15,34 @@ else()
 endif()
 
 function(nosv_test)
+  set(switches "")
+  set(single LEVEL)
+  set(multi "")
+  cmake_parse_arguments(
+    NOSV_TEST "${switches}" "${single}" "${multi}" ${ARGN})
   ovni_test(${ARGN})
   target_link_libraries("${OVNI_TEST_NAME}" PRIVATE PkgConfig::NOSV)
   set_property(TEST "${OVNI_TEST_NAME}" APPEND
     PROPERTY
       ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nosv/nosv.toml")
+    if(DEFINED NOSV_TEST_LEVEL)
+    set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
+      ENVIRONMENT "NOSV_CONFIG_OVERRIDE=ovni.level=${NOSV_TEST_LEVEL}")
+  endif()
 endfunction()
 
 nosv_test(attach.c SORT)
 nosv_test(waitfor.c SORT)
 nosv_test(several-tasks.c SORT)
+
+# Only after 1.1.0 we have support for levels
+if (${NOSV_VERSION} VERSION_LESS "1.1.0")
+  set(LEVELS_DISABLED "DISABLED")
+endif()
+
+# Test multiple instrumentation levels
+nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-0 LEVEL 0)
+nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-1 LEVEL 1)
+nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-2 LEVEL 2)
+nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-3 LEVEL 3)
+nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-4 LEVEL 4)

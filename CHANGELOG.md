@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2023-11-08
+
 ### Added
 
 - Add `OVNI_TRACEDIR` envar to change the trace directory (default is `ovni`).
@@ -136,6 +138,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://pm.bsc.es/gitlab/rarias/ovni/-/commits/master
+[1.4.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.4.0
 [1.3.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.3.0
 [1.2.2]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.2
 [1.2.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.1

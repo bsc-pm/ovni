@@ -99,6 +99,8 @@ void ovni_proc_fini(void);
 
 void ovni_thread_init(pid_t tid);
 
+void ovni_thread_require(const char *model, const char *version);
+
 void ovni_thread_free(void);
 
 int ovni_thread_isready(void);

@@ -32,6 +32,8 @@ struct ovni_rthread {
 
 	/* Buffer to write events */
 	uint8_t *evbuf;
+
+	JSON_Value *meta;
 };
 
 /* State of each process on runtime */
@@ -231,7 +233,6 @@ proc_set_version(void)
 	if (json_object_set_string(meta, "model_version", OVNI_MODEL_VERSION) != 0)
 		die("json_object_set_string for model_version failed");
 }
-
 
 void
 ovni_proc_set_rank(int rank, int nranks)
@@ -448,6 +449,53 @@ write_stream_header(void)
 	flush_evbuf();
 }
 
+static void
+thread_metadata_store(void)
+{
+	char path[PATH_MAX];
+	int written = snprintf(path, PATH_MAX, "%s/thread.%d.json",
+			rproc.procdir, rthread.tid);
+
+	if (written >= PATH_MAX)
+		die("thread trace path too long: %s/thread.%d.json",
+				rproc.procdir, rthread.tid);
+
+	if (json_serialize_to_file_pretty(rthread.meta, path) != JSONSuccess)
+		die("failed to write thread metadata");
+}
+
+static void
+thread_metadata_populate(void)
+{
+	JSON_Object *meta = json_value_get_object(rthread.meta);
+
+	if (meta == NULL)
+		die("json_value_get_object failed");
+
+	if (json_object_dotset_number(meta, "version", OVNI_METADATA_VERSION) != 0)
+		die("json_object_dotset_string failed");
+
+	if (json_object_dotset_string(meta, "libovni.version", OVNI_LIB_VERSION) != 0)
+		die("json_object_dotset_string failed");
+
+	if (json_object_dotset_string(meta, "libovni.commit", OVNI_GIT_COMMIT) != 0)
+		die("json_object_dotset_string failed");
+}
+
+static void
+thread_metadata_init(void)
+{
+	rthread.meta = json_value_init_object();
+
+	if (rthread.meta == NULL)
+		die("failed to create metadata JSON object");
+
+	thread_metadata_populate();
+
+	/* Store initial metadata on disk, to detect broken streams */
+	thread_metadata_store();
+}
+
 void
 ovni_thread_init(pid_t tid)
 {
@@ -474,7 +522,49 @@ ovni_thread_init(pid_t tid)
 	create_trace_stream();
 	write_stream_header();
 
+	thread_metadata_init();
+
 	rthread.ready = 1;
+}
+
+void
+ovni_thread_require(const char *model, const char *version)
+{
+	if (!rthread.ready)
+		die("thread not initialized");
+
+	/* Sanitize model */
+	if (model == NULL)
+		die("model string is NULL");
+
+	if (strpbrk(model, " .") != NULL)
+		die("malformed model name");
+
+	if (strlen(model) <= 1)
+		die("model name must have more than 1 character");
+
+	/* Sanitize version */
+	if (version == NULL)
+		die("version string is NULL");
+
+	int parsedver[3];
+	if (version_parse(version, parsedver) != 0)
+		die("failed to parse provided version \"%s\"", version);
+
+	/* Store into metadata */
+	JSON_Object *meta = json_value_get_object(rthread.meta);
+
+	if (meta == NULL)
+		die("json_value_get_object failed");
+
+	char dotpath[128];
+	if (snprintf(dotpath, 128, "require.%s.version", model) >= 128)
+		die("model name too long");
+
+	/* TODO: What if is already set? */
+
+	if (json_object_dotset_string(meta, dotpath, version) != 0)
+		die("json_object_dotset_string failed");
 }
 
 void
@@ -616,6 +706,8 @@ ovni_flush(void)
 	ovni_ev_set_mcv(&pre, "OF[");
 
 	flush_evbuf();
+	/* Also save metadata */
+	thread_metadata_store();
 
 	ovni_ev_set_clock(&post, ovni_clock_now());
 	ovni_ev_set_mcv(&post, "OF]");

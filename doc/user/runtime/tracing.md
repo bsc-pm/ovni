@@ -11,11 +11,16 @@ trace is correct.
 - Call `ovni_proc_init()` when a new process begins the execution.
 
 - Call `ovni_thread_init()` when a new thread begins the execution
-(including the main process thread). Call `ovni_flush()` and
-`ovni_thread_free()` when it finishes (in that order).
+  (including the main process thread).
+
+- Call `ovni_thread_require()` with the required model version before
+  emitting events for that model.
+
+- Call `ovni_flush()` and `ovni_thread_free()` when it finishes (in that
+  order).
 
 - Call `ovni_proc_fini()` when a process ends, after all threads have
-finished.
+  finished.
 
 You can use `ovni_ev_emit()` to record a new event. If you need more
 than 16 bytes of payload, use `ovni_ev_jumbo_emit()`. See the [trace

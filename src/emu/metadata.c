@@ -9,6 +9,7 @@
 #include "ovni.h"
 #include "parson.h"
 #include "proc.h"
+#include "thread.h"
 
 static JSON_Object *
 load_json(const char *path)
@@ -42,19 +43,6 @@ check_version(JSON_Object *meta)
 	if (version != OVNI_METADATA_VERSION) {
 		err("metadata version mismatch %d (expected %d)",
 				version, OVNI_METADATA_VERSION);
-		return -1;
-	}
-
-	JSON_Value *mversion_val = json_object_get_value(meta, "model_version");
-	if (mversion_val == NULL) {
-		err("missing attribute \"model_version\"");
-		return -1;
-	}
-
-	const char *mversion = json_string(mversion_val);
-	if (strcmp(mversion, OVNI_MODEL_VERSION) != 0) {
-		err("model version mismatch '%s' (expected '%s')",
-				mversion, OVNI_MODEL_VERSION);
 		return -1;
 	}
 
@@ -121,11 +109,11 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 }
 
 int
-metadata_load(const char *path, struct loom *loom, struct proc *proc)
+metadata_load_proc(const char *path, struct loom *loom, struct proc *proc)
 {
 	JSON_Object *meta = load_json(path);
 	if (meta == NULL) {
-		err("cannot load metadata from file %s", path);
+		err("cannot load proc metadata from file %s", path);
 		return -1;
 	}
 
@@ -142,6 +130,28 @@ metadata_load(const char *path, struct loom *loom, struct proc *proc)
 
 	if (has_cpus(meta) && load_cpus(loom, meta) != 0) {
 		err("cannot load loom cpus");
+		return -1;
+	}
+
+	return 0;
+}
+
+int
+metadata_load_thread(const char *path, struct thread *thread)
+{
+	JSON_Object *meta = load_json(path);
+	if (meta == NULL) {
+		err("cannot load thread metadata from file %s", path);
+		return -1;
+	}
+
+	if (check_version(meta) != 0) {
+		err("version check failed");
+		return -1;
+	}
+
+	if (thread_load_metadata(thread, meta) != 0) {
+		err("cannot load thread attributes");
 		return -1;
 	}
 

@@ -7,7 +7,9 @@
 #include "common.h"
 struct loom;
 struct proc;
+struct thread;
 
-USE_RET int metadata_load(const char *path, struct loom *loom, struct proc *proc);
+USE_RET int metadata_load_proc(const char *path, struct loom *loom, struct proc *proc);
+USE_RET int metadata_load_thread(const char *path, struct thread *thread);
 
 #endif /* METADATA_H */

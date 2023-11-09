@@ -24,7 +24,7 @@
 struct bay;
 
 static struct thread *
-create_thread(struct proc *proc, const char *relpath)
+create_thread(struct proc *proc, const char *tracedir, const char *relpath)
 {
 	int tid;
 	if (thread_relpath_get_tid(relpath, &tid) != 0) {
@@ -47,6 +47,19 @@ create_thread(struct proc *proc, const char *relpath)
 
 	if (thread_init_begin(thread, relpath) != 0) {
 		err("cannot init thread");
+		return NULL;
+	}
+
+	/* Build metadata path */
+	char mpath[PATH_MAX];
+	if (snprintf(mpath, PATH_MAX, "%s/%s/thread.%d.json",
+				tracedir, proc->id, tid) >= PATH_MAX) {
+		err("path too long");
+		return NULL;
+	}
+
+	if (metadata_load_thread(mpath, thread) != 0) {
+		err("cannot load metadata from %s", mpath);
 		return NULL;
 	}
 
@@ -94,7 +107,7 @@ create_proc(struct loom *loom, const char *tracedir, const char *relpath)
 	}
 
 	/* Load metadata too */
-	if (metadata_load(mpath, loom, proc) != 0) {
+	if (metadata_load_proc(mpath, loom, proc) != 0) {
 		err("cannot load metadata from %s", mpath);
 		return NULL;
 	}
@@ -185,7 +198,7 @@ create_system(struct system *sys, struct trace *trace)
 			return -1;
 		}
 
-		struct thread *thread = create_thread(proc, s->relpath);
+		struct thread *thread = create_thread(proc, dir, s->relpath);
 		if (thread == NULL) {
 			err("create_thread failed");
 			return -1;

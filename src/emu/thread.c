@@ -152,6 +152,11 @@ thread_init_end(struct thread *th)
 		return -1;
 	}
 
+	if (th->meta == NULL) {
+		err("missing metadata for thread %s", th->id);
+		return -1;
+	}
+
 	for (int i = 0; i < TH_CHAN_MAX; i++) {
 		chan_init(&th->chan[i], CHAN_SINGLE,
 				chan_fmt, th->gindex, chan_name[i]);
@@ -436,6 +441,19 @@ thread_migrate_cpu(struct thread *th, struct cpu *cpu)
 		err("chan_set failed");
 		return -1;
 	}
+
+	return 0;
+}
+
+int
+thread_load_metadata(struct thread *thread, JSON_Object *meta)
+{
+	if (thread->meta != NULL) {
+		err("thread %s already loaded metadata", thread->id);
+		return -1;
+	}
+
+	thread->meta = meta;
 
 	return 0;
 }

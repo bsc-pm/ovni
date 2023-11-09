@@ -11,6 +11,7 @@
 #include "common.h"
 #include "extend.h"
 #include "uthash.h"
+#include "parson.h"
 struct bay;
 struct cpu;
 struct mux;
@@ -70,6 +71,9 @@ struct thread {
 
 	struct chan chan[TH_CHAN_MAX];
 
+	/* Metadata */
+	JSON_Object *meta;
+
 	struct extend ext;
 
 	UT_hash_handle hh; /* threads in the process */
@@ -78,6 +82,7 @@ struct thread {
 USE_RET int thread_relpath_get_tid(const char *relpath, int *tid);
 USE_RET int thread_init_begin(struct thread *thread, const char *relpath);
 USE_RET int thread_init_end(struct thread *thread);
+USE_RET int thread_load_metadata(struct thread *thread, JSON_Object *meta);
 USE_RET int thread_set_state(struct thread *th, enum thread_state state);
 USE_RET int thread_set_cpu(struct thread *th, struct cpu *cpu);
 USE_RET int thread_unset_cpu(struct thread *th);

@@ -25,8 +25,9 @@ static const char model_name[] = "mpi";
 enum { model_id = 'M' };
 
 struct model_spec model_mpi = {
-	.name = model_name,
-	.model = model_id,
+	.name    = model_name,
+	.version = "1.0.0",
+	.model   = model_id,
 	.create  = model_mpi_create,
 //	.connect = model_mpi_connect,
 	.event   = model_mpi_event,
@@ -171,10 +172,7 @@ static const struct model_thread_spec th_spec = {
 int
 model_mpi_probe(struct emu *emu)
 {
-	if (emu->system.nthreads == 0)
-		return 1;
-
-	return 0;
+	return model_version_probe(&model_mpi, emu);
 }
 
 int

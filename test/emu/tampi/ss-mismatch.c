@@ -13,6 +13,7 @@ main(void)
 	 * the stack causes the emulator to fail */
 
 	instr_start(0, 1);
+	instr_tampi_init();
 
 	instr_tampi_library_interface_enter();
 	/* The thread is left in the library interface state (should fail) */

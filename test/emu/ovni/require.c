@@ -11,7 +11,8 @@ main(void)
 {
 	instr_start(0, 1);
 
-	ovni_thread_require("ovni", "1.2.0");
+	/* Override */
+	ovni_thread_require("ovni", "666.66.6");
 
 	instr_end();
 

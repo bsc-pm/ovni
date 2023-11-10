@@ -11,6 +11,7 @@ int
 main(void)
 {
 	instr_start(0, 1);
+	instr_nanos6_init();
 
 	uint32_t typeid = 666;
 	instr_nanos6_type_create(typeid);

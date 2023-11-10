@@ -13,6 +13,7 @@ main(void)
 	int rank = atoi(getenv("OVNI_RANK"));
 	int nranks = atoi(getenv("OVNI_NRANKS"));
 	instr_start(rank, nranks);
+	instr_nosv_init();
 
 	int us = 500;
 	uint32_t typeid = 1;

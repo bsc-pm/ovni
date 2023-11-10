@@ -10,6 +10,7 @@
 #include "common.h"
 #include "compat.h"
 #include "ovni.h"
+#include "emu/models.h"
 
 extern int first_clock_set;
 extern int64_t first_clock;
@@ -73,6 +74,16 @@ instr_thread_end(void)
 
 	/* Flush the events to disk before killing the thread */
 	ovni_flush();
+}
+
+static inline void
+instr_require(const char *model)
+{
+	const char *version = models_get_version(model);
+	if (version == NULL)
+		die("cannot find version of model %s", model);
+
+	ovni_thread_require(model, version);
 }
 
 static inline void

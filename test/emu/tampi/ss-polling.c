@@ -15,6 +15,7 @@ main(void)
 	const int nranks = atoi(getenv("OVNI_NRANKS"));
 
 	instr_start(rank, nranks);
+	instr_tampi_init();
 
 	const int transfer_step = 5;
 	const int complete_step = 3;

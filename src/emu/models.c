@@ -6,6 +6,7 @@
 #include "common.h"
 #include "model.h"
 #include <stdlib.h>
+#include <string.h>
 
 extern struct model_spec model_ovni;
 extern struct model_spec model_nanos6;
@@ -37,4 +38,15 @@ models_register(struct model *model)
 	}
 
 	return 0;
+}
+
+const char *
+models_get_version(const char *name)
+{
+	for (int i = 0; models[i] != NULL; i++) {
+		if (strcmp(models[i]->name, name) == 0)
+			return models[i]->version;
+	}
+
+	return NULL;
 }

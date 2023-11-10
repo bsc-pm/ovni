@@ -22,6 +22,7 @@ main(void)
 	 */
 
 	instr_start(0, 1);
+	instr_nosv_init();
 
 	/* Match the PRV line in the trace */
 	FILE *f = fopen("match.sh", "w");

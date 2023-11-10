@@ -13,6 +13,7 @@ main(void)
 	 * stack causes the emulator to fail */
 
 	instr_start(0, 1);
+	instr_mpi_init();
 
 	instr_mpi_init_thread_enter();
 	/* The thread is left in the MPI_Init_thread state (should fail) */

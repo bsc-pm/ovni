@@ -10,6 +10,7 @@ struct emu;
 
 struct model_spec {
 	const char *name;
+	const char *version;
 	int model;
 	char *depends;
 	emu_hook_t *probe;
@@ -34,5 +35,6 @@ USE_RET int model_create(struct model *model, struct emu *emu);
 USE_RET int model_connect(struct model *model, struct emu *emu);
 USE_RET int model_event(struct model *model, struct emu *emu, int index);
 USE_RET int model_finish(struct model *model, struct emu *emu);
+USE_RET int model_version_probe(struct model_spec *spec, struct emu *emu);
 
 #endif /* MODEL_H */

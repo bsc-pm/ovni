@@ -8,6 +8,7 @@
 #include "common.h"
 #include "compat.h"
 #include "ovni.h"
+#include "instr.h"
 
 int64_t delta = 0LL;
 
@@ -38,6 +39,7 @@ start_delayed(int rank, int nranks)
 	ovni_proc_init(1, rankname, getpid());
 	ovni_proc_set_rank(rank, nranks);
 	ovni_thread_init(get_tid());
+	instr_require("ovni");
 
 	/* All ranks inform CPUs */
 	for (int i = 0; i < nranks; i++)

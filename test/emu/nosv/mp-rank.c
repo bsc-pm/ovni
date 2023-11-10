@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include "compat.h"
 #include "ovni.h"
+#include "instr.h"
 
 static void
 fail(const char *msg)
@@ -137,6 +138,7 @@ main(void)
 	uint32_t typeid = 1;
 
 	instr_start(rank, nranks);
+	instr_nosv_init();
 
 	type_create(typeid);
 

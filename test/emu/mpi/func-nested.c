@@ -10,9 +10,10 @@ int
 main(void)
 {
 	/* Test that a thread calling the mpi function that is already executing
-     * causes the emulator to fail */
+	 * causes the emulator to fail */
 
 	instr_start(0, 1);
+	instr_mpi_init();
 
 	instr_mpi_init_thread_enter();
 	/* The thread runs the same mpi function in a nested way (should fail) */

@@ -30,8 +30,9 @@ static const char model_name[] = "nosv";
 enum { model_id = 'V' };
 
 struct model_spec model_nosv = {
-	.name = model_name,
-	.model = model_id,
+	.name    = model_name,
+	.version = "1.0.0",
+	.model   = model_id,
 	.create  = model_nosv_create,
 //	.connect = model_nosv_connect,
 	.event   = model_nosv_event,
@@ -180,10 +181,7 @@ static const struct model_cpu_spec cpu_spec = {
 int
 model_nosv_probe(struct emu *emu)
 {
-	if (emu->system.nthreads == 0)
-		return 1;
-
-	return 0;
+	return model_version_probe(&model_nosv, emu);
 }
 
 static int

@@ -13,6 +13,7 @@ int
 main(void)
 {
 	instr_start(0, 1);
+	instr_nanos6_init();
 
 	/* Until here, the nanos6 model has not been connected to the
 	 * patchbay yet. The next event will cause the subsystem mux to

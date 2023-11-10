@@ -8,6 +8,7 @@
 #include "common.h"
 #include "compat.h"
 #include "ovni.h"
+#include "instr.h"
 
 static inline void
 init(void)

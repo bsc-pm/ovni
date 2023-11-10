@@ -62,3 +62,20 @@ version_parse(const char *version, int tuple[3])
 
 	return 0;
 }
+
+/** Finds if two versions are compatible.
+ *
+ * Returns 1 if the version `want` is compatible with the version `have`.
+ * Otherwise returns 0. */
+static inline int
+version_is_compatible(int want[3], int have[3])
+{
+	/* Major must match exactly */
+	if (want[0] != have[0])
+		return 0;
+
+	if (want[1] > have[1])
+		return 0;
+
+	return 1;
+}

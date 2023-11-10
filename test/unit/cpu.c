@@ -7,6 +7,7 @@
 #include "emu/proc.h"
 #include "emu/thread.h"
 #include "unittest.h"
+#include "parson.h"
 
 static void
 test_oversubscription(void)
@@ -41,6 +42,7 @@ test_oversubscription(void)
 		die("thread_init_begin failed");
 
 	thread_set_gindex(&th0, 0);
+	th0.meta = (JSON_Object *) 666;
 
 	if (thread_init_end(&th0) != 0)
 		die("thread_init_end failed");
@@ -49,6 +51,7 @@ test_oversubscription(void)
 		die("thread_init_begin failed");
 
 	thread_set_gindex(&th1, 1);
+	th1.meta = (JSON_Object *) 666;
 
 	if (thread_init_end(&th1) != 0)
 		die("thread_init_end failed");

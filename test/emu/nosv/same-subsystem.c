@@ -15,6 +15,7 @@ int
 main(void)
 {
 	instr_start(0, 1);
+	instr_nosv_init();
 
 	instr_nosv_type_create(10);
 	instr_nosv_task_create(1, 10);

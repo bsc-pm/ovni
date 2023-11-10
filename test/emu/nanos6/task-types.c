@@ -13,6 +13,7 @@ main(void)
 	int nranks = atoi(getenv("OVNI_NRANKS"));
 
 	instr_start(rank, nranks);
+	instr_nanos6_init();
 
 	int ntasks = 100;
 	int ntypes = 10;

@@ -16,6 +16,7 @@ main(void)
 	 * type, appid and rank. */
 
 	instr_start(0, 1);
+	instr_nosv_init();
 
 	uint32_t typeid = 100;
 	uint32_t gid = instr_nosv_type_create(typeid);

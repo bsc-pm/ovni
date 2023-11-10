@@ -13,6 +13,7 @@ int
 main(void)
 {
 	instr_start(0, 1);
+	instr_nanos6_init();
 
 	int type = PRV_NANOS6_BREAKDOWN;
 	FILE *f = fopen("match.sh", "w");

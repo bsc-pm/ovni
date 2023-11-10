@@ -8,6 +8,12 @@
 
 #include "task.h"
 
+static inline void
+instr_nanos6_init(void)
+{
+	instr_require("nanos6");
+}
+
 static inline uint32_t
 instr_nanos6_type_create(int32_t typeid)
 {

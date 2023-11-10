@@ -6,6 +6,12 @@
 
 #include "instr.h"
 
+static inline void
+instr_mpi_init(void)
+{
+	instr_require("mpi");
+}
+
 INSTR_0ARG(instr_mpi_init_thread_enter, "MUt")
 INSTR_0ARG(instr_mpi_init_thread_exit, "MUT")
 INSTR_0ARG(instr_mpi_finalize_enter, "MUf")

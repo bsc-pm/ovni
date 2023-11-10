@@ -25,8 +25,9 @@ static const char model_name[] = "nodes";
 enum { model_id = 'D' };
 
 struct model_spec model_nodes = {
-	.name = model_name,
-	.model = model_id,
+	.name    = model_name,
+	.version = "1.0.0",
+	.model   = model_id,
 	.create  = model_nodes_create,
 //	.connect = model_nodes_connect,
 	.event   = model_nodes_event,
@@ -130,10 +131,7 @@ static const struct model_thread_spec th_spec = {
 int
 model_nodes_probe(struct emu *emu)
 {
-	if (emu->system.nthreads == 0)
-		return 1;
-
-	return 0;
+	return model_version_probe(&model_nodes, emu);
 }
 
 int

@@ -4,7 +4,9 @@
 #include "model.h"
 #include <string.h>
 #include "common.h"
-struct emu;
+#include "version.h"
+#include "emu.h"
+#include "thread.h"
 
 void
 model_init(struct model *model)
@@ -16,6 +18,16 @@ int
 model_register(struct model *model, struct model_spec *spec)
 {
 	int i = spec->model;
+
+	if (spec->name == NULL) {
+		err("model %c missing name", i);
+		return -1;
+	}
+
+	if (spec->version == NULL) {
+		err("model %c missing version", i);
+		return -1;
+	}
 
 	if (model->registered[i]) {
 		err("model %c already registered", i);
@@ -47,10 +59,10 @@ model_probe(struct model *model, struct emu *emu)
 		}
 
 		if (ret == 0) {
+			dbg("model %c disabled", (char) i);
+		} else {
 			model->enabled[i] = 1;
 			dbg("model %c enabled", (char) i);
-		} else {
-			dbg("model %c disabled", (char) i);
 		}
 	}
 	return 0;
@@ -140,4 +152,59 @@ model_finish(struct model *model, struct emu *emu)
 	}
 
 	return ret;
+}
+
+int
+model_version_probe(struct model_spec *spec, struct emu *emu)
+{
+	int enable = 0;
+	int have[3];
+
+	if (version_parse(spec->version, have) != 0) {
+		err("cannot parse version %s", spec->version);
+		return -1;
+	}
+
+	char path[128];
+	if (snprintf(path, 128, "%s.version", spec->name) >= 128)
+		die("model %s name too long", spec->name);
+
+	/* Find a stream with an model name key */
+	struct system *sys = &emu->system;
+	for (struct thread *t = sys->threads; t; t = t->gnext) {
+		/* The ovni.require key is mandatory */
+		JSON_Object *require = json_object_dotget_object(t->meta, "ovni.require");
+		if (require == NULL) {
+			err("missing 'ovni.require' key in metadata");
+			return -1;
+		}
+
+		/* But not all threads need to have this model */
+		const char *req_version = json_object_get_string(require, spec->name);
+		if (req_version == NULL)
+			continue;
+
+		int want[3];
+		if (version_parse(req_version, want) != 0) {
+			err("cannot parse version %s", req_version);
+			return -1;
+		}
+
+		if (!version_is_compatible(want, have)) {
+			err("unsupported %s model version (want %s, have %s) in %s",
+					spec->name, req_version, spec->version,
+					t->id);
+			return -1;
+		}
+
+		enable = 1;
+	}
+
+	if (enable) {
+		dbg("model %s enabled", spec->name);
+	} else {
+		dbg("model %s disabled", spec->name);
+	}
+
+	return enable;
 }

@@ -6,6 +6,12 @@
 
 #include "instr.h"
 
+static inline void
+instr_tampi_init(void)
+{
+	instr_require("tampi");
+}
+
 INSTR_0ARG(instr_tampi_issue_nonblk_op_enter, "TCi")
 INSTR_0ARG(instr_tampi_issue_nonblk_op_exit, "TCI")
 

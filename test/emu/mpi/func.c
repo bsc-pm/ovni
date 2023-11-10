@@ -15,6 +15,7 @@ main(void)
 	const int nranks = atoi(getenv("OVNI_NRANKS"));
 
 	instr_start(rank, nranks);
+	instr_mpi_init();
 
 	/* Initialize MPI */
 	instr_mpi_init_thread_enter();

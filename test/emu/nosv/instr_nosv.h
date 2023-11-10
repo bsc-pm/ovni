@@ -8,6 +8,12 @@
 
 #include "task.h"
 
+static inline void
+instr_nosv_init(void)
+{
+	instr_require("nosv");
+}
+
 static inline uint32_t
 instr_nosv_type_create(int32_t typeid)
 {

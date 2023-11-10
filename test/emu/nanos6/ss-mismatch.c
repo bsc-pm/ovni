@@ -11,6 +11,7 @@ main(void)
 	 * the stack causes the emulator to fail */
 
 	instr_start(0, 1);
+	instr_nanos6_init();
 
 	instr_nanos6_worker_loop_enter();
 	/* The thread is left in the worker loop state (should fail) */

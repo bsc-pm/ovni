@@ -152,6 +152,7 @@ main(void)
 	 * the sorting region, disrupting the order. */
 
 	instr_start(0, 1);
+	instr_require("kernel");
 	test_flush_after_sort();
 	test_unsorted();
 	test_overlap();

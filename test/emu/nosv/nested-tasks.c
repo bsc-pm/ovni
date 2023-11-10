@@ -20,6 +20,7 @@ int
 main(void)
 {
 	instr_start(0, 1);
+	instr_nosv_init();
 
 	int ntasks = 100;
 	uint32_t typeid = 1;

@@ -465,6 +465,52 @@ thread_metadata_store(void)
 }
 
 static void
+thread_require_unsafe(const char *model, const char *version)
+{
+	int parsedver[3];
+	if (version_parse(version, parsedver) != 0)
+		die("failed to parse provided version \"%s\"", version);
+
+	/* Store into metadata */
+	JSON_Object *meta = json_value_get_object(rthread.meta);
+
+	if (meta == NULL)
+		die("json_value_get_object failed");
+
+	char dotpath[128];
+	if (snprintf(dotpath, 128, "ovni.require.%s", model) >= 128)
+		die("model name too long");
+
+	/* TODO: What if is already set? */
+
+	if (json_object_dotset_string(meta, dotpath, version) != 0)
+		die("json_object_dotset_string failed");
+}
+
+void
+ovni_thread_require(const char *model, const char *version)
+{
+	if (!rthread.ready)
+		die("thread not initialized");
+
+	/* Sanitize model */
+	if (model == NULL)
+		die("model string is NULL");
+
+	if (strpbrk(model, " .") != NULL)
+		die("malformed model name");
+
+	if (strlen(model) <= 1)
+		die("model name must have more than 1 character");
+
+	/* Sanitize version */
+	if (version == NULL)
+		die("version string is NULL");
+
+	thread_require_unsafe(model, version);
+}
+
+static void
 thread_metadata_populate(void)
 {
 	JSON_Object *meta = json_value_get_object(rthread.meta);
@@ -475,11 +521,13 @@ thread_metadata_populate(void)
 	if (json_object_dotset_number(meta, "version", OVNI_METADATA_VERSION) != 0)
 		die("json_object_dotset_string failed");
 
-	if (json_object_dotset_string(meta, "libovni.version", OVNI_LIB_VERSION) != 0)
+	if (json_object_dotset_string(meta, "ovni.lib.version", OVNI_LIB_VERSION) != 0)
 		die("json_object_dotset_string failed");
 
-	if (json_object_dotset_string(meta, "libovni.commit", OVNI_GIT_COMMIT) != 0)
+	if (json_object_dotset_string(meta, "ovni.lib.commit", OVNI_GIT_COMMIT) != 0)
 		die("json_object_dotset_string failed");
+
+	thread_require_unsafe("ovni", "1.0.0");
 }
 
 static void
@@ -525,46 +573,6 @@ ovni_thread_init(pid_t tid)
 	thread_metadata_init();
 
 	rthread.ready = 1;
-}
-
-void
-ovni_thread_require(const char *model, const char *version)
-{
-	if (!rthread.ready)
-		die("thread not initialized");
-
-	/* Sanitize model */
-	if (model == NULL)
-		die("model string is NULL");
-
-	if (strpbrk(model, " .") != NULL)
-		die("malformed model name");
-
-	if (strlen(model) <= 1)
-		die("model name must have more than 1 character");
-
-	/* Sanitize version */
-	if (version == NULL)
-		die("version string is NULL");
-
-	int parsedver[3];
-	if (version_parse(version, parsedver) != 0)
-		die("failed to parse provided version \"%s\"", version);
-
-	/* Store into metadata */
-	JSON_Object *meta = json_value_get_object(rthread.meta);
-
-	if (meta == NULL)
-		die("json_value_get_object failed");
-
-	char dotpath[128];
-	if (snprintf(dotpath, 128, "require.%s.version", model) >= 128)
-		die("model name too long");
-
-	/* TODO: What if is already set? */
-
-	if (json_object_dotset_string(meta, dotpath, version) != 0)
-		die("json_object_dotset_string failed");
 }
 
 void

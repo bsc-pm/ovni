@@ -458,6 +458,9 @@ thread_load_metadata(struct thread *thread, JSON_Object *meta)
 		return -1;
 	}
 
+	if (json_object_dotget_number(meta, "ovni.finished") != 1)
+		warn("thread didn't finish properly: %s", thread->id);
+
 	thread->meta = meta;
 
 	return 0;

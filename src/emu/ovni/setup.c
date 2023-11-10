@@ -118,7 +118,27 @@ static const struct model_thread_spec th_spec = {
 int
 model_ovni_probe(struct emu *emu)
 {
-	return model_version_probe(&model_ovni, emu);
+	int ret = model_version_probe(&model_ovni, emu);
+
+	if (ret < 0) {
+		err("model_version_probe failed for ovni model");
+		return -1;
+	}
+
+	/* Ensure all threads finished by setting the 'ovni.finished' flag,
+	 * otherwise the trace can be inconsistent */
+	struct system *sys = &emu->system;
+	for (struct thread *t = sys->threads; t; t = t->gnext) {
+		if (t->meta == NULL)
+			continue;
+
+		if (json_object_dotget_number(t->meta, "ovni.finished") == 0)
+			warn("incomplete stream: %s", t->id);
+	}
+
+
+	/* The ovni model is always enabled */
+	return 1;
 }
 
 int

@@ -571,6 +571,17 @@ ovni_thread_free(void)
 	if (!rthread.ready)
 		die("thread not initialized");
 
+	JSON_Object *meta = json_value_get_object(rthread.meta);
+
+	if (meta == NULL)
+		die("json_value_get_object failed");
+
+	/* Mark it finished so we can detect partial streams */
+	if (json_object_dotset_number(meta, "ovni.finished", 1) != 0)
+		die("json_object_dotset_string failed");
+
+	thread_metadata_store();
+
 	free(rthread.evbuf);
 }
 

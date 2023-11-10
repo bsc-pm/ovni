@@ -65,14 +65,22 @@ model_probe(struct model *model, struct emu *emu)
 			model->enabled[i] = 1;
 			nenabled++;
 		}
-
-		const char *state = model->enabled[i] ? "enabled" : "disabled";
-		info("model %8s %s '%c' %s",
-				spec->name, spec->version, (char) i, state);
 	}
 
-	if (nenabled == 0)
+	if (nenabled == 0) {
 		warn("no models enabled");
+	} else {
+		info("the following %d models are enabled: ", nenabled);
+		for (int i = 0; i < MAX_MODELS; i++) {
+			if (!model->enabled[i])
+				continue;
+
+			struct model_spec *spec = model->spec[i];
+
+			info(" %8s %s '%c'",
+					spec->name, spec->version, (char) i);
+		}
+	}
 
 	return 0;
 }
@@ -135,7 +143,7 @@ model_event(struct model *model, struct emu *emu, int index)
 		return 0;
 
 	if (spec->event(emu) != 0) {
-		err("event() failed for model '%c'", (char) index);
+		err("event() failed for '%s' model", spec->name);
 		return -1;
 	}
 
@@ -163,6 +171,53 @@ model_finish(struct model *model, struct emu *emu)
 	return ret;
 }
 
+static int
+should_enable(int have[3], struct model_spec *spec, struct thread *t)
+{
+	static int compat = 0;
+
+	/* Enable all models if we are in compatibility model. Don't check other
+	 * threads metadata */
+	if (compat)
+		return 1;
+
+	if (t->meta == NULL) {
+		err("missing metadata for thread %s", t->id);
+		return -1;
+	}
+
+	JSON_Object *require = json_object_dotget_object(t->meta, "ovni.require");
+	if (require == NULL) {
+		warn("missing 'ovni.require' key in thread %s", t->id);
+		warn("loading trace in compatibility mode");
+		warn("all models will be enabled (expect slowdown)");
+		warn("use ovni_thread_require() to enable only required models");
+		compat = 1;
+		return 1;
+	}
+
+	/* May not have the current model */
+	const char *req_version = json_object_get_string(require, spec->name);
+	if (req_version == NULL)
+		return 0;
+
+	int want[3];
+	if (version_parse(req_version, want) != 0) {
+		err("cannot parse version %s from thread %s", req_version, t->id);
+		return -1;
+	}
+
+	if (!version_is_compatible(want, have)) {
+		err("unsupported %s model version (want %s, have %s) in %s",
+				spec->name, req_version, spec->version,
+				t->id);
+		return -1;
+	}
+
+	/* Compatible */
+	return 1;
+}
+
 int
 model_version_probe(struct model_spec *spec, struct emu *emu)
 {
@@ -181,48 +236,15 @@ model_version_probe(struct model_spec *spec, struct emu *emu)
 	/* Find a stream with an model name key */
 	struct system *sys = &emu->system;
 	for (struct thread *t = sys->threads; t; t = t->gnext) {
-		/* If there is not metadata, it may be a stream created with
-		 * older libovni, so ensure the proc metadata version. */
-		if (t->meta == NULL) {
-			/* Version 1 doesn't have thread metadata, so we enable
-			 * all models. */
-			if (t->proc->metadata_version == 1) {
-				warn("found old metadata (version 1), enabling model %s",
-						spec->name);
-				enable = 1;
-				break;
-			}
+		int ret = should_enable(have, spec, t);
 
-			/* Otherwise is an error */
-			err("missing metadata for thread %s with version > 1", t->id);
+		if (ret < 0) {
+			err("cannot determine if model %s must be enabled", spec->name);
 			return -1;
-		}
-
-		JSON_Object *require = json_object_dotget_object(t->meta, "ovni.require");
-		if (require == NULL) {
-			warn("missing 'ovni.require' key, enabling all models");
+		} else if (ret != 0) {
 			enable = 1;
-			break;
+			/* Check the rest of threads */
 		}
-
-		const char *req_version = json_object_get_string(require, spec->name);
-		if (req_version == NULL)
-			continue;
-
-		int want[3];
-		if (version_parse(req_version, want) != 0) {
-			err("cannot parse version %s", req_version);
-			return -1;
-		}
-
-		if (!version_is_compatible(want, have)) {
-			err("unsupported %s model version (want %s, have %s) in %s",
-					spec->name, req_version, spec->version,
-					t->id);
-			return -1;
-		}
-
-		enable = 1;
 	}
 
 	if (enable) {

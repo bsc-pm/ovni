@@ -7,6 +7,7 @@
 #include "version.h"
 #include "emu.h"
 #include "thread.h"
+#include "proc.h"
 
 void
 model_init(struct model *model)
@@ -180,6 +181,23 @@ model_version_probe(struct model_spec *spec, struct emu *emu)
 	/* Find a stream with an model name key */
 	struct system *sys = &emu->system;
 	for (struct thread *t = sys->threads; t; t = t->gnext) {
+		/* If there is not metadata, it may be a stream created with
+		 * older libovni, so ensure the proc metadata version. */
+		if (t->meta == NULL) {
+			/* Version 1 doesn't have thread metadata, so we enable
+			 * all models. */
+			if (t->proc->metadata_version == 1) {
+				warn("found old metadata (version 1), enabling model %s",
+						spec->name);
+				enable = 1;
+				break;
+			}
+
+			/* Otherwise is an error */
+			err("missing metadata for thread %s with version > 1", t->id);
+			return -1;
+		}
+
 		/* The ovni.require key is mandatory */
 		JSON_Object *require = json_object_dotget_object(t->meta, "ovni.require");
 		if (require == NULL) {

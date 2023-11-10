@@ -19,6 +19,7 @@ struct proc {
 	int is_init;
 
 	int metadata_loaded;
+	int metadata_version;
 	int pid;
 	int index;
 	int appid;

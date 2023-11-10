@@ -110,6 +110,14 @@ proc_load_metadata(struct proc *proc, JSON_Object *meta)
 		return -1;
 	}
 
+	JSON_Value *version_val = json_object_get_value(meta, "version");
+	if (version_val == NULL) {
+		err("missing attribute 'version' in metadata");
+		return -1;
+	}
+
+	proc->metadata_version = (int) json_number(version_val);
+
 	JSON_Value *appid_val = json_object_get_value(meta, "app_id");
 	if (appid_val == NULL) {
 		err("missing attribute 'app_id' in metadata");

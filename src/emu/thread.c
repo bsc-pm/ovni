@@ -153,7 +153,7 @@ thread_init_end(struct thread *th)
 	}
 
 	if (th->meta == NULL) {
-		err("missing metadata for thread %s", th->id);
+		err("missing thread metadata for %s", th->id);
 		return -1;
 	}
 
@@ -448,6 +448,11 @@ thread_migrate_cpu(struct thread *th, struct cpu *cpu)
 int
 thread_load_metadata(struct thread *thread, JSON_Object *meta)
 {
+	if (meta == NULL) {
+		err("metadata is null");
+		return -1;
+	}
+
 	if (thread->meta != NULL) {
 		err("thread %s already loaded metadata", thread->id);
 		return -1;

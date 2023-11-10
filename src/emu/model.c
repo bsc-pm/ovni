@@ -59,14 +59,15 @@ model_probe(struct model *model, struct emu *emu)
 			return -1;
 		}
 
-		if (ret == 0) {
-			dbg("model %c disabled", (char) i);
-		} else {
+		/* Zero is disabled */
+		if (ret > 0) {
 			model->enabled[i] = 1;
-			info("model %s %s [%c] enabled",
-					spec->name, spec->version, (char) i);
 			nenabled++;
 		}
+
+		const char *state = model->enabled[i] ? "enabled" : "disabled";
+		info("model %8s %s '%c' %s",
+				spec->name, spec->version, (char) i, state);
 	}
 
 	if (nenabled == 0)

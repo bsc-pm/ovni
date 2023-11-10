@@ -44,6 +44,7 @@ model_register(struct model *model, struct model_spec *spec)
 int
 model_probe(struct model *model, struct emu *emu)
 {
+	int nenabled = 0;
 	for (int i = 0; i < MAX_MODELS; i++) {
 		if (!model->registered[i])
 			continue;
@@ -62,9 +63,15 @@ model_probe(struct model *model, struct emu *emu)
 			dbg("model %c disabled", (char) i);
 		} else {
 			model->enabled[i] = 1;
-			dbg("model %c enabled", (char) i);
+			info("model %s %s [%c] enabled",
+					spec->name, spec->version, (char) i);
+			nenabled++;
 		}
 	}
+
+	if (nenabled == 0)
+		warn("no models enabled");
+
 	return 0;
 }
 

@@ -532,16 +532,6 @@ process_ev(struct emu *emu)
 int
 model_nosv_event(struct emu *emu)
 {
-	static int enabled = 0;
-
-	if (!enabled) {
-		if (model_nosv_connect(emu) != 0) {
-			err("nosv_connect failed");
-			return -1;
-		}
-		enabled = 1;
-	}
-
 	dbg("in nosv_event");
 	if (emu->ev->m != 'V') {
 		err("unexpected event model %c", emu->ev->m);

@@ -24,7 +24,7 @@ struct model_spec model_kernel = {
 	.version = "1.0.0",
 	.model   = model_id,
 	.create  = model_kernel_create,
-//	.connect = model_kernel_connect,
+	.connect = model_kernel_connect,
 	.event   = model_kernel_event,
 	.probe   = model_kernel_probe,
 };

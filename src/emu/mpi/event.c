@@ -175,16 +175,6 @@ process_ev(struct emu *emu)
 int
 model_mpi_event(struct emu *emu)
 {
-	static int enabled = 0;
-
-	if (!enabled) {
-		if (model_mpi_connect(emu) != 0) {
-			err("mpi_connect failed");
-			return -1;
-		}
-		enabled = 1;
-	}
-
 	dbg("in mpi_event");
 	if (emu->ev->m != 'M') {
 		err("unexpected event model %c", emu->ev->m);

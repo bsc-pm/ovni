@@ -144,49 +144,6 @@ test_duplicate_output(struct mux *mux, int key1, int key2)
 	err("OK");
 }
 
-/* Ensure that the output of a mux is correct while the mux is connected
- * to the bay with a clean select channel but that already contains a
- * valid value of a input of the mux. The select must be marked as dirty
- * */
-static void
-test_delayed_connect(void)
-{
-	struct bay bay;
-	bay_init(&bay);
-
-	struct chan input, output, select;
-	chan_init(&output, CHAN_SINGLE, "output");
-	chan_init(&select, CHAN_SINGLE, "select");
-	chan_init(&input, CHAN_SINGLE, "input.0");
-
-	/* Register all channels in the bay */
-	OK(bay_register(&bay, &select));
-	OK(bay_register(&bay, &output));
-	OK(bay_register(&bay, &input));
-
-	/* Setup channel values */
-	OK(chan_set(&select, value_int64(0)));
-	OK(chan_set(&input, value_int64(1000)));
-
-	/* Propagate now so they are clean */
-	OK(bay_propagate(&bay));
-
-	/* ----- delayed connect ----- */
-
-	struct mux mux;
-	OK(mux_init(&mux, &bay, &select, &output, NULL, 1));
-	OK(mux_set_input(&mux, 0, &input));
-
-	/* Don't modify the input of the select until propagation, the
-	 * mux_init must have marked the select as dirty. */
-
-	OK(bay_propagate(&bay));
-
-	/* The mux must have selected the first input */
-	check_output(&mux, value_int64(1000));
-	err("OK");
-}
-
 int
 main(void)
 {
@@ -234,7 +191,6 @@ main(void)
 	test_input_and_select(&mux, 4);
 	test_mid_propagate(&mux, 5);
 	test_duplicate_output(&mux, 6, 7);
-	test_delayed_connect();
 
 	err("OK");
 

@@ -49,16 +49,6 @@ process_ev(struct emu *emu)
 int
 model_kernel_event(struct emu *emu)
 {
-	static int enabled = 0;
-
-	if (!enabled) {
-		if (model_kernel_connect(emu) != 0) {
-			err("kernel_connect failed");
-			return -1;
-		}
-		enabled = 1;
-	}
-
 	dbg("in kernel_event");
 	if (emu->ev->m != 'K') {
 		err("unexpected event model %c", emu->ev->m);

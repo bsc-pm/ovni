@@ -105,16 +105,6 @@ process_ev(struct emu *emu)
 int
 model_nodes_event(struct emu *emu)
 {
-	static int enabled = 0;
-
-	if (!enabled) {
-		if (model_nodes_connect(emu) != 0) {
-			err("nodes_connect failed");
-			return -1;
-		}
-		enabled = 1;
-	}
-
 	dbg("in nodes_event");
 	if (emu->ev->m != 'D') {
 		err("unexpected event model %c", emu->ev->m);

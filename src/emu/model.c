@@ -198,14 +198,13 @@ model_version_probe(struct model_spec *spec, struct emu *emu)
 			return -1;
 		}
 
-		/* The ovni.require key is mandatory */
 		JSON_Object *require = json_object_dotget_object(t->meta, "ovni.require");
 		if (require == NULL) {
-			err("missing 'ovni.require' key in metadata");
-			return -1;
+			warn("missing 'ovni.require' key, enabling all models");
+			enable = 1;
+			break;
 		}
 
-		/* But not all threads need to have this model */
 		const char *req_version = json_object_get_string(require, spec->name);
 		if (req_version == NULL)
 			continue;

@@ -111,6 +111,7 @@ instr_start(int rank, int nranks)
 	dbg("thread %d has cpu %d (ncpus=%d)",
 			get_tid(), curcpu, nranks);
 
+	instr_require("ovni");
 	instr_thread_execute(curcpu, -1, 0);
 }
 

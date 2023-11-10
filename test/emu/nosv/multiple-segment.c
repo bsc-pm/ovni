@@ -46,6 +46,7 @@ main(void)
 	int lcpu = rank % N;
 
 	ovni_thread_init(get_tid());
+	instr_require("ovni");
 	instr_nosv_init();
 	instr_thread_execute(lcpu, -1, 0);
 

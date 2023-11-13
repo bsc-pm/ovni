@@ -170,6 +170,61 @@ create_loom(struct system *sys, const char *relpath)
 }
 
 static int
+report_libovni_version(struct system *sys)
+{
+	int mixed = 0;
+	int first = 1;
+	const char *version;
+	const char *commit;
+	for (struct thread *th = sys->threads; th; th = th->gnext) {
+		if (th->meta == NULL) {
+			err("thread has no metadata %s", th->id);
+			return -1;
+		}
+
+		const char *t_version = json_object_dotget_string(th->meta, "ovni.lib.version");
+
+		if (t_version == NULL) {
+			err("missing ovni.lib.version key in thread metadata: %s", th->id);
+			return -1;
+		}
+
+		const char *t_commit = json_object_dotget_string(th->meta, "ovni.lib.commit");
+
+		if (t_commit == NULL) {
+			err("missing ovni.lib.commit key in thread metadata: %s", th->id);
+			return -1;
+		}
+
+		if (first) {
+			version = t_version;
+			commit = t_commit;
+			first = 0;
+		}
+
+		if (strcmp(t_version, version) != 0) {
+			warn("thread is using a different libovni version (%s): %s",
+					t_version, th->id);
+			mixed = 1;
+		}
+
+		if (strcmp(t_commit, commit) != 0) {
+			warn("thread is using a different libovni commit (%s): %s",
+					t_commit, th->id);
+			mixed = 1;
+		}
+	}
+
+	if (mixed) {
+		warn("mixed versions of libovni detected");
+	} else {
+		info("generated with libovni version %s commit %s", version, commit);
+	}
+
+	return 0;
+}
+
+static int
 create_system(struct system *sys, struct trace *trace)
 {
 	const char *dir = trace->tracedir;
@@ -544,6 +599,11 @@ system_init(struct system *sys, struct emu_args *args, struct trace *trace)
 
 	if (init_end_system(sys) != 0) {
 		err("init_end_system failed");
+		return -1;
+	}
+
+	if (report_libovni_version(sys) != 0) {
+		err("report_libovni_version failed");
 		return -1;
 	}
 

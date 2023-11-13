@@ -35,6 +35,7 @@ nav:
       - user/emulation/tampi.md
       - user/emulation/mpi.md
       - user/emulation/events.md
+    - CHANGELOG.md
   - 'Developer guide':
     - dev/index.md
     - dev/channels.md

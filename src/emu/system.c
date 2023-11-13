@@ -173,9 +173,8 @@ static int
 report_libovni_version(struct system *sys)
 {
 	int mixed = 0;
-	int first = 1;
-	const char *version;
-	const char *commit;
+	const char *version = NULL;
+	const char *commit = NULL;
 	for (struct thread *th = sys->threads; th; th = th->gnext) {
 		if (th->meta == NULL) {
 			err("thread has no metadata %s", th->id);
@@ -196,11 +195,11 @@ report_libovni_version(struct system *sys)
 			return -1;
 		}
 
-		if (first) {
+		if (version == NULL)
 			version = t_version;
+
+		if (commit == NULL)
 			commit = t_commit;
-			first = 0;
-		}
 
 		if (strcmp(t_version, version) != 0) {
 			warn("thread is using a different libovni version (%s): %s",

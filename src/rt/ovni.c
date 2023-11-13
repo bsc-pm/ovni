@@ -229,9 +229,6 @@ proc_set_version(void)
 
 	if (json_object_set_number(meta, "version", OVNI_METADATA_VERSION) != 0)
 		die("json_object_set_number for version failed");
-
-	if (json_object_set_string(meta, "model_version", OVNI_MODEL_VERSION) != 0)
-		die("json_object_set_string for model_version failed");
 }
 
 void

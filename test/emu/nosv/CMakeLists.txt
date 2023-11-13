@@ -11,3 +11,5 @@ test_emu(switch-same-type.c)
 test_emu(multiple-segment.c MP NPROC 4)
 test_emu(task-pause-from-submit.c)
 test_emu(same-subsystem.c)
+test_emu(require-missing.c SHOULD_FAIL
+  REGEX "model nosv not enabled for event")

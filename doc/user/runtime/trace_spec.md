@@ -3,7 +3,7 @@
 !!! Important
 
 	This document refers to the trace specification for
-	the version 1
+	the version 2
 
 The ovni instrumentation library stores the information collected in a
 trace following the specification of this document.
@@ -19,21 +19,26 @@ specified in the `pid` argument to `ovni_proc_init()`.
 
 Each process directory contains:
 
-- The metadata file `metadata.json`.
-- The thread streams like `thread.123.obs`.
+- The process metadata file `metadata.json`.
+- The thread streams, composed of:
+    - The binary stream like `thread.123.obs`
+    - The thread metadata like `thread.123.json`
 
 ## Process metadata
 
-The metadata file contains important information about the trace that is
-invariant during the complete execution, and generally is required to be
-available prior to processing the events in the trace.
+!!! Important
+
+	Process metadata has version 2
+
+The process metadata file contains important information about the trace
+that is invariant during the complete execution, and generally is
+required to be available prior to processing the events in the trace.
 
 The metadata is stored in the JSON file `metadata.json` inside each
 process directory and contains the following keys:
 
 - `version`: a number specifying the version of the metadata format.
-- `model_version`: a string with the version of each model supported by
-  the emulator.
+  Must have the value 2 for this version.
 - `app_id`: the application ID, used to distinguish between applications
   running on the same loom.
 - `rank`: the rank of the MPI process (optional).
@@ -49,8 +54,7 @@ Here is an example of the `metadata.json` file:
 
 ```
 {
-    "version": 1,
-    "model_version": "O1 V1 T1 M1 D1 K1",
+    "version": 2,
     "app_id": 1,
     "rank": 0,
     "nranks": 4,
@@ -75,7 +79,42 @@ Here is an example of the `metadata.json` file:
 }
 ```
 
-## Thread streams
+## Thread metadata
+
+!!! Important
+
+	Thread metadata has version 2
+
+The thread metadata stores constant information per thread, like the
+process metadata. The information is stored in a dictionary, where the
+name of the emulation models are used as keys. In particular, the
+libovni library writes information in the "ovni" key, such as the
+model requirements, and other information like the version of libovni
+used. Example:
+
+```json
+{
+    "version": 2,
+    "ovni": {
+        "lib": {
+            "version": "1.4.0",
+            "commit": "unknown"
+        },
+        "require": {
+            "ovni": "1.0.0"
+        }
+    }
+}
+```
+
+The metadata is written to disk when the thread is first initialized,
+and then every time the thread stream is flushed.
+
+## Thread binary streams
+
+!!! Important
+
+	Thread binary stream has version 1
 
 Streams are a binary files that contains a succession of events with
 monotonically increasing clock values. Streams have a small header and

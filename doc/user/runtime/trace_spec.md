@@ -107,8 +107,8 @@ used. Example:
 }
 ```
 
-The metadata is written to disk when the thread is first initialized,
-and then every time the thread stream is flushed.
+The metadata is written to disk when the thread is first initialized
+and when the thread finishes.
 
 ## Thread binary streams
 

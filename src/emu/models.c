@@ -50,3 +50,12 @@ models_get_version(const char *name)
 
 	return NULL;
 }
+
+void
+models_print(void)
+{
+	for (int i = 0; models[i] != NULL; i++) {
+		struct model_spec *spec = models[i];
+		rerr("  %c  %-8s  %s\n", spec->model, spec->name, spec->version);
+	}
+}

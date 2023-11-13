@@ -9,5 +9,6 @@ struct model;
 
 USE_RET int models_register(struct model *model);
 USE_RET const char *models_get_version(const char *name);
+        void models_print(void);
 
 #endif /* MODELS_H */

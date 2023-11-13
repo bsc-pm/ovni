@@ -712,8 +712,6 @@ ovni_flush(void)
 	ovni_ev_set_mcv(&pre, "OF[");
 
 	flush_evbuf();
-	/* Also save metadata */
-	thread_metadata_store();
 
 	ovni_ev_set_clock(&post, ovni_clock_now());
 	ovni_ev_set_mcv(&post, "OF]");

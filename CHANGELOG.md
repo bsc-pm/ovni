@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New function `ovni_thread_require()` to selectively enable emulation models
+  and check their version is compatible (if not used all models will be
+  enabled).
+- Support for per-thread metadata
+- Store the version of libovni in the metadata
+- Streams are marked as finished when `ovni_thread_free()` is called. A warning
+  is emitted in the emulator for those streams that are not finished properly.
+- List the emulation models and versions with `ovniemu -h`
+
+### Changed
+
+- Updated process metadata to version 2 (traces generated with an older libovni
+  are not compatible with the emulator).
+- Emulation models now have a semantic version (X.Y.Z) instead of just a number.
+
 ## [1.4.1] - 2023-11-16
 
 ### Changed

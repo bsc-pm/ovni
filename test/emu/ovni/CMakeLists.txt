@@ -21,3 +21,4 @@ test_emu(empty-stream.c SHOULD_FAIL REGEX "model_ovni_finish: thread .* is not d
 test_emu(require-bad-version.c SHOULD_FAIL REGEX "unsupported ovni model version (want 666.66.6, have .*)")
 test_emu(require-compat.c REGEX "loading trace in compatibility mode")
 test_emu(thread-crash.c SHOULD_FAIL REGEX "incomplete stream")
+test_emu(flush-tmpdir.c MP DRIVER "flush-tmpdir.driver.sh")

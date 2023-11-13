@@ -128,17 +128,21 @@ model_connect(struct model *model, struct emu *emu)
 int
 model_event(struct model *model, struct emu *emu, int index)
 {
+	struct model_spec *spec = model->spec[index];
+
 	if (!model->registered[index]) {
-		err("model not registered for '%c'", (char) index);
+		err("model not registered for event %s", emu->ev->mcv);
 		return -1;
 	}
 
 	if (!model->enabled[index]) {
-		err("model not enabled for '%c'", (char) index);
+		err("model %s not enabled for event %s",
+				spec->name, emu->ev->mcv);
+		info("missing call to ovni_thread_require(\"%s\", \"%s\")?",
+				spec->name, spec->version);
 		return -1;
 	}
 
-	struct model_spec *spec = model->spec[index];
 	if (spec->event == NULL)
 		return 0;
 

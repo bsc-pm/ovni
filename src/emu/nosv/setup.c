@@ -57,6 +57,9 @@ static const int chan_dup[CH_MAX] = {
 	[CH_APPID] = 1,
 	[CH_TYPE] = 1,
 	[CH_RANK] = 1,
+	/* Can push twice ST_TASK_BODY if we run without subsystem
+	 * events (level 2). */
+	[CH_SUBSYSTEM] = 1,
 };
 
 /* ----------------- pvt ------------------ */

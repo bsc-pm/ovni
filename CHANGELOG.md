@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Fix emulation for level 2 or lower in nOS-V with inline tasks by
+  allowing duplicates in the subsystem channel.
+
 ## [1.4.0] - 2023-11-08
 
 ### Added

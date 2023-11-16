@@ -43,6 +43,8 @@ struct ovni_rproc {
 
 	/* Where the process trace is flushed */
 	char procdir[PATH_MAX];
+	char loomdir[PATH_MAX];
+	char tmpdir[PATH_MAX];
 
 	/* If needs to be moved at the end */
 	int move_to_final;
@@ -270,7 +272,12 @@ create_proc_dir(const char *loom, int pid)
 	if (tracedir == NULL)
 		tracedir = OVNI_TRACEDIR;
 
+	if (snprintf(rproc.loomdir, PATH_MAX, "%s/loom.%s", tmpdir, loom) >= PATH_MAX)
+		die("loom path too long: %s/loom.%s", tmpdir, loom);
+
 	if (tmpdir != NULL) {
+		if (snprintf(rproc.tmpdir, PATH_MAX, "%s", tmpdir) >= PATH_MAX)
+			die("tmpdir path too long: %s", tmpdir);
 		rproc.move_to_final = 1;
 		mkdir_proc(rproc.procdir, tmpdir, loom, pid);
 		mkdir_proc(rproc.procdir_final, tracedir, loom, pid);
@@ -384,14 +391,17 @@ move_procdir_to_final(const char *procdir, const char *procdir_final)
 
 	closedir(dir);
 
-	if (rmdir(procdir) != 0) {
-		err("rmdir(%s) failed:", procdir);
-		ret = 1;
-	}
-
 	/* Warn the user, but we cannot do much at this point */
 	if (ret)
 		err("errors occurred when moving the trace to %s", procdir_final);
+}
+
+static void
+try_clean_dir(const char *dir)
+{
+	/* Only warn if we find an unexpected error */
+	if (rmdir(dir) != 0 && errno != ENOTEMPTY && errno != ENOENT)
+		warn("cannot remove dir %s:", dir);
 }
 
 void
@@ -406,6 +416,9 @@ ovni_proc_fini(void)
 	if (rproc.move_to_final) {
 		proc_metadata_store(rproc.meta, rproc.procdir_final);
 		move_procdir_to_final(rproc.procdir, rproc.procdir_final);
+		try_clean_dir(rproc.procdir);
+		try_clean_dir(rproc.loomdir);
+		try_clean_dir(rproc.tmpdir);
 	} else {
 		proc_metadata_store(rproc.meta, rproc.procdir);
 	}

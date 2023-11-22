@@ -50,20 +50,17 @@ create_thread(struct proc *proc, const char *tracedir, const char *relpath)
 		return NULL;
 	}
 
-	/* Old version 1 doesn't have thread metadata */
-	if (proc->metadata_version > 1) {
-		/* Build metadata path */
-		char mpath[PATH_MAX];
-		if (snprintf(mpath, PATH_MAX, "%s/%s/thread.%d.json",
-					tracedir, proc->id, tid) >= PATH_MAX) {
-			err("path too long");
-			return NULL;
-		}
+	/* Build metadata path */
+	char mpath[PATH_MAX];
+	if (snprintf(mpath, PATH_MAX, "%s/%s/thread.%d.json",
+				tracedir, proc->id, tid) >= PATH_MAX) {
+		err("path too long");
+		return NULL;
+	}
 
-		if (metadata_load_thread(mpath, thread) != 0) {
-			err("cannot load metadata from %s", mpath);
-			return NULL;
-		}
+	if (metadata_load_thread(mpath, thread) != 0) {
+		err("cannot load metadata from %s", mpath);
+		return NULL;
 	}
 
 	if (proc_add_thread(proc, thread) != 0) {

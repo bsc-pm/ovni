@@ -10,17 +10,20 @@ int
 main(void)
 {
 	int A;
-	#pragma oss task out(A)
+	#pragma oss task out(A) label("init")
 	A = 1;
 
-	#pragma oss taskiter in(A) out(A)
+	#pragma oss taskiter in(A) out(A) label("iter")
 	for (int i = 0; i < 10; i++) {
-		#pragma oss task in(A)
+		#pragma oss task in(A) label("sleep")
 		sleep_us(10 + A);
-		#pragma oss task out(A)
+		#pragma oss task out(A) label ("add")
 		A = A + 1;
 	}
 
-	# pragma oss task in(A)
+	# pragma oss task in(A) label("print")
 	printf("A=%d\n", A);
+
+	#pragma oss taskwait
+	return 0;
 }

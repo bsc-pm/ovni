@@ -7,7 +7,37 @@
 
   outputs = { self, nixpkgs, bscpkgs }:
   let
-    pkgs = bscpkgs.outputs.legacyPackages.x86_64-linux;
+    ovniOverlay = final: prev: {
+      nosv = prev.nosv.override {
+        useGit = true;
+        gitBranch = "master";
+        gitCommit = "3cf47f1e9f68618aedc43692aaabce950a6c31f3";
+      };
+      nanos6 = prev.nanos6.override {
+        useGit = true;
+        gitBranch = "master";
+        gitCommit = "b7bbf9bfea47649ba3f7d8a2dd787f127028eb92";
+      };
+      nodes = prev.nodes.override {
+        useGit = true;
+        gitBranch = "master";
+        gitCommit = "70ce0ed0a20842d8eb3124aa5db5916fb6fc238f";
+      };
+      # Build with the current source
+      ovni = prev.ovni.overrideAttrs (old: rec {
+        pname = "ovni-local";
+        version = if self ? shortRev then self.shortRev else "dirty";
+        src = self;
+        cmakeFlags = [ "-DOVNI_GIT_COMMIT=${version}" ];
+      });
+    };
+    pkgs = import nixpkgs {
+      system = "x86_64-linux";
+      overlays = [
+        bscpkgs.bscOverlay
+        ovniOverlay
+      ];
+    };
     compilerList = with pkgs; [
       #gcc49Stdenv # broken
       gcc6Stdenv
@@ -70,6 +100,7 @@
         buildInputs = old.buildInputs ++ (with pkgs; [ pkg-config nosv nanos6 nodes ]);
         cmakeFlags = old.cmakeFlags ++ [ "-DENABLE_ALL_TESTS=ON" ];
         preConfigure = old.preConfigure or "" + ''
+          export NOSV_HOME="${pkgs.nosv}"
           export NODES_HOME="${pkgs.nodes}"
           export NANOS6_HOME="${pkgs.nanos6}"
         '';

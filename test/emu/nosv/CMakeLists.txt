@@ -13,3 +13,7 @@ test_emu(task-pause-from-submit.c)
 test_emu(same-subsystem.c)
 test_emu(require-missing.c SHOULD_FAIL
   REGEX "model nosv not enabled for event")
+test_emu(require-missing.c
+  NAME flag-enable-all
+  DRIVER "flag-enable-all.driver.sh"
+  REGEX "all .* models are enabled")

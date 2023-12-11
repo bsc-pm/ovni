@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Streams are marked as finished when `ovni_thread_free()` is called. A warning
   is emitted in the emulator for those streams that are not finished properly.
 - List the emulation models and versions with `ovniemu -h`
+- New `-a` ovniemu option to enable all models
 
 ### Changed
 

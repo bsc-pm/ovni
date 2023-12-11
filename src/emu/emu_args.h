@@ -7,6 +7,7 @@
 struct emu_args {
 	int linter_mode;
 	int breakdown;
+	int enable_all_models;
 	char *clock_offset_file;
 	char *tracedir;
 };

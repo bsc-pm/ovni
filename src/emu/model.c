@@ -6,6 +6,7 @@
 #include "common.h"
 #include "version.h"
 #include "emu.h"
+#include "emu_args.h"
 #include "thread.h"
 #include "proc.h"
 
@@ -61,7 +62,7 @@ model_probe(struct model *model, struct emu *emu)
 		}
 
 		/* Zero is disabled */
-		if (ret > 0) {
+		if (ret > 0 || emu->args.enable_all_models) {
 			model->enabled[i] = 1;
 			nenabled++;
 		}
@@ -70,7 +71,10 @@ model_probe(struct model *model, struct emu *emu)
 	if (nenabled == 0) {
 		warn("no models enabled");
 	} else {
-		info("the following %d models are enabled: ", nenabled);
+		if (emu->args.enable_all_models)
+			info("all %d models are enabled (-a): ", nenabled);
+		else
+			info("the following %d models are enabled: ", nenabled);
 		for (int i = 0; i < MAX_MODELS; i++) {
 			if (!model->enabled[i])
 				continue;

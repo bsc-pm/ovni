@@ -76,6 +76,8 @@ target_link_libraries(ovnitop emu parson-static ovni-static)
 
 add_executable(ovniver ovniver.c)
 target_link_libraries(ovniver ovni)
+set_property(TARGET ovniver
+  PROPERTY INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 
 set(USE_MPI ON CACHE BOOL "Use MPI (required by ovnisync)")
 if(USE_MPI)

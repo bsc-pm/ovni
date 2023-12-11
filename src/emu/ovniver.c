@@ -2,11 +2,18 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "ovni.h"
 
 int
 main(void)
 {
+	const char *libpath = getenv("LD_LIBRARY_PATH");
+	if (libpath != NULL)
+		printf("LD_LIBRARY_PATH set to %s\n", libpath);
+	else
+		printf("LD_LIBRARY_PATH not set\n");
+
 	const char *version, *commit;
 	ovni_version_get(&version, &commit);
 

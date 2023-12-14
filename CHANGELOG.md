@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Emulation models now have a semantic version (X.Y.Z) instead of just a number.
 - Install ovniver with the runpath set.
 
+### Fixed
+
+- Close stream FD on `ovni_thread_free()`.
+
 ## [1.4.1] - 2023-11-16
 
 ### Changed

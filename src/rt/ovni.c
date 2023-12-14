@@ -593,6 +593,10 @@ ovni_thread_free(void)
 	thread_metadata_store();
 
 	free(rthread.evbuf);
+	rthread.evbuf = NULL;
+
+	close(rthread.streamfd);
+	rthread.streamfd = -1;
 }
 
 int

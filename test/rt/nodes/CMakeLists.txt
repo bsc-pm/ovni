@@ -1,7 +1,9 @@
 # Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+find_package(Nodes)
 include(CheckOmpSs2Compiler)
+
 if(NOT OMPSS2_COMPILER_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "Compiler doesn't support -fompss-2 flag, cannot enable NODES RT tests")
@@ -11,7 +13,6 @@ if(NOT OMPSS2_COMPILER_FOUND)
   return()
 endif()
 
-find_package(Nodes)
 if(NOT NODES_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "NODES not found, cannot enable NODES RT tests")

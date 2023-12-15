@@ -1,7 +1,9 @@
 # Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+find_package(Nanos6)
 include(CheckOmpSs2Compiler)
+
 if(NOT OMPSS2_COMPILER_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "Compiler doesn't support -fompss-2 flag, cannot enable Nanos6 RT tests")
@@ -11,7 +13,6 @@ if(NOT OMPSS2_COMPILER_FOUND)
   return()
 endif()
 
-find_package(Nanos6)
 if(NOT NANOS6_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "Nanos6 not found, cannot enable Nanos6 RT tests")

@@ -10,9 +10,14 @@ if(NOT NOSV_FOUND)
     message(STATUS "nOS-V not found, disabling nOS-V RT tests")
   endif()
   return()
-else()
-  message(STATUS "Enabling nOS-V RT tests")
 endif()
+
+# Needed for the new nosv_attach() function.
+if("${NOSV_VERSION}" VERSION_LESS "2.0.0")
+  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 2.0.0")
+endif()
+
+message(STATUS "Enabling nOS-V RT tests")
 
 function(nosv_test)
   set(switches "")
@@ -35,14 +40,9 @@ nosv_test(attach.c SORT)
 nosv_test(waitfor.c SORT)
 nosv_test(several-tasks.c SORT)
 
-# Only after 1.1.0 we have support for levels
-if (${NOSV_VERSION} VERSION_LESS "1.1.0")
-  set(LEVELS_DISABLED "DISABLED")
-endif()
-
 # Test multiple instrumentation levels
-nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-0 LEVEL 0)
-nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-1 LEVEL 1)
-nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-2 LEVEL 2)
-nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-3 LEVEL 3)
-nosv_test(several-tasks.c "${LEVELS_DISABLED}" SORT NAME several-tasks-level-4 LEVEL 4)
+nosv_test(several-tasks.c SORT NAME several-tasks-level-0 LEVEL 0)
+nosv_test(several-tasks.c SORT NAME several-tasks-level-1 LEVEL 1)
+nosv_test(several-tasks.c SORT NAME several-tasks-level-2 LEVEL 2)
+nosv_test(several-tasks.c SORT NAME several-tasks-level-3 LEVEL 3)
+nosv_test(several-tasks.c SORT NAME several-tasks-level-4 LEVEL 4)

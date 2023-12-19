@@ -26,6 +26,7 @@ struct ovni_rthread {
 	int streamfd;
 
 	int ready;
+	int finished;
 
 	/* The number of bytes filled with events */
 	size_t evlen;
@@ -552,6 +553,9 @@ ovni_thread_init(pid_t tid)
 		return;
 	}
 
+	if (rthread.finished)
+		die("thread %d has finished, cannot init again", tid);
+
 	if (tid == 0)
 		die("cannot use tid=%d", tid);
 
@@ -578,6 +582,9 @@ ovni_thread_init(pid_t tid)
 void
 ovni_thread_free(void)
 {
+	if (rthread.finished)
+		die("thread already finished");
+
 	if (!rthread.ready)
 		die("thread not initialized");
 
@@ -597,6 +604,9 @@ ovni_thread_free(void)
 
 	close(rthread.streamfd);
 	rthread.streamfd = -1;
+
+	rthread.ready = 0;
+	rthread.finished = 1;
 }
 
 int

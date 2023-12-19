@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Calling `ovni_thread_isready()` after `ovni_thread_free()` now returns 0.
+
 ## [1.5.0] - 2023-12-15
 
 ### Added

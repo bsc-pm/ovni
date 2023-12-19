@@ -51,7 +51,7 @@ nanos6_rt_test(taskloop.c)
 nanos6_rt_test(spawn-task.c)
 nanos6_rt_test(spawn-task-external.c)
 nanos6_rt_test(spawn-task-external-bad.c SHOULD_FAIL
-  REGEX "ovni_finish: thread [0-9]* is not dead")
+  REGEX "ovni_ev_add: thread is not initialized")
 
 # Test multiple instrumentation levels
 nanos6_rt_test(simple-task.c NAME simple-task-level-1 LEVEL 1)

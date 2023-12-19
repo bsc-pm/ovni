@@ -52,12 +52,17 @@ complete_func(void *arg)
 	complete = 1;
 }
 
-/* Call the nanos6_spawn_function from an external thread */
+/* Call the nanos6_spawn_function from an external thread without
+ * instrumentation. */
 static void *
 spawn(void *arg)
 {
+	/* Here Nanos6 will try to write events in the thread stream,
+	 * but the thread has not been initialized so it will abort */
 	nanos6_spawn_function(polling_func, arg,
 			complete_func, NULL, "polling_task");
+
+	/* Not reached */
 	return NULL;
 }
 

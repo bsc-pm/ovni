@@ -767,6 +767,9 @@ add_flush_events(uint64_t t0, uint64_t t1)
 static void
 ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 {
+	if (!rthread.ready)
+		die("thread is not initialized");
+
 	int flushed = 0;
 	uint64_t t0, t1;
 
@@ -808,6 +811,9 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 static void
 ovni_ev_add(struct ovni_ev *ev)
 {
+	if (!rthread.ready)
+		die("thread is not initialized");
+
 	int flushed = 0;
 	uint64_t t0, t1;
 

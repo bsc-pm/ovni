@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Calling `ovni_thread_isready()` after `ovni_thread_free()` now returns 0.
+- Emitting events in a non-ready thread now aborts the program with a
+  message rather than causing a segfault.
 
 ## [1.5.0] - 2023-12-15
 

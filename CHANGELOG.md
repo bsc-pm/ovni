@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2023-12-20
+
 ### Fixed
 
 - Calling `ovni_thread_isready()` after `ovni_thread_free()` now returns 0.
@@ -176,6 +178,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://pm.bsc.es/gitlab/rarias/ovni/-/commits/master
+[1.5.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.5.1
 [1.5.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.5.0
 [1.4.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.4.1
 [1.4.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.4.0

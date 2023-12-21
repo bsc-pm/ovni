@@ -4,6 +4,9 @@ extra_css: [extra.css]
 theme:
   name: readthedocs
   sticky_navigation: false
+  highlightjs: true
+  hljs_languages:
+    - abnf
 extra_javascript: 
     - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML
 markdown_extensions:
@@ -38,6 +41,7 @@ nav:
     - CHANGELOG.md
   - 'Developer guide':
     - dev/index.md
+    - dev/events.md
     - dev/channels.md
     - dev/patchbay.md
     - dev/mux.md

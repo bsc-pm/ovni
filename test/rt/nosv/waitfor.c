@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "common.h"
+#include "compat.h"
 
 #define NTASKS 200
 atomic_int ncompleted = 0;
@@ -46,7 +47,7 @@ main(void)
 		nosv_submit(tasks[i], 0);
 
 	while (atomic_load(&ncompleted) != NTASKS)
-		usleep(1000);
+		sleep_us(1000);
 
 	for (int i = 0; i < NTASKS; i++)
 		nosv_destroy(tasks[i], 0);

@@ -1,0 +1,63 @@
+.Dd Jan 12, 2024
+.Dt OVNIDUMP 1
+.Os
+.Sh NAME
+.Nm ovnidump
+.Nd dump events from an ovni trace
+.Sh SYNOPSIS
+.Nm ovnidump
+.Op Fl x
+.Ar tracedir
+.Sh DESCRIPTION
+The
+.Nm
+program reads the events contained in the trace given by
+.Ar tracedir
+and prints them to the standard output sorted by time (in the same
+order the emulator would read them).
+.Pp
+The events are decoded to provide a human readable description of their
+meaning. The output contains one event per line, with the following
+fields separated by double spaces ("  "):
+.Bl -enum
+.It
+The raw clock stored in the event without any correction. Notice that
+this clock doesn't match the corrected clock when using an offset table.
+.It
+The event MCV (model, category and value) identification characters.
+.It
+The path of the stream containing the event. It is relative to
+.Ar tracedir .
+.It
+A human readable description of the event and the payload arguments (if
+any). Not recognized events will show "UNKNOWN".
+.El
+.Pp
+It accepts the following option:
+.Bl -tag -width Ds
+.It Fl x
+Print the event payload in hexadecimal instead of using a human readable
+description.
+.El
+.Pp
+.Sh EXIT STATUS 
+.Ex -std
+.Sh EXAMPLES
+Show the last 10 events before an event with a given clock:
+.Bd -literal
+% ovnidump ovni | grep -B 10 332687291930310
+ovnidump: INFO: loaded 106 streams
+332687291925661  VAw  loom.s05r1b20/proc.108006/thread.108073  enters nosv_waitfor()
+332687291925826  VU[  loom.s05r1b20/proc.108006/thread.108073  starts submitting a task
+332687291926567  OHp  loom.s05r1b20/proc.108007/thread.108012  pauses the execution
+332687291929002  OHr  loom.s05r1b20/proc.108007/thread.108013  resumes the execution
+332687291929222  VAW  loom.s05r1b20/proc.108007/thread.108013  leaves nosv_waitfor()
+332687291929412  VTr  loom.s05r1b20/proc.108007/thread.108013  resumes the task 3
+332687291929775  VTp  loom.s05r1b20/proc.108007/thread.108013  pauses the task 3
+332687291929843  VAw  loom.s05r1b20/proc.108007/thread.108013  enters nosv_waitfor()
+332687291929922  VU[  loom.s05r1b20/proc.108007/thread.108013  starts submitting a task
+332687291930227  VU]  loom.s05r1b20/proc.108007/thread.108013  stops  submitting a task
+332687291930310  OHc  loom.s05r1b20/proc.108007/thread.108013  enters the Cooling state (about to be paused)
+.Ed
+.Sh AUTHORS
+.An "Rodrigo Arias Mallo" Aq Mt "rodrigo.arias@bsc.es"

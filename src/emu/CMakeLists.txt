@@ -105,4 +105,4 @@ else()
 endif()
 
 install(TARGETS ovniemu ovnidump ovnisort ovnitop ovniver)
-install(FILES ovnitop.1 DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+install(FILES ovnitop.1 ovnidump.1 DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")

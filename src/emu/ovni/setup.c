@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "ovni_priv.h"
@@ -6,6 +6,7 @@
 #include "common.h"
 #include "emu.h"
 #include "emu_prv.h"
+#include "ev_spec.h"
 #include "model.h"
 #include "model_chan.h"
 #include "model_cpu.h"
@@ -20,9 +21,29 @@
 static const char model_name[] = "ovni";
 enum { model_id = 'O' };
 
+static struct ev_decl model_evlist[] = {
+	{ "OAr(i32 cpu, i32 tid)", "changes the affinity of thread %{tid} to CPU %{cpu}" },
+	{ "OAs(i32 cpu)", "switches it's own affinity to the CPU %{cpu}" },
+	{ "OB.", "emits a burst event to measure latency" },
+	{ "OHC(i32 cpu, u64 tag)", "creates a new thread on CPU %{cpu} with tag %#llx{tag}" },
+	{ "OHc", "enters the Cooling state (about to be paused)" },
+	{ "OHe", "ends the execution" },
+	{ "OHp", "pauses the execution" },
+	{ "OHr", "resumes the execution" },
+	{ "OHw", "enters the Warming state (about to be running)" },
+	{ "OHx(i32 cpu, i32 tid, u64 tag)", "begins the execution on CPU %{cpu} created from %{tid} with tag %#llx{tag}" },
+	{ "OCn(i32 cpu)", "informs there are %{cpu} CPUs" },
+
+	PAIR_B("OF[", "OF]", "flushing events to disk")
+	PAIR_E("OU[", "OU]", "unordered event region")
+
+	{ NULL, NULL },
+};
+
 struct model_spec model_ovni = {
 	.name    = model_name,
 	.version = "1.0.0",
+	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_ovni_create,
 	.connect = model_ovni_connect,

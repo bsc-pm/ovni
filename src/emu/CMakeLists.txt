@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 include_directories(
@@ -18,10 +18,12 @@ add_library(emu STATIC
   emu_args.c
   emu_ev.c
   emu_stat.c
+  ev_spec.c
   model.c
   model_cpu.c
   model_thread.c
   model_pvt.c
+  model_evspec.c
   models.c
   player.c
   stream.c

@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "mpi_priv.h"
@@ -8,6 +8,7 @@
 #include "emu.h"
 #include "emu_args.h"
 #include "emu_prv.h"
+#include "ev_spec.h"
 #include "extend.h"
 #include "model.h"
 #include "model_chan.h"
@@ -24,9 +25,78 @@
 static const char model_name[] = "mpi";
 enum { model_id = 'M' };
 
+static struct ev_decl model_evlist[] = {
+	PAIR_E("MUf", "MUF", "MPI_Finalize()")
+	PAIR_E("MUi", "MUI", "MPI_Init()")
+	PAIR_E("MUt", "MUT", "MPI_Init_thread()")
+
+	PAIR_E("MW[", "MW]", "MPI_Wait()")
+	PAIR_E("MWa", "MWA", "MPI_Waitall()")
+	PAIR_E("MWs", "MWS", "MPI_Waitsome()")
+	PAIR_E("MWy", "MWY", "MPI_Waitany()")
+
+	PAIR_E("MT[", "MT]", "MPI_Test()")
+	PAIR_E("MTa", "MTA", "MPI_Testall()")
+	PAIR_E("MTy", "MTY", "MPI_Testany()")
+	PAIR_E("MTs", "MTS", "MPI_Testsome()")
+
+	PAIR_E("MS[", "MS]", "MPI_Send()")
+	PAIR_E("MSb", "MSB", "MPI_Bsend()")
+	PAIR_E("MSr", "MSR", "MPI_Rsend()")
+	PAIR_E("MSs", "MSS", "MPI_Ssend()")
+
+	PAIR_E("MR[", "MR]", "MPI_Recv()")
+	PAIR_E("MRs", "MRS", "MPI_Sendrecv()")
+	PAIR_E("MRo", "MRO", "MPI_Sendrecv_replace()")
+
+	PAIR_E("MAg", "MAG", "MPI_Allgather()")
+	PAIR_E("MAr", "MAR", "MPI_Allreduce()")
+	PAIR_E("MAa", "MAA", "MPI_Alltoall()")
+
+	PAIR_E("MCb", "MCB", "MPI_Barrier()")
+	PAIR_E("MCe", "MCE", "MPI_Exscan()")
+	PAIR_E("MCs", "MCS", "MPI_Scan()")
+
+	PAIR_E("MDb", "MDB", "MPI_Bcast()")
+	PAIR_E("MDg", "MDG", "MPI_Gather()")
+	PAIR_E("MDs", "MDS", "MPI_Scatter()")
+
+	PAIR_E("ME[", "ME]", "MPI_Reduce()")
+	PAIR_E("MEs", "MES", "MPI_Reduce_scatter()")
+	PAIR_E("MEb", "MEB", "MPI_Reduce_scatter_block()")
+
+	PAIR_E("Ms[", "Ms]", "MPI_Isend()")
+	PAIR_E("Msb", "MsB", "MPI_Ibsend()")
+	PAIR_E("Msr", "MsR", "MPI_Irsend()")
+	PAIR_E("Mss", "MsS", "MPI_Issend()")
+
+	PAIR_E("Mr[", "Mr]", "MPI_Irecv()")
+	PAIR_E("Mrs", "MrS", "MPI_Isendrecv()")
+	PAIR_E("Mro", "MrO", "MPI_Isendrecv_replace()")
+
+	PAIR_E("Mag", "MaG", "MPI_Iallgather()")
+	PAIR_E("Mar", "MaR", "MPI_Iallreduce()")
+	PAIR_E("Maa", "MaA", "MPI_Ialltoall()")
+
+	PAIR_E("Mcb", "McB", "MPI_Ibarrier()")
+	PAIR_E("Mce", "McE", "MPI_Iexscan()")
+	PAIR_E("Mcs", "McS", "MPI_Iscan()")
+
+	PAIR_E("Mdb", "MdB", "MPI_Ibcast()")
+	PAIR_E("Mdg", "MdG", "MPI_Igather()")
+	PAIR_E("Mds", "MdS", "MPI_Iscatter()")
+
+	PAIR_E("Me[", "Me]", "MPI_Ireduce()")
+	PAIR_E("Mes", "MeS", "MPI_Ireduce_scatter()")
+	PAIR_E("Meb", "MeB", "MPI_Ireduce_scatter_block()")
+
+	{ NULL, NULL },
+};
+
 struct model_spec model_mpi = {
 	.name    = model_name,
 	.version = "1.0.0",
+	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_mpi_create,
 	.connect = model_mpi_connect,

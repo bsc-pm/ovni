@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "tampi_priv.h"
@@ -8,6 +8,7 @@
 #include "emu.h"
 #include "emu_args.h"
 #include "emu_prv.h"
+#include "ev_spec.h"
 #include "extend.h"
 #include "model.h"
 #include "model_chan.h"
@@ -24,9 +25,26 @@
 static const char model_name[] = "tampi";
 enum { model_id = 'T' };
 
+static struct ev_decl model_evlist[] = {
+	PAIR_S("TCi", "TCI", "issuing a non-blocking communication operation")
+	PAIR_S("TGc", "TGC", "checking pending requests from the global array")
+	PAIR_E("TLi", "TLI", "the library code at an API function")
+	PAIR_E("TLp", "TLP", "the library code at a polling function")
+	PAIR_S("TQa", "TQA", "adding a ticket/requests to a queue")
+	PAIR_S("TQt", "TQT", "transferring tickets/requests from queues to global array")
+	PAIR_S("TRc", "TRC", "processsing a completed request")
+	PAIR_S("TRt", "TRT", "testing a single request with MPI_Test")
+	PAIR_S("TRa", "TRA", "testing several requests with MPI_Testall")
+	PAIR_S("TRs", "TRS", "testing several requests with MPI_Testsome")
+	PAIR_S("TTc", "TTC", "creating a ticket linked to a set of requests and a task")
+	PAIR_S("TTw", "TTW", "waiting for a ticket completion")
+	{ NULL, NULL },
+};
+
 struct model_spec model_tampi = {
 	.name    = model_name,
 	.version = "1.0.0",
+	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_tampi_create,
 	.connect = model_tampi_connect,

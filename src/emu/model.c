@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "model.h"
@@ -7,6 +7,8 @@
 #include "version.h"
 #include "emu.h"
 #include "emu_args.h"
+#include "model_evspec.h"
+#include "ev_spec.h"
 #include "thread.h"
 #include "proc.h"
 
@@ -26,13 +28,34 @@ model_register(struct model *model, struct model_spec *spec)
 		return -1;
 	}
 
-	if (spec->version == NULL) {
-		err("model %c missing version", i);
+	if (model->registered[i]) {
+		err("model %c already registered", i);
 		return -1;
 	}
 
-	if (model->registered[i]) {
-		err("model %c already registered", i);
+	if (spec->version == NULL) {
+		err("model %s missing version", spec->name);
+		return -1;
+	}
+
+	if (spec->evlist == NULL) {
+		err("model %s missing evlist", spec->name);
+		return -1;
+	}
+
+	if (spec->evspec != NULL) {
+		err("model %s evspec must be NULL", spec->name);
+		return -1;
+	}
+
+	spec->evspec = calloc(1, sizeof(struct model_evspec));
+	if (spec->evspec == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	if (model_evspec_init(spec->evspec, spec) != 0) {
+		err("model_evspec_init failed for model %s", spec->name);
 		return -1;
 	}
 
@@ -80,9 +103,13 @@ model_probe(struct model *model, struct emu *emu)
 				continue;
 
 			struct model_spec *spec = model->spec[i];
+			long nevents = spec->evspec->nevents;
 
-			info(" %8s %s '%c'",
-					spec->name, spec->version, (char) i);
+			info(" %8s %s '%c' (%ld events)",
+					spec->name,
+					spec->version,
+					(char) i,
+					nevents);
 		}
 	}
 
@@ -152,6 +179,32 @@ model_event(struct model *model, struct emu *emu, int index)
 
 	if (spec->event(emu) != 0) {
 		err("event() failed for '%s' model", spec->name);
+		return -1;
+	}
+
+	return 0;
+}
+
+int
+model_event_print(struct model *model, struct emu_ev *ev,
+		char *buf, int buflen)
+{
+	int index = ev->m;
+	if (!model->registered[index]) {
+		err("no model registered for %c", ev->m);
+		return -1;
+	}
+
+	struct model_spec *spec = model->spec[index];
+	struct ev_spec *es = model_evspec_find(spec->evspec, ev->mcv);
+
+	if (es == NULL) {
+		err("cannot find event definition for %s", ev->mcv);
+		return -1;
+	}
+
+	if (ev_spec_print(es, ev, buf, buflen) < 0) {
+		err("cannot print event signature for %s", ev->mcv);
 		return -1;
 	}
 

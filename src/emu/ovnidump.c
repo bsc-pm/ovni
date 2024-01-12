@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -7,37 +7,42 @@
 #include <unistd.h>
 #include "common.h"
 #include "emu_ev.h"
+#include "model.h"
+#include "models.h"
 #include "ovni.h"
 #include "player.h"
 #include "stream.h"
 #include "trace.h"
 
 char *tracedir;
+int hex_mode = 0;
 
 static void
-emit(struct player *player)
+emit(struct model *model, struct player *player)
 {
-	static int64_t c = 0;
-
 	struct emu_ev *ev = player_ev(player);
 	struct stream *stream = player_stream(player);
 
-	/* Use raw clock in the ovni event */
-	int64_t rel = stream->deltaclock;
-	c = ev->rclock;
-
-	printf("%s  %10ld  %+10ld  %c%c%c",
-			stream->relpath,
-			c,
-			rel,
+	printf("%10ld  %c%c%c  %s  ",
+			ev->rclock,
 			ev->m,
 			ev->c,
-			ev->v);
+			ev->v,
+			stream->relpath);
 
-	if (ev->has_payload) {
-		printf(" ");
-		for (size_t i = 0; i < ev->payload_size; i++)
-			printf(":%02x", ev->payload->u8[i]);
+	if (hex_mode) {
+		if (ev->has_payload) {
+			for (size_t i = 0; i < ev->payload_size; i++)
+				printf(":%02x", ev->payload->u8[i]);
+		}
+	} else {
+		char buf[1024];
+		if (model_event_print(model, ev, buf, 1024) < 0) {
+			err("failed to decode event %s", ev->mcv);
+			printf("UNKNOWN");
+		} else {
+			printf("%s", buf);
+		}
 	}
 
 	printf("\n");
@@ -46,7 +51,7 @@ emit(struct player *player)
 static void
 usage(void)
 {
-	rerr("Usage: ovnidump DIR\n");
+	rerr("Usage: ovnidump [-x] DIR\n");
 	rerr("\n");
 	rerr("Dumps the events of the trace to the standard output.\n");
 	rerr("\n");
@@ -62,8 +67,11 @@ parse_args(int argc, char *argv[])
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "h")) != -1) {
+	while ((opt = getopt(argc, argv, "hx")) != -1) {
 		switch (opt) {
+			case 'x':
+				hex_mode = 1;
+				break;
 			case 'h':
 			default: /* '?' */
 				usage();
@@ -84,6 +92,15 @@ main(int argc, char *argv[])
 	progname_set("ovnidump");
 
 	parse_args(argc, argv);
+
+	struct model model;
+	model_init(&model);
+
+	/* Register all the models */
+	if (models_register(&model) != 0) {
+		err("failed to register models");
+		return -1;
+	}
 
 	struct trace *trace = calloc(1, sizeof(struct trace));
 
@@ -111,7 +128,7 @@ main(int argc, char *argv[])
 	int ret;
 
 	while ((ret = player_step(player)) == 0) {
-		emit(player);
+		emit(&model, player);
 	}
 
 	/* Error happened */

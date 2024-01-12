@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "kernel_priv.h"
@@ -6,6 +6,7 @@
 #include "common.h"
 #include "emu.h"
 #include "emu_prv.h"
+#include "ev_spec.h"
 #include "model.h"
 #include "model_chan.h"
 #include "model_cpu.h"
@@ -19,9 +20,16 @@
 static const char model_name[] = "kernel";
 enum { model_id = 'K' };
 
+static struct ev_decl model_evlist[] = {
+	{ "KO[", "out of CPU" },
+	{ "KO]", "back to CPU" },
+	{ NULL, NULL },
+};
+
 struct model_spec model_kernel = {
 	.name    = model_name,
 	.version = "1.0.0",
+	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_kernel_create,
 	.connect = model_kernel_connect,

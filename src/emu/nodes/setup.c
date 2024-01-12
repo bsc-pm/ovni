@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nodes_priv.h"
@@ -8,6 +8,7 @@
 #include "emu.h"
 #include "emu_args.h"
 #include "emu_prv.h"
+#include "ev_spec.h"
 #include "extend.h"
 #include "model.h"
 #include "model_chan.h"
@@ -24,9 +25,22 @@
 static const char model_name[] = "nodes";
 enum { model_id = 'D' };
 
+static struct ev_decl model_evlist[] = {
+	PAIR_B("DR[", "DR]", "registering task accesses")
+	PAIR_B("DU[", "DU]", "unregistering task accesses")
+	PAIR_E("DW[", "DW]", "a blocking condition (waiting for an If0 task)")
+	PAIR_B("DI[", "DI]", "the inline execution of an If0 task")
+	PAIR_E("DT[", "DT]", "a taskwait")
+	PAIR_B("DC[", "DC]", "creating a task")
+	PAIR_B("DS[", "DS]", "submitting a task")
+	PAIR_B("DP[", "DP]", "spawning a function")
+	{ NULL, NULL },
+};
+
 struct model_spec model_nodes = {
 	.name    = model_name,
 	.version = "1.0.0",
+	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nodes_create,
 	.connect = model_nodes_connect,

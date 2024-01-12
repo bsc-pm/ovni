@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nanos6_priv.h"
@@ -10,6 +10,7 @@
 #include "emu.h"
 #include "emu_args.h"
 #include "emu_prv.h"
+#include "ev_spec.h"
 #include "extend.h"
 #include "model.h"
 #include "model_chan.h"
@@ -31,9 +32,56 @@
 static const char model_name[] = "nanos6";
 enum { model_id = '6' };
 
+static struct ev_decl model_evlist[] = {
+	{ "6Yc+(u32 typeid, str label)", "creates task type %{typeid} with label \"%{label}\"" },
+	{ "6Tc(u32 taskid, u32 typeid)", "creates task %{taskid} with type %{typeid}" },
+	{ "6Tx(u32 taskid)", "executes the task %{taskid}" },
+	{ "6Te(u32 taskid)", "ends the task %{taskid}" },
+	{ "6Tp(u32 taskid)", "pauses the task %{taskid}" },
+	{ "6Tr(u32 taskid)", "resumes the task %{taskid}" },
+	PAIR_E("6W[", "6W]", "worker main loop, looking for tasks")
+	PAIR_B("6Wt", "6WT", "handling a task via handleTask()")
+	PAIR_B("6Ww", "6WW", "switching to another worker via switchTo()")
+	/* FIXME: 6Wm and 6WM not instrumented by Nanos6 */
+	PAIR_B("6Wm", "6WM", "migrating the current worker to another CPU")
+	PAIR_B("6Ws", "6WS", "suspending the worker via suspend()")
+	PAIR_B("6Wr", "6WR", "resuming another worker via resume()")
+	PAIR_E("6Wg", "6WG", "sponge mode (absorbing system noise)")
+	{ "6W*", "signals another worker to wake up" },
+	{ "6Pp", "sets progress state to Progressing" },
+	{ "6Pr", "sets progress state to Resting" },
+	{ "6Pa", "sets progress state to Absorbing" },
+	PAIR_B("6C[", "6C]", "creating a new task")
+	PAIR_B("6U[", "6U]", "submitting a task via submitTask()")
+	PAIR_B("6F[", "6F]", "spawning a function via spawnFunction()")
+	PAIR_E("6t[", "6t]", "the task body")
+	/* FIXME: Deprecated, remove */
+	PAIR_B("6O[", "6O]", "running the task body as taskfor collaborator")
+	PAIR_S("6Ma", "6MA", "allocating memory")
+	PAIR_S("6Mf", "6MF", "freeing memory")
+	PAIR_B("6Dr", "6DR", "registration of task dependencies")
+	PAIR_B("6Du", "6DU", "unregistration of task dependencies")
+	PAIR_B("6S[", "6S]", "scheduler serving mode")
+	PAIR_B("6Sa", "6SA", "submitting a ready task via addReadyTask()")
+	PAIR_B("6Sp", "6SP", "processing ready tasks via processReadyTasks()")
+	{ "6S@", "self assigns itself a task" },
+	{ "6Sr", "receives a task from another thread" },
+	{ "6Ss", "sends a task to another thread" },
+	PAIR_B("6Bb", "6BB", "blocking the current task")
+	PAIR_B("6Bu", "6BU", "unblocking a task")
+	PAIR_E("6Bw", "6BW", "a task wait")
+	PAIR_E("6Bf", "6BF", "a wait for")
+	PAIR_B("6He", "6HE", "execution as external thread")
+	PAIR_B("6Hw", "6HW", "execution as worker")
+	PAIR_B("6Hl", "6HL", "execution as leader")
+	PAIR_B("6Hm", "6HM", "execution as main thread")
+	{ NULL, NULL },
+};
+
 struct model_spec model_nanos6 = {
 	.name    = model_name,
 	.version = "1.0.0",
+	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nanos6_create,
 	.connect = model_nanos6_connect,

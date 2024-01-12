@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nosv_priv.h"
@@ -9,6 +9,7 @@
 #include "emu.h"
 #include "emu_args.h"
 #include "emu_prv.h"
+#include "ev_spec.h"
 #include "extend.h"
 #include "model.h"
 #include "model_chan.h"
@@ -29,9 +30,48 @@
 static const char model_name[] = "nosv";
 enum { model_id = 'V' };
 
+static struct ev_decl model_evlist[] = {
+	{ "VTc(u32 taskid, u32 typeid)", "creates task %{taskid} with type %{typeid}" },
+	{ "VTx(u32 taskid)", "executes the task %{taskid}" },
+	{ "VTe(u32 taskid)", "ends the task %{taskid}" },
+	{ "VTp(u32 taskid)", "pauses the task %{taskid}" },
+	{ "VTr(u32 taskid)", "resumes the task %{taskid}" },
+
+	{ "VYc+(u32 typeid, str label)", "creates task type %{typeid} with label \"%{label}\"" },
+
+	{ "VSr", "receives a task from another thread" },
+	{ "VSs", "sends a task to another thread" },
+	{ "VS@", "self assigns itself a task" },
+	{ "VSh", "enters the hungry state, waiting for work" },
+	{ "VSf", "is no longer hungry" },
+	PAIR_E("VS[", "VS]", "scheduler server mode")
+
+	PAIR_S("VU[", "VU]", "submitting a task")
+	PAIR_S("VMa", "VMA", "allocating memory")
+	PAIR_S("VMf", "VMF", "freeing memory")
+
+	PAIR_E("VAr", "VAR", "nosv_create()")
+	PAIR_E("VAd", "VAD", "nosv_destroy()")
+	PAIR_E("VAs", "VAS", "nosv_submit()")
+	PAIR_E("VAp", "VAP", "nosv_pause()")
+	PAIR_E("VAy", "VAY", "nosv_yield()")
+	PAIR_E("VAw", "VAW", "nosv_waitfor()")
+	PAIR_E("VAc", "VAC", "nosv_schedpoint()")
+
+	/* FIXME: VHA and VHa are not subsystems */
+	{ "VHa", "enters nosv_attach()" },
+	{ "VHA", "leaves nosv_dettach()" },
+
+	PAIR_B("VHw", "VHW", "execution as worker")
+	PAIR_B("VHd", "VHD", "execution as delegate")
+
+	{ NULL, NULL },
+};
+
 struct model_spec model_nosv = {
 	.name    = model_name,
 	.version = "1.0.0",
+	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nosv_create,
 	.connect = model_nosv_connect,

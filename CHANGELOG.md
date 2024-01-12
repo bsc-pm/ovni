@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- All events now must be declared for each emulation model and given a
+  description including the payload arguments.
+
+### Added
+
+- Manual page for ovnidump(1).
+- Describe events in human readable format with ovnidump.
+- New `-x` option in ovnidump to show the payload in hexadecimal.
+
 ## [1.5.1] - 2023-12-20
 
 ### Fixed

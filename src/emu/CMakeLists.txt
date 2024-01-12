@@ -76,6 +76,9 @@ target_link_libraries(ovnisort emu parson-static ovni-static)
 add_executable(ovnitop ovnitop.c)
 target_link_libraries(ovnitop emu parson-static ovni-static)
 
+add_executable(ovnievents ovnievents.c)
+target_link_libraries(ovnievents emu parson-static ovni-static)
+
 # For ovniver we need to ensure we use the RUNPATH not the RPATH.
 include(CheckLinkerFlag)
 check_linker_flag(C "-Wl,--enable-new-dtags" SUPPORT_ENABLE_NEW_DTAGS)

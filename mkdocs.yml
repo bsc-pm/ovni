@@ -37,6 +37,7 @@ nav:
       - user/emulation/nanos6.md
       - user/emulation/tampi.md
       - user/emulation/mpi.md
+      - user/emulation/openmp.md
       - user/emulation/events.md
     - CHANGELOG.md
   - 'Developer guide':

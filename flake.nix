@@ -7,11 +7,15 @@
 
   outputs = { self, nixpkgs, bscpkgs }:
   let
+    # Set to true to replace all libovni in all runtimes with the current
+    # source. Causes large rebuilds on changes of ovni.
+    useLocalOvni = false;
+
     ovniOverlay = final: prev: {
       nosv = prev.nosv.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "6a63fd4378ba458243dda3159500c1450edf0e82";
+        gitCommit = "9abad7d31476e97842d3b42f1fc1fb03d4cf817b";
       };
       nanos6 = prev.nanos6.override {
         useGit = true;
@@ -23,13 +27,27 @@
         gitBranch = "master";
         gitCommit = "70ce0ed0a20842d8eb3124aa5db5916fb6fc238f";
       };
+      clangOmpss2Unwrapped = prev.clangOmpss2Unwrapped.override {
+        useGit = true;
+        gitBranch = "master";
+        gitCommit = "9dc4a4deea5e09850435782026eaae2f5290d886";
+      };
+
+      # Use a fixed commit for libovni
+      ovniFixed = prev.ovni.override {
+        useGit = true;
+        gitBranch = "master";
+        gitCommit = "68fc8b0eba299c3a7fa3833ace2c94933a26749e";
+      };
       # Build with the current source
-      ovni = prev.ovni.overrideAttrs (old: rec {
+      ovniLocal = prev.ovni.overrideAttrs (old: rec {
         pname = "ovni-local";
         version = if self ? shortRev then self.shortRev else "dirty";
         src = self;
         cmakeFlags = [ "-DOVNI_GIT_COMMIT=${version}" ];
       });
+      # Select correct ovni for libovni
+      ovni = if (useLocalOvni) then final.ovniLocal else final.ovniFixed;
     };
     pkgs = import nixpkgs {
       system = "x86_64-linux";
@@ -51,12 +69,12 @@
     ];
     lib = pkgs.lib;
   in {
-    packages.x86_64-linux.ovniPackages = rec {
+    packages.x86_64-linux.ovniPackages = {
+      # Allow inspection of packages from the command line
+      inherit pkgs;
+    } // rec {
       # Build with the current source
-      local = pkgs.ovni.overrideAttrs (old: {
-        pname = "ovni-local";
-        src = self;
-      });
+      local = pkgs.ovniLocal;
 
       # Build in Debug mode
       debug = local.overrideAttrs (old: {
@@ -97,12 +115,13 @@
         # We need to be able to exit the chroot to run Nanos6 tests, as they
         # require access to /sys for hwloc
         __noChroot = true;
-        buildInputs = old.buildInputs ++ (with pkgs; [ pkg-config nosv nanos6 nodes ]);
+        buildInputs = old.buildInputs ++ (with pkgs; [ pkg-config nosv nanos6 nodes openmpv ]);
         cmakeFlags = old.cmakeFlags ++ [ "-DENABLE_ALL_TESTS=ON" ];
         preConfigure = old.preConfigure or "" + ''
           export NOSV_HOME="${pkgs.nosv}"
           export NODES_HOME="${pkgs.nodes}"
           export NANOS6_HOME="${pkgs.nanos6}"
+          export OPENMP_RUNTIME="libompv"
         '';
       });
 

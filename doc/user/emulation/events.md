@@ -433,86 +433,130 @@ List of events for the model *ovni* with identifier **`O`** at version `1.0.0`:
 
 List of events for the model *openmp* with identifier **`P`** at version `1.1.0`:
 <dl>
-<dt><a id="PA[" href="#PA["><pre>PA[</pre></a></dt>
-<dd>enters the attached state</dd>
-<dt><a id="PA]" href="#PA]"><pre>PA]</pre></a></dt>
-<dd>leaves the attached state</dd>
-<dt><a id="PBj" href="#PBj"><pre>PBj</pre></a></dt>
-<dd>enters a join barrier</dd>
-<dt><a id="PBJ" href="#PBJ"><pre>PBJ</pre></a></dt>
-<dd>leaves a join barrier</dd>
 <dt><a id="PBb" href="#PBb"><pre>PBb</pre></a></dt>
-<dd>enters a barrier</dd>
+<dd>begins plain barrier</dd>
 <dt><a id="PBB" href="#PBB"><pre>PBB</pre></a></dt>
-<dd>leaves a barrier</dd>
+<dd>ceases plain barrier</dd>
+<dt><a id="PBj" href="#PBj"><pre>PBj</pre></a></dt>
+<dd>begins join barrier</dd>
+<dt><a id="PBJ" href="#PBJ"><pre>PBJ</pre></a></dt>
+<dd>ceases join barrier</dd>
+<dt><a id="PBf" href="#PBf"><pre>PBf</pre></a></dt>
+<dd>begins fork barrier</dd>
+<dt><a id="PBF" href="#PBF"><pre>PBF</pre></a></dt>
+<dd>ceases fork barrier</dd>
 <dt><a id="PBt" href="#PBt"><pre>PBt</pre></a></dt>
-<dd>enters a tasking barrier</dd>
+<dd>begins tasking barrier</dd>
 <dt><a id="PBT" href="#PBT"><pre>PBT</pre></a></dt>
-<dd>leaves a tasking barrier</dd>
+<dd>ceases tasking barrier</dd>
 <dt><a id="PBs" href="#PBs"><pre>PBs</pre></a></dt>
-<dd>enters a spin wait</dd>
+<dd>begins spin wait</dd>
 <dt><a id="PBS" href="#PBS"><pre>PBS</pre></a></dt>
-<dd>leaves a spin wait</dd>
-<dt><a id="PWs" href="#PWs"><pre>PWs</pre></a></dt>
-<dd>begins static for</dd>
-<dt><a id="PWS" href="#PWS"><pre>PWS</pre></a></dt>
-<dd>ceases static for</dd>
+<dd>ceases spin wait</dd>
+<dt><a id="PIa" href="#PIa"><pre>PIa</pre></a></dt>
+<dd>begins critical acquiring</dd>
+<dt><a id="PIA" href="#PIA"><pre>PIA</pre></a></dt>
+<dd>ceases critical acquiring</dd>
+<dt><a id="PIr" href="#PIr"><pre>PIr</pre></a></dt>
+<dd>begins critical releasing</dd>
+<dt><a id="PIR" href="#PIR"><pre>PIR</pre></a></dt>
+<dd>ceases critical releasing</dd>
+<dt><a id="PI[" href="#PI["><pre>PI[</pre></a></dt>
+<dd>begins critical section</dd>
+<dt><a id="PI]" href="#PI]"><pre>PI]</pre></a></dt>
+<dd>ceases critical section</dd>
 <dt><a id="PWd" href="#PWd"><pre>PWd</pre></a></dt>
-<dd>begins dynamic for init</dd>
+<dd>begins distribute</dd>
 <dt><a id="PWD" href="#PWD"><pre>PWD</pre></a></dt>
+<dd>ceases distribute</dd>
+<dt><a id="PWy" href="#PWy"><pre>PWy</pre></a></dt>
+<dd>begins dynamic for init</dd>
+<dt><a id="PWY" href="#PWY"><pre>PWY</pre></a></dt>
 <dd>ceases dynamic for init</dd>
 <dt><a id="PWc" href="#PWc"><pre>PWc</pre></a></dt>
 <dd>begins dynamic for chunk</dd>
 <dt><a id="PWC" href="#PWC"><pre>PWC</pre></a></dt>
 <dd>ceases dynamic for chunk</dd>
+<dt><a id="PWs" href="#PWs"><pre>PWs</pre></a></dt>
+<dd>begins static for</dd>
+<dt><a id="PWS" href="#PWS"><pre>PWS</pre></a></dt>
+<dd>ceases static for</dd>
+<dt><a id="PWe" href="#PWe"><pre>PWe</pre></a></dt>
+<dd>begins section</dd>
+<dt><a id="PWE" href="#PWE"><pre>PWE</pre></a></dt>
+<dd>ceases section</dd>
 <dt><a id="PWi" href="#PWi"><pre>PWi</pre></a></dt>
 <dd>begins single</dd>
 <dt><a id="PWI" href="#PWI"><pre>PWI</pre></a></dt>
 <dd>ceases single</dd>
-<dt><a id="PTr" href="#PTr"><pre>PTr</pre></a></dt>
-<dd>begins releasing task dependencies</dd>
-<dt><a id="PTR" href="#PTR"><pre>PTR</pre></a></dt>
-<dd>ceases releasing task dependencies</dd>
-<dt><a id="PTw" href="#PTw"><pre>PTw</pre></a></dt>
-<dd>begins waiting for taskwait dependencies</dd>
-<dt><a id="PTW" href="#PTW"><pre>PTW</pre></a></dt>
-<dd>ceases waiting for taskwait dependencies</dd>
-<dt><a id="PT[" href="#PT["><pre>PT[</pre></a></dt>
-<dd>begins invoking a task</dd>
-<dt><a id="PT]" href="#PT]"><pre>PT]</pre></a></dt>
-<dd>ceases invoking a task</dd>
-<dt><a id="PTi" href="#PTi"><pre>PTi</pre></a></dt>
-<dd>begins invoking an if0 task</dd>
-<dt><a id="PTI" href="#PTI"><pre>PTI</pre></a></dt>
-<dd>ceases invoking an if0 task</dd>
 <dt><a id="PTa" href="#PTa"><pre>PTa</pre></a></dt>
 <dd>begins task allocation</dd>
 <dt><a id="PTA" href="#PTA"><pre>PTA</pre></a></dt>
 <dd>ceases task allocation</dd>
-<dt><a id="PTs" href="#PTs"><pre>PTs</pre></a></dt>
-<dd>begins scheduling a task</dd>
-<dt><a id="PTS" href="#PTS"><pre>PTS</pre></a></dt>
-<dd>ceases scheduling a task</dd>
-<dt><a id="PTt" href="#PTt"><pre>PTt</pre></a></dt>
-<dd>enters a taskwait</dd>
-<dt><a id="PTT" href="#PTT"><pre>PTT</pre></a></dt>
-<dd>leaves a taskwait</dd>
-<dt><a id="PTy" href="#PTy"><pre>PTy</pre></a></dt>
-<dd>enters a taskyield</dd>
-<dt><a id="PTY" href="#PTY"><pre>PTY</pre></a></dt>
-<dd>leaves a taskyield</dd>
-<dt><a id="PTd" href="#PTd"><pre>PTd</pre></a></dt>
-<dd>begins duplicating a task</dd>
-<dt><a id="PTD" href="#PTD"><pre>PTD</pre></a></dt>
-<dd>ceases duplicating a task</dd>
 <dt><a id="PTc" href="#PTc"><pre>PTc</pre></a></dt>
 <dd>begins checking task dependencies</dd>
 <dt><a id="PTC" href="#PTC"><pre>PTC</pre></a></dt>
 <dd>ceases checking task dependencies</dd>
+<dt><a id="PTd" href="#PTd"><pre>PTd</pre></a></dt>
+<dd>begins duplicating a task</dd>
+<dt><a id="PTD" href="#PTD"><pre>PTD</pre></a></dt>
+<dd>ceases duplicating a task</dd>
+<dt><a id="PTr" href="#PTr"><pre>PTr</pre></a></dt>
+<dd>begins releasing task dependencies</dd>
+<dt><a id="PTR" href="#PTR"><pre>PTR</pre></a></dt>
+<dd>ceases releasing task dependencies</dd>
+<dt><a id="PT[" href="#PT["><pre>PT[</pre></a></dt>
+<dd>begins running a task</dd>
+<dt><a id="PT]" href="#PT]"><pre>PT]</pre></a></dt>
+<dd>ceases running a task</dd>
+<dt><a id="PTi" href="#PTi"><pre>PTi</pre></a></dt>
+<dd>begins running an if0 task</dd>
+<dt><a id="PTI" href="#PTI"><pre>PTI</pre></a></dt>
+<dd>ceases running an if0 task</dd>
+<dt><a id="PTs" href="#PTs"><pre>PTs</pre></a></dt>
+<dd>begins scheduling a task</dd>
+<dt><a id="PTS" href="#PTS"><pre>PTS</pre></a></dt>
+<dd>ceases scheduling a task</dd>
 <dt><a id="PTg" href="#PTg"><pre>PTg</pre></a></dt>
-<dd>enters a taskgroup</dd>
+<dd>begins a taskgroup</dd>
 <dt><a id="PTG" href="#PTG"><pre>PTG</pre></a></dt>
-<dd>leaves a taskgroup</dd>
+<dd>ceases a taskgroup</dd>
+<dt><a id="PTt" href="#PTt"><pre>PTt</pre></a></dt>
+<dd>begins a taskwait</dd>
+<dt><a id="PTT" href="#PTT"><pre>PTT</pre></a></dt>
+<dd>ceases a taskwait</dd>
+<dt><a id="PTw" href="#PTw"><pre>PTw</pre></a></dt>
+<dd>begins waiting for taskwait dependencies</dd>
+<dt><a id="PTW" href="#PTW"><pre>PTW</pre></a></dt>
+<dd>ceases waiting for taskwait dependencies</dd>
+<dt><a id="PTy" href="#PTy"><pre>PTy</pre></a></dt>
+<dd>begins a taskyield</dd>
+<dt><a id="PTY" href="#PTY"><pre>PTY</pre></a></dt>
+<dd>ceases a taskyield</dd>
+<dt><a id="PA[" href="#PA["><pre>PA[</pre></a></dt>
+<dd>enters the attached state</dd>
+<dt><a id="PA]" href="#PA]"><pre>PA]</pre></a></dt>
+<dd>leaves the attached state</dd>
+<dt><a id="PMi" href="#PMi"><pre>PMi</pre></a></dt>
+<dd>begins microtask internal</dd>
+<dt><a id="PMI" href="#PMI"><pre>PMI</pre></a></dt>
+<dd>ceases microtask internal</dd>
+<dt><a id="PMu" href="#PMu"><pre>PMu</pre></a></dt>
+<dd>begins microtask user code</dd>
+<dt><a id="PMU" href="#PMU"><pre>PMU</pre></a></dt>
+<dd>ceases microtask user code</dd>
+<dt><a id="PH[" href="#PH["><pre>PH[</pre></a></dt>
+<dd>begins worker loop</dd>
+<dt><a id="PH]" href="#PH]"><pre>PH]</pre></a></dt>
+<dd>ceases worker loop</dd>
+<dt><a id="PCf" href="#PCf"><pre>PCf</pre></a></dt>
+<dd>begins fork call</dd>
+<dt><a id="PCF" href="#PCF"><pre>PCF</pre></a></dt>
+<dd>ceases fork call</dd>
+<dt><a id="PCi" href="#PCi"><pre>PCi</pre></a></dt>
+<dd>begins initialization</dd>
+<dt><a id="PCI" href="#PCI"><pre>PCI</pre></a></dt>
+<dd>ceases initialization</dd>
 </dl>
 
 ## Model tampi

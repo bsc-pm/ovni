@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add OpenMP model (`P`) at version 1.1.0 (currently it only supports subsystems
+  and only works with the OpenMP-V runtime, on top of nOS-V).
+
 ### Changed
 
 - Add support for `nosv_attach` and `nosv_detach` events VA{aAeE}.

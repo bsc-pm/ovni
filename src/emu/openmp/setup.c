@@ -26,29 +26,44 @@ static const char model_name[] = "openmp";
 enum { model_id = 'P' };
 
 static struct ev_decl model_evlist[] = {
-	PAIR_E("PA[", "PA]", "the attached state")
+	PAIR_B("PBb", "PBB", "plain barrier")
+	PAIR_B("PBj", "PBJ", "join barrier")
+	PAIR_B("PBf", "PBF", "fork barrier")
+	PAIR_B("PBt", "PBT", "tasking barrier")
+	PAIR_B("PBs", "PBS", "spin wait")
 
-	PAIR_E("PBj", "PBJ", "a join barrier")
-	PAIR_E("PBb", "PBB", "a barrier")
-	PAIR_E("PBt", "PBT", "a tasking barrier")
-	PAIR_E("PBs", "PBS", "a spin wait")
+	PAIR_B("PIa", "PIA", "critical acquiring")
+	PAIR_B("PIr", "PIR", "critical releasing")
+	PAIR_B("PI[", "PI]", "critical section")
 
-	PAIR_B("PWs", "PWS", "static for")
-	PAIR_B("PWd", "PWD", "dynamic for init")
+	PAIR_B("PWd", "PWD", "distribute")
+	PAIR_B("PWy", "PWY", "dynamic for init")
 	PAIR_B("PWc", "PWC", "dynamic for chunk")
+	PAIR_B("PWs", "PWS", "static for")
+	PAIR_B("PWe", "PWE", "section")
 	PAIR_B("PWi", "PWI", "single")
 
-	PAIR_B("PTr", "PTR", "releasing task dependencies")
-	PAIR_B("PTw", "PTW", "waiting for taskwait dependencies")
-	PAIR_B("PT[", "PT]", "invoking a task")
-	PAIR_B("PTi", "PTI", "invoking an if0 task")
 	PAIR_B("PTa", "PTA", "task allocation")
-	PAIR_B("PTs", "PTS", "scheduling a task")
-	PAIR_E("PTt", "PTT", "a taskwait")
-	PAIR_E("PTy", "PTY", "a taskyield")
-	PAIR_B("PTd", "PTD", "duplicating a task")
 	PAIR_B("PTc", "PTC", "checking task dependencies")
-	PAIR_E("PTg", "PTG", "a taskgroup")
+	PAIR_B("PTd", "PTD", "duplicating a task")
+	PAIR_B("PTr", "PTR", "releasing task dependencies")
+	PAIR_B("PT[", "PT]", "running a task")
+	PAIR_B("PTi", "PTI", "running an if0 task")
+	PAIR_B("PTs", "PTS", "scheduling a task")
+	PAIR_B("PTg", "PTG", "a taskgroup")
+	PAIR_B("PTt", "PTT", "a taskwait")
+	PAIR_B("PTw", "PTW", "waiting for taskwait dependencies")
+	PAIR_B("PTy", "PTY", "a taskyield")
+
+	PAIR_E("PA[", "PA]", "the attached state")
+
+	PAIR_B("PMi", "PMI", "microtask internal")
+	PAIR_B("PMu", "PMU", "microtask user code")
+
+	PAIR_B("PH[", "PH]", "worker loop")
+
+	PAIR_B("PCf", "PCF", "fork call")
+	PAIR_B("PCi", "PCI", "initialization")
 
 	{ NULL, NULL },
 };
@@ -75,6 +90,10 @@ static const int chan_stack[CH_MAX] = {
 	[CH_SUBSYSTEM] = 1,
 };
 
+static const int chan_dup[CH_MAX] = {
+	[CH_SUBSYSTEM] = 1,
+};
+
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[CH_MAX] = {
@@ -86,26 +105,42 @@ static const char *pcf_prefix[CH_MAX] = {
 };
 
 static const struct pcf_value_label openmp_subsystem_values[] = {
-	{ ST_ATTACHED,          "Attached" },
-	{ ST_JOIN_BARRIER,      "Join barrier" },
-	{ ST_BARRIER,           "Barrier" },
-	{ ST_TASKING_BARRIER,   "Tasking barrier" },
-	{ ST_SPIN_WAIT,         "Spin wait" },
-	{ ST_FOR_STATIC,        "For static" },
-	{ ST_FOR_DYNAMIC_INIT,  "For dynamic init" },
-	{ ST_FOR_DYNAMIC_CHUNK, "For dynamic chunk" },
-	{ ST_SINGLE,            "Single" },
-	{ ST_RELEASE_DEPS,      "Release deps" },
-	{ ST_TASKWAIT_DEPS,     "Taskwait deps" },
-	{ ST_INVOKE_TASK,       "Invoke task" },
-	{ ST_INVOKE_TASK_IF0,   "Invoke task if0" },
-	{ ST_TASK_ALLOC,        "Task alloc" },
-	{ ST_TASK_SCHEDULE,     "Task schedule" },
-	{ ST_TASKWAIT,          "Taskwait" },
-	{ ST_TASKYIELD,         "Taskyield" },
-	{ ST_TASK_DUP_ALLOC,    "Task dup alloc" },
-	{ ST_CHECK_DEPS,        "Check deps" },
-	{ ST_TASKGROUP,         "Taskgroup" },
+	/* Work-distribution */
+	{ ST_WD_DISTRIBUTE,          "Work-distribution: Distribute" },
+	{ ST_WD_FOR_DYNAMIC_CHUNK,   "Work-distribution: Dynamic for chunk" },
+	{ ST_WD_FOR_DYNAMIC_INIT,    "Work-distribution: Dynamic for initialization" },
+	{ ST_WD_FOR_STATIC,          "Work-distribution: Static for chunk" },
+	{ ST_WD_SECTION,             "Work-distribution: Section" },
+	{ ST_WD_SINGLE,              "Work-distribution: Single" },
+	/* Task */
+	{ ST_TASK_ALLOC,             "Task: Allocation" },
+	{ ST_TASK_CHECK_DEPS,        "Task: Check deps" },
+	{ ST_TASK_DUP_ALLOC,         "Task: Duplicating" },
+	{ ST_TASK_RELEASE_DEPS,      "Task: Releasing deps" },
+	{ ST_TASK_RUN,               "Task: Running task" },
+	{ ST_TASK_RUN_IF0,           "Task: Running task if0" },
+	{ ST_TASK_SCHEDULE,          "Task: Scheduling" },
+	{ ST_TASK_TASKGROUP,         "Task: Taskgroup" },
+	{ ST_TASK_TASKWAIT,          "Task: Taskwait" },
+	{ ST_TASK_TASKWAIT_DEPS,     "Task: Taskwait deps" },
+	{ ST_TASK_TASKYIELD,         "Task: Taskyield" },
+	/* Critical */
+	{ ST_CRITICAL_ACQ,           "Critical: Acquiring" },
+	{ ST_CRITICAL_REL,           "Critical: Releasing" },
+	{ ST_CRITICAL_SECTION,       "Critical: Section" },
+	/* Barrier */
+	{ ST_BARRIER_FORK,           "Barrier: Fork" },
+	{ ST_BARRIER_JOIN,           "Barrier: Join" },
+	{ ST_BARRIER_PLAIN,          "Barrier: Plain" },
+	{ ST_BARRIER_TASK,           "Barrier: Task" },
+	{ ST_BARRIER_SPIN_WAIT,      "Barrier: Spin wait" },
+	/* Runtime */
+	{ ST_RT_ATTACHED,            "Runtime: Attached" },
+	{ ST_RT_FORK_CALL,           "Runtime: Fork call" },
+	{ ST_RT_INIT,                "Runtime: Initialization" },
+	{ ST_RT_MICROTASK_INTERNAL,  "Runtime: Internal microtask" },
+	{ ST_RT_MICROTASK_USER,      "Runtime: User microtask" },
+	{ ST_RT_WORKER_LOOP,         "Runtime: Worker main loop" },
 	{ -1, NULL },
 };
 
@@ -114,7 +149,7 @@ static const struct pcf_value_label *pcf_labels[CH_MAX] = {
 };
 
 static const long prv_flags[CH_MAX] = {
-	[CH_SUBSYSTEM] = PRV_SKIPDUP,
+	[CH_SUBSYSTEM] = PRV_EMITDUP,
 };
 
 static const struct model_pvt_spec pvt_spec = {
@@ -127,7 +162,7 @@ static const struct model_pvt_spec pvt_spec = {
 /* ----------------- tracking ------------------ */
 
 static const int th_track[CH_MAX] = {
-	[CH_SUBSYSTEM] = TRACK_TH_RUN,
+	[CH_SUBSYSTEM] = TRACK_TH_ACT,
 };
 
 static const int cpu_track[CH_MAX] = {
@@ -141,6 +176,7 @@ static const struct model_chan_spec th_chan = {
 	.prefix = model_name,
 	.ch_names = chan_name,
 	.ch_stack = chan_stack,
+	.ch_dup = chan_dup,
 	.pvt = &pvt_spec,
 	.track = th_track,
 };
@@ -150,6 +186,7 @@ static const struct model_chan_spec cpu_chan = {
 	.prefix = model_name,
 	.ch_names = chan_name,
 	.ch_stack = chan_stack,
+	.ch_dup = chan_dup,
 	.pvt = &pvt_spec,
 	.track = cpu_track,
 };

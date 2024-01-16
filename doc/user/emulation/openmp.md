@@ -1,164 +1,243 @@
-# OpenMP Model
+# OpenMP model
 
-The LLVM OpenMP Runtime is an integral component of the LLVM compiler
-infrastructure that provides support for the OpenMP (Open Multi-Processing)
-programming model.
+The [OpenMP programming model](https://www.openmp.org) is a widely used API and
+set of directives for parallel programming, allowing developers to write
+multi-threaded and multi-process applications more easily. In this document we
+refer to the
+[version 5.2 of the OpenMP specification](https://www.openmp.org/wp-content/uploads/OpenMP-API-Specification-5-2.pdf).
 
-OpenMP is a widely used API and set of directives for parallel programming,
-allowing developers to write multi-threaded and multi-process applications more
-easily.
+The [LLVM OpenMP Runtime](https://openmp.llvm.org/design/Runtimes.html) provides
+an implementation of the OpenMP specification as a component of the LLVM
+compiler infrastructure. We have modified the LLVM OpenMP runtime to run on top
+of the [nOS-V](https://gitlab.bsc.es/nos-v/nos-v) runtime as part of the
+[OmpSs-2 LLVM compiler](https://pm.bsc.es/llvm-ompss), named **OpenMP-V**.
 
-This documentation is about an OpenMP runtime built on top of [nOS-V][nosv],
-leveraging its thread management capabilities while retaining the fundamental
-characteristics of the original runtime.
+We have added instrumentation events to OpenMP-V designed to be enabled along
+the [nOS-V instrumentation](nosv.md). This document describes all the
+instrumentation features included in our modified OpenMP-V runtime to identify
+what is happening. This data is useful for both users and developers of the
+OpenMP runtime to analyze issues and undesired behaviors.
 
-While the modifications introduced to the runtime may appear to be minor, it's
-important to note that this enhanced version is not API compatible with the
-original runtime. As a result, it is mandatory to use the clang built in the same
-[LLVM Project][llvm].
+!!! Note
 
-This document describes all the instrumentation features included in the runtime
-by both nOS-V and OpenMP to monitor task execution and the execution flow within
-the runtime library to identify what is happening. This data is useful for both
-users and developers of the OpenMP runtime to analyze issues and undesired
-behaviors.
+    Instrumenting the original OpenMP runtime from the LLVM project is planned
+    but is not yet posible. For now you must use the modified OpenMP-V runtime
+    with nOS-V.
 
-[llvm]: https://pm.bsc.es/llvm-ompss
-[nosv]: https://gitlab.bsc.es/nos-v/nos-v
+## Enable the instrumentation
 
-## How to Generate Execution Traces
+To generate runtime traces, you will have to:
 
-In order to build the OpenMP runtime nOS-V must be provided by using
-`PKG_CONFIG_PATH` environment variable when configuring CMake. This results in a
-runtime without instrumentation. However, the user may be able to generate
-execution traces by enabling nOS-V instrumentation through
-`NOSV_CONFIG_OVERRIDE="instrumentation.version=ovni"`. Note that this needs a
-nOS-V installation built with ovni.
+1. **Build nOS-V with ovni support:** Refer to the
+  [nOS-V
+  documentation](https://github.com/bsc-pm/nos-v/blob/master/docs/user/tracing.md).
+  Typically you should use the `--with-ovni` option at configure time to specify
+  where ovni is installed.
+2. **Build OpenMP-V with ovni and nOS-V support:** Use the `PKG_CONFIG_PATH`
+  environment variable to specify the nOS-V and ovni installation 
+  when configuring CMake.
+3. **Enable the instrumentation in nOS-V at runtime:** Refer to the
+  [nOS-V documentation](https://github.com/bsc-pm/nos-v/blob/master/docs/user/tracing.md)
+  to find out how to enable the tracing at runtime. Typically you can just set 
+  `NOSV_CONFIG_OVERRIDE="instrumentation.version=ovni"`.
+4. **Enable the instrumentation of OpenMP-V at runtime:** Set the environment
+  variable `OMP_OVNI=1`.
 
-Building OpenMP with instrumentation requires to pass ovni pkg-config path to
-`PKG_CONFIG_PATH` with a nosv installation compiled with ovni too. The reason is
-because OpenMP is dependent of nOS-V to generate complete execution traces.
+Currently there is only support for the subsystem view, which is documented
+below. The view is complemented with the information of [nOS-V views](nosv.md),
+as OpenMP-V uses nOS-V tasks to run the workers.
 
-By default, OpenMP will not instrument anything. To enable instrumentation the
-user must execute with `OMP_OVNI=1` and `NOSV_CONFIG_OVERRIDE="instrumentation.version=ovni"`.
+## Subsystem view
 
-The following sections will describe the OpenMP execution trace views and what
-information is shown there.
-
-## nOS-V Task Type
-
-As said in the previous sections. This OpenMP runtime is built on top of nOS-V.
-So the user can explore what does the execution do there. Here we only describe
-the task type view. For other views please take a look at the nOS-V chapter.
-
-In OpenMP, every thread that is launched (main thread included) is shown in a task
-type with label "openmp". In a task application, every task call will be seen with
-a task type with label "file:line:col" format referring to the pragma location. This
-can be changed by using the clause label(string-literal).
-
-OpenMP task if0 will not be shown here. Take a look at the section "Limitations" for
-more information. Nevertheless, the OpenMP task view shows it.
-
-## OpenMP Subsystem
+![Subsystem view example](fig/openmp-subsystem.png)
 
 This view illustrates the activities of each thread with different states:
 
-- **Attached**: The thread is attached.
+- **Work-distribution subsystem**: Related to work-distribution constructs,
+    [in Chapter 11][workdis].
 
-- **Join barrier**: The thread is in the implicit barrier of the parallel region.
+    - **Distribute**: Running a *Distribute* region.
 
-- **Tasking barrier**: The thread is in the additional tasking barrier trying to
-  execute tasks. This event happens if executed with KMP_TASKING=1.
+    - **Dynamic for chunk**: Running a chunk of a dynamic *for*, which often
+      involve running more than one iteration of the loop. See the
+      [limitations](#dynamic_for) below.
 
-- **Spin wait**: The thread spin waits for a condition. Usually this event happens
-  in a barrier while waiting for the other threads to reach the barrier. The thread
-  also tries to execute tasks.
+    - **Dynamic for initialization**: Preparing a dynamic *for*.
 
-- **For static**: Executing a for static. The length of the event represents all the
-  chunks of iterations executed by the thread. See "Limitations" section.
+    - **Static for chunk**: Executing the assigned iterations of an static
+      *for*.
 
-- **For dynamic init**: Running the initialization of an OpenMP for dynamic.
+    - **Single**: Running a *Single* region. All threads of the parallel region
+      participate.
 
-- **For dynamic chunk**: Running a chunk of iterations of an OpenMP for dynamic. To
-  clarify. If a thread executes two chunks of iterations, let's say from 1 to 4 and
-  from 8 to 12, two different events will be shown. See "Limitations" section.
+    - **Section**: Running a *Section* region. All threads of the parallel region
+      participate.
 
-- **Single**: Running a Single region. All threads of the parallel region will emit
-  the event.
+- **Task subsystem**: Related to tasking constructs, [in Chapter 12][tasking].
 
-- **Release deps**: When finishing a task, trying to release dependencies. This
-  event happens although the task has no dependencies.
+    - **Allocation**: Allocating the task descriptor.
 
-- **Taskwait deps**: Trying to execute tasks until dependencies have been fulfilled.
-  This appears typically in a task if0 with dependencies or a taskwait with deps.
+    - **Check deps**: Checking if the task has pending dependencies to be
+      fulfilled. When all dependencies are fulfilled the task will be scheduled.
 
-- **Invoke task**: Executing a task.
+    - **Duplicating**: Duplicating the task descriptor in a taskloop.
 
-- **Invoke task if0**: Executing a task if0.
+    - **Releasing deps**: Releasing dependencies at the end of a task. This
+      state is always present even if the task has no dependencies.
 
-- **Task alloc**: Allocating the task descriptor.
+    - **Running task**: Executing a task.
 
-- **Task schedule**: Adding the task to the scheduler.
+    - **Running task if0**: Executing a task if0.
 
-- **Taskwait**: Running a taskwait.
+    - **Scheduling**: Adding the task to the scheduler for execution.
 
-- **Taskyield**: Running a taskyield.
+    - **Taskgroup**: Waiting in a *taskgroup* construct.
 
-- **Task dup alloc**: Duplicating the task descriptor in a taskloop.
+    - **Taskwait**: Waiting in a *taskwait* construct.
 
-- **Check deps**: Checking if the task has pending dependencies to be fulfilled. This
-  means that if all dependencies are fulfilled the task will be scheduled.
+    - **Taskwait deps**: Trying to execute tasks until dependencies have been
+      fulfilled. This appears typically in a task if0 with dependencies or a
+      taskwait with deps.
+    
+    - **Taskyield**: Performing a *taskyield* construct.
 
-- **Taskgroup**: Running a taskgroup.
+- **Critical subsystem**: Related to the *critical* Constuct, in [Section 15.2][critical].
+
+    - **Acquiring**: Waiting to acquire a *Critical* section.
+
+    - **Section**: Running the *Critical* section.
+
+    - **Releasing**: Waiting to release a *Critical* section.
+
+- **Barrier subsystem**: Related to barriers, in [Section 15.3][barrier].
+    **All barriers can try to execute tasks**.
+
+    - **Barrier: Fork**: Workers wait for a release signal from the master thread to
+      continue. The master can continue as soon as it signals the workers. It is
+      done at the beginning of a fork-join region.
+
+    - **Barrier: Join**: The master thread waits until all workers finish their work.
+      Workers can continue as soon as they signal the master. It is done at the
+      end of a fork-join region.
+  
+    - **Barrier: Plain**: Performing a plain barrier, which waits for a release
+      signal from the master thread to continue. It is done at the beginning of
+      a fork-join region, in the `__kmp_join_barrier()` function.
+
+    - **Barrier: Task**: Blocked in an additional tasking barrier *until all previous
+      tasks have been executed*. Only happens when executed with `KMP_TASKING=1`.
+
+- **Runtime subsystem**: Internal operations of the runtime.
+
+    - **Attached**: Present after the call to `nosv_attach()` and before
+      `nosv_detach()`. This state is a hack.
+
+    - **Fork call**: Preparing a parallel section using the fork-join model.
+      Only called from the master thread.
+
+    - **Init**: Initializing the OpenMP-V runtime.
+
+    - **Internal microtask**: Running a internal OpenMP-V function as a microtask.
+
+    - **User microtask**: Running user code as a microtask in a worker thread.
+
+    - **Worker main Loop**: Running the main loop, where the workers run the
+      fork barrier, run a microtask and perform a join barrier until there is no
+      more work.
+
+!!! Note
+
+    The generated HTML version of the OpenMP 5.2 specification has some parts
+    missing, so we link directly to the PDF file which may not work in some
+    browsers.
+
+[workdis]:  https://www.openmp.org/wp-content/uploads/OpenMP-API-Specification-5-2.pdf#chapter.11
+[tasking]:  https://www.openmp.org/wp-content/uploads/OpenMP-API-Specification-5-2.pdf#chapter.12
+[critical]: https://www.openmp.org/wp-content/uploads/OpenMP-API-Specification-5-2.pdf#section.15.2
+[barrier]:  https://www.openmp.org/wp-content/uploads/OpenMP-API-Specification-5-2.pdf#section.15.3
 
 ## Limitations
 
-By the way how OpenMP is implemented. There are some instrumentation points that
-violate ovni subsystem rules. This mostly happens because some directives are lowered
-partially in the transformed user code, so it is not easy to wrap them into a
-Single-entry single-exit (SESE) region, like we would do with a regular task invocation,
-for example.
+As the compiler generates the code that perform the calls to the OpenMP-V
+runtime, there are some parts of the execution that are complicated to
+instrument by just placing a pair of events to delimite a function.
 
-All problematic directives are described here so the user is able to understand what
-is being show in the traces
+For those cases we use an approximation which is documented in the following
+subsections.
 
-- **Task if0**: The lowered user code of a task if0 is:
-  ... = __kmpc_omp_task_alloc(...);
-  __kmpc_omp_taskwait_deps_51(...); // If task has dependencies
-  __kmpc_omp_task_begin_if0(...);
-  // Call to the user code
-  omp_task_entry_(...);
-  __kmpc_omp_task_complete_if0(...);
+### Dynamic for
 
-  Ideally, `omp_task_entry` should be called by the runtime to ensure the SESE structure. As
-  this code is generated by the compiler it is assumed that instrumenting `__kmpc_omp_task_begin_if0`
-  and `__kmpc_omp_task_complete_if0` as entry/exit points is safe and equivalent.
+The generated code of a *dynamic for* has the following structure:
 
-- **For static**: The lowered user code of a for static is:
-  // Parallel code
-  __kmpc_for_static_init_4(...);
-  for ( i = ...; i <= ...; ++i )
-    ; 
-  __kmpc_for_static_fini(...);
+```c
+__kmpc_dispatch_init_4(...);
+while (__kmpc_dispatch_next_4(...)) {
+    for (i = ...; i <= ...; i++) {
+        // User code ...
+    }
+}
+```
 
-  Ideally, the for loop should be called by the runtime to ensure the SESE structure. As
-  this code is generated by the compiler it is assumed that instrumenting `__kmpc_for_static_init_4`
-  and `__kmpc_for_static_fini` as entry/exit points is safe and equivalent.
+The function `__kmpc_dispatch_next_4()` returns `true` if there are more
+chunks (group of iterations) to be executed by the thread, otherwise it returns
+`false`.
 
-- **For dynamic**: The lowered user code of a for dynamic is:
+Ideally we want to instrument each chunk with a pair of begin and end events.
 
-  __kmpc_dispatch_init_4(...);
-  while ( __kmpc_dispatch_next_4(...))
-  {
-    for ( i = ...; i <= ...; ++i )
-      ;
-  }
+The problem with the instrumentation is that there is no easy way of determining
+if the call to `__kmpc_dispatch_next_4()` is processing the first chunk, just
+after `__kmpc_dispatch_init_4()`, or is coming from other chunks due to the
+while loop.
 
-  Ideally, the for loop should be called by the runtime to ensure the SESE structure. As
-  this code is generated by the compiler the subsystem view shows:
-  1. How long it takes to run `__kmpc_dispatch_init_4` with the event **For dynamic init**
-  2. How long it takes to run from the end of 1. to the first `__kmpc_dispatch_next_4`.
-  with the event **For dynamic chunk**.
-  3. How long it takes to run a loop iteration chunk between the last and the previous
-  `__kmpc_dispatch_next_4` call with the event **For dynamic chunk**.
+Therefore, from the `__kmpc_dispatch_next_4()` alone, we cannot determine if we
+need to only emit a single "begin a new chunk" event or we need to emit the pair
+of events "finish the last chunk" and "begin a new one".
 
+So, as a workaround, we emit an event from the end of `__kmpc_dispatch_init_4()`
+starting a new chunk (which is fake), and then from `__kmpc_dispatch_next_4()` we
+always emit the "finish the last chunk" and "begin a new one" events (unless
+there are no more chunks, in which case we don't emit the "begin a new one"
+event).
+
+This will cause an spurious *Work-distribution: Dynamic for chunk* state at the
+beginning of each dynamic for, which should be very short and is not really a
+chunk.
+
+### Static for
+
+The generated code of an *static for* has the following structure:
+
+```c
+__kmpc_for_static_init_4(...);
+for (i = ...; i <= ...; i++) {
+    // User code ...
+}
+__kmpc_for_static_fini(...);
+```
+
+As this code is generated by the compiler we cannot easily add the begin/end
+pair of events to mark the *Work-distribution: Static for chunk* state.
+
+We assume that by placing the "begin processing a chunk" event at the end of
+`__kmpc_for_static_init_4()` and the "end processing the chunk" event at
+the beginning of `__kmpc_for_static_fini()` is equivalent to adding the
+events surrounding the for loop.
+
+### Task if0
+
+The generated code of an *if0 task* has the following structure:
+
+```c
+... = __kmpc_omp_task_alloc(...);
+__kmpc_omp_taskwait_deps_51(...); // If task has dependencies
+__kmpc_omp_task_begin_if0(...);
+// Call to the user code
+omp_task_entry_(...);
+__kmpc_omp_task_complete_if0(...);
+```
+
+Instead of injecting the begin and end events in the user code, we
+approximate it by placing the "begin if0 task" event at the end of the
+`__kmpc_omp_task_begin_if0` function and the "end if0 task" event at the
+beginning of `__kmpc_omp_task_complete_if0`. This state will be shown as 
+*Task: Running task if0*.

@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later 
 
 test_emu(flush-overhead.c DISABLED)
@@ -26,3 +26,4 @@ test_emu(thread-free-isready.c)
 test_emu(flush-tmpdir.c MP DRIVER "flush-tmpdir.driver.sh")
 test_emu(tmpdir-metadata.c MP DRIVER "tmpdir-metadata.driver.sh")
 test_emu(dummy.c NAME "ovniver" DRIVER "ovniver.driver.sh")
+test_emu(dummy.c NAME "match-doc-events" DRIVER "match-doc-events.sh")

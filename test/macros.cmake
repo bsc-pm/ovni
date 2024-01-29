@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 include(CMakeParseArguments)
@@ -48,6 +48,9 @@ function(ovni_test source)
 
   list(APPEND OVNI_TEST_ENV
     "OVNI_CONFIG_DIR=${CMAKE_SOURCE_DIR}/cfg")
+
+  list(APPEND OVNI_TEST_ENV
+    "OVNI_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
 
   if(OVNI_TEST_SORT)
     list(APPEND OVNI_TEST_ENV "OVNI_DO_SORT=1")

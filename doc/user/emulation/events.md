@@ -8,7 +8,7 @@ Built on Jan 29 2024.
 List of events for the model *nanos6* with identifier **`6`** at version `1.0.0`:
 <dl>
 <dt><a id="6Yc" href="#6Yc"><pre>6Yc+(u32 typeid, str label)</pre></a></dt>
-<dd>creates task type %{typeid} with label "%{label}"</dd>
+<dd>creates task type %{typeid} with label &quot;%{label}&quot;</dd>
 <dt><a id="6Tc" href="#6Tc"><pre>6Tc(u32 taskid, u32 typeid)</pre></a></dt>
 <dd>creates task %{taskid} with type %{typeid}</dd>
 <dt><a id="6Tx" href="#6Tx"><pre>6Tx(u32 taskid)</pre></a></dt>
@@ -400,7 +400,7 @@ List of events for the model *ovni* with identifier **`O`** at version `1.0.0`:
 <dt><a id="OAr" href="#OAr"><pre>OAr(i32 cpu, i32 tid)</pre></a></dt>
 <dd>changes the affinity of thread %{tid} to CPU %{cpu}</dd>
 <dt><a id="OAs" href="#OAs"><pre>OAs(i32 cpu)</pre></a></dt>
-<dd>switches it's own affinity to the CPU %{cpu}</dd>
+<dd>switches it&apos;s own affinity to the CPU %{cpu}</dd>
 <dt><a id="OB." href="#OB."><pre>OB.</pre></a></dt>
 <dd>emits a burst event to measure latency</dd>
 <dt><a id="OHC" href="#OHC"><pre>OHC(i32 cpu, u64 tag)</pre></a></dt>
@@ -498,7 +498,7 @@ List of events for the model *nosv* with identifier **`V`** at version `1.0.0`:
 <dt><a id="VTr" href="#VTr"><pre>VTr(u32 taskid)</pre></a></dt>
 <dd>resumes the task %{taskid}</dd>
 <dt><a id="VYc" href="#VYc"><pre>VYc+(u32 typeid, str label)</pre></a></dt>
-<dd>creates task type %{typeid} with label "%{label}"</dd>
+<dd>creates task type %{typeid} with label &quot;%{label}&quot;</dd>
 <dt><a id="VSr" href="#VSr"><pre>VSr</pre></a></dt>
 <dd>receives a task from another thread</dd>
 <dt><a id="VSs" href="#VSs"><pre>VSs</pre></a></dt>

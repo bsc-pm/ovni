@@ -16,19 +16,66 @@
 #include "stream.h"
 #include "trace.h"
 
-static void
+static int
+html_encode(char *dst, int ndst, const char *src)
+{
+	int j = 0;
+	int nsrc = strlen(src);
+
+	for (int i = 0; i < nsrc; i++) {
+		/* Simple check */
+		if (j + 10 >= ndst) {
+			err("not enough room");
+			return -1;
+		}
+
+		int c = src[i];
+		switch (c) {
+			case '&':  strcpy(&dst[j], "&amp;");  j += 5; break;
+			case '"':  strcpy(&dst[j], "&quot;"); j += 6; break;
+			case '\'': strcpy(&dst[j], "&apos;"); j += 6; break;
+			case '<':  strcpy(&dst[j], "&lt;");   j += 4; break;
+			case '>':  strcpy(&dst[j], "&gt;");   j += 4; break;
+			default:   dst[j++] = c; break;
+		}
+	}
+
+	dst[j] = '\0';
+
+	return 0;
+}
+
+static int
 print_event(struct model_spec *spec, long i)
 {
 	struct ev_decl *evdecl = &spec->evlist[i];
 	struct ev_spec *evspec = &spec->evspec->alloc[i];
 
-	const char *name = evspec->mcv;
+	char name[16];
+	if (html_encode(name, 16, evspec->mcv) != 0) {
+		err("html_encode failed for %s", evspec->mcv);
+		return -1;
+	}
 
-	printf("<dt><a id=\"%s\" href=\"#%s\"><pre>%s</pre></a></dt>\n", name, name, evdecl->signature);
-	printf("<dd>%s</dd>\n", evdecl->description);
+	char signature[1024];
+	if (html_encode(signature, 1024, evdecl->signature) != 0) {
+		err("html_encode failed for %s", evdecl->signature);
+		return -1;
+	}
+
+	char desc[1024];
+	if (html_encode(desc, 1024, evdecl->description) != 0) {
+		err("html_encode failed for %s", evdecl->description);
+		return -1;
+	}
+
+	printf("<dt><a id=\"%s\" href=\"#%s\"><pre>%s</pre></a></dt>\n", name, name, signature);
+	printf("<dd>%s</dd>\n", desc);
+
+	return 0;
 }
 
-static void
+static int
 print_model(struct model_spec *spec)
 {
 	printf("\n");
@@ -38,9 +85,16 @@ print_model(struct model_spec *spec)
 			spec->name, spec->model, spec->version);
 
 	printf("<dl>\n");
-	for (long j = 0; j < spec->evspec->nevents; j++)
-		print_event(spec, j);
+	for (long j = 0; j < spec->evspec->nevents; j++) {
+		if (print_event(spec, j) != 0) {
+			err("cannot print event %d", j);
+			return -1;
+		}
+	}
+
 	printf("</dl>\n");
+
+	return 0;
 }
 
 int
@@ -54,7 +108,7 @@ main(void)
 	/* Register all the models */
 	if (models_register(&model) != 0) {
 		err("failed to register models");
-		return -1;
+		return 1;
 	}
 
 	printf("# Emulator events\n");
@@ -66,7 +120,10 @@ main(void)
 		if (!model.registered[i])
 			continue;
 
-		print_model(model.spec[i]);
+		if (print_model(model.spec[i]) != 0) {
+			err("cannot print model %c events", i);
+			return 1;
+		}
 	}
 
 	return 0;

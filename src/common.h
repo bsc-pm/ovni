@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
 #ifndef COMMON_H
@@ -39,6 +39,7 @@ void vdie(const char *prefix, const char *func, const char *errstr, ...);
 
 /* Poison assert */
 #pragma GCC poison assert
+#pragma GCC poison usleep
 
 #define USE_RET __attribute__((warn_unused_result))
 

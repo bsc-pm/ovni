@@ -12,9 +12,9 @@ if(NOT NOSV_FOUND)
   return()
 endif()
 
-# Needed for the new nosv_attach() function.
-if("${NOSV_VERSION}" VERSION_LESS "2.0.0")
-  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 2.0.0")
+# Needed for nesting nosv_init/nosv_shutdown
+if("${NOSV_VERSION}" VERSION_LESS "2.1.2")
+  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 2.1.2")
 endif()
 
 message(STATUS "Enabling nOS-V RT tests")
@@ -39,6 +39,7 @@ endfunction()
 nosv_test(attach.c SORT)
 nosv_test(waitfor.c SORT)
 nosv_test(several-tasks.c SORT)
+nosv_test(init-nested.c SORT)
 
 # Test multiple instrumentation levels
 nosv_test(several-tasks.c SORT NAME several-tasks-level-0 LEVEL 0)

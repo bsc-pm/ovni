@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Jan 29 2024.
+Built on Feb 15 2024.
 
 ## Model nanos6
 
@@ -485,7 +485,7 @@ List of events for the model *tampi* with identifier **`T`** at version `1.0.0`:
 
 ## Model nosv
 
-List of events for the model *nosv* with identifier **`V`** at version `1.0.0`:
+List of events for the model *nosv* with identifier **`V`** at version `1.1.0`:
 <dl>
 <dt><a id="VTc" href="#VTc"><pre>VTc(u32 taskid, u32 typeid)</pre></a></dt>
 <dd>creates task %{taskid} with type %{typeid}</dd>
@@ -553,6 +553,14 @@ List of events for the model *nosv* with identifier **`V`** at version `1.0.0`:
 <dd>enters nosv_schedpoint()</dd>
 <dt><a id="VAC" href="#VAC"><pre>VAC</pre></a></dt>
 <dd>leaves nosv_schedpoint()</dd>
+<dt><a id="VAa" href="#VAa"><pre>VAa</pre></a></dt>
+<dd>enters nosv_attach()</dd>
+<dt><a id="VAA" href="#VAA"><pre>VAA</pre></a></dt>
+<dd>leaves nosv_attach()</dd>
+<dt><a id="VAe" href="#VAe"><pre>VAe</pre></a></dt>
+<dd>enters nosv_detach()</dd>
+<dt><a id="VAE" href="#VAE"><pre>VAE</pre></a></dt>
+<dd>leaves nosv_detach()</dd>
 <dt><a id="VHa" href="#VHa"><pre>VHa</pre></a></dt>
 <dd>enters nosv_attach()</dd>
 <dt><a id="VHA" href="#VHA"><pre>VHA</pre></a></dt>

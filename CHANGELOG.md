@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Add support for `nosv_attach` and `nosv_detach` events VA{aAeE}.
+- Ignore old nOS-V attach events VH{aA}.
+- The nOS-V model version is bumped to 1.1.0.
+
 ## [1.6.0] - 2024-02-14
 
 ### Changed

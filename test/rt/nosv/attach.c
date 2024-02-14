@@ -13,7 +13,7 @@ main(void)
 	nosv_init();
 
 	nosv_task_t task;
-	if (nosv_attach(&task, NULL, NULL, 0) != 0)
+	if (nosv_attach(&task, NULL, "attached-task", 0) != 0)
 		die("nosv_attach failed");
 
 	sleep_us(100);

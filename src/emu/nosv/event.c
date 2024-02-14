@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nosv_priv.h"
@@ -55,11 +55,15 @@ static const int ss_table[256][256][3] = {
 		['W'] = { CHSS, POP,  ST_API_WAITFOR },
 		['c'] = { CHSS, PUSH, ST_API_SCHEDPOINT },
 		['C'] = { CHSS, POP,  ST_API_SCHEDPOINT },
+		['a'] = { CHSS, PUSH, ST_API_ATTACH },
+		['A'] = { CHSS, POP,  ST_API_ATTACH },
+		['e'] = { CHSS, PUSH, ST_API_DETACH },
+		['E'] = { CHSS, POP,  ST_API_DETACH },
 	},
 	/* FIXME: Move thread type to another channel, like nanos6 */
 	['H'] = {
-		['a'] = { CHSS, PUSH, ST_ATTACH },
-		['A'] = { CHSS, POP,  ST_ATTACH },
+		['a'] = { CHSS, IGN,  0 },
+		['A'] = { CHSS, IGN,  0 },
 		['w'] = { CHSS, PUSH, ST_WORKER },
 		['W'] = { CHSS, POP,  ST_WORKER },
 		['d'] = { CHSS, PUSH, ST_DELEGATE },

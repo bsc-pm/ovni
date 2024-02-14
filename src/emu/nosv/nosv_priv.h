@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef NOSV_PRIV_H
@@ -34,7 +34,8 @@ enum nosv_ss_values {
 	ST_API_YIELD,
 	ST_API_WAITFOR,
 	ST_API_SCHEDPOINT,
-	ST_ATTACH,
+	ST_API_ATTACH,
+	ST_API_DETACH,
 	ST_WORKER,
 	ST_DELEGATE,
 

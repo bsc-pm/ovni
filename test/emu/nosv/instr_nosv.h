@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef INSTR_NOSV_H
@@ -45,6 +45,12 @@ INSTR_1ARG(instr_nosv_task_end, "VTe", int32_t, id)
 
 INSTR_0ARG(instr_nosv_submit_enter, "VAs")
 INSTR_0ARG(instr_nosv_submit_exit,  "VAS")
+INSTR_0ARG(instr_nosv_attach_enter, "VAa")
+INSTR_0ARG(instr_nosv_attach_exit,  "VAA")
+INSTR_0ARG(instr_nosv_detach_enter, "VAe")
+INSTR_0ARG(instr_nosv_detach_exit,  "VAE")
+INSTR_0ARG(instr_nosv_attached, "VHa") /* deprecated */
+INSTR_0ARG(instr_nosv_detached, "VHA") /* deprecated */
 
 
 #endif /* INSTR_NOSV_H */

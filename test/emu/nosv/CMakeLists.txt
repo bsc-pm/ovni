@@ -1,6 +1,8 @@
-# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+test_emu(attach.c)
+test_emu(attach-old.c)
 test_emu(nested-tasks.c)
 test_emu(nested-tasks-bad.c SHOULD_FAIL
   REGEX "cannot execute task 1: state is not created")

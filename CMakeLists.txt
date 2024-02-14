@@ -1,9 +1,9 @@
-# Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.20)
 
-project(OVNI LANGUAGES C VERSION 1.5.1)
+project(OVNI LANGUAGES C VERSION 1.6.0)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 

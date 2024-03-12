@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2024-03-12
+
 ### Added
 
 - Add OpenMP model (`P`) at version 1.1.0 (currently it only supports subsystems
@@ -202,6 +204,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://pm.bsc.es/gitlab/rarias/ovni/-/commits/master
+[1.7.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.7.0
 [1.6.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.6.0
 [1.5.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.5.1
 [1.5.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.5.0

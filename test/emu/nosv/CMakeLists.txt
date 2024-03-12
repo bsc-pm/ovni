@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 test_emu(attach.c)
-test_emu(attach-old.c)
+test_emu(attach-old.c SHOULD_FAIL
+  REGEX "unsupported nosv model version")
 test_emu(nested-tasks.c)
 test_emu(task-types.c MP)
 test_emu(pause.c MP)

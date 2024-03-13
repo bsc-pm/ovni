@@ -80,7 +80,7 @@ static struct ev_decl model_evlist[] = {
 
 struct model_spec model_nanos6 = {
 	.name    = model_name,
-	.version = "1.0.0",
+	.version = "1.1.0",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nanos6_create,

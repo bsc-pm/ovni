@@ -5,7 +5,7 @@ Built on Mar 13 2024.
 
 ## Model nanos6
 
-List of events for the model *nanos6* with identifier **`6`** at version `1.0.0`:
+List of events for the model *nanos6* with identifier **`6`** at version `1.1.0`:
 <dl>
 <dt><a id="6Yc" href="#6Yc"><pre>6Yc+(u32 typeid, str label)</pre></a></dt>
 <dd>creates task type %{typeid} with label &quot;%{label}&quot;</dd>

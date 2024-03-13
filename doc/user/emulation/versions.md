@@ -8,6 +8,9 @@ Track changes in emulator model versions.
 
 ## Nanos6
 
+- nanos6 1.1.0:
+    - Deprecate running nested tasks (`6Tx`) without pausing the parent task
+      first (`6Tp`). For compatibility, the old behavior is still supported.
 - nanos6 1.0.0: Initial version
 
 ## Nodes

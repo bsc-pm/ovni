@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add the ability to restrict transitions in the task model states.
 - Add nOS-V support for parallel tasks reading the body id from the
   event payload.
+- Keep a changelog of emulation model versions.
 
 ### Changed
 

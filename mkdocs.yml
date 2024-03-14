@@ -39,6 +39,7 @@ nav:
       - user/emulation/mpi.md
       - user/emulation/openmp.md
       - user/emulation/events.md
+      - user/emulation/versions.md
     - CHANGELOG.md
   - 'Developer guide':
     - dev/index.md

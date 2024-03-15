@@ -705,6 +705,10 @@ List of events for the model *nosv* with identifier **`V`** at version `2.1.0`:
 <dd>enters nosv_mutex_unlock()</dd>
 <dt><a id="VAU" href="#VAU"><pre>VAU</pre></a></dt>
 <dd>leaves nosv_mutex_unlock()</dd>
+<dt><a id="VAb" href="#VAb"><pre>VAb</pre></a></dt>
+<dd>enters nosv_barrier_wait()</dd>
+<dt><a id="VAB" href="#VAB"><pre>VAB</pre></a></dt>
+<dd>leaves nosv_barrier_wait()</dd>
 <dt><a id="VHa" href="#VHa"><pre>VHa</pre></a></dt>
 <dd>enters nosv_attach()</dd>
 <dt><a id="VHA" href="#VHA"><pre>VHA</pre></a></dt>

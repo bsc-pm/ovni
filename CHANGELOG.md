@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The nOS-V model version is bumped to 2.1.0.
 - Add support for `nosv_mutex_lock`, `nosv_mutex_trylock` and
   `nosv_mutex_unlock` events VA{lLtTuU}.
+- Add support for the `nosv_barrier_event` event VA{bB}.
 
 ## [1.8.0] - 2024-03-18
 

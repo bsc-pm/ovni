@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Consistency check for events emitted when the kernel has removed the thread
   from the CPU.
+- The nOS-V model version is bumped to 2.1.0.
+- Add support for `nosv_mutex_lock`, `nosv_mutex_trylock` and
+  `nosv_mutex_unlock` events VA{lLtTuU}.
 
 ## [1.8.0] - 2024-03-18
 

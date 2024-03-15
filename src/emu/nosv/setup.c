@@ -60,6 +60,9 @@ static struct ev_decl model_evlist[] = {
 	PAIR_E("VAc", "VAC", "nosv_schedpoint()")
 	PAIR_E("VAa", "VAA", "nosv_attach()")
 	PAIR_E("VAe", "VAE", "nosv_detach()")
+	PAIR_E("VAl", "VAL", "nosv_mutex_lock()")
+	PAIR_E("VAt", "VAT", "nosv_mutex_trylock()")
+	PAIR_E("VAu", "VAU", "nosv_mutex_unlock()")
 
 	/* FIXME: VHA and VHa are not subsystems */
 	{ "VHa", "enters nosv_attach()" },
@@ -73,7 +76,7 @@ static struct ev_decl model_evlist[] = {
 
 struct model_spec model_nosv = {
 	.name    = model_name,
-	.version = "2.0.0",
+	.version = "2.1.0",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nosv_create,
@@ -144,6 +147,9 @@ static const struct pcf_value_label nosv_ss_values[] = {
 	{ ST_API_SCHEDPOINT,   "API: Scheduling point" },
 	{ ST_API_ATTACH,       "API: Attach" },
 	{ ST_API_DETACH,       "API: Detach" },
+	{ ST_API_MUTEX_LOCK,   "API: Mutex lock" },
+	{ ST_API_MUTEX_TRYLOCK,"API: Mutex trylock" },
+	{ ST_API_MUTEX_UNLOCK, "API: Mutex unlock" },
 	{ ST_WORKER,           "Thread: Worker" },
 	{ ST_DELEGATE,         "Thread: Delegate" },
 	{ EV_SCHED_SEND,       "EV Scheduler: Send task" },

@@ -50,6 +50,12 @@ INSTR_0ARG(instr_nosv_attach_enter, "VAa")
 INSTR_0ARG(instr_nosv_attach_exit,  "VAA")
 INSTR_0ARG(instr_nosv_detach_enter, "VAe")
 INSTR_0ARG(instr_nosv_detach_exit,  "VAE")
+INSTR_0ARG(instr_nosv_mutex_lock_enter,    "VAl")
+INSTR_0ARG(instr_nosv_mutex_lock_exit,     "VAL")
+INSTR_0ARG(instr_nosv_mutex_trylock_enter, "VAt")
+INSTR_0ARG(instr_nosv_mutex_trylock_exit,  "VAT")
+INSTR_0ARG(instr_nosv_mutex_unlock_enter,  "VAu")
+INSTR_0ARG(instr_nosv_mutex_unlock_exit,   "VAU")
 INSTR_0ARG(instr_nosv_attached, "VHa") /* deprecated */
 INSTR_0ARG(instr_nosv_detached, "VHA") /* deprecated */
 

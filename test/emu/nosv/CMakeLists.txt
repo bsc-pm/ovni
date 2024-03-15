@@ -20,6 +20,7 @@ test_emu(require-missing.c
   REGEX "all .* models are enabled")
 test_emu(parallel-tasks.c)
 test_emu(nest-to-parallel.c)
+test_emu(mutex.c)
 
 test_emu(bad-nest-same-task.c SHOULD_FAIL
   REGEX "body_execute: refusing to run body(id=1,taskid=1) in Paused state, needs to resume intead")

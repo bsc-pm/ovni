@@ -39,6 +39,8 @@ Track changes in emulator model versions.
 
 ## nOS-V
 
+- nosv 2.1.0
+    - Add support for `nosv_mutex_lock`, `nosv_mutex_trylock` and `nosv_mutex_unlock` events VA{lLtTuU}.
 - nosv 2.0.0
     - Add support for parallel tasks, adding a new `bodyid` argument in `VT*` events.
     - Remove support for old attach events `VH{aA}`.

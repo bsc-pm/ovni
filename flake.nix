@@ -30,7 +30,7 @@
       clangOmpss2Unwrapped = prev.clangOmpss2Unwrapped.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "9dc4a4deea5e09850435782026eaae2f5290d886";
+        gitCommit = "b813108e2810c235480688ed7d1b0f1faf76e804";
       };
 
       # Use a fixed commit for libovni

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2024-03-18
+
 ### Added
 
 - Add new body model to support parallel tasks in nOS-V (used in taskfor).
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   another one. A compatibility flag is still available to still allow the old
   behavior.
 - Nanos6 model version increased to 1.1.0.
+- nOS-V model version increased to 2.0.0.
 
 ## [1.7.0] - 2024-03-12
 
@@ -219,6 +222,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://pm.bsc.es/gitlab/rarias/ovni/-/commits/master
+[1.8.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.8.0
 [1.7.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.7.0
 [1.6.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.6.0
 [1.5.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.5.1

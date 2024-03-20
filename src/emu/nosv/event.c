@@ -555,6 +555,11 @@ process_ev(struct emu *emu)
 		return -1;
 	}
 
+	if (emu->thread->is_out_of_cpu) {
+		err("current thread %d out of CPU", emu->thread->tid);
+		return -1;
+	}
+
 	switch (emu->ev->c) {
 		case 'S':
 		case 'U':

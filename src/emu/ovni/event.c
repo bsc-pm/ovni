@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "ovni_priv.h"
@@ -455,6 +455,11 @@ model_ovni_event(struct emu *emu)
 {
 	if (emu->ev->m != 'O') {
 		err("unexpected event model %c", emu->ev->m);
+		return -1;
+	}
+
+	if (emu->thread->is_out_of_cpu) {
+		err("current thread %d out of CPU", emu->thread->tid);
 		return -1;
 	}
 

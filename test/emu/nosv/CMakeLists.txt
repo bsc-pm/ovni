@@ -31,3 +31,6 @@ test_emu(bad-pause-parallel.c SHOULD_FAIL
   REGEX "body_pause: body(id=1,taskid=1) is not allowed to pause")
 test_emu(bad-nest-from-parallel.c SHOULD_FAIL
   REGEX "body_execute: cannot nest body(id=2,taskid=2) over body(id=1,taskid=1) which is already running")
+
+test_emu(events-from-outside-cpu.c SHOULD_FAIL
+  REGEX "current thread .* out of CPU")

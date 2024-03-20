@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef THREAD_H
@@ -53,6 +53,9 @@ struct thread {
 	enum thread_state state;
 	int is_running;
 	int is_active;
+
+	/* Out of CPU as informed by the kernel */
+	int is_out_of_cpu;
 
 	/* Current cpu, NULL if not unique affinity */
 	struct cpu *cpu;

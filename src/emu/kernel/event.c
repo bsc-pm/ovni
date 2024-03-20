@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "kernel_priv.h"
@@ -19,8 +19,10 @@ context_switch(struct emu *emu)
 
 	switch (emu->ev->v) {
 		case 'O':
+			emu->thread->is_out_of_cpu = 1;
 			return chan_push(ch, value_int64(ST_CSOUT));
 		case 'I':
+			emu->thread->is_out_of_cpu = 0;
 			return chan_pop(ch, value_int64(ST_CSOUT));
 		default:
 			err("unknown context switch event");

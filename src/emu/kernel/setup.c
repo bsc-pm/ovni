@@ -21,8 +21,8 @@ static const char model_name[] = "kernel";
 enum { model_id = 'K' };
 
 static struct ev_decl model_evlist[] = {
-	{ "KO[", "out of CPU" },
-	{ "KO]", "back to CPU" },
+	{ "KCO", "out of CPU" },
+	{ "KCI", "back to CPU" },
 	{ NULL, NULL },
 };
 

@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Mar 13 2024.
+Built on Mar 20 2024.
 
 ## Model nanos6
 
@@ -185,9 +185,9 @@ List of events for the model *nodes* with identifier **`D`** at version `1.0.0`:
 
 List of events for the model *kernel* with identifier **`K`** at version `1.0.0`:
 <dl>
-<dt><a id="KO[" href="#KO["><pre>KO[</pre></a></dt>
+<dt><a id="KCO" href="#KCO"><pre>KCO</pre></a></dt>
 <dd>out of CPU</dd>
-<dt><a id="KO]" href="#KO]"><pre>KO]</pre></a></dt>
+<dt><a id="KCI" href="#KCI"><pre>KCI</pre></a></dt>
 <dd>back to CPU</dd>
 </dl>
 

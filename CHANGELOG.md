@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Consistency check for events emitted when the kernel has removed the thread
+  from the CPU.
+
 ## [1.8.0] - 2024-03-18
 
 ### Added

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 find_package(Nosv)
@@ -30,7 +30,7 @@ function(nosv_test)
   set_property(TEST "${OVNI_TEST_NAME}" APPEND
     PROPERTY
       ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nosv/nosv.toml")
-    if(DEFINED NOSV_TEST_LEVEL)
+  if(DEFINED NOSV_TEST_LEVEL)
     set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
       ENVIRONMENT "NOSV_CONFIG_OVERRIDE=ovni.level=${NOSV_TEST_LEVEL}")
   endif()

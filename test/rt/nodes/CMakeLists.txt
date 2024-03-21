@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 find_package(Nodes)
@@ -25,6 +25,11 @@ else()
 endif()
 
 function(nodes_rt_test)
+  set(switches "")
+  set(single LEVEL)
+  set(multi "")
+  cmake_parse_arguments(
+    NODES_TEST "${switches}" "${single}" "${multi}" ${ARGN})
   ovni_test(${ARGN})
 
   target_compile_options("${OVNI_TEST_NAME}" PUBLIC "-fompss-2=libnodes")
@@ -37,6 +42,11 @@ function(nodes_rt_test)
 
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "NODES_OVNI=1")
+
+  if(DEFINED NODES_TEST_LEVEL)
+    set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
+      ENVIRONMENT "NOSV_CONFIG_OVERRIDE=ovni.level=${NODES_TEST_LEVEL}")
+  endif()
 endfunction()
 
 nodes_rt_test(../nanos6/simple-task.c NAME simple-task SORT)

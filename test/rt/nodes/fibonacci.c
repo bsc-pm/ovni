@@ -20,6 +20,22 @@ fib(long index)
 	return a + b;
 }
 
+/* Outline task version */
+#pragma oss task label("fibonacci")
+static void
+fib2(long index, long *res)
+{
+	if (index <= 1) {
+		*res = index;
+	} else {
+		long a, b;
+		fib2(index-1, &a);
+		fib2(index-2, &b);
+		#pragma oss taskwait
+		*res = a + b;
+	}
+}
+
 int
 main(void)
 {
@@ -55,6 +71,14 @@ main(void)
 
 	for (int i = 0; i < 30; i++)
 		fib(5);
+
+	#pragma oss taskwait
+
+	long res = 0;
+	for (int i = 0; i < 30; i++) {
+		fib2(5, &res);
+		#pragma oss taskwait
+	}
 
 	#pragma oss taskwait
 	return 0;

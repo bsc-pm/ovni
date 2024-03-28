@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `nosv_mutex_unlock` events VA{lLtTuU}.
 - Add support for the `nosv_barrier_event` event VA{bB}.
 
+### Fixed
+
+- Open Paraver windows at (100,100) instead of (0,0) to avoid them appearing
+  under the menu bar in Mac OS.
+
 ## [1.8.0] - 2024-03-18
 
 ### Added

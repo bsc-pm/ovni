@@ -34,16 +34,16 @@ main(void)
 	int type = PRV_NANOS6_SUBSYSTEM;
 	int64_t t = get_delta();
 	int value = ST_WORKER_LOOP;
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, type, value);
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, type, value);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/thread.prv\n", t, type, value);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/cpu.prv\n", t, type, value);
 
 	instr_nanos6_worker_loop_exit();
 
 	/* Also test when exitting the stacked subsystem */
 	t = get_delta();
 	value = 0;
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, type, value);
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, type, value);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/thread.prv\n", t, type, value);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/cpu.prv\n", t, type, value);
 
 	fclose(f);
 

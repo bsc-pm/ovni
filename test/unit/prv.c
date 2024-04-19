@@ -116,7 +116,7 @@ count_prv_lines(char *fpath, int64_t time, int row0, long type, long value)
 
 		int64_t ftime;
 		long frow1, ftype, fvalue;
-		int ret = sscanf(line, "2:0:1:1:%ld:%ld:%ld:%ld",
+		int ret = sscanf(line, "2:0:1:1:%ld:%" SCNi64 ":%ld:%ld",
 				&frow1, &ftime, &ftype, &fvalue);
 
 		if (ret != 4)

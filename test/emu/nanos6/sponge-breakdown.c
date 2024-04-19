@@ -29,21 +29,21 @@ main(void)
 	instr_nanos6_absorbing();
 
 	/* Ensure the only row in breakdown is in absorbing */
-	fprintf(f, "grep '1:%ld:%d:%d$' ovni/nanos6-breakdown.prv\n",
+	fprintf(f, "grep '1:%" PRIi64 ":%d:%d$' ovni/nanos6-breakdown.prv\n",
 			get_delta(), type, ST_ABSORBING);
 
 	/* Set state to Resting */
 	instr_nanos6_resting();
 
 	/* Ensure the only row in breakdown is in Resting */
-	fprintf(f, "grep '1:%ld:%d:%d$' ovni/nanos6-breakdown.prv\n",
+	fprintf(f, "grep '1:%" PRIi64 ":%d:%d$' ovni/nanos6-breakdown.prv\n",
 			get_delta(), type, ST_RESTING);
 
 	instr_nanos6_progressing();
 
 	/* Now the state must follow the subsystem, which should be
 	 * sponge mode */
-	fprintf(f, "grep '1:%ld:%d:%d$' ovni/nanos6-breakdown.prv\n",
+	fprintf(f, "grep '1:%" PRIi64 ":%d:%d$' ovni/nanos6-breakdown.prv\n",
 			get_delta(), type, ST_SPONGE);
 
 	fclose(f);

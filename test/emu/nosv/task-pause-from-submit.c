@@ -40,22 +40,22 @@ main(void)
 	 * the "Task: In body" state */
 	int prvtype = PRV_NOSV_SUBSYSTEM;
 	int st = ST_TASK_BODY;
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", get_delta(), prvtype, st);
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", get_delta(), prvtype, st);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/thread.prv\n", get_delta(), prvtype, st);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/cpu.prv\n", get_delta(), prvtype, st);
 
 	instr_nosv_submit_enter(); /* Blocking submit */
 	instr_nosv_task_pause(1, 0);
 
 	/* Should be left in the submit state, so no state transition in
 	 * subsystems view */
-	fprintf(f, "! grep ':%ld:%d:[0-9]*$' ovni/thread.prv\n", get_delta(), prvtype);
-	fprintf(f, "! grep ':%ld:%d:[0-9]*$' ovni/cpu.prv\n", get_delta(), prvtype);
+	fprintf(f, "! grep ':%" PRIi64 ":%d:[0-9]*$' ovni/thread.prv\n", get_delta(), prvtype);
+	fprintf(f, "! grep ':%" PRIi64 ":%d:[0-9]*$' ovni/cpu.prv\n", get_delta(), prvtype);
 
 	/* But the task state must be set to pause, so the task id
 	 * must be null */
 	prvtype = PRV_NOSV_TASKID;
-	fprintf(f, "grep ':%ld:%d:0$' ovni/thread.prv\n", get_delta(), prvtype);
-	fprintf(f, "grep ':%ld:%d:0$' ovni/cpu.prv\n", get_delta(), prvtype);
+	fprintf(f, "grep ':%" PRIi64 ":%d:0$' ovni/thread.prv\n", get_delta(), prvtype);
+	fprintf(f, "grep ':%" PRIi64 ":%d:0$' ovni/cpu.prv\n", get_delta(), prvtype);
 
 	instr_nosv_submit_exit();
 	instr_nosv_task_resume(1, 0);

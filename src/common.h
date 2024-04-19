@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <sys/types.h>
+#include <inttypes.h>
 
 extern int is_debug_enabled;
 

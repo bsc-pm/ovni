@@ -35,13 +35,13 @@ main(void)
 		die("fopen failed:");
 
 	/* Ensure non-zero for A (first event) */
-	fprintf(f, "grep ':%ld:%d:[^0][0-9]*$' ovni/nanos6-breakdown.prv\n",
+	fprintf(f, "grep ':%" PRIi64 ":%d:[^0][0-9]*$' ovni/nanos6-breakdown.prv\n",
 			get_delta(), PRV_NANOS6_BREAKDOWN);
 
 	instr_nanos6_worker_loop_enter();
 
 	/* And for B */
-	fprintf(f, "grep ':%ld:%d:[^0][0-9]*$' ovni/nanos6-breakdown.prv\n",
+	fprintf(f, "grep ':%" PRIi64 ":%d:[^0][0-9]*$' ovni/nanos6-breakdown.prv\n",
 			get_delta(), PRV_NANOS6_BREAKDOWN);
 
 	instr_nanos6_worker_loop_exit();

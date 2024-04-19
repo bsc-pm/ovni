@@ -23,7 +23,7 @@ emit(struct model *model, struct player *player)
 	struct emu_ev *ev = player_ev(player);
 	struct stream *stream = player_stream(player);
 
-	printf("%10ld  %c%c%c  %s  ",
+	printf("%10" PRIi64 "  %c%c%c  %s  ",
 			ev->rclock,
 			ev->m,
 			ev->c,

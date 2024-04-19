@@ -71,7 +71,7 @@ find_prv_chan(struct prv *prv, long id)
 static void
 write_line(struct prv *prv, long row_base1, long type, long value)
 {
-	fprintf(prv->file, "2:0:1:1:%ld:%ld:%ld:%ld\n",
+	fprintf(prv->file, "2:0:1:1:%ld:%" PRIi64 ":%ld:%ld\n",
 			row_base1, prv->time, type, value);
 }
 

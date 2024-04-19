@@ -59,7 +59,7 @@ cparse(struct clkoff *table, FILE *file)
 		if (buf[0] == '\n')
 			continue;
 
-		int ret = sscanf(buf, "%ld %s %lf %lf %lf",
+		int ret = sscanf(buf, "%" SCNi64 "%s %lf %lf %lf",
 				&e.index, e.name,
 				&e.median, &e.mean, &e.stdev);
 

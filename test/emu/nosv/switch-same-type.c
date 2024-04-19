@@ -39,20 +39,20 @@ main(void)
 	/* Check the task type */
 	int prvtype = PRV_NOSV_TYPE;
 	int64_t t = get_delta();
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, prvtype, gid);
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, prvtype, gid);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/thread.prv\n", t, prvtype, gid);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/cpu.prv\n", t, prvtype, gid);
 
 	/* Check the task appid */
 	prvtype = PRV_NOSV_APPID;
 	int appid = 1; /* Starts at one */
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, prvtype, appid);
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, prvtype, appid);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/thread.prv\n", t, prvtype, appid);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/cpu.prv\n", t, prvtype, appid);
 
 	/* Check the rank */
 	prvtype = PRV_NOSV_RANK;
 	int rank = 0 + 1; /* Starts at one */
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/thread.prv\n", t, prvtype, rank);
-	fprintf(f, "grep ':%ld:%d:%d$' ovni/cpu.prv\n", t, prvtype, rank);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/thread.prv\n", t, prvtype, rank);
+	fprintf(f, "grep ':%" PRIi64 ":%d:%d$' ovni/cpu.prv\n", t, prvtype, rank);
 	fclose(f);
 
 	/* Exit from tasks and subsystem */

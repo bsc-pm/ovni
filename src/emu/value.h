@@ -68,7 +68,7 @@ value_str(struct value a)
 			ret = snprintf(buf, n, "{NULL}");
 			break;
 		case VALUE_INT64:
-			ret = snprintf(buf, n, "{int64_t %ld}", a.i);
+			ret = snprintf(buf, n, "{int64_t %" PRIi64 "}", a.i);
 			break;
 		case VALUE_DOUBLE:
 			ret = snprintf(buf, n, "{double %e}", a.d);

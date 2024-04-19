@@ -83,9 +83,9 @@ set_name(struct cpu *cpu)
 	int n;
 
 	if (cpu->is_virtual)
-		n = snprintf(cpu->name, PATH_MAX, "vCPU %ld.*", i);
+		n = snprintf(cpu->name, PATH_MAX, "vCPU %zu.*", i);
 	else
-		n = snprintf(cpu->name, PATH_MAX, " CPU %ld.%ld", i, j);
+		n = snprintf(cpu->name, PATH_MAX, " CPU %zu.%zu", i, j);
 
 	if (n >= PATH_MAX) {
 		err("cpu name too long");
@@ -248,7 +248,7 @@ cpu_update(struct cpu *cpu)
 		err("chan_set pid failed");
 		return -1;
 	}
-	dbg("cpu%ld sets th_running to %s",
+	dbg("cpu%lld sets th_running to %s",
 			cpu->gindex, value_str(gid_running));
 	if (chan_set(&cpu->chan[CPU_CHAN_THRUN], gid_running) != 0) {
 		err("chan_set gid_running failed");

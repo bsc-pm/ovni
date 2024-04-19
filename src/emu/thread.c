@@ -392,7 +392,7 @@ thread_set_cpu(struct thread *th, struct cpu *cpu)
 		return -1;
 	}
 
-	dbg("thread%ld sets cpu%ld", th->gindex, cpu->gindex);
+	dbg("thread%lld sets cpu%lld", th->gindex, cpu->gindex);
 	th->cpu = cpu;
 
 	/* Update cpu channel */
@@ -413,7 +413,7 @@ thread_unset_cpu(struct thread *th)
 		return -1;
 	}
 
-	dbg("thread%ld unsets cpu", th->gindex);
+	dbg("thread%lld unsets cpu", th->gindex);
 	th->cpu = NULL;
 
 	struct chan *c = &th->chan[TH_CHAN_CPU];
@@ -433,7 +433,7 @@ thread_migrate_cpu(struct thread *th, struct cpu *cpu)
 		return -1;
 	}
 
-	dbg("thread%ld migrates to cpu%d", th->gindex, cpu->gindex);
+	dbg("thread%lld migrates to cpu%lld", th->gindex, cpu->gindex);
 	th->cpu = cpu;
 
 	struct chan *c = &th->chan[TH_CHAN_CPU];

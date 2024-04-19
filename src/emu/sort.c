@@ -165,7 +165,7 @@ sort_init(struct sort *sort, struct bay *bay, int64_t n, const char *name)
 	/* Init and register outputs */
 	for (int64_t i = 0; i < n; i++) {
 		struct chan *out = &sort->outputs[i];
-		chan_init(out, CHAN_SINGLE, "%s.out%ld", name, i);
+		chan_init(out, CHAN_SINGLE, "%s.out%lld", name, i);
 
 		/* The sort module may write multiple times to the same
 		 * channel if we update more than one input. */
@@ -176,7 +176,7 @@ sort_init(struct sort *sort, struct bay *bay, int64_t n, const char *name)
 		chan_prop_set(out, CHAN_ALLOW_DUP, 1);
 
 		if (bay_register(bay, out) != 0) {
-			err("bay_register out%ld failed", i);
+			err("bay_register out%lld failed", i);
 			return -1;
 		}
 	}

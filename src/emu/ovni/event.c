@@ -437,7 +437,7 @@ pre_flush(struct emu *emu)
 			double flush_ms = (double) flush_ns * 1e-6;
 			/* Avoid last flush warnings */
 			if (flush_ms > 10.0 && emu->thread->is_running)
-				warn("large flush of %.1f ms at dclock=%ld ns in tid=%d",
+				warn("large flush of %.1f ms at dclock=%lld ns in tid=%d",
 						flush_ms,
 						emu->ev->dclock,
 						emu->thread->tid);

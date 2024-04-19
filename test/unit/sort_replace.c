@@ -56,12 +56,12 @@ test_case(int64_t n, int64_t run)
 	while (old == new)
 		new = randint();
 
-	dbg("-- CASE run=%ld n=%ld iold=%ld old=%ld new=%ld\n",
+	dbg("-- CASE run=%lld n=%lld iold=%lld old=%lld new=%lld\n",
 			run, n, iold, old, new);
 
 	dbg("Contents before sort: ");
 	for (int64_t i = 0; i < n; i++) {
-		dbg("i=%ld, arr[i]=%ld, copy[i]=%ld\n",
+		dbg("i=%lld, arr[i]=%lld, copy[i]=%lld\n",
 				i, arr[i], copy[i]);
 	}
 
@@ -72,7 +72,7 @@ test_case(int64_t n, int64_t run)
 
 	dbg("Contents after sort: ");
 	for (int64_t i = 0; i < n; i++) {
-		dbg("i=%ld, arr[i]=%ld, copy[i]=%ld\n",
+		dbg("i=%lld, arr[i]=%lld, copy[i]=%lld\n",
 				i, arr[i], copy[i]);
 	}
 
@@ -94,7 +94,7 @@ test_sort_replace(void)
 	for (int64_t n = nmin; n <= nmax; n += nstep) {
 		for (int64_t run = 0; run < nrun; run++)
 			test_case(n, run);
-		err("n = %ld OK", n);
+		err("n = %lld OK", n);
 	}
 }
 

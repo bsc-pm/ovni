@@ -118,7 +118,7 @@ stream_load(struct stream *stream, const char *tracedir, const char *relpath)
 		warn("stream '%s' has zero events", stream->relpath);
 		stream->active = 0;
 	} else {
-		err("impossible, offset %ld bigger than size %ld",
+		err("impossible, offset %lld bigger than size %lld",
 				stream->offset, stream->size);
 		return -1;
 	}
@@ -196,7 +196,7 @@ stream_step(struct stream *stream)
 
 		/* It cannot pass the size, otherwise we are reading garbage */
 		if (stream->offset > stream->size) {
-			err("stream offset %ld exceeds size %ld",
+			err("stream offset %lld exceeds size %lld",
 					stream->offset, stream->size);
 			return -1;
 		}
@@ -223,7 +223,7 @@ stream_step(struct stream *stream)
 	/* Ensure the clock grows monotonically if unsorted flag not set */
 	if (stream->unsorted == 0) {
 		if (clock < stream->lastclock) {
-			err("clock goes backwards %ld -> %ld in stream '%s' at offset %ld",
+			err("clock goes backwards %lld -> %lld in stream '%s' at offset %lld",
 					stream->lastclock,
 					clock,
 					stream->relpath,

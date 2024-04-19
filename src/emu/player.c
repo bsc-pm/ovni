@@ -164,7 +164,7 @@ update_clocks(struct player *player, struct stream *stream)
 	}
 
 	if (sclock < player->lastclock) {
-		err("backwards jump in time %ld -> %ld in stream '%s'",
+		err("backwards jump in time %lld -> %lld in stream '%s'",
 				player->lastclock, sclock, stream->relpath);
 		if (player->unsorted == 0)
 			return -1;

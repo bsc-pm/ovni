@@ -341,19 +341,19 @@ print_system(struct system *sys)
 	err("content of system: ");
 	for (struct loom *l = sys->looms; l; l = l->next) {
 		err("%s gindex=%d", l->id, l->gindex);
-		err("+ %ld processes: ", l->nprocs);
+		err("+ %zd processes: ", l->nprocs);
 		for (struct proc *p = l->procs; p; p = p->hh.next) {
 			err("| %s gindex=%d pid=%d",
 					p->id, p->gindex, p->pid);
-			err("| + %ld threads: ", p->nthreads);
+			err("| + %d threads: ", p->nthreads);
 			for (struct thread *t = p->threads; t; t = t->hh.next) {
 				err("| | %s tid=%d",
 						t->id, t->tid);
 			}
 		}
-		err("+ %ld phy cpus: ", l->ncpus);
+		err("+ %zd phy cpus: ", l->ncpus);
 		for (struct cpu *cpu = l->cpus; cpu; cpu = cpu->hh.next) {
-			err("| %s gindex=%ld phyid=%d",
+			err("| %s gindex=%lld phyid=%d",
 					cpu->name,
 					cpu->gindex,
 					cpu->phyid);
@@ -361,7 +361,7 @@ print_system(struct system *sys)
 
 		err("+ 1 virtual cpu: ", l->ncpus);
 		struct cpu *cpu = &l->vcpu;
-		err("| %s gindex=%ld phyid=%d",
+		err("| %s gindex=%lld phyid=%d",
 				cpu->name,
 				cpu->gindex,
 				cpu->phyid);
@@ -424,7 +424,7 @@ init_end_system(struct system *sys)
 		}
 	}
 
-	info("loaded %ld looms, %ld processes, %ld threads and %ld cpus",
+	info("loaded %zd looms, %zd processes, %zd threads and %zd cpus",
 			sys->nlooms, sys->nprocs, sys->nthreads, sys->nphycpus);
 
 	return 0;
@@ -518,7 +518,7 @@ init_offsets(struct system *sys, struct trace *trace)
 	/* If we have more than one hostname and no offset table has been found,
 	 * we won't be able to synchronize the clocks */
 	if (n == 0 && sys->nlooms > 1) {
-		warn("no clock offset file loaded with %ld looms",
+		warn("no clock offset file loaded with %zd looms",
 				sys->nlooms);
 	}
 

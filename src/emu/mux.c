@@ -25,7 +25,7 @@ default_select(struct mux *mux,
 	int64_t index = key.i;
 
 	if (index < 0 || index >= mux->ninputs) {
-		err("index out of bounds %ld", index);
+		err("index out of bounds %lld", index);
 		return -1;
 	}
 

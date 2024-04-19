@@ -32,8 +32,8 @@ static int
 create_cpu(struct bay *bay, struct breakdown_cpu *bcpu, int64_t gindex)
 {
 	enum chan_type t = CHAN_SINGLE;
-	chan_init(&bcpu->tr,  t, "nanos6.cpu%ld.breakdown.tr",  gindex);
-	chan_init(&bcpu->tri, t, "nanos6.cpu%ld.breakdown.tri", gindex);
+	chan_init(&bcpu->tr,  t, "nanos6.cpu%lld.breakdown.tr",  gindex);
+	chan_init(&bcpu->tri, t, "nanos6.cpu%lld.breakdown.tri", gindex);
 
 	/* Register all channels in the bay */
 	if (bay_register(bay, &bcpu->tr) != 0) {
@@ -131,7 +131,7 @@ select_tr(struct mux *mux, struct value value, struct mux_input **input)
 
 	int64_t i = in_body;
 	char *inputs[] = { "subsystem", "task_type" };
-	dbg("selecting input %ld (%s)", i, inputs[i]);
+	dbg("selecting input %lld (%s)", i, inputs[i]);
 	*input = mux_get_input(mux, i);
 
 	return 0;

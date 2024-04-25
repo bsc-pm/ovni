@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2024-04-25
+
 ### Added
 
 - Consistency check for events emitted when the kernel has removed the thread
@@ -235,17 +237,18 @@ are used along with some other changes.
 
 - First ovni release.
 
-[unreleased]: https://pm.bsc.es/gitlab/rarias/ovni/-/commits/master
-[1.8.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.8.0
-[1.7.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.7.0
-[1.6.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.6.0
-[1.5.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.5.1
-[1.5.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.5.0
-[1.4.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.4.1
-[1.4.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.4.0
-[1.3.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.3.0
-[1.2.2]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.2
-[1.2.1]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.1
-[1.2.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.2.0
-[1.1.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.1.0
-[1.0.0]: https://pm.bsc.es/gitlab/rarias/ovni/-/tags/1.0.0
+[unreleased]: https://jungle.bsc.es/git/rarias/ovni
+[1.9.0]: https://github.com/rodarima/ovni/releases/tag/1.9.0
+[1.8.0]: https://github.com/rodarima/ovni/releases/tag/1.8.0
+[1.7.0]: https://github.com/rodarima/ovni/releases/tag/1.7.0
+[1.6.0]: https://github.com/rodarima/ovni/releases/tag/1.6.0
+[1.5.1]: https://github.com/rodarima/ovni/releases/tag/1.5.1
+[1.5.0]: https://github.com/rodarima/ovni/releases/tag/1.5.0
+[1.4.1]: https://github.com/rodarima/ovni/releases/tag/1.4.1
+[1.4.0]: https://github.com/rodarima/ovni/releases/tag/1.4.0
+[1.3.0]: https://github.com/rodarima/ovni/releases/tag/1.3.0
+[1.2.2]: https://github.com/rodarima/ovni/releases/tag/1.2.2
+[1.2.1]: https://github.com/rodarima/ovni/releases/tag/1.2.1
+[1.2.0]: https://github.com/rodarima/ovni/releases/tag/1.2.0
+[1.1.0]: https://github.com/rodarima/ovni/releases/tag/1.1.0
+[1.0.0]: https://github.com/rodarima/ovni/releases/tag/1.0.0

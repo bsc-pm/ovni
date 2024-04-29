@@ -1,0 +1,45 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:local:
+    runs-on: native
+    steps:
+      - uses: https://gitea.com/ScMi1/checkout@v1.4
+      - run: nix build -L --no-link .#ovniPackages.local
+  
+  build:rt:
+    runs-on: native
+    steps:
+      - uses: https://gitea.com/ScMi1/checkout@v1.4
+      - run: nix build -L --no-link .#ovniPackages.rt
+
+  build:debug:
+    runs-on: native
+    steps:
+      - uses: https://gitea.com/ScMi1/checkout@v1.4
+      - run: nix build -L --no-link .#ovniPackages.debug
+  
+  build:asan:
+    runs-on: native
+    steps:
+      - uses: https://gitea.com/ScMi1/checkout@v1.4
+      - run: nix build -L --no-link .#ovniPackages.asan
+  
+  build:nompi:
+    runs-on: native
+    steps:
+      - uses: https://gitea.com/ScMi1/checkout@v1.4
+      - run: nix build -L --no-link .#ovniPackages.nompi
+  
+  build:compilers:
+    runs-on: native
+    steps:
+      - uses: https://gitea.com/ScMi1/checkout@v1.4
+      - run: nix build -L --no-link .#ovniPackages.compilers

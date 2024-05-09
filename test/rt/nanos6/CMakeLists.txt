@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 find_package(Nanos6)
@@ -57,3 +57,8 @@ nanos6_rt_test(spawn-task-external-bad.c SHOULD_FAIL
 nanos6_rt_test(simple-task.c NAME simple-task-level-1 LEVEL 1)
 nanos6_rt_test(simple-task.c NAME simple-task-level-2 LEVEL 2)
 nanos6_rt_test(simple-task.c NAME simple-task-level-3 LEVEL 3)
+
+# Same but with breakdown enabled
+nanos6_rt_test(simple-task.c NAME simple-task-breakdown-level-1 LEVEL 1 BREAKDOWN)
+nanos6_rt_test(simple-task.c NAME simple-task-breakdown-level-2 LEVEL 2 BREAKDOWN)
+nanos6_rt_test(simple-task.c NAME simple-task-breakdown-level-3 LEVEL 3 BREAKDOWN)

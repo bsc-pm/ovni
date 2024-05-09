@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "breakdown.h"
@@ -238,6 +238,11 @@ model_nanos6_breakdown_connect(struct emu *emu)
 		struct prv *prv = pvt_get_prv(bemu->pvt);
 		long type = PRV_NANOS6_BREAKDOWN;
 		long flags = PRV_SKIPDUP;
+
+		/* We may emit zero at the start, when an input changes and all
+		 * the other sort output channels write a zero in the output,
+		 * before the last value is set in prv.c. */
+		flags |= PRV_ZERO;
 
 		struct chan *out = sort_get_output(&bemu->sort, i);
 		if (prv_register(prv, i, type, bay, out, flags)) {

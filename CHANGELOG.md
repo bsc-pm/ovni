@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix breakdown model error that was preventing a zero value to be written in
+  the PRV trace.
+
 ## [1.9.0] - 2024-04-25
 
 ### Added

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef INSTR_H
@@ -62,6 +62,7 @@ int64_t get_delta(void);
 	}
 
 INSTR_3ARG(instr_thread_execute, "OHx", int32_t, cpu, int32_t, creator_tid, uint64_t, tag)
+INSTR_1ARG(instr_thread_affinity_set, "OAs", int32_t, cpu)
 
 static inline void
 instr_thread_end(void)

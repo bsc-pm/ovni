@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 test_emu(nested-tasks.c)
@@ -14,5 +14,6 @@ test_emu(switch-same-type.c)
 test_emu(sponge.c)
 test_emu(sponge-breakdown.c BREAKDOWN)
 test_emu(breakdown-no-black.c BREAKDOWN)
+test_emu(breakdown-write-zero.c MP BREAKDOWN)
 test_emu(rerun-task-bad.c SHOULD_FAIL
   REGEX "body_execute: body(id=1,taskid=1) is not allowed to run again")

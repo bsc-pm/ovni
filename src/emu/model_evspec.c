@@ -64,7 +64,7 @@ model_evspec_init(struct model_evspec *evspec, struct model_spec *spec)
 }
 
 struct ev_spec *
-model_evspec_find(struct model_evspec *evspec, char mcv[4])
+model_evspec_find(struct model_evspec *evspec, char *mcv)
 {
 	struct ev_spec *s = NULL;
 	HASH_FIND_STR(evspec->spec, mcv, s);

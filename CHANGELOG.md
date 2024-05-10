@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix breakdown model error that was preventing a zero value to be written in
   the PRV trace.
+- Fix gcc 11.3.1 -Wstringop-overflow warning.
 
 ## [1.9.0] - 2024-04-25
 

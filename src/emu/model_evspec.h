@@ -19,6 +19,6 @@ struct model_evspec {
 };
 
 USE_RET int model_evspec_init(struct model_evspec *evspec, struct model_spec *spec);
-USE_RET struct ev_spec *model_evspec_find(struct model_evspec *evspec, char mcv[4]);
+USE_RET struct ev_spec *model_evspec_find(struct model_evspec *evspec, char *mcv);
 
 #endif /* MODEL_EVSPEC_H */

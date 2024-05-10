@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2024-05-10
+
 ### Fixed
 
 - Fix breakdown model error that was preventing a zero value to be written in
@@ -244,6 +246,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://jungle.bsc.es/git/rarias/ovni
+[1.9.1]: https://github.com/rodarima/ovni/releases/tag/1.9.1
 [1.9.0]: https://github.com/rodarima/ovni/releases/tag/1.9.0
 [1.8.0]: https://github.com/rodarima/ovni/releases/tag/1.8.0
 [1.7.0]: https://github.com/rodarima/ovni/releases/tag/1.7.0

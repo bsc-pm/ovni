@@ -141,6 +141,7 @@ static const char *pcf_prefix[CH_MAX] = {
 };
 
 static const struct pcf_value_label nosv_ss_values[] = {
+	{ ST_UNKNOWN_SS,       "Unknown subsystem" },
 	{ ST_SCHED_HUNGRY,     "Scheduler: Hungry" },
 	{ ST_SCHED_SERVING,    "Scheduler: Serving" },
 	{ ST_SCHED_SUBMITTING, "Scheduler: Submitting" },

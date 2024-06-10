@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "breakdown.h"
@@ -181,8 +181,8 @@ connect_cpu(struct bay *bay, struct nosv_cpu *mcpu)
 		return -1;
 	}
 
-	/* TODO what do we emit on null? */
-	mux_set_default(&bcpu->mux0, value_int64(666));
+	/* Emit unknown subsystem on NULL */
+	mux_set_default(&bcpu->mux0, value_int64(ST_UNKNOWN_SS));
 
 	/* Connect mux 1 using idle as select */
 	if (mux_init(&bcpu->mux1, bay, idle, tri, select_idle, 2) != 0) {

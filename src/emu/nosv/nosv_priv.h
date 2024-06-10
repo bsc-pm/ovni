@@ -24,6 +24,7 @@ enum nosv_chan {
 };
 
 enum nosv_ss_values {
+	ST_UNKNOWN_SS = 2,
 	ST_SCHED_HUNGRY = 6,
 	ST_SCHED_SERVING,
 	ST_SCHED_SUBMITTING,

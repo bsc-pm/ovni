@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "task.h"
@@ -258,12 +258,21 @@ task_type_create(struct task_info *info, uint32_t type_id, const char *label)
 		return -1;
 	}
 
-	type->gid = task_get_type_gid(label);
-	int n = snprintf(type->label, MAX_PCF_LABEL, "%s", label);
+	int n;
+	if (label[0] == '\0') {
+		/* Give a name if empty */
+		n = snprintf(type->label, MAX_PCF_LABEL,
+				"(unlabeled task type %u)", type_id);
+	} else {
+		n = snprintf(type->label, MAX_PCF_LABEL, "%s", label);
+	}
+
 	if (n >= MAX_PCF_LABEL) {
-		err("task type label too long: %s", label);
+		err("task type %u label too long", type_id);
 		return -1;
 	}
+
+	type->gid = task_get_type_gid(type->label);
 
 	/* Add the new task type to the hash table */
 	HASH_ADD_INT(info->types, id, type);

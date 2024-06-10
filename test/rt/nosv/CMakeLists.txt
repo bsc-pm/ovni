@@ -12,9 +12,9 @@ if(NOT NOSV_FOUND)
   return()
 endif()
 
-# Needed for nesting nosv_init/nosv_shutdown
-if("${NOSV_VERSION}" VERSION_LESS "2.1.2")
-  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 2.1.2")
+# Needed for breakdown
+if("${NOSV_VERSION}" VERSION_LESS "2.3.0")
+  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 2.3.0")
 endif()
 
 message(STATUS "Enabling nOS-V RT tests")
@@ -51,3 +51,10 @@ nosv_test(several-tasks.c SORT NAME several-tasks-level-1 LEVEL 1)
 nosv_test(several-tasks.c SORT NAME several-tasks-level-2 LEVEL 2)
 nosv_test(several-tasks.c SORT NAME several-tasks-level-3 LEVEL 3)
 nosv_test(several-tasks.c SORT NAME several-tasks-level-4 LEVEL 4)
+
+# Same but with breakdown enabled
+nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-0 LEVEL 0 BREAKDOWN)
+nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-1 LEVEL 1 BREAKDOWN)
+nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-2 LEVEL 2 BREAKDOWN)
+nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-3 LEVEL 3 BREAKDOWN)
+nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-4 LEVEL 4 BREAKDOWN)

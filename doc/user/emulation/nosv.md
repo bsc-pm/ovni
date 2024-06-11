@@ -61,3 +61,46 @@ For more details, see [this MR][1].
 The subsystem view provides a simplified view on what is the nOS-V
 runtime doing over time. The view follows the same rules described in
 the [subsystem view of Nanos6](../nanos6/#subsystem_view).
+
+
+## Idle view
+
+The idle view shows the progress state of the running threads:
+*Progressing* and *Resting*. The *Progressing* state is shown when they
+are making useful progress and the *Resting* state when they are waiting
+for work. When workers start running, by definition, they begin in the
+Progressing state and there are some situations that make them
+transition to Resting:
+
+- When workers are waiting in the delegation lock after some spins or
+  when instructed to go to sleep.
+- When the server is trying to serve tasks, but there are no more tasks
+  available.
+
+They will go back to Progressing as soon as they receive work. The
+specific points at which they do so can be read in [nOS-V source
+code](https://gitlab.bsc.es/nos-v/nos-v) by looking at the
+`instr_worker_resting()` and `instr_worker_progressing()` trace points.
+
+This view is intended to detect parts of the execution time on which the
+workers don't have work, typically because the application doesn't have
+enough parallelism or the scheduler is unable to serve work fast enough.
+
+## Breakdown view
+
+The breakdown view displays a summary of what is happening in all CPUs
+by mixing in a single timeline the subsystem, idle and task type views.
+Specifically, it shows how many CPUs are resting as defined by the idle
+view, how many are inside a given task by showing the task type label,
+and how many are in a particular subsystem of the runtime.
+
+!!! Important
+
+    You must specify *ovni.level = 3* or higher in *nosv.toml* and pass
+    the *-b* option to ovniemu to generate the breakdown view.
+
+Notice that the vertical axis shows the **number**
+of CPUs in that state, not the physical CPUs like other views.
+Here is an example of the Heat mini-app:
+
+![Breakdown example](fig/breakdown-nosv.png)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "chan.h"
@@ -155,7 +155,7 @@ chan_push(struct chan *chan, struct value value)
 /** Remove one value from the stack. Fails if the top of the stack
  * doesn't match the expected value.
  *
- *  @param expected The expected value on the top of the stack.
+ *  @param evalue The expected value on the top of the stack.
  *
  *  @return On success returns 0, otherwise returns -1.
  */
@@ -182,10 +182,10 @@ chan_pop(struct chan *chan, struct value evalue)
 	struct value *value = &stack->values[stack->n - 1];
 
 	if (!value_is_equal(value, &evalue)) {
-		err("%s: unexpected value %s (expected %s)",
+		err("%s: expected value %s different from top of stack %s",
 				chan->name,
-				value_str(*value),
-				value_str(evalue));
+				value_str(evalue),
+				value_str(*value));
 		return -1;
 	}
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
 #include <dirent.h>
@@ -847,4 +847,217 @@ void
 ovni_ev_emit(struct ovni_ev *ev)
 {
 	ovni_ev_add(ev);
+}
+
+/* Attributes */
+
+static JSON_Object *
+get_thread_metadata(void)
+{
+	if (rthread.finished)
+		die("thread already finished");
+
+	if (!rthread.ready)
+		die("thread not initialized");
+
+	JSON_Object *meta = json_value_get_object(rthread.meta);
+
+	if (meta == NULL)
+		die("json_value_get_object failed");
+
+	return meta;
+}
+
+/**
+ * Determines if the key exists in the metadata.
+ *
+ * @returns 1 if the key exists, 0 otherwise.
+ */
+int
+ovni_attr_has(const char *key)
+{
+	JSON_Object *obj = get_thread_metadata();
+	JSON_Value *val = json_object_dotget_value(obj, key);
+
+	if (val == NULL)
+		return 0;
+
+	return 1;
+}
+
+/**
+ * Stores a double attribute.
+ *
+ * @param key The key of the attribute as a dot path.
+ * @param num The double value to be stored.
+ */
+void
+ovni_attr_set_double(const char *key, double num)
+{
+	JSON_Object *obj = get_thread_metadata();
+
+	if (json_object_dotset_number(obj, key, num) != 0)
+		die("json_object_dotset_number() failed");
+}
+
+/**
+ * Retrieves a double attribute.
+ *
+ * @param key The key of the attribute as a dot path.
+ *
+ * @return The double on the key. If there is any problem it aborts.
+ */
+double
+ovni_attr_get_double(const char *key)
+{
+	JSON_Object *obj = get_thread_metadata();
+	JSON_Value *val = json_object_dotget_value(obj, key);
+	if (val == NULL)
+		die("key not found: %s", key);
+
+	if (json_value_get_type(val) != JSONNumber)
+		die("value with key '%s' is not a number", key);
+
+	return json_value_get_number(val);
+}
+
+/**
+ * Retrieves a boolean attribute.
+ *
+ * @param key The key of the attribute as a dot path.
+ *
+ * @return The boolean on the key. If there is any problem it aborts.
+ */
+int
+ovni_attr_get_boolean(const char *key)
+{
+	JSON_Object *obj = get_thread_metadata();
+	JSON_Value *val = json_object_dotget_value(obj, key);
+	if (val == NULL)
+		die("key not found: %s", key);
+
+	if (json_value_get_type(val) != JSONBoolean)
+		die("value with key '%s' is not a boolean", key);
+
+	return json_value_get_boolean(val);
+}
+
+/**
+ * Stores a boolean attribute.
+ *
+ * @param key The key of the attribute as a dot path.
+ * @param num The boolean value to be stored.
+ */
+void
+ovni_attr_set_boolean(const char *key, int value)
+{
+	JSON_Object *obj = get_thread_metadata();
+
+	if (json_object_dotset_boolean(obj, key, value) != 0)
+		die("json_object_dotset_boolean() failed");
+}
+
+/**
+ * Stores a string attribute.
+ *
+ * @param key The key of the attribute as a dot path.
+ * @param str The string value to be stored. It will be internally duplicated,
+ * so it can be free on return.
+ */
+void
+ovni_attr_set_str(const char *key, const char *value)
+{
+	JSON_Object *obj = get_thread_metadata();
+
+	if (json_object_dotset_string(obj, key, value) != 0)
+		die("json_object_dotset_string() failed");
+}
+
+/**
+ * Retrieves a string attribute from a key.
+ * If not found or if there is any problem it aborts before returning.
+ *
+ * @param key The key of the attribute as a dot path.
+ *
+ * @return A pointer to a not-NULL read-only string value for the given key.
+ */
+const char *
+ovni_attr_get_str(const char *key)
+{
+	JSON_Object *obj = get_thread_metadata();
+	JSON_Value *val = json_object_dotget_value(obj, key);
+	if (val == NULL)
+		die("key not found: %s", key);
+
+	if (json_value_get_type(val) != JSONString)
+		die("value with key '%s' is not a string", key);
+
+	return json_value_get_string(val);
+}
+
+/**
+ * Stores a JSON value into an attribute.
+ *
+ * @param key The key of the attribute as a dot path.
+ * @param json The JSON value to be stored.
+ *
+ * The value specified as a JSON string can be of any type (dictionary, array,
+ * string, double...) as long as it is valid JSON. Any errors in parsing the
+ * JSON string or in storing the resulting value will abort the program.
+ */
+void
+ovni_attr_set_json(const char *key, const char *json)
+{
+	JSON_Object *obj = get_thread_metadata();
+	JSON_Value *val = json_parse_string(json);
+	if (val == NULL)
+		die("cannot parse json: %s", json);
+
+	if (json_object_dotset_value(obj, key, val) != 0)
+		die("json_object_dotset_value() failed");
+}
+
+
+/**
+ * Serializes a JSON value into a string.
+ *
+ * @param key The key of the attribute as a dot path.
+ *
+ * @resurn A zero-terminated string containing the serialized JSON
+ * representation of the provided key. This string is allocated with malloc()
+ * and it is reponsability of the user to liberate the memory with free().
+ *
+ * Any errors will abort the program.
+ */
+char *
+ovni_attr_get_json(const char *key)
+{
+	JSON_Object *obj = get_thread_metadata();
+	JSON_Value *val = json_object_dotget_value(obj, key);
+	if (val == NULL)
+		die("key not found: %s", key);
+
+	char *str = json_serialize_to_string(val);
+	if (str == NULL)
+		die("json_serialize_to_string() failed");
+
+	return str;
+}
+
+
+/**
+ * Writes the metadata attributes to disk.
+ * Only used to ensure they are not lost in a crash. They are already written in
+ * ovni_thread_free().
+ */
+void
+ovni_attr_flush(void)
+{
+	if (rthread.finished)
+		die("thread already finished");
+
+	if (!rthread.ready)
+		die("thread not initialized");
+
+	thread_metadata_store();
 }

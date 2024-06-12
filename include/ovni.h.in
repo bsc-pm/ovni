@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
 #ifndef OVNI_H
@@ -129,6 +129,18 @@ void ovni_ev_emit(struct ovni_ev *ev);
 void ovni_ev_jumbo_emit(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize);
 
 void ovni_flush(void);
+
+/* Attributes */
+int ovni_attr_has(const char *key);
+void ovni_attr_set_double(const char *key, double num);
+void ovni_attr_set_boolean(const char *key, int value);
+void ovni_attr_set_str(const char *key, const char *value);
+void ovni_attr_set_json(const char *key, const char *json);
+double ovni_attr_get_double(const char *key);
+int ovni_attr_get_boolean(const char *key);
+const char *ovni_attr_get_str(const char *key);
+char *ovni_attr_get_json(const char *key);
+void ovni_attr_flush(void);
 
 #ifdef __cplusplus
 }

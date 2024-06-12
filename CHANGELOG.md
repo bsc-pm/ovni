@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- nOS-V model version increased to 2.2.0.
+
+### Added
+
+- Add support for nOS-V progressing events VP{pra}.
+- Add breakdown model for nOS-V.
+
 ## [1.9.1] - 2024-05-10
 
 ### Fixed

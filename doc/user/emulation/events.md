@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Mar 20 2024.
+Built on Jun 12 2024.
 
 ## Model nanos6
 
@@ -615,7 +615,7 @@ List of events for the model *tampi* with identifier **`T`** at version `1.0.0`:
 
 ## Model nosv
 
-List of events for the model *nosv* with identifier **`V`** at version `2.1.0`:
+List of events for the model *nosv* with identifier **`V`** at version `2.2.0`:
 <dl>
 <dt><a id="VTc" href="#VTc"><pre>VTc(u32 taskid, u32 typeid)</pre></a></dt>
 <dd>creates task %{taskid} with type %{typeid}</dd>
@@ -721,4 +721,10 @@ List of events for the model *nosv* with identifier **`V`** at version `2.1.0`:
 <dd>begins execution as delegate</dd>
 <dt><a id="VHD" href="#VHD"><pre>VHD</pre></a></dt>
 <dd>ceases execution as delegate</dd>
+<dt><a id="VPp" href="#VPp"><pre>VPp</pre></a></dt>
+<dd>sets progress state to Progressing</dd>
+<dt><a id="VPr" href="#VPr"><pre>VPr</pre></a></dt>
+<dd>sets progress state to Resting</dd>
+<dt><a id="VPa" href="#VPa"><pre>VPa</pre></a></dt>
+<dd>sets progress state to Absorbing</dd>
 </dl>

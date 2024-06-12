@@ -73,12 +73,16 @@ static struct ev_decl model_evlist[] = {
 	PAIR_B("VHw", "VHW", "execution as worker")
 	PAIR_B("VHd", "VHD", "execution as delegate")
 
+	{ "VPp", "sets progress state to Progressing" },
+	{ "VPr", "sets progress state to Resting" },
+	{ "VPa", "sets progress state to Absorbing" },
+
 	{ NULL, NULL },
 };
 
 struct model_spec model_nosv = {
 	.name    = model_name,
-	.version = "2.1.0",
+	.version = "2.2.0",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nosv_create,

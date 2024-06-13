@@ -39,6 +39,8 @@ Track changes in emulator model versions.
 
 ## nOS-V
 
+- nosv 2.3.0
+    - Add `nosv.can_breakdown` attribute to metadata for breakdown checks.
 - nosv 2.2.0
     - Add support for progress events `VP{pra}`.
 - nosv 2.1.0

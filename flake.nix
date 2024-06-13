@@ -15,7 +15,7 @@
       nosv = prev.nosv.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "af186f448d3b5675c107747f5c9237e7f4d31e4b";
+        gitCommit = "c668e3bbfae34cd9b8797811b29ae35361b267ca";
       };
       nanos6 = prev.nanos6.override {
         useGit = true;
@@ -37,7 +37,8 @@
       ovniFixed = prev.ovni.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "68fc8b0eba299c3a7fa3833ace2c94933a26749e";
+        # Includes ovni_attr_* API
+        gitCommit = "d1e8a62396ae92934c0b6e248d5f6ff921bef56f";
       };
       # Build with the current source
       ovniLocal = prev.ovni.overrideAttrs (old: rec {

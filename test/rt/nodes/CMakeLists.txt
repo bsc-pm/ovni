@@ -64,8 +64,11 @@ nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-level-3 LEVEL 3 SORT)
 nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-level-4 LEVEL 4 SORT)
 
 # Same but with breakdown enabled
-nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-1 LEVEL 1 SORT BREAKDOWN)
-nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-2 LEVEL 2 SORT BREAKDOWN)
+nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-1 LEVEL 1 SORT BREAKDOWN
+  SHOULD_FAIL REGEX "nosv.can_breakdown is false, missing events to enable breakdown")
+nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-2 LEVEL 2 SORT BREAKDOWN
+  SHOULD_FAIL REGEX "nosv.can_breakdown is false, missing events to enable breakdown")
+# From level 3 up the breakdown can be enabled
 nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-3 LEVEL 3 SORT BREAKDOWN)
 nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-4 LEVEL 4 SORT BREAKDOWN)
 

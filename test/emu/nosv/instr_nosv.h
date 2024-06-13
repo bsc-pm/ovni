@@ -12,6 +12,7 @@ static inline void
 instr_nosv_init(void)
 {
 	instr_require("nosv");
+	ovni_attr_set_boolean("nosv.can_breakdown", 1);
 }
 
 static inline uint32_t

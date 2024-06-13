@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- nOS-V model version increased to 2.2.0.
+- nOS-V model version increased to 2.3.0.
+- Prevent accidental use of nOS-V traces without required events for the
+  breakdown model using the `nosv.can_breakdown` attribute.
 
 ### Added
 

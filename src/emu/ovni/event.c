@@ -477,6 +477,9 @@ model_ovni_event(struct emu *emu)
 		case 'U':
 			/* Ignore sorting events */
 			return 0;
+		case 'M':
+			/* TODO: Ignore mark events for now */
+			return 0;
 		default:
 			err("unknown ovni event category %c",
 					emu->ev->c);

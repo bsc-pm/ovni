@@ -3,6 +3,7 @@
 
 #include <dirent.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -1060,4 +1061,89 @@ ovni_attr_flush(void)
 		die("thread not initialized");
 
 	thread_metadata_store();
+}
+
+/* Mark */
+
+/** creates a new mark type. */
+void
+ovni_mark_type(int32_t type, const char *title)
+{
+	if (type < 0 || type >= 100)
+		die("type must be in [0,100) range");
+
+	if (!title || title[0] == '\0')
+		die("bad title");
+
+	JSON_Object *meta = get_thread_metadata();
+
+	char key[128];
+	if (snprintf(key, 128, "ovni.mark.%"PRId32, type) >= 128)
+		die("type key too long");
+
+	JSON_Value *val = json_object_dotget_value(meta, key);
+	if (val != NULL)
+		die("type %"PRId32" already defined", type);
+
+	if (snprintf(key, 128, "ovni.mark.%"PRId32".title", type) >= 128)
+		die("title key too long");
+
+	if (json_object_dotset_string(meta, key, title) != 0)
+		die("json_object_dotset_string() failed", type);
+}
+
+/** creates a new mark type. */
+void
+ovni_mark_label(int32_t type, int64_t value, const char *label)
+{
+	if (type < 0 || type >= 100)
+		die("type must be in [0,100) range");
+
+	if (value <= 0)
+		die("value must be >0");
+
+	if (!label || label[0] == '\0')
+		die("bad label");
+
+	JSON_Object *meta = get_thread_metadata();
+
+	char key[128];
+	if (snprintf(key, 128, "ovni.mark.%"PRId32, type) >= 128)
+		die("type key too long");
+
+	JSON_Value *valtype = json_object_dotget_value(meta, key);
+	if (valtype == NULL)
+		die("type %"PRId32" not defined", type);
+
+	if (snprintf(key, 128, "ovni.mark.%"PRId32".labels.%"PRId64, type, value) >= 128)
+		die("value key too long");
+
+	JSON_Value *val = json_object_dotget_value(meta, key);
+	if (val != NULL)
+		die("label '%s' already defined", label);
+
+	if (json_object_dotset_string(meta, key, label) != 0)
+		die("json_object_dotset_string() failed", type);
+}
+
+void
+ovni_mark_push(int32_t type, int64_t value)
+{
+	struct ovni_ev ev = {0};
+	ovni_ev_set_clock(&ev, ovni_clock_now());
+	ovni_ev_set_mcv(&ev, "OM[");
+	ovni_payload_add(&ev, (uint8_t *) &value, sizeof(value));
+	ovni_payload_add(&ev, (uint8_t *) &type, sizeof(type));
+	ovni_ev_add(&ev);
+}
+
+void
+ovni_mark_pop(int32_t type, int64_t value)
+{
+	struct ovni_ev ev = {0};
+	ovni_ev_set_clock(&ev, ovni_clock_now());
+	ovni_ev_set_mcv(&ev, "OM]");
+	ovni_payload_add(&ev, (uint8_t *) &value, sizeof(value));
+	ovni_payload_add(&ev, (uint8_t *) &type, sizeof(type));
+	ovni_ev_add(&ev);
 }

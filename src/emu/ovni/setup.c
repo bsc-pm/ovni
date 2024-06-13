@@ -37,12 +37,15 @@ static struct ev_decl model_evlist[] = {
 	PAIR_B("OF[", "OF]", "flushing events to disk")
 	PAIR_E("OU[", "OU]", "unordered event region")
 
+	{ "OM[(i64 value, i32 type)", "push mark with value %{value} from type %{type}" },
+	{ "OM](i64 value, i32 type)", "pop mark with value %{value} from type %{type}" },
+
 	{ NULL, NULL },
 };
 
 struct model_spec model_ovni = {
 	.name    = model_name,
-	.version = "1.0.0",
+	.version = "1.1.0",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_ovni_create,

@@ -1067,7 +1067,7 @@ ovni_attr_flush(void)
 
 /** creates a new mark type. */
 void
-ovni_mark_type(int32_t type, const char *title)
+ovni_mark_type(int32_t type, long flags, const char *title)
 {
 	if (type < 0 || type >= 100)
 		die("type must be in [0,100) range");
@@ -1089,7 +1089,14 @@ ovni_mark_type(int32_t type, const char *title)
 		die("title key too long");
 
 	if (json_object_dotset_string(meta, key, title) != 0)
-		die("json_object_dotset_string() failed", type);
+		die("json_object_dotset_string() failed for title");
+
+	const char *chan_type = flags & OVNI_MARK_STACK ? "stack" : "single";
+	if (snprintf(key, 128, "ovni.mark.%"PRId32".chan_type", type) >= 128)
+		die("chan_type key too long");
+
+	if (json_object_dotset_string(meta, key, chan_type) != 0)
+		die("json_object_dotset_string() failed for chan_type");
 }
 
 /** creates a new mark type. */

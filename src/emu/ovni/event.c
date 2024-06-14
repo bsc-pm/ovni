@@ -16,6 +16,7 @@
 #include "proc.h"
 #include "thread.h"
 #include "value.h"
+#include "mark.h"
 
 static int
 pre_thread_execute(struct emu *emu, struct thread *th)
@@ -478,8 +479,7 @@ model_ovni_event(struct emu *emu)
 			/* Ignore sorting events */
 			return 0;
 		case 'M':
-			/* TODO: Ignore mark events for now */
-			return 0;
+			return mark_event(emu);
 		default:
 			err("unknown ovni event category %c",
 					emu->ev->c);

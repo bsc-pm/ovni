@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef OVNI_PRIV_H
@@ -10,6 +10,7 @@
  * execution by the kernel. */
 
 #include "emu.h"
+#include "mark.h"
 #include "model_cpu.h"
 #include "model_thread.h"
 #include <stdint.h>
@@ -37,6 +38,10 @@ struct ovni_thread {
 
 struct ovni_cpu {
 	struct model_cpu m;
+};
+
+struct ovni_emu {
+	struct ovni_mark_emu mark;
 };
 
 int model_ovni_probe(struct emu *emu);

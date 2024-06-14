@@ -7,6 +7,7 @@
 #include "emu.h"
 #include "emu_prv.h"
 #include "ev_spec.h"
+#include "mark.h"
 #include "model.h"
 #include "model_chan.h"
 #include "model_cpu.h"
@@ -175,6 +176,19 @@ model_ovni_create(struct emu *emu)
 
 	if (model_cpu_create(emu, &cpu_spec) != 0) {
 		err("model_cpu_init failed");
+		return -1;
+	}
+
+	struct ovni_emu *oemu = calloc(1, sizeof(*oemu));
+	if (oemu == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	extend_set(&emu->ext, 'O', oemu);
+
+	if (mark_create(emu) != 0) {
+		err("mark_create failed");
 		return -1;
 	}
 

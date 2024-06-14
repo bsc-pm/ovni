@@ -49,6 +49,7 @@ add_library(emu STATIC
   value.c
   ovni/event.c
   ovni/setup.c
+  ovni/mark.c
   nanos6/setup.c
   nanos6/event.c
   nanos6/breakdown.c

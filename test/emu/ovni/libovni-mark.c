@@ -18,7 +18,7 @@ main(void)
 {
 	instr_start(0, 1);
 
-	ovni_mark_type(MARK_COLORS, "Colors");
+	ovni_mark_type(MARK_COLORS, OVNI_MARK_STACK, "Colors");
 
 	if(!ovni_attr_has("ovni.mark.1.title"))
 		die("missing mark title");

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "model_pvt.h"
@@ -178,7 +178,7 @@ model_pvt_connect_thread(struct emu *emu, const struct model_thread_spec *spec)
 	/* Get cpu PRV */
 	struct pvt *pvt = recorder_find_pvt(&emu->recorder, "thread");
 	if (pvt == NULL) {
-		err("cannot find cpu pvt");
+		err("cannot find thread pvt");
 		return -1;
 	}
 

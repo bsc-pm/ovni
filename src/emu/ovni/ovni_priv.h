@@ -34,6 +34,8 @@ struct ovni_thread {
 	int64_t burst_time[MAX_BURSTS];
 
 	int64_t flush_start;
+
+	struct ovni_mark_thread mark;
 };
 
 struct ovni_cpu {

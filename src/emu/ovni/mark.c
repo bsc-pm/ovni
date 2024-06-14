@@ -9,6 +9,8 @@
 #include "ovni_priv.h"
 #include "parson.h"
 #include "pv/pcf.h"
+#include "pv/prv.h"
+#include "pv/pvt.h"
 #include "thread.h"
 #include "uthash.h"
 #include <errno.h>
@@ -19,10 +21,11 @@ struct mark_label {
 	UT_hash_handle hh; /* Indexed by value */
 };
 
-struct mark_chan {
+struct mark_type {
 	long type;
+	long index; /* From 0 to ntypes - 1 */
+	enum chan_type ctype;
 	struct mark_label *labels; /* Hash table of labels */
-	struct chan ch;
 	char title[MAX_PCF_LABEL];
 	UT_hash_handle hh; /* Indexed by type */
 };
@@ -44,17 +47,17 @@ parse_number(const char *str, int64_t *result)
 }
 
 static struct mark_label *
-find_label(struct mark_chan *c, int64_t value)
+find_label(struct mark_type *t, int64_t value)
 {
 	struct mark_label *l;
-	HASH_FIND(hh, c->labels, &value, sizeof(value), l);
+	HASH_FIND(hh, t->labels, &value, sizeof(value), l);
 	return l;
 }
 
 static int
-add_label(struct mark_chan *c, int64_t value, const char *label)
+add_label(struct mark_type *t, int64_t value, const char *label)
 {
-	struct mark_label *l = find_label(c, value);
+	struct mark_label *l = find_label(t, value);
 
 	if (l != NULL) {
 		if (strcmp(l->label, label) == 0) {
@@ -80,17 +83,14 @@ add_label(struct mark_chan *c, int64_t value, const char *label)
 		return -1;
 	}
 
-	HASH_ADD(hh, c->labels, value, sizeof(value), l);
+	HASH_ADD(hh, t->labels, value, sizeof(value), l);
 
 	return 0;
 }
 
 static int
-parse_labels(struct mark_chan *c, JSON_Object *labels)
+parse_labels(struct mark_type *t, JSON_Object *labels)
 {
-	UNUSED(c);
-	UNUSED(labels);
-
 	/* It may happen that we call this function several times with
 	 * overlapping subsets of values. The only restriction is that we don't
 	 * define two values with different label. */
@@ -121,7 +121,7 @@ parse_labels(struct mark_chan *c, JSON_Object *labels)
 			return -1;
 		}
 
-		if (add_label(c, value, label) != 0) {
+		if (add_label(t, value, label) != 0) {
 			err("add_label() failed");
 			return -1;
 		}
@@ -130,53 +130,52 @@ parse_labels(struct mark_chan *c, JSON_Object *labels)
 	return 0;
 }
 
-static struct mark_chan *
-find_mark_chan(struct ovni_mark_emu *m, long type)
+static struct mark_type *
+find_mark_type(struct ovni_mark_emu *m, long type)
 {
-	struct mark_chan *c;
-	HASH_FIND_LONG(m->chan, &type, c);
-	return c;
+	struct mark_type *t;
+	HASH_FIND_LONG(m->types, &type, t);
+	return t;
 }
 
-static struct mark_chan *
-create_mark_chan(struct ovni_mark_emu *m, long type, const char *chan_type, const char *title)
+static struct mark_type *
+create_mark_type(struct ovni_mark_emu *m, long type, const char *chan_type, const char *title)
 {
-	struct mark_chan *c = find_mark_chan(m, type);
+	struct mark_type *t = find_mark_type(m, type);
 
-	if (c != NULL) {
+	if (t != NULL) {
 		err("mark type %d already defined", type);
 		return NULL;
 	}
 
-	c = calloc(1, sizeof(*c));
-	if (c == NULL) {
+	t = calloc(1, sizeof(*t));
+	if (t == NULL) {
 		err("calloc failed:");
 		return NULL;
 	}
 
-	c->type = type;
+	t->type = type;
+	t->index = m->ntypes;
 
-	int len = snprintf(c->title, MAX_PCF_LABEL, "%s", title);
+	int len = snprintf(t->title, MAX_PCF_LABEL, "%s", title);
 	if (len >= MAX_PCF_LABEL) {
 		err("mark title too long: %s", title);
 		return NULL;
 	}
 
-	enum chan_type ctype;
 	if (strcmp(chan_type, "single") == 0) {
-		ctype = CHAN_SINGLE;
+		t->ctype = CHAN_SINGLE;
 	} else if (strcmp(chan_type, "stack") == 0) {
-		ctype = CHAN_STACK;
+		t->ctype = CHAN_STACK;
 	} else {
 		err("chan_type %s not understood", chan_type);
 		return NULL;
 	}
 
-	chan_init(&c->ch, ctype, "mark%ld", type);
+	HASH_ADD_LONG(m->types, type, t);
+	m->ntypes++;
 
-	HASH_ADD_LONG(m->chan, type, c);
-
-	return c;
+	return t;
 }
 
 static int
@@ -220,27 +219,27 @@ parse_mark(struct ovni_mark_emu *m, const char *typestr, JSON_Value *markval)
 		return -1;
 	}
 
-	struct mark_chan *c = find_mark_chan(m, type);
-	if (c == NULL) {
-		c = create_mark_chan(m, type, chan_type, title);
-		if (c == NULL) {
-			err("cannot create mark chan");
+	struct mark_type *t = find_mark_type(m, type);
+	if (t == NULL) {
+		t = create_mark_type(m, type, chan_type, title);
+		if (t == NULL) {
+			err("cannot create mark type");
 			return -1;
 		}
 	} else {
 		/* It may already exist as defined by other threads, so ensure
 		 * they have the same title. */
-		if (strcmp(c->title, title) != 0) {
+		if (strcmp(t->title, title) != 0) {
 			err("mark with type %ld already registered with another title", type);
-			err(" old: %s", c->title);
+			err(" old: %s", t->title);
 			err(" new: %s", title);
 			return -1;
 		}
 	}
 
-	/* Now populate the mark channel with all value labels */
+	/* Now populate the mark type with all value labels */
 
-	if (parse_labels(c, labels) != 0) {
+	if (parse_labels(t, labels) != 0) {
 		err("cannot parse labels");
 		return -1;
 	}
@@ -256,8 +255,6 @@ scan_thread(struct ovni_mark_emu *memu, struct thread *t)
 	/* No marks in this thread */
 	if (obj == NULL)
 		return 0;
-
-	memu->has_marks = 1;
 
 	size_t n = json_object_get_count(obj);
 	for (size_t i = 0; i < n; i++) {
@@ -281,6 +278,39 @@ scan_thread(struct ovni_mark_emu *memu, struct thread *t)
 	return 0;
 }
 
+static int
+create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
+{
+	struct ovni_thread *oth = EXT(th, 'O');
+	struct ovni_mark_thread *t = &oth->mark;
+
+	/* Create as many channels as required */
+	t->channels = calloc(m->ntypes, sizeof(struct chan));
+	if (t->channels == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	t->nchannels = m->ntypes;
+
+	struct mark_type *type;
+	for (type = m->types; type; type = type->hh.next) {
+		/* TODO: We may use a vector of thread channels in every type to
+		 * avoid the double hash access in events */
+		long i = type->index;
+		struct chan *ch = &t->channels[i];
+		chan_init(ch, type->ctype, "thread%ld.mark%ld",
+				th->gindex, type->type);
+
+		if (bay_register(bay, ch) != 0) {
+			err("bay_register failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /* Scans streams for marks and creates the mark channels */
 int
 mark_create(struct emu *emu)
@@ -297,6 +327,61 @@ mark_create(struct emu *emu)
 		}
 	}
 
+	for (struct thread *th = emu->system.threads; th; th = th->gnext) {
+		if (create_thread_chan(memu, &emu->bay, th) != 0) {
+			err("create_thread_chan failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv)
+{
+	struct ovni_emu *oemu = EXT(emu, 'O');
+	struct ovni_mark_emu *memu = &oemu->mark;
+	struct ovni_thread *oth = EXT(sth, 'O');
+	struct ovni_mark_thread *mth = &oth->mark;
+
+	for (struct mark_type *type = memu->types; type; type = type->hh.next) {
+		/* TODO: We may use a vector of thread channels in every type to
+		 * avoid the double hash access in events */
+		long i = type->index;
+		struct chan *ch = &mth->channels[i];
+		long row = sth->gindex;
+		long flags = 0;
+		long prvtype = type->type + PRV_OVNI_MARK;
+		if (prv_register(prv, row, prvtype, &emu->bay, ch, flags)) {
+			err("prv_register failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+connect_thread(struct emu *emu)
+{
+	/* Get cpu PRV */
+	struct pvt *pvt = recorder_find_pvt(&emu->recorder, "thread");
+	if (pvt == NULL) {
+		err("cannot find thread pvt");
+		return -1;
+	}
+
+	/* Connect thread channels to PRV */
+	struct prv *prv = pvt_get_prv(pvt);
+	for (struct thread *t = emu->system.threads; t; t = t->gnext) {
+		if (connect_thread_prv(emu, t, prv) != 0) {
+			err("connect_thread_prv failed");
+			return -1;
+		}
+	}
+
+	/* TODO: Init thread PCF */
 	return 0;
 }
 
@@ -304,9 +389,12 @@ mark_create(struct emu *emu)
 int
 mark_connect(struct emu *emu)
 {
-	UNUSED(emu);
+	if (connect_thread(emu) != 0) {
+		err("connect_thread() failed");
+		return -1;
+	}
 
-	/* TODO: Implement */
+	/* TODO: Connect CPU */
 
 	return 0;
 }
@@ -325,25 +413,24 @@ mark_event(struct emu *emu)
 	int64_t value = emu->ev->payload->i64[0];
 	long type = (long) emu->ev->payload->i32[2]; /* always fits */
 
-	struct mark_chan *mc = find_mark_chan(memu, type);
+	struct mark_type *mc = find_mark_type(memu, type);
 
 	if (mc == NULL) {
 		err("cannot find mark with type %ld", type);
 		return -1;
 	}
 
-	/* TODO: Remove stub */
-	//struct chan *ch = &mc->ch;
+	long index = mc->index;
+	struct ovni_thread *oth = EXT(emu->thread, 'O');
+	struct ovni_mark_thread *mth = &oth->mark;
+
+	struct chan *ch = &mth->channels[index];
 
 	switch (emu->ev->v) {
 		case '[':
-			//return chan_push(ch, value_int64(value));
-			info("chan_push(ch, value_int64(%ld))", value);
-			return 0;
+			return chan_push(ch, value_int64(value));
 		case ']':
-			//return chan_pop(ch, value_int64(value));
-			info("chan_pop(ch, value_int64(%ld))", value);
-			return 0;
+			return chan_pop(ch, value_int64(value));
 		default:
 			err("unknown mark event value %c", emu->ev->v);
 			return -1;

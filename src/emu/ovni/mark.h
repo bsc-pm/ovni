@@ -2,14 +2,20 @@
 #define MARK_H
 
 #include "common.h"
+#include "chan.h"
 
 struct emu;
 struct mark_chan;
 
 struct ovni_mark_emu {
-	/* Hash table of channels */
-	struct mark_chan *chan;
-	int has_marks;
+	/* Hash table of types of marks */
+	struct mark_type *types;
+	long ntypes;
+};
+
+struct ovni_mark_thread {
+	struct chan *channels;
+	long nchannels;
 };
 
 USE_RET int mark_create(struct emu *emu);

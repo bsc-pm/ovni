@@ -208,6 +208,11 @@ model_ovni_connect(struct emu *emu)
 		return -1;
 	}
 
+	if (mark_connect(emu) != 0) {
+		err("mark_connect failed");
+		return -1;
+	}
+
 	return 0;
 }
 

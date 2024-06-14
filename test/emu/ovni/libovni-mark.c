@@ -23,9 +23,9 @@ main(void)
 	if(!ovni_attr_has("ovni.mark.1.title"))
 		die("missing mark title");
 
-	ovni_mark_label(MARK_COLORS, 1, "Red");
-	ovni_mark_label(MARK_COLORS, 2, "Blue");
-	ovni_mark_label(MARK_COLORS, 3, "Green");
+	ovni_mark_label(MARK_COLORS, 1, "Blue");
+	ovni_mark_label(MARK_COLORS, 2, "Gray");
+	ovni_mark_label(MARK_COLORS, 3, "Red");
 
 	sleep_us(10); ovni_mark_push(MARK_COLORS, COL_RED);
 	sleep_us(10); ovni_mark_push(MARK_COLORS, COL_BLUE);

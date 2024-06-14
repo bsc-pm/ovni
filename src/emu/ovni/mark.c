@@ -23,6 +23,7 @@ struct mark_label {
 
 struct mark_type {
 	long type;
+	long prvtype;
 	long index; /* From 0 to ntypes - 1 */
 	enum chan_type ctype;
 	struct mark_label *labels; /* Hash table of labels */
@@ -155,6 +156,7 @@ create_mark_type(struct ovni_mark_emu *m, long type, const char *chan_type, cons
 	}
 
 	t->type = type;
+	t->prvtype = type + PRV_OVNI_MARK;
 	t->index = m->ntypes;
 
 	int len = snprintf(t->title, MAX_PCF_LABEL, "%s", title);
@@ -352,9 +354,44 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv)
 		struct chan *ch = &mth->channels[i];
 		long row = sth->gindex;
 		long flags = 0;
-		long prvtype = type->type + PRV_OVNI_MARK;
+		long prvtype = type->prvtype;
 		if (prv_register(prv, row, prvtype, &emu->bay, ch, flags)) {
 			err("prv_register failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+create_type(struct pcf *pcf, struct mark_type *type)
+{
+	struct pcf_type *pcftype = pcf_add_type(pcf, type->prvtype, type->title);
+	if (pcftype == NULL) {
+		err("pcf_add_type failed");
+		return -1;
+	}
+
+	for (struct mark_label *l = type->labels; l; l = l->hh.next) {
+		if (pcf_add_value(pcftype, l->value, l->label) == NULL) {
+			err("pcf_add_value failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+init_pcf(struct emu *emu, struct pcf *pcf)
+{
+	struct ovni_emu *oemu = EXT(emu, 'O');
+	struct ovni_mark_emu *m = &oemu->mark;
+
+	for (struct mark_type *type = m->types; type; type = type->hh.next) {
+		if (create_type(pcf, type) != 0) {
+			err("create_type failed");
 			return -1;
 		}
 	}
@@ -381,7 +418,13 @@ connect_thread(struct emu *emu)
 		}
 	}
 
-	/* TODO: Init thread PCF */
+	/* Init thread PCF */
+	struct pcf *pcf = pvt_get_pcf(pvt);
+	if (init_pcf(emu, pcf) != 0) {
+		err("init_pcf failed");
+		return -1;
+	}
+
 	return 0;
 }
 

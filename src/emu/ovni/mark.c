@@ -215,12 +215,6 @@ parse_mark(struct ovni_mark_emu *m, const char *typestr, JSON_Value *markval)
 		return -1;
 	}
 
-	JSON_Object *labels = json_object_get_object(mark, "labels");
-	if (labels == NULL) {
-		err("json_object_get_object() for labels failed");
-		return -1;
-	}
-
 	struct mark_type *t = find_mark_type(m, type);
 	if (t == NULL) {
 		t = create_mark_type(m, type, chan_type, title);
@@ -239,11 +233,21 @@ parse_mark(struct ovni_mark_emu *m, const char *typestr, JSON_Value *markval)
 		}
 	}
 
-	/* Now populate the mark type with all value labels */
+	/* The labels are optional */
+	if (json_object_has_value(mark, "labels")) {
 
-	if (parse_labels(t, labels) != 0) {
-		err("cannot parse labels");
-		return -1;
+		JSON_Object *labels = json_object_get_object(mark, "labels");
+		if (labels == NULL) {
+			err("json_object_get_object() for labels failed");
+			return -1;
+		}
+
+		/* Now populate the mark type with all value labels */
+
+		if (parse_labels(t, labels) != 0) {
+			err("cannot parse labels");
+			return -1;
+		}
 	}
 
 	return 0;

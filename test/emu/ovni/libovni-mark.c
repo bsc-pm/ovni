@@ -6,11 +6,19 @@
 #include "ovni.h"
 
 enum {
-	MARK_COLORS = 1,
+	MARK_PROGRESS = 1,
+	MARK_COLORS = 2,
 	COL_BLUE = 1,
 	COL_GRAY = 2,
 	COL_RED = 3,
 };
+
+static void
+rand_sleep(int max_us)
+{
+	int t = rand() % max_us;
+	sleep_us(t);
+}
 
 /* Check ovni_mark_* API. */
 int
@@ -19,6 +27,15 @@ main(void)
 	int rank = atoi(getenv("OVNI_RANK"));
 	int nranks = atoi(getenv("OVNI_NRANKS"));
 	instr_start(rank, nranks);
+
+	/* Deterministic rand() */
+	srand(100 + rank);
+
+	/* Test set without labels */
+
+	ovni_mark_type(MARK_PROGRESS, 0, "Progress");
+
+	/* Test push/pop */
 
 	ovni_mark_type(MARK_COLORS, OVNI_MARK_STACK, "Colors");
 
@@ -29,12 +46,17 @@ main(void)
 	ovni_mark_label(MARK_COLORS, COL_GRAY, "Gray");
 	ovni_mark_label(MARK_COLORS, COL_RED,  "Red");
 
-	sleep_us(10); ovni_mark_push(MARK_COLORS, COL_BLUE);
-	sleep_us(10); ovni_mark_push(MARK_COLORS, COL_GRAY);
-	sleep_us(10); ovni_mark_push(MARK_COLORS, COL_RED);
-	sleep_us(50); ovni_mark_pop(MARK_COLORS, COL_RED);
-	sleep_us(10); ovni_mark_pop(MARK_COLORS, COL_GRAY);
-	sleep_us(10); ovni_mark_pop(MARK_COLORS, COL_BLUE);
+	for (int i = 0; i < 100; i++) {
+		ovni_mark_set(MARK_PROGRESS, i);
+
+		int which = 1 + (rand() % 3);
+
+		ovni_mark_push(MARK_COLORS, which);
+		rand_sleep(500);
+		ovni_mark_pop(MARK_COLORS, which);
+	}
+
+	ovni_mark_set(MARK_PROGRESS, 100);
 
 	instr_end();
 

@@ -40,6 +40,7 @@ static struct ev_decl model_evlist[] = {
 
 	{ "OM[(i64 value, i32 type)", "push mark with value %{value} from type %{type}" },
 	{ "OM](i64 value, i32 type)", "pop mark with value %{value} from type %{type}" },
+	{ "OM=(i64 value, i32 type)", "set mark with value %{value} from type %{type}" },
 
 	{ NULL, NULL },
 };

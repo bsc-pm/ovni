@@ -150,6 +150,7 @@ void ovni_mark_type(int32_t type, long flags, const char *title);
 void ovni_mark_label(int32_t type, int64_t value, const char *label);
 void ovni_mark_push(int32_t type, int64_t value);
 void ovni_mark_pop(int32_t type, int64_t value);
+void ovni_mark_set(int32_t type, int64_t value);
 
 #ifdef __cplusplus
 }

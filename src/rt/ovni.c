@@ -1154,3 +1154,14 @@ ovni_mark_pop(int32_t type, int64_t value)
 	ovni_payload_add(&ev, (uint8_t *) &type, sizeof(type));
 	ovni_ev_add(&ev);
 }
+
+void
+ovni_mark_set(int32_t type, int64_t value)
+{
+	struct ovni_ev ev = {0};
+	ovni_ev_set_clock(&ev, ovni_clock_now());
+	ovni_ev_set_mcv(&ev, "OM=");
+	ovni_payload_add(&ev, (uint8_t *) &value, sizeof(value));
+	ovni_payload_add(&ev, (uint8_t *) &type, sizeof(type));
+	ovni_ev_add(&ev);
+}

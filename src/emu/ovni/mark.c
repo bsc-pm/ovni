@@ -478,6 +478,8 @@ mark_event(struct emu *emu)
 			return chan_push(ch, value_int64(value));
 		case ']':
 			return chan_pop(ch, value_int64(value));
+		case '=':
+			return chan_set(ch, value_int64(value));
 		default:
 			err("unknown mark event value %c", emu->ev->v);
 			return -1;

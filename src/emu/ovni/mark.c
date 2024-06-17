@@ -357,7 +357,7 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv)
 		long i = type->index;
 		struct chan *ch = &mth->channels[i];
 		long row = sth->gindex;
-		long flags = 0;
+		long flags = PRV_ZERO; /* Allow zero value */
 		long prvtype = type->prvtype;
 		if (prv_register(prv, row, prvtype, &emu->bay, ch, flags)) {
 			err("prv_register failed");

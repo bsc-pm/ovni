@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Jun 13 2024.
+Built on Jun 17 2024.
 
 ## Model nanos6
 
@@ -395,7 +395,7 @@ List of events for the model *mpi* with identifier **`M`** at version `1.0.0`:
 
 ## Model ovni
 
-List of events for the model *ovni* with identifier **`O`** at version `1.0.0`:
+List of events for the model *ovni* with identifier **`O`** at version `1.1.0`:
 <dl>
 <dt><a id="OAr" href="#OAr"><pre>OAr(i32 cpu, i32 tid)</pre></a></dt>
 <dd>changes the affinity of thread %{tid} to CPU %{cpu}</dd>
@@ -427,6 +427,12 @@ List of events for the model *ovni* with identifier **`O`** at version `1.0.0`:
 <dd>enters unordered event region</dd>
 <dt><a id="OU]" href="#OU]"><pre>OU]</pre></a></dt>
 <dd>leaves unordered event region</dd>
+<dt><a id="OM[" href="#OM["><pre>OM[(i64 value, i32 type)</pre></a></dt>
+<dd>push mark with value %{value} from type %{type}</dd>
+<dt><a id="OM]" href="#OM]"><pre>OM](i64 value, i32 type)</pre></a></dt>
+<dd>pop mark with value %{value} from type %{type}</dd>
+<dt><a id="OM=" href="#OM="><pre>OM=(i64 value, i32 type)</pre></a></dt>
+<dd>set mark with value %{value} from type %{type}</dd>
 </dl>
 
 ## Model openmp

@@ -27,6 +27,8 @@ Track changes in emulator model versions.
 
 ## Ovni
 
+- ovni 1.1.0
+    - Add support for mark events `OM[`, `OM]` and `OM=`
 - ovni 1.0.0: Initial version
 
 ## OpenMP

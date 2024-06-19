@@ -19,6 +19,10 @@ struct ovni_mark_thread {
 	long nchannels;
 };
 
+struct ovni_mark_cpu {
+	struct track *track;
+};
+
 USE_RET int mark_create(struct emu *emu);
 USE_RET int mark_connect(struct emu *emu);
 USE_RET int mark_event(struct emu *emu);

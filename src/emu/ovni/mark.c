@@ -1,6 +1,7 @@
 #include "mark.h"
 
 #include "chan.h"
+#include "cpu.h"
 #include "emu.h"
 #include "emu_ev.h"
 #include "emu_prv.h"
@@ -337,6 +338,36 @@ create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
 	return 0;
 }
 
+static int
+init_cpu(struct ovni_mark_emu *m, struct bay *bay, struct cpu *cpu)
+{
+	struct ovni_cpu *ocpu = EXT(cpu, 'O');
+	struct ovni_mark_cpu *c = &ocpu->mark;
+
+	const char *fmt = "cpu%ld.mark%ld";
+
+	/* Setup tracking */
+	c->track = calloc(m->ntypes, sizeof(struct track));
+	if (c->track == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	struct mark_type *type;
+	for (type = m->types; type; type = type->hh.next) {
+		long i = type->index;
+		struct track *track = &c->track[i];
+		/* For now only tracking to running thread is supported */
+		if (track_init(track, bay, TRACK_TYPE_TH, TRACK_TH_RUN,
+					fmt, cpu->gindex, type->type) != 0) {
+			err("track_init failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /* Scans streams for marks and creates the mark channels */
 int
 mark_create(struct emu *emu)
@@ -356,6 +387,13 @@ mark_create(struct emu *emu)
 	for (struct thread *th = emu->system.threads; th; th = th->gnext) {
 		if (create_thread_chan(memu, &emu->bay, th) != 0) {
 			err("create_thread_chan failed");
+			return -1;
+		}
+	}
+
+	for (struct cpu *cpu = emu->system.cpus; cpu; cpu = cpu->next) {
+		if (init_cpu(memu, &emu->bay, cpu) != 0) {
+			err("init_cpu failed");
 			return -1;
 		}
 	}
@@ -466,6 +504,88 @@ connect_thread(struct emu *emu)
 	return 0;
 }
 
+static int
+connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
+{
+	struct ovni_emu *oemu = EXT(emu, 'O');
+	struct ovni_mark_emu *memu = &oemu->mark;
+	struct ovni_cpu *ocpu = EXT(scpu, 'O');
+	struct ovni_mark_cpu *mcpu = &ocpu->mark;
+
+
+	for (struct mark_type *type = memu->types; type; type = type->hh.next) {
+		/* NOTE: We may use a vector of thread channels in every type to
+		 * avoid the double hash access in events */
+		long i = type->index;
+		struct track *track = &mcpu->track[i];
+		struct chan *sel = cpu_get_th_chan(scpu);
+
+		int64_t nthreads = emu->system.nthreads;
+		if (track_set_select(track, sel, NULL, nthreads) != 0) {
+			err("track_select failed");
+			return -1;
+		}
+
+		/* Add each thread as input */
+		for (struct thread *t = emu->system.threads; t; t = t->gnext) {
+			struct ovni_thread *oth = EXT(t, 'O');
+			struct ovni_mark_thread *mth = &oth->mark;
+
+			/* Use the input thread directly */
+			struct chan *inp = &mth->channels[i];
+
+			if (track_set_input(track, t->gindex, inp) != 0) {
+				err("track_add_input failed");
+				return -1;
+			}
+		}
+
+		/* Then connect the output of the tracking module to the prv
+		 * trace for the current thread */
+		struct chan *out = track_get_output(track);
+		long row = scpu->gindex;
+		/* Allow zero value and skip duplicated nulls */
+		long flags = PRV_ZERO | PRV_SKIPDUPNULL;
+		long prvtype = type->prvtype;
+		if (prv_register(prv, row, prvtype, &emu->bay, out, flags)) {
+			err("prv_register failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+
+static int
+connect_cpu(struct emu *emu)
+{
+	/* Get cpu PRV */
+	struct pvt *pvt = recorder_find_pvt(&emu->recorder, "cpu");
+	if (pvt == NULL) {
+		err("cannot find thread pvt");
+		return -1;
+	}
+
+	/* Connect cpu channels to PRV */
+	struct prv *prv = pvt_get_prv(pvt);
+	for (struct cpu *cpu = emu->system.cpus; cpu; cpu = cpu->next) {
+		if (connect_cpu_prv(emu, cpu, prv) != 0) {
+			err("connect_cpu_prv failed");
+			return -1;
+		}
+	}
+
+	/* Init thread PCF */
+	struct pcf *pcf = pvt_get_pcf(pvt);
+	if (init_pcf(emu, pcf) != 0) {
+		err("init_pcf failed");
+		return -1;
+	}
+
+	return 0;
+}
+
 /* Connect the channels to the output PVTs */
 int
 mark_connect(struct emu *emu)
@@ -475,7 +595,10 @@ mark_connect(struct emu *emu)
 		return -1;
 	}
 
-	/* TODO: Connect CPU */
+	if (connect_cpu(emu) != 0) {
+		err("connect_cpu() failed");
+		return -1;
+	}
 
 	return 0;
 }

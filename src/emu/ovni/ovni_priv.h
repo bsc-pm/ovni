@@ -40,6 +40,7 @@ struct ovni_thread {
 
 struct ovni_cpu {
 	struct model_cpu m;
+	struct ovni_mark_cpu mark;
 };
 
 struct ovni_emu {

@@ -62,6 +62,8 @@ int64_t get_delta(void);
 	}
 
 INSTR_3ARG(instr_thread_execute, "OHx", int32_t, cpu, int32_t, creator_tid, uint64_t, tag)
+INSTR_0ARG(instr_thread_pause, "OHp")
+INSTR_0ARG(instr_thread_resume, "OHr")
 INSTR_1ARG(instr_thread_affinity_set, "OAs", int32_t, cpu)
 
 static inline void

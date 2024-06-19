@@ -51,9 +51,16 @@ main(void)
 
 		int which = 1 + (rand() % 3);
 
+		/* Simulate a thread goes to sleep */
+		if (rank == 0 && i == 25)
+			instr_thread_pause();
+
 		ovni_mark_push(MARK_COLORS, which);
 		rand_sleep(500);
 		ovni_mark_pop(MARK_COLORS, which);
+
+		if (rank == 0 && i == 75)
+			instr_thread_resume();
 	}
 
 	ovni_mark_set(MARK_PROGRESS, 100);

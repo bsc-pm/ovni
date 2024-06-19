@@ -14,6 +14,7 @@ struct ovni_mark_emu {
 };
 
 struct ovni_mark_thread {
+	struct track *track;
 	struct chan *channels;
 	long nchannels;
 };

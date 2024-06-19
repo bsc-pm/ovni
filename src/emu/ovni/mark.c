@@ -12,6 +12,7 @@
 #include "pv/prv.h"
 #include "pv/pvt.h"
 #include "thread.h"
+#include "track.h"
 #include "uthash.h"
 #include <errno.h>
 
@@ -299,17 +300,36 @@ create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
 
 	t->nchannels = m->ntypes;
 
+	const char *fmt = "thread%ld.mark%ld";
+
 	struct mark_type *type;
 	for (type = m->types; type; type = type->hh.next) {
 		/* TODO: We may use a vector of thread channels in every type to
 		 * avoid the double hash access in events */
 		long i = type->index;
 		struct chan *ch = &t->channels[i];
-		chan_init(ch, type->ctype, "thread%ld.mark%ld",
-				th->gindex, type->type);
+		chan_init(ch, type->ctype, fmt, th->gindex, type->type);
 
 		if (bay_register(bay, ch) != 0) {
 			err("bay_register failed");
+			return -1;
+		}
+	}
+
+	/* Setup tracking */
+	t->track = calloc(m->ntypes, sizeof(struct track));
+	if (t->track == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	for (type = m->types; type; type = type->hh.next) {
+		long i = type->index;
+		struct track *track = &t->track[i];
+		/* For now only tracking to running thread is supported */
+		if (track_init(track, bay, TRACK_TYPE_TH, TRACK_TH_RUN,
+					fmt, th->gindex, type->type) != 0) {
+			err("track_init failed");
 			return -1;
 		}
 	}
@@ -351,15 +371,29 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv)
 	struct ovni_thread *oth = EXT(sth, 'O');
 	struct ovni_mark_thread *mth = &oth->mark;
 
+
 	for (struct mark_type *type = memu->types; type; type = type->hh.next) {
 		/* TODO: We may use a vector of thread channels in every type to
 		 * avoid the double hash access in events */
 		long i = type->index;
 		struct chan *ch = &mth->channels[i];
+		struct track *track = &mth->track[i];
+		struct chan *sel = &sth->chan[TH_CHAN_STATE];
+
+		/* Connect the input and sel channel to the mux */
+		if (track_connect_thread(track, ch, sel, 1) != 0) {
+			err("track_connect_thread failed");
+			return -1;
+		}
+
+		/* Then connect the output of the tracking module to the prv
+		 * trace for the current thread */
+		struct chan *out = track_get_output(track);
 		long row = sth->gindex;
-		long flags = PRV_ZERO; /* Allow zero value */
+		/* Allow zero value and skip duplicated nulls */
+		long flags = PRV_ZERO | PRV_SKIPDUPNULL;
 		long prvtype = type->prvtype;
-		if (prv_register(prv, row, prvtype, &emu->bay, ch, flags)) {
+		if (prv_register(prv, row, prvtype, &emu->bay, out, flags)) {
 			err("prv_register failed");
 			return -1;
 		}

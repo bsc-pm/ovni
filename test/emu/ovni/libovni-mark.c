@@ -63,6 +63,12 @@ main(void)
 		ovni_mark_set(MARK_PROGRESS, i);
 	}
 
+	/* Ensure we can emit the same value several times */
+	for (int i = 0; i < 10; i++) {
+		sleep_us(10);
+		ovni_mark_set(MARK_PROGRESS, 100);
+	}
+
 	instr_end();
 
 	return 0;

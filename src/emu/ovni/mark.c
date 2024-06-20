@@ -311,6 +311,9 @@ create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
 		struct chan *ch = &t->channels[i];
 		chan_init(ch, type->ctype, fmt, th->gindex, type->type);
 
+		/* Allow duplicates */
+		chan_prop_set(ch, CHAN_ALLOW_DUP, 1);
+
 		if (bay_register(bay, ch) != 0) {
 			err("bay_register failed");
 			return -1;

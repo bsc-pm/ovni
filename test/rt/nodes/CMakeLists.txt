@@ -82,3 +82,6 @@ elseif(ENABLE_ALL_TESTS)
 else()
   message(STATUS "Disabling perf paranoid tests for NODES")
 endif()
+
+nodes_rt_test(fibonacci-mark.c SORT)
+nodes_rt_test(heat-mark.c SORT)

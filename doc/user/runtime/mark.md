@@ -65,6 +65,8 @@ void ovni_mark_push(int32_t type, int64_t value);
 void ovni_mark_pop(int32_t type, int64_t value);
 ```
 
+The value in the pop call must match the previous pushed value.
+
 ## Usage in Paraver
 
 Each thread holds a channel for each mark type that you have defined. The

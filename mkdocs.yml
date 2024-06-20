@@ -27,6 +27,7 @@ nav:
     - user/installation.md
     - 'Runtime':
       - user/runtime/tracing.md
+      - user/runtime/mark.md
       - user/runtime/distributed.md
       - user/runtime/kernel.md
       - user/runtime/trace_spec.md

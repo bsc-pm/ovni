@@ -624,6 +624,11 @@ mark_event(struct emu *emu)
 		return -1;
 	}
 
+	if (value == 0) {
+		err("mark value cannot be zero, type %ld", type);
+		return -1;
+	}
+
 	long index = mc->index;
 	struct ovni_thread *oth = EXT(emu->thread, 'O');
 	struct ovni_mark_thread *mth = &oth->mark;

@@ -40,7 +40,13 @@ void ovni_mark_label(int32_t type, int64_t value, const char *label);
 ### Emit events
 
 All mark channels begin with the default value *null*, which is not shown in
-Paraver and will be displayed as the usual empty space.
+Paraver and will be displayed as the usual empty space. The value of the channel
+can be changed over time with the following functions.
+
+!!! warning
+
+    The value 0 is forbidden, as it is used by Paraver to represent the
+    "empty" state.
 
 If you have used a single channel (without `OVNI_MARK_STACK`), then you must use
 the following call to emit events at runtime:

@@ -46,9 +46,7 @@ main(void)
 	ovni_mark_label(MARK_COLORS, COL_GRAY, "Gray");
 	ovni_mark_label(MARK_COLORS, COL_RED,  "Red");
 
-	for (int i = 0; i < 100; i++) {
-		ovni_mark_set(MARK_PROGRESS, i);
-
+	for (int i = 1; i <= 100; i++) {
 		int which = 1 + (rand() % 3);
 
 		/* Simulate a thread goes to sleep */
@@ -61,9 +59,9 @@ main(void)
 
 		if (rank == 0 && i == 75)
 			instr_thread_resume();
-	}
 
-	ovni_mark_set(MARK_PROGRESS, 100);
+		ovni_mark_set(MARK_PROGRESS, i);
+	}
 
 	instr_end();
 

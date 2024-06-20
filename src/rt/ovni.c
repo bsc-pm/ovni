@@ -1136,6 +1136,9 @@ ovni_mark_label(int32_t type, int64_t value, const char *label)
 void
 ovni_mark_push(int32_t type, int64_t value)
 {
+	if (value == 0)
+		die("value cannot be 0, type %ld", (long) type);
+
 	struct ovni_ev ev = {0};
 	ovni_ev_set_clock(&ev, ovni_clock_now());
 	ovni_ev_set_mcv(&ev, "OM[");
@@ -1147,6 +1150,9 @@ ovni_mark_push(int32_t type, int64_t value)
 void
 ovni_mark_pop(int32_t type, int64_t value)
 {
+	if (value == 0)
+		die("value cannot be 0, type %ld", (long) type);
+
 	struct ovni_ev ev = {0};
 	ovni_ev_set_clock(&ev, ovni_clock_now());
 	ovni_ev_set_mcv(&ev, "OM]");
@@ -1158,6 +1164,9 @@ ovni_mark_pop(int32_t type, int64_t value)
 void
 ovni_mark_set(int32_t type, int64_t value)
 {
+	if (value == 0)
+		die("value cannot be 0, type %ld", (long) type);
+
 	struct ovni_ev ev = {0};
 	ovni_ev_set_clock(&ev, ovni_clock_now());
 	ovni_ev_set_mcv(&ev, "OM=");

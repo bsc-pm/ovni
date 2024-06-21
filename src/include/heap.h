@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* Author: David Alvarez
@@ -112,6 +112,20 @@ heap_max(heap_head_t *head)
 	return head->root;
 }
 
+static inline int
+leading_zeros(size_t x)
+{
+	/* Call and if()'s optimized by the compiler with -O2 */
+	if (sizeof(size_t) == sizeof(unsigned int))
+		return __builtin_clz(x);
+	else if (sizeof(size_t) == sizeof(unsigned long))
+		return __builtin_clzl(x);
+	else if (sizeof(size_t) == sizeof(unsigned long long))
+		return __builtin_clzll(x);
+	else
+		die("cannot find suitable size for __builtin_clz*");
+}
+
 /* Get a move to reach a leaf */
 static inline int
 heap_get_move(size_t *node /*out*/)
@@ -119,8 +133,8 @@ heap_get_move(size_t *node /*out*/)
 	size_t aux_node = *node;
 
 	// Round to previous po2
-	size_t base = (1ULL) << (sizeof(size_t) * 8
-				      - __builtin_clzll(aux_node) - 1);
+	int shift = sizeof(size_t) * 8 - leading_zeros(aux_node) - 1;
+	size_t base = 1ULL << shift;
 
 	aux_node -= base / 2;
 

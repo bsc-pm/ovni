@@ -431,8 +431,7 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv)
 		 * trace for the current thread */
 		struct chan *out = track_get_output(track);
 		long row = sth->gindex;
-		/* Allow zero value and skip duplicated nulls */
-		long flags = PRV_ZERO | PRV_SKIPDUPNULL;
+		long flags = PRV_SKIPDUPNULL;
 		long prvtype = type->prvtype;
 		if (prv_register(prv, row, prvtype, &emu->bay, out, flags)) {
 			err("prv_register failed");
@@ -547,8 +546,7 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 		 * trace for the current thread */
 		struct chan *out = track_get_output(track);
 		long row = scpu->gindex;
-		/* Allow zero value and skip duplicated nulls */
-		long flags = PRV_ZERO | PRV_SKIPDUPNULL;
+		long flags = PRV_SKIPDUPNULL;
 		long prvtype = type->prvtype;
 		if (prv_register(prv, row, prvtype, &emu->bay, out, flags)) {
 			err("prv_register failed");

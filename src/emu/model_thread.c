@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "model_thread.h"
@@ -19,7 +19,7 @@
 static int
 init_chan(struct model_thread *th, const struct model_chan_spec *spec, int64_t gindex)
 {
-	const char *fmt = "%s.thread%ld.%s";
+	const char *fmt = "%s.thread%"PRIi64".%s";
 	const char *prefix = spec->prefix;
 
 	th->ch = calloc(spec->nch, sizeof(struct chan));

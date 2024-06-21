@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "cpu.h"
@@ -17,7 +17,7 @@
 #include "utlist.h"
 #include "value.h"
 
-static const char chan_fmt[] = "cpu%ld.%s";
+static const char chan_fmt[] = "cpu%"PRIi64".%s";
 static const char *chan_name[CPU_CHAN_MAX] = {
 	[CPU_CHAN_NRUN]  = "nrunning",
 	[CPU_CHAN_PID]   = "pid_running",

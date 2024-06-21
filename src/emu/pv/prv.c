@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "prv.h"
@@ -69,9 +69,9 @@ find_prv_chan(struct prv *prv, long id)
 }
 
 static void
-write_line(struct prv *prv, long row_base1, long type, long value)
+write_line(struct prv *prv, long row_base1, int64_t type, int64_t value)
 {
-	fprintf(prv->file, "2:0:1:1:%ld:%" PRIi64 ":%ld:%ld\n",
+	fprintf(prv->file, "2:0:1:1:%ld:%"PRIi64":%"PRIi64":%"PRIi64"\n",
 			row_base1, prv->time, type, value);
 }
 
@@ -117,7 +117,7 @@ emit(struct prv *prv, struct prv_chan *rchan)
 	}
 
 	/* Assume null */
-	long val = 0;
+	int64_t val = 0;
 	if (likely(value.type == VALUE_INT64)) {
 		val = value.i;
 		if (rchan->flags & PRV_NEXT)

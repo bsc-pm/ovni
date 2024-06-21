@@ -33,8 +33,8 @@ static int
 create_cpu(struct bay *bay, struct nosv_breakdown_cpu *bcpu, int64_t gindex)
 {
 	enum chan_type t = CHAN_SINGLE;
-	chan_init(&bcpu->tr,  t, "nosv.cpu%ld.breakdown.tr",  gindex);
-	chan_init(&bcpu->tri, t, "nosv.cpu%ld.breakdown.tri", gindex);
+	chan_init(&bcpu->tr,  t, "nosv.cpu%"PRIi64".breakdown.tr",  gindex);
+	chan_init(&bcpu->tri, t, "nosv.cpu%"PRIi64".breakdown.tri", gindex);
 
 	/* Register all channels in the bay */
 	if (bay_register(bay, &bcpu->tr) != 0) {
@@ -161,7 +161,7 @@ select_tr(struct mux *mux, struct value value, struct mux_input **input)
 
 	int64_t i = in_body;
 	char *inputs[] = { "subsystem", "task_type" };
-	dbg("selecting input %ld (%s)", i, inputs[i]);
+	dbg("selecting input %"PRIi64" (%s)", i, inputs[i]);
 	*input = mux_get_input(mux, i);
 
 	return 0;
@@ -327,7 +327,7 @@ model_nosv_breakdown_finish(struct emu *emu,
 	struct prf *prf = pvt_get_prf(bemu->pvt);
 	for (int64_t row = 0; row < bemu->nphycpus; row++) {
 		char name[128];
-		if (snprintf(name, 128, "~CPU %4ld", bemu->nphycpus - row) >= 128) {
+		if (snprintf(name, 128, "~CPU %4"PRIi64, bemu->nphycpus - row) >= 128) {
 			err("label too long");
 			return -1;
 		}

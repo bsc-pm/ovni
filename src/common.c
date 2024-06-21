@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
 #include "common.h"
@@ -56,7 +56,7 @@ vaerr(const char *prefix, const char *func, const char *errstr, va_list ap)
 	}
 }
 
-void
+void __attribute__((format(printf, 3, 4)))
 verr(const char *prefix, const char *func, const char *errstr, ...)
 {
 	va_list ap;
@@ -65,7 +65,7 @@ verr(const char *prefix, const char *func, const char *errstr, ...)
 	va_end(ap);
 }
 
-void
+void __attribute__((format(printf, 3, 4)))
 vdie(const char *prefix, const char *func, const char *errstr, ...)
 {
 	va_list ap;

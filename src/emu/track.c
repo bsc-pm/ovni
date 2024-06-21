@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "track.h"
@@ -17,7 +17,7 @@ static const char **track_suffix[TRACK_TYPE_MAX] = {
 	[TRACK_TYPE_TH] = th_suffix,
 };
 
-int
+int __attribute__((format(printf, 5, 6)))
 track_init(struct track *track, struct bay *bay, enum track_type type, int mode, const char *fmt, ...)
 {
 	va_list ap;

@@ -115,6 +115,7 @@ function(ovni_test source)
 
   set_tests_properties("${OVNI_TEST_NAME}"
     PROPERTIES
+      TIMEOUT 30
       RUN_SERIAL TRUE
       ENVIRONMENT "${OVNI_TEST_ENV}"
       WORKING_DIRECTORY "${OVNI_TEST_BUILD_DIR}")

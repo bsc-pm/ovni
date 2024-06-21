@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu.h"
@@ -118,9 +118,9 @@ panic(struct emu *emu)
 	if (emu->ev != NULL) {
 		err("event: ");
 		err("  mcv=%s", emu->ev->mcv);
-		err("  rclock=%lld", emu->ev->rclock);
-		err("  sclock=%lld", emu->ev->sclock);
-		err("  dclock=%lld", emu->ev->dclock);
+		err("  rclock=%"PRIi64, emu->ev->rclock);
+		err("  sclock=%"PRIi64, emu->ev->sclock);
+		err("  dclock=%"PRIi64, emu->ev->dclock);
 		err("  payload_size=%zd", emu->ev->payload_size);
 		err("  is_jumbo=%d", emu->ev->is_jumbo);
 	}
@@ -128,8 +128,8 @@ panic(struct emu *emu)
 	if (emu->stream != NULL) {
 		err("stream: ");
 		err("  relpath=%s", emu->stream->relpath);
-		err("  offset=%lld", emu->stream->offset);
-		err("  clock_offset=%lld", emu->stream->clock_offset);
+		err("  offset=%"PRIi64, emu->stream->offset);
+		err("  clock_offset=%"PRIi64, emu->stream->clock_offset);
 	}
 	err("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 }
@@ -156,7 +156,7 @@ emu_step(struct emu *emu)
 		return -1;
 	}
 
-	dbg("----- mvc=%s dclock=%lld -----", emu->ev->mcv, emu->ev->dclock);
+	dbg("----- mcv=%s dclock=%"PRIi64" -----", emu->ev->mcv, emu->ev->dclock);
 
 	emu_stat_update(&emu->stat, &emu->player);
 

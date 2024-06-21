@@ -396,7 +396,7 @@ finish_pvt(struct emu *emu, const char *name)
 		return -1;
 	}
 	struct pcf *pcf = pvt_get_pcf(pvt);
-	long typeid = pvt_type[CH_TYPE];
+	int typeid = pvt_type[CH_TYPE];
 	struct pcf_type *pcftype = pcf_find_type(pcf, typeid);
 	if (pcftype == NULL) {
 		err("cannot find %s pcf type %d", name, typeid);

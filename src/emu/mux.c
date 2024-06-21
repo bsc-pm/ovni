@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "mux.h"
@@ -25,7 +25,7 @@ default_select(struct mux *mux,
 	int64_t index = key.i;
 
 	if (index < 0 || index >= mux->ninputs) {
-		err("index out of bounds %lld", index);
+		err("index out of bounds %"PRIi64, index);
 		return -1;
 	}
 
@@ -214,7 +214,7 @@ mux_set_input(struct mux *mux, int64_t index, struct chan *chan)
 	struct mux_input *input = &mux->inputs[index];
 
 	if (input->chan != NULL) {
-		err("input %d already has a channel", index);
+		err("input %"PRIi64" already has a channel", index);
 		return -1;
 	}
 

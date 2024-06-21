@@ -7,7 +7,7 @@
 #include <string.h>
 #include "common.h"
 
-void __attribute__((format(printf, 3, 4)))
+void
 chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...)
 {
 	memset(chan, 0, sizeof(struct chan));

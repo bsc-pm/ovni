@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -56,12 +56,12 @@ test_case(int64_t n, int64_t run)
 	while (old == new)
 		new = randint();
 
-	dbg("-- CASE run=%lld n=%lld iold=%lld old=%lld new=%lld\n",
+	dbg("-- CASE run=%"PRIi64" n=%"PRIi64" iold=%"PRIi64" old=%"PRIi64" new=%"PRIi64"\n",
 			run, n, iold, old, new);
 
 	dbg("Contents before sort: ");
 	for (int64_t i = 0; i < n; i++) {
-		dbg("i=%lld, arr[i]=%lld, copy[i]=%lld\n",
+		dbg("i=%"PRIi64", arr[i]=%"PRIi64", copy[i]=%"PRIi64"\n",
 				i, arr[i], copy[i]);
 	}
 
@@ -72,7 +72,7 @@ test_case(int64_t n, int64_t run)
 
 	dbg("Contents after sort: ");
 	for (int64_t i = 0; i < n; i++) {
-		dbg("i=%lld, arr[i]=%lld, copy[i]=%lld\n",
+		dbg("i=%"PRIi64", arr[i]=%"PRIi64", copy[i]=%"PRIi64"\n",
 				i, arr[i], copy[i]);
 	}
 
@@ -94,7 +94,7 @@ test_sort_replace(void)
 	for (int64_t n = nmin; n <= nmax; n += nstep) {
 		for (int64_t run = 0; run < nrun; run++)
 			test_case(n, run);
-		err("n = %lld OK", n);
+		err("n = %"PRIi64" OK", n);
 	}
 }
 

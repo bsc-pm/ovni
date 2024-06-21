@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "system.h"
@@ -340,10 +340,10 @@ print_system(struct system *sys)
 {
 	err("content of system: ");
 	for (struct loom *l = sys->looms; l; l = l->next) {
-		err("%s gindex=%d", l->id, l->gindex);
+		err("%s gindex=%"PRIi64, l->id, l->gindex);
 		err("+ %zd processes: ", l->nprocs);
 		for (struct proc *p = l->procs; p; p = p->hh.next) {
-			err("| %s gindex=%d pid=%d",
+			err("| %s gindex=%"PRIi64" pid=%d",
 					p->id, p->gindex, p->pid);
 			err("| + %d threads: ", p->nthreads);
 			for (struct thread *t = p->threads; t; t = t->hh.next) {
@@ -353,15 +353,15 @@ print_system(struct system *sys)
 		}
 		err("+ %zd phy cpus: ", l->ncpus);
 		for (struct cpu *cpu = l->cpus; cpu; cpu = cpu->hh.next) {
-			err("| %s gindex=%lld phyid=%d",
+			err("| %s gindex=%"PRIi64" phyid=%d",
 					cpu->name,
 					cpu->gindex,
 					cpu->phyid);
 		}
 
-		err("+ 1 virtual cpu: ", l->ncpus);
+		err("+ 1 virtual cpu: ");
 		struct cpu *cpu = &l->vcpu;
-		err("| %s gindex=%lld phyid=%d",
+		err("| %s gindex=%"PRIi64" phyid=%d",
 				cpu->name,
 				cpu->gindex,
 				cpu->phyid);

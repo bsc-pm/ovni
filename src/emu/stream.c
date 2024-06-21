@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "stream.h"
@@ -118,7 +118,7 @@ stream_load(struct stream *stream, const char *tracedir, const char *relpath)
 		warn("stream '%s' has zero events", stream->relpath);
 		stream->active = 0;
 	} else {
-		err("impossible, offset %lld bigger than size %lld",
+		err("impossible, offset %"PRIi64" bigger than size %"PRIi64,
 				stream->offset, stream->size);
 		return -1;
 	}
@@ -196,7 +196,7 @@ stream_step(struct stream *stream)
 
 		/* It cannot pass the size, otherwise we are reading garbage */
 		if (stream->offset > stream->size) {
-			err("stream offset %lld exceeds size %lld",
+			err("stream offset %"PRIi64" exceeds size %"PRIi64,
 					stream->offset, stream->size);
 			return -1;
 		}
@@ -223,7 +223,7 @@ stream_step(struct stream *stream)
 	/* Ensure the clock grows monotonically if unsorted flag not set */
 	if (stream->unsorted == 0) {
 		if (clock < stream->lastclock) {
-			err("clock goes backwards %lld -> %lld in stream '%s' at offset %lld",
+			err("clock goes backwards %"PRIi64" -> %"PRIi64" in stream '%s' at offset %"PRIi64,
 					stream->lastclock,
 					clock,
 					stream->relpath,

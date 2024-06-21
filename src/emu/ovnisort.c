@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* This program is a really bad idea. It attempts to sort streams by using a
@@ -106,8 +106,8 @@ find_destination(struct ring *r, uint64_t clock)
 		return r->head;
 	}
 
-	err("cannot find a event previous to clock %lu", clock);
-	err("nback=%zd, last_clock=%lu", nback, last_clock);
+	err("cannot find a event previous to clock %"PRIu64, clock);
+	err("nback=%zd, last_clock=%"PRIu64, nback, last_clock);
 
 	return -1;
 }
@@ -183,7 +183,7 @@ write_events(struct ovni_ev **table, long n, uint8_t *buf)
 		memcpy(buf, ev, size);
 		buf += size;
 
-		dbg("injected event %c%c%c at %lld",
+		dbg("injected event %c%c%c at %"PRIu64,
 				ev->header.model,
 				ev->header.category,
 				ev->header.value,
@@ -216,7 +216,7 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize)
 {
 	struct ovni_ev *ev = (struct ovni_ev *) src;
 
-	dbg("first event before sorting %c%c%c at %lld",
+	dbg("first event before sorting %c%c%c at %"PRIu64,
 			ev->header.model,
 			ev->header.category,
 			ev->header.value,
@@ -238,7 +238,7 @@ sort_buf(uint8_t *src, uint8_t *buf, int64_t bufsize)
 	qsort(table, n, sizeof(struct ovni_ev *), cmp_ev);
 	write_events(table, n, buf);
 
-	dbg("first event after sorting %c%c%c at %lld",
+	dbg("first event after sorting %c%c%c at %"PRIu64,
 			ev->header.model,
 			ev->header.category,
 			ev->header.value,
@@ -270,19 +270,19 @@ static int
 execute_sort_plan(struct sortplan *sp)
 {
 	uint64_t clock0 = sp->bad0->header.clock;
-	dbg("attempt to sort: start clock %lld", sp->bad0->header.clock);
+	dbg("attempt to sort: start clock %"PRIi64, sp->bad0->header.clock);
 
 	uint64_t min_clock = find_min_clock((void *) sp->bad0, (void *) sp->next);
 
 	if (min_clock < clock0) {
 		clock0 = min_clock;
-		dbg("region not sorted, using min clock=%lld", clock0);
+		dbg("region not sorted, using min clock=%"PRIi64, clock0);
 	}
 
 	/* Cannot sort in one pass; just fail for now */
 	int64_t i0 = find_destination(sp->r, clock0);
 	if (i0 < 0) {
-		err("cannot find destination for region starting at clock %lld", clock0);
+		err("cannot find destination for region starting at clock %"PRIi64, clock0);
 		err("consider increasing the look back size with -n");
 		return -1;
 	}
@@ -410,7 +410,7 @@ stream_check(struct stream *stream)
 		uint64_t cur_clock = ovni_ev_get_clock(ev);
 
 		if (cur_clock < last_clock) {
-			err("backwards jump in time %lld -> %lld for stream %s",
+			err("backwards jump in time %"PRIi64" -> %"PRIi64" for stream %s",
 					last_clock, cur_clock, stream->relpath);
 			backjump = 1;
 		}

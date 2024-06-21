@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef CHAN_H
@@ -70,7 +70,7 @@ chan_read(struct chan *chan, struct value *value)
 	return 0;
 }
 
-        void chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...);
+        void chan_init(struct chan *chan, enum chan_type type, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 USE_RET int chan_set(struct chan *chan, struct value value);
 USE_RET int chan_push(struct chan *chan, struct value value);
 USE_RET int chan_pop(struct chan *chan, struct value expected);

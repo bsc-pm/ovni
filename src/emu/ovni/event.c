@@ -229,7 +229,7 @@ pre_affinity_set(struct emu *emu)
 	}
 
 	if (emu->ev->payload_size != 4) {
-		err("unexpected payload size %d", emu->ev->payload_size);
+		err("unexpected payload size %zd", emu->ev->payload_size);
 		return -1;
 	}
 
@@ -265,7 +265,7 @@ static int
 pre_affinity_remote(struct emu *emu)
 {
 	if (emu->ev->payload_size != 8) {
-		err("unexpected payload size %d", emu->ev->payload_size);
+		err("unexpected payload size %zd", emu->ev->payload_size);
 		return -1;
 	}
 
@@ -437,7 +437,7 @@ pre_flush(struct emu *emu)
 			double flush_ms = (double) flush_ns * 1e-6;
 			/* Avoid last flush warnings */
 			if (flush_ms > 10.0 && emu->thread->is_running)
-				warn("large flush of %.1f ms at dclock=%lld ns in tid=%d",
+				warn("large flush of %.1f ms at dclock=%"PRIi64" ns in tid=%d",
 						flush_ms,
 						emu->ev->dclock,
 						emu->thread->tid);

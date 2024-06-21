@@ -17,7 +17,7 @@ static const char **track_suffix[TRACK_TYPE_MAX] = {
 	[TRACK_TYPE_TH] = th_suffix,
 };
 
-int __attribute__((format(printf, 5, 6)))
+int
 track_init(struct track *track, struct bay *bay, enum track_type type, int mode, const char *fmt, ...)
 {
 	va_list ap;

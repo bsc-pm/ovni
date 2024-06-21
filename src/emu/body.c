@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "body.h"
@@ -135,7 +135,7 @@ body_execute(struct body_stack *stack, struct body *body)
 
 	DL_PREPEND(stack->top, body);
 
-	dbg("%s state is now Running, iteration %lld",
+	dbg("%s state is now Running, iteration %ld",
 			body->name, body->iteration);
 
 	return 0;
@@ -258,7 +258,7 @@ body_end(struct body_stack *stack, struct body *body)
 	DL_DELETE(stack->top, body);
 	body->stack = NULL;
 
-	dbg("%s state is now Dead, completed iteration %lld",
+	dbg("%s state is now Dead, completed iteration %ld",
 			body->name, body->iteration);
 
 	return 0;

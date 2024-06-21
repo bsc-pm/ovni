@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "model_cpu.h"
@@ -40,7 +40,8 @@ init_chan(struct model_cpu *cpu, const struct model_chan_spec *spec, int64_t gin
 		const char *ch_name = spec->ch_names[i];
 		int track_mode = spec->track[i];
 
-		if (track_init(track, cpu->bay, TRACK_TYPE_TH, track_mode, "%s.cpu%lld.%s",
+		if (track_init(track, cpu->bay, TRACK_TYPE_TH, track_mode,
+					"%s.cpu%"PRIi64".%s",
 					name, gindex, ch_name) != 0) {
 			err("track_init failed");
 			return -1;

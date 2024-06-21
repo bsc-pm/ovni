@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "bay.h"
@@ -168,7 +168,7 @@ propagate_chan(struct bay_chan *bchan, enum bay_cb_type type)
 	struct bay_cb *cur = NULL;
 	/* New callbacks cannot be added while propagating a bay_chan */
 	DL_FOREACH(bchan->cb[type], cur) {
-		dbg("calling cb %p", cur->func);
+		dbg("calling cb %"PRIxPTR, (uintptr_t) cur->func);
 		if (cur->func(bchan->chan, cur->arg) != 0) {
 			err("callback failed for %s", bchan->chan->name);
 			return -1;

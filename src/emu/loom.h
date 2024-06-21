@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef LOOM_H
@@ -14,7 +14,7 @@
 struct proc;
 
 struct loom {
-	size_t gindex;
+	int64_t gindex;
 	int is_init;
 
 	char name[PATH_MAX];

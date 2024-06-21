@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu_stat.h"
@@ -54,11 +54,9 @@ emu_stat_report(struct emu_stat *stat, struct player *player, int last)
 	double speed = stat->average ? avgspeed : instspeed;
 
 	if (last) {
-		int tmin = (int) (time_elapsed / 60.0);
-		int tsec = (int) ((time_elapsed / 60.0 - tmin) * 60.0);
 		info("%5.1f%% done at avg %.0f kev/s                  \n",
-				progress * 100.0, avgspeed * 1e-3, tmin, tsec);
-		info("processed %lld input events in %.2f s\n",
+				progress * 100.0, avgspeed * 1e-3);
+		info("processed %"PRIi64" input events in %.2f s\n",
 				nprocessed, time_elapsed);
 	} else {
 		int tmin = (int) (time_left / 60.0);

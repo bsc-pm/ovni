@@ -220,7 +220,7 @@ cpu_update(struct cpu *cpu)
 
 	/* Only virtual cpus can be oversubscribed */
 	if (cpu->nth_running > 1 && !cpu->is_virtual) {
-		err("physical cpu %s has %d threads running at the same time",
+		err("physical cpu %s has %zd threads running at the same time",
 				cpu->name, cpu->nth_running);
 		return -1;
 	}
@@ -248,7 +248,7 @@ cpu_update(struct cpu *cpu)
 		err("chan_set pid failed");
 		return -1;
 	}
-	dbg("cpu%lld sets th_running to %s",
+	dbg("cpu%"PRIi64" sets th_running to %s",
 			cpu->gindex, value_str(gid_running));
 	if (chan_set(&cpu->chan[CPU_CHAN_THRUN], gid_running) != 0) {
 		err("chan_set gid_running failed");

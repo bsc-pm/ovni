@@ -87,7 +87,7 @@ print_model(struct model_spec *spec)
 	printf("<dl>\n");
 	for (long j = 0; j < spec->evspec->nevents; j++) {
 		if (print_event(spec, j) != 0) {
-			err("cannot print event %d", j);
+			err("cannot print event %ld", j);
 			return -1;
 		}
 	}

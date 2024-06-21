@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "player.h"
@@ -164,7 +164,7 @@ update_clocks(struct player *player, struct stream *stream)
 	}
 
 	if (sclock < player->lastclock) {
-		err("backwards jump in time %lld -> %lld in stream '%s'",
+		err("backwards jump in time %"PRIi64" -> %"PRIi64" in stream '%s'",
 				player->lastclock, sclock, stream->relpath);
 		if (player->unsorted == 0)
 			return -1;

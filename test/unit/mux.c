@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/mux.h"
@@ -157,11 +157,8 @@ main(void)
 	chan_init(&output, CHAN_SINGLE, "output");
 	chan_init(&select, CHAN_SINGLE, "select");
 
-	for (int i = 0; i < N; i++) {
-		char buf[MAX_CHAN_NAME];
-		sprintf(buf, "input.%d", i);
-		chan_init(&inputs[i], CHAN_SINGLE, buf);
-	}
+	for (int i = 0; i < N; i++)
+		chan_init(&inputs[i], CHAN_SINGLE, "input.%d", i);
 
 	/* Register all channels in the bay */
 	OK(bay_register(&bay, &select));

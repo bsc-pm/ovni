@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "thread.h"
@@ -18,7 +18,6 @@
 #include "value.h"
 struct proc;
 
-static const char chan_fmt[] = "thread%lu.%s";
 static const char *chan_name[TH_CHAN_MAX] = {
 	[TH_CHAN_CPU]   = "cpu_gindex",
 	[TH_CHAN_TID]   = "tid_active",
@@ -159,7 +158,7 @@ thread_init_end(struct thread *th)
 
 	for (int i = 0; i < TH_CHAN_MAX; i++) {
 		chan_init(&th->chan[i], CHAN_SINGLE,
-				chan_fmt, th->gindex, chan_name[i]);
+				"thread%"PRIi64".%s", th->gindex, chan_name[i]);
 	}
 
 	/* The transition Running -> Cooling causes a duplicate (the thread is
@@ -327,7 +326,7 @@ thread_select_active(struct mux *mux,
 	enum thread_state state = (enum thread_state) value.i;
 
 	if (mux->ninputs != 1) {
-		err("mux doesn't have one input but %d", mux->ninputs);
+		err("mux doesn't have one input but %"PRIi64, mux->ninputs);
 		return -1;
 	}
 
@@ -363,7 +362,7 @@ thread_select_running(struct mux *mux,
 	enum thread_state state = (enum thread_state) value.i;
 
 	if (mux->ninputs != 1) {
-		err("mux doesn't have one input but %d", mux->ninputs);
+		err("mux doesn't have one input but %"PRIi64, mux->ninputs);
 		return -1;
 	}
 
@@ -392,7 +391,7 @@ thread_set_cpu(struct thread *th, struct cpu *cpu)
 		return -1;
 	}
 
-	dbg("thread%lld sets cpu%lld", th->gindex, cpu->gindex);
+	dbg("thread%"PRIi64" sets cpu%"PRIi64, th->gindex, cpu->gindex);
 	th->cpu = cpu;
 
 	/* Update cpu channel */
@@ -413,7 +412,7 @@ thread_unset_cpu(struct thread *th)
 		return -1;
 	}
 
-	dbg("thread%lld unsets cpu", th->gindex);
+	dbg("thread%"PRIi64" unsets cpu", th->gindex);
 	th->cpu = NULL;
 
 	struct chan *c = &th->chan[TH_CHAN_CPU];
@@ -433,7 +432,7 @@ thread_migrate_cpu(struct thread *th, struct cpu *cpu)
 		return -1;
 	}
 
-	dbg("thread%lld migrates to cpu%lld", th->gindex, cpu->gindex);
+	dbg("thread%"PRIi64" migrates to cpu%"PRIi64, th->gindex, cpu->gindex);
 	th->cpu = cpu;
 
 	struct chan *c = &th->chan[TH_CHAN_CPU];

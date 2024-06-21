@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "sort.h"
@@ -165,7 +165,7 @@ sort_init(struct sort *sort, struct bay *bay, int64_t n, const char *name)
 	/* Init and register outputs */
 	for (int64_t i = 0; i < n; i++) {
 		struct chan *out = &sort->outputs[i];
-		chan_init(out, CHAN_SINGLE, "%s.out%lld", name, i);
+		chan_init(out, CHAN_SINGLE, "%s.out%"PRIi64, name, i);
 
 		/* The sort module may write multiple times to the same
 		 * channel if we update more than one input. */
@@ -176,7 +176,7 @@ sort_init(struct sort *sort, struct bay *bay, int64_t n, const char *name)
 		chan_prop_set(out, CHAN_ALLOW_DUP, 1);
 
 		if (bay_register(bay, out) != 0) {
-			err("bay_register out%lld failed", i);
+			err("bay_register out%"PRIi64" failed", i);
 			return -1;
 		}
 	}
@@ -190,7 +190,7 @@ sort_set_input(struct sort *sort, int64_t index, struct chan *chan)
 	struct sort_input *input = &sort->inputs[index];
 
 	if (input->chan != NULL) {
-		err("input %d already has a channel", index);
+		err("input %"PRIi64" already has a channel", index);
 		return -1;
 	}
 

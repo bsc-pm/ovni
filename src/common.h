@@ -19,8 +19,8 @@ int mkpath(const char *path, mode_t mode, int is_dir);
 void progname_set(char *name);
 const char *progname_get(void);
 void enable_debug(void);
-void verr(const char *prefix, const char *func, const char *errstr, ...);
-void vdie(const char *prefix, const char *func, const char *errstr, ...);
+void verr(const char *prefix, const char *func, const char *errstr, ...) __attribute__((format(printf, 3, 4)));
+void vdie(const char *prefix, const char *func, const char *errstr, ...) __attribute__((format(printf, 3, 4)));
 
 /* clang-format off */
 

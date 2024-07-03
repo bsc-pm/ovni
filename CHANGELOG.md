@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- OpenMP model version increased to 1.2.0.
+
+### Added
+
+- Add support OpenMP label and task ID views.
+
 ## [1.11.0] - 2024-11-08
 
 ### Added

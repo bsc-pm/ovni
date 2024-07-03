@@ -8,6 +8,9 @@
 #include "emu_ev.h"
 #include "extend.h"
 #include "model_thread.h"
+#include "ovni.h"
+#include "proc.h"
+#include "task.h"
 #include "thread.h"
 #include "value.h"
 
@@ -95,7 +98,7 @@ static const int fn_table[256][256][3] = {
 };
 
 static int
-process_ev(struct emu *emu)
+simple(struct emu *emu)
 {
 	if (!emu->thread->is_running) {
 		err("current thread %d not running", emu->thread->tid);
@@ -119,6 +122,263 @@ process_ev(struct emu *emu)
 	}
 
 	err("unknown openmp function event");
+	return -1;
+}
+
+static int
+create_task(struct emu *emu)
+{
+	if (emu->ev->payload_size != 8) {
+		err("unexpected payload size");
+		return -1;
+	}
+
+	uint32_t taskid = emu->ev->payload->u32[0];
+	uint32_t typeid = emu->ev->payload->u32[1];
+
+	if (taskid == 0) {
+		err("taskid cannot be 0");
+		return -1;
+	}
+
+	if (typeid == 0) {
+		err("typeid cannot be 0");
+		return -1;
+	}
+
+	struct openmp_proc *proc = EXT(emu->proc, 'P');
+	struct task_info *info = &proc->task_info;
+
+	/* OpenMP submits inline tasks without pausing the previous
+	 * task, so we relax the model to allow this for now. */
+	uint32_t flags = TASK_FLAG_RELAX_NESTING;
+
+	if (task_create(info, typeid, taskid, flags) != 0) {
+		err("task_create failed");
+		return -1;
+	}
+
+	dbg("task created with taskid %u", taskid);
+
+	return 0;
+}
+
+static int
+update_task(struct emu *emu)
+{
+	if (emu->ev->payload_size < 4) {
+		err("missing task id in payload");
+		return -1;
+	}
+
+	uint32_t taskid = emu->ev->payload->u32[0];
+
+	if (taskid == 0) {
+		err("taskid cannot be 0");
+		return -1;
+	}
+
+	struct openmp_thread *th = EXT(emu->thread, 'P');
+	struct openmp_proc *proc = EXT(emu->proc, 'P');
+
+	struct task_info *info = &proc->task_info;
+	struct task_stack *stack = &th->task_stack;
+
+	struct task *task = task_find(info->tasks, taskid);
+
+	if (task == NULL) {
+		err("cannot find task with id %u", taskid);
+		return -1;
+	}
+
+	/* OpenMP doesn't have parallel tasks */
+	uint32_t body_id = 1;
+
+	if (emu->ev->v == 'x') {
+		if (task_execute(stack, task, body_id) != 0) {
+			err("cannot change task state to running");
+			return -1;
+		}
+		if (chan_push(&th->m.ch[CH_TASKID], value_int64(task->id)) != 0) {
+			err("chan_push taskid failed");
+			return -1;
+		}
+		if (chan_push(&th->m.ch[CH_LABEL], value_int64(task->type->gid)) != 0) {
+			err("chan_push task label failed");
+			return -1;
+		}
+	} else if (emu->ev->v == 'e') {
+		if (task_end(stack, task, body_id) != 0) {
+			err("cannot change task state to end");
+			return -1;
+		}
+		if (chan_pop(&th->m.ch[CH_TASKID], value_int64(task->id)) != 0) {
+			err("chan_pop taskid failed");
+			return -1;
+		}
+		if (chan_pop(&th->m.ch[CH_LABEL], value_int64(task->type->gid)) != 0) {
+			err("chan_pop task label failed");
+			return -1;
+		}
+	} else {
+		err("unexpected task event %c", emu->ev->v);
+		return -1;
+	}
+
+
+	return 0;
+}
+
+static int
+pre_task(struct emu *emu)
+{
+	int ret = 0;
+	switch (emu->ev->v) {
+		case 'c':
+			ret = create_task(emu);
+			break;
+		case 'x':
+		case 'e':
+			ret = update_task(emu);
+			break;
+		default:
+			err("unexpected task event value");
+			return -1;
+	}
+
+	if (ret != 0) {
+		err("cannot update task state");
+		return -1;
+	}
+
+	return 0;
+}
+
+static int
+pre_type(struct emu *emu)
+{
+	uint8_t value = emu->ev->v;
+
+	if (value != 'c') {
+		err("unexpected event value %c", value);
+		return -1;
+	}
+
+	if (!emu->ev->is_jumbo) {
+		err("expecting a jumbo event");
+		return -1;
+	}
+
+	const uint8_t *data = &emu->ev->payload->jumbo.data[0];
+	uint32_t typeid;
+	memcpy(&typeid, data, 4); /* May be unaligned */
+	data += 4;
+
+	const char *label = (const char *) data;
+
+	struct openmp_proc *proc = EXT(emu->proc, 'P');
+	struct task_info *info = &proc->task_info;
+
+	/* It will be used for tasks and worksharings. */
+	if (task_type_create(info, typeid, label) != 0) {
+		err("task_type_create failed");
+		return -1;
+	}
+
+	return 0;
+}
+
+static int
+update_ws_state(struct emu *emu, uint8_t action)
+{
+	if (emu->ev->payload_size < 4) {
+		err("missing worksharing id in payload");
+		return -1;
+	}
+
+	uint32_t typeid = emu->ev->payload->u32[0];
+
+	if (typeid == 0) {
+		err("worksharing type id cannot be 0");
+		return -1;
+	}
+
+	struct openmp_thread *th = EXT(emu->thread, 'P');
+	struct openmp_proc *proc = EXT(emu->proc, 'P');
+
+	struct task_info *info = &proc->task_info;
+
+	/* Worksharings share the task type */
+	struct task_type *ttype = task_type_find(info->types, typeid);
+
+	if (ttype == NULL) {
+		err("cannot find ws with type %"PRIu32, typeid);
+		return -1;
+	}
+
+	if (action == 'x') {
+		if (chan_push(&th->m.ch[CH_LABEL], value_int64(ttype->gid)) != 0) {
+			err("chan_push worksharing label failed");
+			return -1;
+		}
+	} else {
+		if (chan_pop(&th->m.ch[CH_LABEL], value_int64(ttype->gid)) != 0) {
+			err("chan_pop worksharing label failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+pre_worksharing(struct emu *emu)
+{
+	int ret = 0;
+	switch (emu->ev->v) {
+		case 'x':
+		case 'e':
+			ret = update_ws_state(emu, emu->ev->v);
+			break;
+		default:
+			err("unexpected ws event value %c", emu->ev->v);
+			return -1;
+	}
+
+	if (ret != 0) {
+		err("cannot update worksharing channels");
+		return -1;
+	}
+
+	return 0;
+}
+
+static int
+process_ev(struct emu *emu)
+{
+	if (!emu->thread->is_running) {
+		err("current thread %d not running", emu->thread->tid);
+		return -1;
+	}
+	switch (emu->ev->c) {
+		case 'B':
+		case 'I':
+		case 'W':
+		case 'T':
+		case 'A':
+		case 'M':
+		case 'H':
+		case 'C':
+			return simple(emu);
+		case 'P':
+			return pre_task(emu);
+		case 'O':
+			return pre_type(emu);
+		case 'Q':
+			return pre_worksharing(emu);
+	}
+
+	err("unknown event category");
 	return -1;
 }
 

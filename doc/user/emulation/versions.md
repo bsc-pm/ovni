@@ -33,6 +33,8 @@ Track changes in emulator model versions.
 
 ## OpenMP
 
+- openmp 1.2.0:
+    - Add support for labels and task ID views
 - openmp 1.1.0: Initial version
 
 ## TAMPI

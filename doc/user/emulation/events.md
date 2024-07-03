@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Jun 17 2024.
+Built on Nov 13 2024.
 
 ## Model nanos6
 
@@ -437,7 +437,7 @@ List of events for the model *ovni* with identifier **`O`** at version `1.1.0`:
 
 ## Model openmp
 
-List of events for the model *openmp* with identifier **`P`** at version `1.1.0`:
+List of events for the model *openmp* with identifier **`P`** at version `1.2.0`:
 <dl>
 <dt><a id="PBb" href="#PBb"><pre>PBb</pre></a></dt>
 <dd>begins plain barrier</dd>
@@ -563,6 +563,18 @@ List of events for the model *openmp* with identifier **`P`** at version `1.1.0`
 <dd>begins initialization</dd>
 <dt><a id="PCI" href="#PCI"><pre>PCI</pre></a></dt>
 <dd>ceases initialization</dd>
+<dt><a id="POc" href="#POc"><pre>POc+(u32 typeid, str label)</pre></a></dt>
+<dd>creates a type %{typeid} with label &quot;%{label}&quot;</dd>
+<dt><a id="PPc" href="#PPc"><pre>PPc(u32 taskid, u32 typeid)</pre></a></dt>
+<dd>creates the task %{taskid} with type %{typeid}</dd>
+<dt><a id="PPx" href="#PPx"><pre>PPx(u32 taskid)</pre></a></dt>
+<dd>executes the task %{taskid}</dd>
+<dt><a id="PPe" href="#PPe"><pre>PPe(u32 taskid)</pre></a></dt>
+<dd>ends the task %{taskid}</dd>
+<dt><a id="PQx" href="#PQx"><pre>PQx(u32 typeid)</pre></a></dt>
+<dd>begins worksharing with type %{typeid}</dd>
+<dt><a id="PQe" href="#PQe"><pre>PQe(u32 typeid)</pre></a></dt>
+<dd>ends worksharing with type %{typeid}</dd>
 </dl>
 
 ## Model tampi

@@ -7,7 +7,7 @@ int main(void)
 	{
 		//#pragma omp single nowait
 		for (int i = 0; i < 100; i++) {
-			#pragma omp task
+			#pragma omp task label("minitask")
 			sleep_us(10);
 		}
 

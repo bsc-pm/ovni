@@ -15,8 +15,10 @@
 #include "model_cpu.h"
 #include "model_pvt.h"
 #include "model_thread.h"
+#include "proc.h"
 #include "pv/pcf.h"
 #include "pv/prv.h"
+#include "pv/pvt.h"
 #include "system.h"
 #include "thread.h"
 #include "track.h"
@@ -65,12 +67,22 @@ static struct ev_decl model_evlist[] = {
 	PAIR_B("PCf", "PCF", "fork call")
 	PAIR_B("PCi", "PCI", "initialization")
 
+	/* Task or worksharing type */
+	{ "POc+(u32 typeid, str label)", "creates a type %{typeid} with label \"%{label}\"" },
+
+	{ "PPc(u32 taskid, u32 typeid)", "creates the task %{taskid} with type %{typeid}" },
+	{ "PPx(u32 taskid)", "executes the task %{taskid}" },
+	{ "PPe(u32 taskid)", "ends the task %{taskid}" },
+
+	{ "PQx(u32 typeid)", "begins worksharing with type %{typeid}" },
+	{ "PQe(u32 typeid)", "ends worksharing with type %{typeid}" },
+
 	{ NULL, NULL },
 };
 
 struct model_spec model_openmp = {
 	.name = model_name,
-	.version = "1.1.0",
+	.version = "1.2.0",
 	.evlist  = model_evlist,
 	.model = model_id,
 	.create  = model_openmp_create,
@@ -84,24 +96,34 @@ struct model_spec model_openmp = {
 
 static const char *chan_name[CH_MAX] = {
 	[CH_SUBSYSTEM] = "subsystem",
+	[CH_LABEL]     = "label",
+	[CH_TASKID]    = "task ID",
 };
 
 static const int chan_stack[CH_MAX] = {
 	[CH_SUBSYSTEM] = 1,
+	[CH_LABEL]     = 1,
+	[CH_TASKID]    = 1,
 };
 
 static const int chan_dup[CH_MAX] = {
 	[CH_SUBSYSTEM] = 1,
+	[CH_LABEL]     = 1, /* Two tasks nested with same type */
+	[CH_TASKID]    = 1,
 };
 
 /* ----------------- pvt ------------------ */
 
 static const int pvt_type[CH_MAX] = {
 	[CH_SUBSYSTEM] = PRV_OPENMP_SUBSYSTEM,
+	[CH_LABEL]     = PRV_OPENMP_LABEL,
+	[CH_TASKID]    = PRV_OPENMP_TASKID,
 };
 
 static const char *pcf_prefix[CH_MAX] = {
 	[CH_SUBSYSTEM] = "OpenMP subsystem",
+	[CH_LABEL]     = "OpenMP label",
+	[CH_TASKID]    = "OpenMP task ID",
 };
 
 static const struct pcf_value_label openmp_subsystem_values[] = {
@@ -149,7 +171,9 @@ static const struct pcf_value_label *pcf_labels[CH_MAX] = {
 };
 
 static const long prv_flags[CH_MAX] = {
-	[CH_SUBSYSTEM] = PRV_EMITDUP,
+	[CH_SUBSYSTEM] = PRV_SKIPDUPNULL,
+	[CH_LABEL]     = PRV_SKIPDUPNULL,
+	[CH_TASKID]    = PRV_SKIPDUPNULL,
 };
 
 static const struct model_pvt_spec pvt_spec = {
@@ -163,10 +187,14 @@ static const struct model_pvt_spec pvt_spec = {
 
 static const int th_track[CH_MAX] = {
 	[CH_SUBSYSTEM] = TRACK_TH_ACT,
+	[CH_LABEL]     = TRACK_TH_ACT,
+	[CH_TASKID]    = TRACK_TH_ACT,
 };
 
 static const int cpu_track[CH_MAX] = {
 	[CH_SUBSYSTEM] = TRACK_TH_RUN,
+	[CH_LABEL]     = TRACK_TH_RUN,
+	[CH_TASKID]    = TRACK_TH_RUN,
 };
 
 /* ----------------- chan_spec ------------------ */
@@ -213,9 +241,24 @@ model_openmp_probe(struct emu *emu)
 	return model_version_probe(&model_openmp, emu);
 }
 
+static int
+init_proc(struct proc *sysproc)
+{
+	struct openmp_proc *proc = calloc(1, sizeof(struct openmp_proc));
+	if (proc == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	extend_set(&sysproc->ext, model_id, proc);
+
+	return 0;
+}
+
 int
 model_openmp_create(struct emu *emu)
 {
+
 	if (model_thread_create(emu, &th_spec) != 0) {
 		err("model_thread_init failed");
 		return -1;
@@ -224,6 +267,15 @@ model_openmp_create(struct emu *emu)
 	if (model_cpu_create(emu, &cpu_spec) != 0) {
 		err("model_cpu_init failed");
 		return -1;
+	}
+
+	struct system *sys = &emu->system;
+
+	for (struct proc *p = sys->procs; p; p = p->gnext) {
+		if (init_proc(p) != 0) {
+			err("init_proc failed");
+			return -1;
+		}
 	}
 
 	return 0;
@@ -239,6 +291,44 @@ model_openmp_connect(struct emu *emu)
 
 	if (model_cpu_connect(emu, &cpu_spec) != 0) {
 		err("model_cpu_connect failed");
+		return -1;
+	}
+
+	return 0;
+}
+
+static int
+create_pcf_type(struct system *sys, struct pcf *pcf, long typeid)
+{
+	struct pcf_type *pcftype = pcf_find_type(pcf, (int) typeid);
+
+	for (struct proc *p = sys->procs; p; p = p->gnext) {
+		struct openmp_proc *proc = EXT(p, model_id);
+		struct task_info *info = &proc->task_info;
+		if (task_create_pcf_types(pcftype, info->types) != 0) {
+			err("task_create_pcf_types failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+finish_pvt(struct emu *emu, const char *name)
+{
+	struct system *sys = &emu->system;
+
+	/* Emit task types for all channel types and processes */
+	struct pvt *pvt = recorder_find_pvt(&emu->recorder, name);
+	if (pvt == NULL) {
+		err("cannot find pvt with name '%s'", name);
+		return -1;
+	}
+
+	struct pcf *pcf = pvt_get_pcf(pvt);
+	if (create_pcf_type(sys, pcf, pvt_type[CH_LABEL]) != 0) {
+		err("create_pcf_type failed");
 		return -1;
 	}
 
@@ -278,6 +368,17 @@ end_lint(struct emu *emu)
 int
 model_openmp_finish(struct emu *emu)
 {
+	/* Fill task types */
+	if (finish_pvt(emu, "thread") != 0) {
+		err("finish_pvt thread failed");
+		return -1;
+	}
+
+	if (finish_pvt(emu, "cpu") != 0) {
+		err("finish_pvt cpu failed");
+		return -1;
+	}
+
 	/* When running in linter mode perform additional checks */
 	if (emu->args.linter_mode && end_lint(emu) != 0) {
 		err("end_lint failed");

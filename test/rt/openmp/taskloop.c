@@ -11,7 +11,7 @@ int main(void)
 		#pragma omp taskloop
 		for (int i = 0; i < 10000; i++)
 		{
-			#pragma omp task
+			#pragma omp task label("taskloop task")
 			sleep_us(1);
 		}
 #pragma clang diagnostic pop

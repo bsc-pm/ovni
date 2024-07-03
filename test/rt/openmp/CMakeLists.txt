@@ -14,12 +14,23 @@ if(NOT OPENMPV_COMPILER_FOUND OR NOT OPENMPV_LINKER_FOUND)
   return()
 endif()
 
+find_package(Nosv)
+
+if(NOT NOSV_FOUND)
+  if(ENABLE_ALL_TESTS)
+    message(FATAL_ERROR "nOS-V not found, cannot enable OpenMP-V RT tests")
+  else()
+    message(STATUS "nOS-V not found, disabling OpenMP-V RT tests")
+  endif()
+  return()
+endif()
+
 function(openmp_rt_test)
   ovni_test(${ARGN})
   target_compile_options("${OVNI_TEST_NAME}" PUBLIC "-fopenmp=libompv"
 	  "-no-pedantic")
   target_link_options("${OVNI_TEST_NAME}" PUBLIC "-fopenmp=libompv")
-  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE "m")
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE "m" PkgConfig::NOSV)
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "OMP_OVNI=1")
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
@@ -48,3 +59,4 @@ openmp_rt_test(worksharing.c)
 openmp_rt_test(worksharing01.c)
 openmp_rt_test(worksharing02.c)
 openmp_rt_test(worksharing03.c)
+openmp_rt_test(worksharing-active-th.c DRIVER worksharing-active-th.driver.sh)

@@ -8,21 +8,20 @@ refer to the
 
 The [LLVM OpenMP Runtime](https://openmp.llvm.org/design/Runtimes.html) provides
 an implementation of the OpenMP specification as a component of the LLVM
-compiler infrastructure. We have modified the LLVM OpenMP runtime to run on top
+compiler infrastructure. We have modified the LLVM OpenMP runtime (libomp) to run on top
 of the [nOS-V](https://gitlab.bsc.es/nos-v/nos-v) runtime as part of the
-[OmpSs-2 LLVM compiler](https://pm.bsc.es/llvm-ompss), named **OpenMP-V**.
+[OmpSs-2 LLVM compiler](https://pm.bsc.es/llvm-ompss), named **libompv**.
 
-We have added instrumentation events to OpenMP-V designed to be enabled along
+We have added instrumentation events to libompv designed to be enabled along
 the [nOS-V instrumentation](nosv.md). This document describes all the
-instrumentation features included in our modified OpenMP-V runtime to identify
+instrumentation features included in our modified libompv runtime to identify
 what is happening. This data is useful for both users and developers of the
 OpenMP runtime to analyze issues and undesired behaviors.
 
 !!! Note
 
-    Instrumenting the original OpenMP runtime from the LLVM project is planned
-    but is not yet posible. For now you must use the modified OpenMP-V runtime
-    with nOS-V.
+    Instrumenting libomp is planned but is not yet posible.
+    For now you must use libompv.
 
 ## Enable the instrumentation
 
@@ -33,25 +32,25 @@ To generate runtime traces, you will have to:
   documentation](https://github.com/bsc-pm/nos-v/blob/master/docs/user/tracing.md).
   Typically you should use the `--with-ovni` option at configure time to specify
   where ovni is installed.
-2. **Build OpenMP-V with ovni and nOS-V support:** Use the `PKG_CONFIG_PATH`
+2. **Build libompv with ovni and nOS-V support:** Use the `PKG_CONFIG_PATH`
   environment variable to specify the nOS-V and ovni installation 
   when configuring CMake.
 3. **Enable the instrumentation in nOS-V at runtime:** Refer to the
   [nOS-V documentation](https://github.com/bsc-pm/nos-v/blob/master/docs/user/tracing.md)
   to find out how to enable the tracing at runtime. Typically you can just set 
   `NOSV_CONFIG_OVERRIDE="instrumentation.version=ovni"`.
-4. **Enable the instrumentation of OpenMP-V at runtime:** Set the environment
+4. **Enable the instrumentation of libompv at runtime:** Set the environment
   variable `OMP_OVNI=1`.
 
-Currently there is only support for the subsystem view, which is documented
-below. The view is complemented with the information of [nOS-V views](nosv.md),
-as OpenMP-V uses nOS-V tasks to run the workers.
+Next sections describe each of the views included for analysis.
 
 ## Subsystem view
 
 ![Subsystem view example](fig/openmp-subsystem.png)
 
-This view illustrates the activities of each thread with different states:
+The view is complemented with the information of [nOS-V views](nosv.md),
+as libompv uses nOS-V tasks to run the workers.
+Subsystem illustrates the activities of each thread with different states:
 
 - **Work-distribution subsystem**: Related to work-distribution constructs,
     [in Chapter 11][workdis].
@@ -135,9 +134,9 @@ This view illustrates the activities of each thread with different states:
     - **Fork call**: Preparing a parallel section using the fork-join model.
       Only called from the master thread.
 
-    - **Init**: Initializing the OpenMP-V runtime.
+    - **Init**: Initializing the libompv runtime.
 
-    - **Internal microtask**: Running a internal OpenMP-V function as a microtask.
+    - **Internal microtask**: Running a internal libompv function as a microtask.
 
     - **User microtask**: Running user code as a microtask in a worker thread.
 
@@ -156,9 +155,31 @@ This view illustrates the activities of each thread with different states:
 [critical]: https://www.openmp.org/wp-content/uploads/OpenMP-API-Specification-5-2.pdf#section.15.2
 [barrier]:  https://www.openmp.org/wp-content/uploads/OpenMP-API-Specification-5-2.pdf#section.15.3
 
+## Label view
+
+The label view displays the text in the `label()` clause of OpenMP
+tasks and work distribution constructs (static and dynamic for, single
+and section). When the label is not provided, the source file and source
+line location is used instead.
+
+When nesting multiple tasks or work distribution constructs, only the
+innermost label is shown.
+
+Note that in this view, the numeric event value is a hash function of
+the type label, so two distinct tasks (declared in different parts of
+the code) with the same label will share the event value and have the
+same color.
+
+## Task ID view
+
+The task ID view represents the numeric ID of the OpenMP task that is
+currently running on each thread. The ID is a monotonically increasing
+identifier assigned on task creation. Lower IDs correspond to tasks
+created at an earlier point than higher IDs.
+
 ## Limitations
 
-As the compiler generates the code that perform the calls to the OpenMP-V
+As the compiler generates the code that perform the calls to the libompv
 runtime, there are some parts of the execution that are complicated to
 instrument by just placing a pair of events to delimite a function.
 

@@ -33,6 +33,8 @@ enum emu_prv_types {
 	PRV_NANOS6_BREAKDOWN = 41,
 	PRV_KERNEL_CS        = 45,
 	PRV_OPENMP_SUBSYSTEM = 50,
+	PRV_OPENMP_LABEL     = 51,
+	PRV_OPENMP_TASKID    = 52,
 	PRV_OVNI_MARK        = 100,
 	/* User marks [100, 200) */
 	PRV_RESERVED         = 200,

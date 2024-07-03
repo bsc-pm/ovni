@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 function(test_emu)
@@ -13,3 +13,4 @@ add_subdirectory(nosv)
 add_subdirectory(nanos6)
 add_subdirectory(tampi)
 add_subdirectory(mpi)
+add_subdirectory(openmp)

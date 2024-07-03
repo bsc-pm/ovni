@@ -5,6 +5,7 @@
 #define OPENMP_PRIV_H
 
 #include "emu.h"
+#include "task.h"
 #include "model_cpu.h"
 #include "model_thread.h"
 
@@ -12,6 +13,8 @@
 
 enum openmp_chan {
 	CH_SUBSYSTEM = 0,
+	CH_LABEL,
+	CH_TASKID,
 	CH_MAX,
 };
 
@@ -55,10 +58,16 @@ enum openmp_function_values {
 
 struct openmp_thread {
 	struct model_thread m;
+	struct task_stack task_stack;
 };
 
 struct openmp_cpu {
 	struct model_cpu m;
+};
+
+struct openmp_proc {
+	/* Shared among tasks and ws */
+	struct task_info task_info;
 };
 
 int model_openmp_probe(struct emu *emu);

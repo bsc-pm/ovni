@@ -30,7 +30,7 @@
       clangOmpss2Unwrapped = prev.clangOmpss2Unwrapped.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "246e2df2eb10f52e48a57c8165074daecdb623f2";
+        gitCommit = "b7af30b36be3e7e90b33c5f01a3f7e3656df785f";
       };
       openmp = prev.openmp.overrideAttrs (old: {
         # Newer version of LLVM OpenMP requires python3

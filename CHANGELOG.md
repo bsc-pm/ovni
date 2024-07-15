@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New API to manage stream metadata `ovni_attr_*()`.
 - New mark API `ovni_mark_*()` to emit user-defined events.
 
+### Fixed
+
+- Cross-compilation for ARM 32 bits.
+
 ## [1.9.1] - 2024-05-10
 
 ### Fixed

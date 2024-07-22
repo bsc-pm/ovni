@@ -330,8 +330,8 @@ create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
 	for (type = m->types; type; type = type->hh.next) {
 		long i = type->index;
 		struct track *track = &t->track[i];
-		/* For now only tracking to running thread is supported */
-		if (track_init(track, bay, TRACK_TYPE_TH, TRACK_TH_RUN,
+		/* For now only tracking to active thread is supported */
+		if (track_init(track, bay, TRACK_TYPE_TH, TRACK_TH_ACT,
 					fmt, th->gindex, type->type) != 0) {
 			err("track_init failed");
 			return -1;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -37,7 +37,7 @@ main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	double *times = calloc(sizeof(double), NRUNS);
+	double *times = calloc(NRUNS, sizeof(double));
 	if (times == NULL) {
 		perror("calloc failed");
 		exit(EXIT_FAILURE);

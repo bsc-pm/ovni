@@ -1063,9 +1063,18 @@ ovni_attr_flush(void)
 	thread_metadata_store();
 }
 
-/* Mark */
+/* Mark API */
 
-/** creates a new mark type. */
+/**
+ * Creates a new mark type.
+ *
+ * @param type The mark type that must be in the range 0 to 99, both included.
+ * @param flags An OR of OVNI_MARK_* flags.
+ * @param title The title that will be displayed in Paraver.
+ *
+ * It can be called from multiple threads as long as they all use the same
+ * arguments. Only one thread in all nodes needs to call it to define a type.
+ */
 void
 ovni_mark_type(int32_t type, long flags, const char *title)
 {
@@ -1099,7 +1108,19 @@ ovni_mark_type(int32_t type, long flags, const char *title)
 		die("json_object_dotset_string() failed for chan_type");
 }
 
-/** creates a new mark type. */
+/**
+ * Defines a label for the given value.
+ *
+ * @param type The mark type.
+ * @param type The numeric value to which assign a label. The value 0 is
+ * forbidden.
+ * @param label The label that will be displayed in Paraver.
+ *
+ * It only needs to be called once from a thread to globally assign a label to a
+ * given value. It can be called from multiple threads as long as the value for
+ * a given type has only one unique label. Multiple calls with the same
+ * arguments are valid, but with only a distinct label are not.
+ */
 void
 ovni_mark_label(int32_t type, int64_t value, const char *label)
 {
@@ -1133,6 +1154,12 @@ ovni_mark_label(int32_t type, int64_t value, const char *label)
 		die("json_object_dotset_string() failed", type);
 }
 
+/**
+ * Pushes a value into a stacked mark channel.
+ *
+ * @param type The mark type which must be defined with the OVNI_MARK_STACK flag.
+ * @param value The value to be pushed, The value 0 is forbidden.
+ */
 void
 ovni_mark_push(int32_t type, int64_t value)
 {
@@ -1147,6 +1174,13 @@ ovni_mark_push(int32_t type, int64_t value)
 	ovni_ev_add(&ev);
 }
 
+/**
+ * Pops a value from a stacked mark channel.
+ *
+ * @param type The mark type which must be defined with the OVNI_MARK_STACK flag.
+ * @param value The value to be popped, which must match the current value. The
+ * value 0 is forbidden.
+ */
 void
 ovni_mark_pop(int32_t type, int64_t value)
 {
@@ -1161,6 +1195,12 @@ ovni_mark_pop(int32_t type, int64_t value)
 	ovni_ev_add(&ev);
 }
 
+/**
+ * Sets the value to a normal mark channel.
+ *
+ * @param type The mark type which must be defined without the OVNI_MARK_STACK flag.
+ * @param value The value to be set. The value 0 is forbidden.
+ */
 void
 ovni_mark_set(int32_t type, int64_t value)
 {

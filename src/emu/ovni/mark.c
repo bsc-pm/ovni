@@ -142,7 +142,7 @@ find_mark_type(struct ovni_mark_emu *m, long type)
 }
 
 static struct mark_type *
-create_mark_type(struct ovni_mark_emu *m, long type, const char *chan_type, const char *title)
+create_mark_type(struct ovni_mark_emu *m, long type, enum chan_type ctype, const char *title)
 {
 	struct mark_type *t = find_mark_type(m, type);
 
@@ -158,21 +158,13 @@ create_mark_type(struct ovni_mark_emu *m, long type, const char *chan_type, cons
 	}
 
 	t->type = type;
+	t->ctype = ctype;
 	t->prvtype = type + PRV_OVNI_MARK;
 	t->index = m->ntypes;
 
 	int len = snprintf(t->title, MAX_PCF_LABEL, "%s", title);
 	if (len >= MAX_PCF_LABEL) {
 		err("mark title too long: %s", title);
-		return NULL;
-	}
-
-	if (strcmp(chan_type, "single") == 0) {
-		t->ctype = CHAN_SINGLE;
-	} else if (strcmp(chan_type, "stack") == 0) {
-		t->ctype = CHAN_STACK;
-	} else {
-		err("chan_type %s not understood", chan_type);
 		return NULL;
 	}
 
@@ -217,9 +209,19 @@ parse_mark(struct ovni_mark_emu *m, const char *typestr, JSON_Value *markval)
 		return -1;
 	}
 
+	enum chan_type ctype;
+	if (strcmp(chan_type, "single") == 0) {
+		ctype = CHAN_SINGLE;
+	} else if (strcmp(chan_type, "stack") == 0) {
+		ctype = CHAN_STACK;
+	} else {
+		err("chan_type %s not understood", chan_type);
+		return -1;
+	}
+
 	struct mark_type *t = find_mark_type(m, type);
 	if (t == NULL) {
-		t = create_mark_type(m, type, chan_type, title);
+		t = create_mark_type(m, type, ctype, title);
 		if (t == NULL) {
 			err("cannot create mark type");
 			return -1;
@@ -231,6 +233,14 @@ parse_mark(struct ovni_mark_emu *m, const char *typestr, JSON_Value *markval)
 			err("mark with type %ld already registered with another title", type);
 			err(" old: %s", t->title);
 			err(" new: %s", title);
+			return -1;
+		}
+
+		/* And also the same channel type */
+		if (t->ctype != ctype) {
+			err("mark with type %ld already registered with another channel type", type);
+			err(" old: %s", t->ctype == CHAN_SINGLE ? "single" : "stack");
+			err(" new: %s", ctype == CHAN_SINGLE ? "single" : "stack");
 			return -1;
 		}
 	}

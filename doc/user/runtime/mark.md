@@ -25,6 +25,11 @@ The default with flags set to zero, is to create a channel that can hold a
 single value only (see [channels](../../dev/channels.md)). To use a stack of
 values add the `OVNI_MARK_STACK` value to the flags.
 
+Only one thread among all nodes needs to define a type to be available globally,
+but the same type can be defined from multiple threads, as long as the same
+flags and title argument are used. The idea is to avoid having to check if the
+type was already defined or not.
+
 ### Define labels (optional)
 
 The values that are written to the channel can have labels to display in the
@@ -36,6 +41,14 @@ Use the following call to register a label for a value in a given type.
 ```c
 void ovni_mark_label(int32_t type, int64_t value, const char *label);
 ```
+
+A value can only have at most a single label associated. Multiple threads can
+call the `ovni_mark_label()` with the same type and value as long as they use
+the same label. New labels for the same type can be associated from different
+threads, as long as the values are different.
+
+All value and label pairs are combined from all threads and will be available in
+the Paraver view for each type.
 
 ### Emit events
 

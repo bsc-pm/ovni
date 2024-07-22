@@ -387,6 +387,9 @@ mark_create(struct emu *emu)
 		}
 	}
 
+	if (memu->ntypes == 0)
+		return 0;
+
 	for (struct thread *th = emu->system.threads; th; th = th->gnext) {
 		if (create_thread_chan(memu, &emu->bay, th) != 0) {
 			err("create_thread_chan failed");
@@ -591,6 +594,12 @@ connect_cpu(struct emu *emu)
 int
 mark_connect(struct emu *emu)
 {
+	struct ovni_emu *oemu = EXT(emu, 'O');
+	struct ovni_mark_emu *memu = &oemu->mark;
+
+	if (memu->ntypes == 0)
+		return 0;
+
 	if (connect_thread(emu) != 0) {
 		err("connect_thread() failed");
 		return -1;

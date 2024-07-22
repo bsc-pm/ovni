@@ -12,12 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - nOS-V model version increased to 2.3.0.
 - Prevent accidental use of nOS-V traces without required events for the
   breakdown model using the `nosv.can_breakdown` attribute.
+- Increase ovni model version to 1.1.0 for the mark events `OM*`.
 
 ### Added
 
 - Add support for nOS-V progressing events VP{pra}.
 - Add breakdown model for nOS-V.
 - New API to manage stream metadata `ovni_attr_*()`.
+- New mark API `ovni_mark_*()` to emit user-defined events.
 
 ## [1.9.1] - 2024-05-10
 

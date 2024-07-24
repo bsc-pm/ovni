@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "clkoff.h"
@@ -59,7 +59,7 @@ cparse(struct clkoff *table, FILE *file)
 		if (buf[0] == '\n')
 			continue;
 
-		int ret = sscanf(buf, "%" SCNi64 "%s %lf %lf %lf",
+		int ret = sscanf(buf, "%" SCNd64 "%s %lf %lf %lf",
 				&e.index, e.name,
 				&e.median, &e.mean, &e.stdev);
 

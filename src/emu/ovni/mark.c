@@ -311,15 +311,14 @@ create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
 
 	t->nchannels = m->ntypes;
 
-	const char *fmt = "thread%ld.mark%ld";
-
 	struct mark_type *type;
 	for (type = m->types; type; type = type->hh.next) {
 		/* TODO: We may use a vector of thread channels in every type to
 		 * avoid the double hash access in events */
 		long i = type->index;
 		struct chan *ch = &t->channels[i];
-		chan_init(ch, type->ctype, fmt, th->gindex, type->type);
+		chan_init(ch, type->ctype, "thread%"PRIi64".mark%ld",
+				th->gindex, type->type);
 
 		/* Allow duplicates */
 		chan_prop_set(ch, CHAN_ALLOW_DUP, 1);
@@ -342,7 +341,8 @@ create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
 		struct track *track = &t->track[i];
 		/* For now only tracking to active thread is supported */
 		if (track_init(track, bay, TRACK_TYPE_TH, TRACK_TH_ACT,
-					fmt, th->gindex, type->type) != 0) {
+					"thread%"PRIi64".mark%ld",
+					th->gindex, type->type) != 0) {
 			err("track_init failed");
 			return -1;
 		}
@@ -357,8 +357,6 @@ init_cpu(struct ovni_mark_emu *m, struct bay *bay, struct cpu *cpu)
 	struct ovni_cpu *ocpu = EXT(cpu, 'O');
 	struct ovni_mark_cpu *c = &ocpu->mark;
 
-	const char *fmt = "cpu%ld.mark%ld";
-
 	/* Setup tracking */
 	c->track = calloc(m->ntypes, sizeof(struct track));
 	if (c->track == NULL) {
@@ -372,7 +370,8 @@ init_cpu(struct ovni_mark_emu *m, struct bay *bay, struct cpu *cpu)
 		struct track *track = &c->track[i];
 		/* For now only tracking to running thread is supported */
 		if (track_init(track, bay, TRACK_TYPE_TH, TRACK_TH_RUN,
-					fmt, cpu->gindex, type->type) != 0) {
+					"cpu%"PRIi64".mark%ld",
+					cpu->gindex, type->type) != 0) {
 			err("track_init failed");
 			return -1;
 		}

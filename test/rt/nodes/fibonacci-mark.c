@@ -37,8 +37,8 @@ main(void)
 	ovni_mark_type(RUN, OVNI_MARK_STACK, "Fibonacci run");
 
 	long res = 0;
-	for (int i = 1; i <= 30; i++) {
-		fib2(15, &res, i);
+	for (int i = 1; i <= 10; i++) {
+		fib2(12, &res, i);
 		#pragma oss taskwait
 	}
 

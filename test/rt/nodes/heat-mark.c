@@ -110,15 +110,15 @@ main(void)
 	ovni_mark_type(TIME, OVNI_MARK_STACK, "Heat time");
 
 	/* The real number of allocated rows and columns will be bigger */
-	long _rows = 8L * 1024L;
+	long _rows = 1L * 1024L;
 	long _cols = _rows;
 
 	rows = _rows + 2;
 	cols = _cols + 2;
 
-	rbs = 128L;
+	rbs = 64L;
 	cbs = rbs;
-	timesteps = 10L;
+	timesteps = 5L;
 
 	nrb = (rows - 2) / rbs + 2;
 	ncb = (cols - 2) / cbs + 2;

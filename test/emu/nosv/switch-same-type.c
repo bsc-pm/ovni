@@ -19,7 +19,7 @@ main(void)
 	instr_nosv_init();
 
 	uint32_t typeid = 100;
-	uint32_t gid = instr_nosv_type_create(typeid);
+	uint32_t gid = instr_nosv_type_create((int32_t) typeid);
 
 	/* Create two tasks of the same type */
 	instr_nosv_task_create(1, typeid);

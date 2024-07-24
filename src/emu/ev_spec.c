@@ -104,7 +104,7 @@ parse_arg(struct ev_spec *spec, char *arg)
 	}
 
 	/* Copy name */
-	size_t n = snprintf(argspec->name, sizeof(argspec->name), "%s", name);
+	size_t n = (size_t) snprintf(argspec->name, sizeof(argspec->name), "%s", name);
 	if (n >= sizeof(argspec->name)) {
 		err("argument name too long: %s", name);
 		return -1;
@@ -364,7 +364,7 @@ print_arg(struct ev_arg *arg, const char *fmt, struct cursor *c, struct emu_ev *
 #define CASE(TYPE) \
 		do { \
 			TYPE *data = (TYPE *) &payload[arg->offset]; \
-			n = snprintf(c->out, c->len, fmt, *data); \
+			n = snprintf(c->out, (size_t) c->len, fmt, *data); \
 			if (n >= c->len) { \
 				err("no space for argument"); \
 				return -1; \
@@ -386,8 +386,8 @@ print_arg(struct ev_arg *arg, const char *fmt, struct cursor *c, struct emu_ev *
 				char *data = (char *) &payload[arg->offset];
 				/* Here we trust the input string to
 				 * contain a nil at the end */
-				int n = snprintf(c->out, c->len, fmt, data);
-				if (n >= c->len) {
+				int n = snprintf(c->out, (size_t) c->len, fmt, data);
+				if (n >= (int) c->len) {
 					err("no space for string argument");
 					return -1;
 				}

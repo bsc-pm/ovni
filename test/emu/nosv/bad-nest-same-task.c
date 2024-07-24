@@ -12,7 +12,7 @@ main(void)
 	instr_nosv_init();
 
 	uint32_t typeid = 666;
-	instr_nosv_type_create(typeid);
+	instr_nosv_type_create((int32_t) typeid);
 
 	instr_nosv_task_create(1, typeid);
 	instr_nosv_task_execute(1, 0);

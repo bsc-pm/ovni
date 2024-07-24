@@ -390,18 +390,18 @@ pre_burst(struct emu *emu)
 	for (int i = 0; i < n; i++)
 		deltas[i] = th->burst_time[i + 1] - th->burst_time[i];
 
-	qsort(deltas, n, sizeof(int64_t), compare_int64);
+	qsort(deltas, (size_t) n, sizeof(int64_t), compare_int64);
 
 	double avg = 0.0;
 	double maxdelta = 0;
 	for (int i = 0; i < n; i++) {
-		if (deltas[i] > maxdelta)
-			maxdelta = deltas[i];
-		avg += deltas[i];
+		if ((double) deltas[i] > maxdelta)
+			maxdelta = (double) deltas[i];
+		avg += (double) deltas[i];
 	}
 
 	avg /= (double) n;
-	double median = deltas[n / 2];
+	double median = (double) deltas[n / 2];
 
 	info("%s burst stats: median/avg/max = %3.0f/%3.0f/%3.0f ns",
 			emu->loom->id, median, avg, maxdelta);

@@ -17,7 +17,7 @@ main(void)
 	uint32_t typeid = 100;
 	uint32_t taskid = 200;
 
-	instr_nosv_type_create(typeid);
+	instr_nosv_type_create((int32_t) typeid);
 	instr_nosv_task_create_par(taskid, typeid);
 
 	/* Create and run the tasks, one nested into another */

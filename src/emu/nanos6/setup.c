@@ -402,7 +402,7 @@ finish_pvt(struct emu *emu, const char *name)
 	}
 	struct pcf *pcf = pvt_get_pcf(pvt);
 	long typeid = pvt_type[CH_TYPE];
-	struct pcf_type *pcftype = pcf_find_type(pcf, typeid);
+	struct pcf_type *pcftype = pcf_find_type(pcf, (int) typeid);
 
 	for (struct proc *p = sys->procs; p; p = p->gnext) {
 		struct nanos6_proc *proc = EXT(p, model_id);

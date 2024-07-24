@@ -324,7 +324,7 @@ update_task_state(struct emu *emu)
 static int
 expand_transition_value(struct emu *emu, int was_running, int runs_now, char *tr_p)
 {
-	char tr = emu->ev->v;
+	char tr = (char) emu->ev->v;
 
 	/* Ensure we don't clobber the value */
 	if (tr == 'X' || tr == 'E') {
@@ -441,7 +441,7 @@ update_task(struct emu *emu)
 	struct body *next = task_get_running(stack);
 
 	/* Update the subsystem channel */
-	if (update_task_ss_channel(emu, emu->ev->v) != 0) {
+	if (update_task_ss_channel(emu, (char) emu->ev->v) != 0) {
 		err("update_task_ss_channel failed");
 		return -1;
 	}
@@ -509,7 +509,7 @@ pre_task(struct emu *emu)
 	switch (emu->ev->v) {
 		case 'C':
 		case 'c':
-			ret = create_task(emu, emu->ev->v);
+			ret = create_task(emu, (char) emu->ev->v);
 			break;
 		case 'x':
 		case 'e':

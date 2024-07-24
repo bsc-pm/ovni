@@ -106,8 +106,8 @@ sort_cb_input(struct chan *in_chan, void *ptr)
 	if (likely(sort->copied)) {
 		sort_replace(sort->sorted, sort->n, old, new);
 	} else {
-		memcpy(sort->sorted, sort->values, sort->n * sizeof(int64_t));
-		qsort(sort->sorted, sort->n, sizeof(int64_t), cmp_int64);
+		memcpy(sort->sorted, sort->values, (size_t) sort->n * sizeof(int64_t));
+		qsort(sort->sorted, (size_t) sort->n, sizeof(int64_t), cmp_int64);
 		sort->copied = 1;
 	}
 
@@ -141,22 +141,22 @@ sort_init(struct sort *sort, struct bay *bay, int64_t n, const char *name)
 	memset(sort, 0, sizeof(struct sort));
 	sort->bay = bay;
 	sort->n = n;
-	sort->inputs = calloc(n, sizeof(struct sort_input));
+	sort->inputs = calloc((size_t) n, sizeof(struct sort_input));
 	if (sort->inputs == NULL) {
 		err("calloc failed:");
 		return -1;
 	}
-	sort->outputs = calloc(n, sizeof(struct chan));
+	sort->outputs = calloc((size_t) n, sizeof(struct chan));
 	if (sort->outputs == NULL) {
 		err("calloc failed:");
 		return -1;
 	}
-	sort->values = calloc(n, sizeof(int64_t));
+	sort->values = calloc((size_t) n, sizeof(int64_t));
 	if (sort->values == NULL) {
 		err("calloc failed:");
 		return -1;
 	}
-	sort->sorted = calloc(n, sizeof(int64_t));
+	sort->sorted = calloc((size_t) n, sizeof(int64_t));
 	if (sort->sorted == NULL) {
 		err("calloc failed:");
 		return -1;

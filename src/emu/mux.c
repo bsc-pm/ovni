@@ -177,7 +177,7 @@ mux_init(struct mux *mux,
 	mux->select = select;
 	mux->output = output;
 	mux->ninputs = ninputs;
-	mux->inputs = calloc(ninputs, sizeof(struct mux_input));
+	mux->inputs = calloc((size_t) ninputs, sizeof(struct mux_input));
 	mux->def = value_null();
 
 	if (mux->inputs == NULL) {

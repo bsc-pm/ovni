@@ -27,7 +27,7 @@ get_model_cpu(struct cpu *cpu, int id)
 static int
 init_chan(struct model_cpu *cpu, const struct model_chan_spec *spec, int64_t gindex)
 {
-	cpu->track = calloc(spec->nch, sizeof(struct track));
+	cpu->track = calloc((size_t) spec->nch, sizeof(struct track));
 	if (cpu->track == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -108,7 +108,7 @@ connect_cpu(struct emu *emu, struct cpu *scpu, int id)
 
 		struct chan *sel = cpu_get_th_chan(scpu);
 
-		int64_t nthreads = emu->system.nthreads;
+		int64_t nthreads = (int64_t) emu->system.nthreads;
 		if (track_set_select(track, sel, NULL, nthreads) != 0) {
 			err("track_select failed");
 			return -1;

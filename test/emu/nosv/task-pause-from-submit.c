@@ -30,7 +30,7 @@ main(void)
 		die("fopen failed:");
 
 	uint32_t typeid = 100;
-	instr_nosv_type_create(typeid);
+	instr_nosv_type_create((int32_t) typeid);
 
 	instr_nosv_task_create(1, typeid);
 

@@ -435,8 +435,8 @@ write_evbuf(uint8_t *buf, size_t size)
 		if (written < 0)
 			die("failed to write buffer to disk:");
 
-		size -= written;
-		buf += written;
+		size -= (size_t) written;
+		buf += (size_t) written;
 	} while (size > 0);
 }
 
@@ -638,7 +638,7 @@ clock_monotonic_now(void)
 	if (clock_gettime(rproc.clockid, &tp))
 		die("clock_gettime() failed:");
 
-	return tp.tv_sec * ns + tp.tv_nsec;
+	return (uint64_t) tp.tv_sec * ns + (uint64_t) tp.tv_nsec;
 }
 
 uint64_t
@@ -666,9 +666,9 @@ ovni_ev_get_clock(const struct ovni_ev *ev)
 void
 ovni_ev_set_mcv(struct ovni_ev *ev, const char *mcv)
 {
-	ev->header.model = mcv[0];
-	ev->header.category = mcv[1];
-	ev->header.value = mcv[2];
+	ev->header.model = (uint8_t) mcv[0];
+	ev->header.category = (uint8_t) mcv[1];
+	ev->header.value = (uint8_t) mcv[2];
 }
 
 static size_t
@@ -681,7 +681,7 @@ int
 ovni_payload_size(const struct ovni_ev *ev)
 {
 	if (ev->header.flags & OVNI_EV_JUMBO)
-		return get_jumbo_payload_size(ev);
+		return (int) get_jumbo_payload_size(ev);
 
 	int size = ev->header.flags & 0x0f;
 
@@ -704,22 +704,23 @@ ovni_payload_add(struct ovni_ev *ev, const uint8_t *buf, int size)
 	if (size < 2)
 		die("payload size %d too small", size);
 
-	size_t payload_size = ovni_payload_size(ev);
+	size_t payload_size = (size_t) ovni_payload_size(ev);
 
 	/* Ensure we have room */
-	if (payload_size + size > sizeof(ev->payload))
+	if (payload_size + (size_t) size > sizeof(ev->payload))
 		die("no space left for %d bytes", size);
 
-	memcpy(&ev->payload.u8[payload_size], buf, size);
-	payload_size += size;
+	memcpy(&ev->payload.u8[payload_size], buf, (size_t) size);
+	payload_size += (size_t) size;
 
-	ev->header.flags = (ev->header.flags & 0xf0) | ((payload_size - 1) & 0x0f);
+	ev->header.flags = (uint8_t) ((ev->header.flags & 0xf0)
+			| ((payload_size - 1) & 0x0f));
 }
 
 int
 ovni_ev_size(const struct ovni_ev *ev)
 {
-	return sizeof(ev->header) + ovni_payload_size(ev);
+	return (int) sizeof(ev->header) + ovni_payload_size(ev);
 }
 
 static void
@@ -778,7 +779,7 @@ ovni_ev_add_jumbo(struct ovni_ev *ev, const uint8_t *buf, uint32_t bufsize)
 		die("the event payload must be empty");
 
 	ovni_payload_add(ev, (uint8_t *) &bufsize, sizeof(bufsize));
-	size_t evsize = ovni_ev_size(ev);
+	size_t evsize = (size_t) ovni_ev_size(ev);
 
 	size_t totalsize = evsize + bufsize;
 
@@ -818,7 +819,7 @@ ovni_ev_add(struct ovni_ev *ev)
 	int flushed = 0;
 	uint64_t t0, t1;
 
-	int size = ovni_ev_size(ev);
+	size_t size = (size_t) ovni_ev_size(ev);
 
 	/* Check if the event fits or flush first otherwise */
 	if (rthread.evlen + size >= OVNI_MAX_EV_BUF) {

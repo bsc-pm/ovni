@@ -59,12 +59,12 @@ model_nanos6_breakdown_create(struct emu *emu)
 
 	/* Count phy cpus */
 	struct system *sys = &emu->system;
-	int64_t nphycpus = sys->ncpus - sys->nlooms;
+	int64_t nphycpus = (int64_t) (sys->ncpus - sys->nlooms);
 	bemu->nphycpus = nphycpus;
 
 	/* Create a new Paraver trace */
 	struct recorder *rec = &emu->recorder;
-	bemu->pvt = recorder_add_pvt(rec, "nanos6-breakdown", nphycpus);
+	bemu->pvt = recorder_add_pvt(rec, "nanos6-breakdown", (long) nphycpus);
 	if (bemu->pvt == NULL) {
 		err("recorder_add_pvt failed");
 		return -1;
@@ -245,7 +245,7 @@ model_nanos6_breakdown_connect(struct emu *emu)
 		flags |= PRV_ZERO;
 
 		struct chan *out = sort_get_output(&bemu->sort, i);
-		if (prv_register(prv, i, type, bay, out, flags)) {
+		if (prv_register(prv, (long) i, type, bay, out, flags)) {
 			err("prv_register failed");
 			return -1;
 		}
@@ -268,7 +268,7 @@ model_nanos6_breakdown_finish(struct emu *emu,
 	struct pcf *pcf = pvt_get_pcf(bemu->pvt);
 	long typeid = PRV_NANOS6_BREAKDOWN;
 	char label[] = "CPU: Nanos6 Runtime/Idle/Task breakdown";
-	struct pcf_type *pcftype = pcf_add_type(pcf, typeid, label);
+	struct pcf_type *pcftype = pcf_add_type(pcf, (int) typeid, label);
 	const struct pcf_value_label *v = NULL;
 
 	/* Emit subsystem values */
@@ -307,7 +307,7 @@ model_nanos6_breakdown_finish(struct emu *emu,
 			return -1;
 		}
 
-		if (prf_add(prf, row, name) != 0) {
+		if (prf_add(prf, (long) row, name) != 0) {
 			err("prf_add failed for %s", name);
 			return -1;
 		}

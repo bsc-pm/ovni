@@ -23,8 +23,8 @@ track_init(struct track *track, struct bay *bay, enum track_type type, int mode,
 	va_list ap;
 	va_start(ap, fmt);
 
-	int n = ARRAYLEN(track->name);
-	int ret = vsnprintf(track->name, n, fmt, ap);
+	int n = (int) ARRAYLEN(track->name);
+	int ret = vsnprintf(track->name, (size_t) n, fmt, ap);
 	if (ret >= n) {
 		err("track name too long");
 		return -1;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #define _XOPEN_SOURCE 500
@@ -36,7 +36,7 @@ load_stream(struct trace *trace, const char *path)
 		return -1;
 	}
 
-	int offset = strlen(trace->tracedir);
+	int offset = (int) strlen(trace->tracedir);
 	const char *relpath = path + offset;
 
 	/* Skip begin slashes */
@@ -58,14 +58,14 @@ has_suffix(const char *str, const char *suffix)
 	if (!str || !suffix)
 		return 0;
 
-	int lenstr = strlen(str);
-	int lensuffix = strlen(suffix);
+	int lenstr = (int) strlen(str);
+	int lensuffix = (int) strlen(suffix);
 
 	if (lensuffix > lenstr)
 		return 0;
 
 	const char *p = str + lenstr - lensuffix;
-	if (strncmp(p, suffix, lensuffix) == 0)
+	if (strncmp(p, suffix, (size_t) lensuffix) == 0)
 		return 1;
 
 	return 0;

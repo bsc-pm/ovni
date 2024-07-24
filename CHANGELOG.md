@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Enable -Wconversion and -Wsign-conversion.
+
 ## [1.10.0] - 2024-07-26
 
 ### Changed

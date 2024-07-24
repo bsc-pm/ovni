@@ -106,7 +106,7 @@ bay_add_cb(struct bay *bay, enum bay_cb_type type,
 	cb->func = func;
 	cb->arg = arg;
 	cb->bchan = bchan;
-	cb->type = type;
+	cb->type = (int) type;
 	cb->enabled = 0;
 
 	if (enabled)

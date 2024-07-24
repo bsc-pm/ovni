@@ -59,7 +59,7 @@ load_stream_fd(struct stream *stream, int fd)
 	}
 
 	int prot = PROT_READ | PROT_WRITE;
-	stream->buf = mmap(NULL, st.st_size, prot, MAP_PRIVATE, fd, 0);
+	stream->buf = mmap(NULL, (size_t) st.st_size, prot, MAP_PRIVATE, fd, 0);
 
 	if (stream->buf == MAP_FAILED) {
 		err("mmap failed:");
@@ -241,7 +241,7 @@ stream_step(struct stream *stream)
 void
 stream_progress(struct stream *stream, int64_t *done, int64_t *total)
 {
-	*done = stream->offset - sizeof(struct ovni_stream_header);
+	*done = stream->offset - (int64_t) sizeof(struct ovni_stream_header);
 	*total = stream->usize;
 }
 

@@ -303,7 +303,7 @@ create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
 	struct ovni_mark_thread *t = &oth->mark;
 
 	/* Create as many channels as required */
-	t->channels = calloc(m->ntypes, sizeof(struct chan));
+	t->channels = calloc((size_t) m->ntypes, sizeof(struct chan));
 	if (t->channels == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -330,7 +330,7 @@ create_thread_chan(struct ovni_mark_emu *m, struct bay *bay, struct thread *th)
 	}
 
 	/* Setup tracking */
-	t->track = calloc(m->ntypes, sizeof(struct track));
+	t->track = calloc((size_t) m->ntypes, sizeof(struct track));
 	if (t->track == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -358,7 +358,7 @@ init_cpu(struct ovni_mark_emu *m, struct bay *bay, struct cpu *cpu)
 	struct ovni_mark_cpu *c = &ocpu->mark;
 
 	/* Setup tracking */
-	c->track = calloc(m->ntypes, sizeof(struct track));
+	c->track = calloc((size_t) m->ntypes, sizeof(struct track));
 	if (c->track == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -442,7 +442,7 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv)
 		/* Then connect the output of the tracking module to the prv
 		 * trace for the current thread */
 		struct chan *out = track_get_output(track);
-		long row = sth->gindex;
+		long row = (long) sth->gindex;
 		long flags = PRV_SKIPDUPNULL;
 		long prvtype = type->prvtype;
 		if (prv_register(prv, row, prvtype, &emu->bay, out, flags)) {
@@ -457,14 +457,14 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv)
 static int
 create_type(struct pcf *pcf, struct mark_type *type)
 {
-	struct pcf_type *pcftype = pcf_add_type(pcf, type->prvtype, type->title);
+	struct pcf_type *pcftype = pcf_add_type(pcf, (int) type->prvtype, type->title);
 	if (pcftype == NULL) {
 		err("pcf_add_type failed");
 		return -1;
 	}
 
 	for (struct mark_label *l = type->labels; l; l = l->hh.next) {
-		if (pcf_add_value(pcftype, l->value, l->label) == NULL) {
+		if (pcf_add_value(pcftype, (int) l->value, l->label) == NULL) {
 			err("pcf_add_value failed");
 			return -1;
 		}
@@ -534,7 +534,7 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 		struct track *track = &mcpu->track[i];
 		struct chan *sel = cpu_get_th_chan(scpu);
 
-		int64_t nthreads = emu->system.nthreads;
+		int64_t nthreads = (int64_t) emu->system.nthreads;
 		if (track_set_select(track, sel, NULL, nthreads) != 0) {
 			err("track_select failed");
 			return -1;
@@ -557,7 +557,7 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 		/* Then connect the output of the tracking module to the prv
 		 * trace for the current thread */
 		struct chan *out = track_get_output(track);
-		long row = scpu->gindex;
+		long row = (long) scpu->gindex;
 		long flags = PRV_SKIPDUPNULL;
 		long prvtype = type->prvtype;
 		if (prv_register(prv, row, prvtype, &emu->bay, out, flags)) {

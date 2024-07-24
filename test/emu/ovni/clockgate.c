@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -17,7 +17,7 @@ thread_execute_delayed(int32_t cpu, int32_t creator_tid, uint64_t tag)
 {
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, "OHx");
-	ovni_ev_set_clock(&ev, ovni_clock_now() + delta);
+	ovni_ev_set_clock(&ev, ovni_clock_now() + (uint64_t) delta);
 	ovni_payload_add(&ev, (uint8_t *) &cpu, sizeof(cpu));
 	ovni_payload_add(&ev, (uint8_t *) &creator_tid, sizeof(creator_tid));
 	ovni_payload_add(&ev, (uint8_t *) &tag, sizeof(tag));
@@ -50,7 +50,7 @@ start_delayed(int rank, int nranks)
 	dbg("thread %d has cpu %d (ncpus=%d)",
 			get_tid(), curcpu, nranks);
 
-	delta = ((int64_t) rank) * 2LL * 3600LL * 1000LL * 1000LL * 1000LL;
+	delta = ((int64_t) rank) * (int64_t) (2LL * 3600LL * 1000LL * 1000LL * 1000LL);
 	thread_execute_delayed(curcpu, -1, 0);
 }
 

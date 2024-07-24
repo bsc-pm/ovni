@@ -91,7 +91,7 @@ get_tid(const char *id, int *tid)
 
 	char *endptr;
 	errno = 0;
-	*tid = strtol(tidstr, &endptr, 10);
+	*tid = (int) strtol(tidstr, &endptr, 10);
 	if (errno != 0) {
 		err("strtol failed for '%s':", tidstr);
 		return -1;
@@ -196,7 +196,7 @@ create_type(struct pcf *pcf, int i)
 		return 0;
 
 	const char *label = pvt_name[i];
-	struct pcf_type *pcftype = pcf_add_type(pcf, type, label);
+	struct pcf_type *pcftype = pcf_add_type(pcf, (int) type, label);
 	if (pcftype == NULL) {
 		err("pcf_add_type failed");
 		return -1;
@@ -234,7 +234,7 @@ thread_connect(struct thread *th, struct bay *bay, struct recorder *rec)
 		}
 
 		long type = chan_type[i];
-		long row = th->gindex;
+		long row = (long) th->gindex;
 		long flags = prv_flags[i];
 
 		if (prv_register(prv, row, type, bay, c, flags)) {

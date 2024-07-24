@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <nanos6.h>
@@ -31,7 +31,7 @@ do_task(int t)
 static void
 do_run(void)
 {
-	memset(handle, 0, ntasks * sizeof(void *));
+	memset(handle, 0, (size_t) ntasks * sizeof(void *));
 	atomic_store(&nhandles, 0);
 
 	for (int t = 0; t < ntasks; t++)
@@ -63,7 +63,7 @@ main(void)
 {
 	ncpus = get_ncpus();
 
-	handle = calloc(ntasks, sizeof(void *));
+	handle = calloc((size_t) ntasks, sizeof(void *));
 
 	if (handle == NULL) {
 		perror("calloc failed");

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef INSTR_NANOS6_H
@@ -20,7 +20,7 @@ instr_nanos6_type_create(int32_t typeid)
 	struct ovni_ev ev = {0};
 
 	ovni_ev_set_mcv(&ev, "6Yc");
-	ovni_ev_set_clock(&ev, get_clock());
+	ovni_ev_set_clock(&ev, (uint64_t) get_clock());
 
 	char buf[256];
 	char *p = buf;
@@ -32,7 +32,7 @@ instr_nanos6_type_create(int32_t typeid)
 	sprintf(p, "testtype%d", typeid);
 	nbytes += strlen(p) + 1;
 
-	ovni_ev_jumbo_emit(&ev, (uint8_t *) buf, nbytes);
+	ovni_ev_jumbo_emit(&ev, (uint8_t *) buf, (uint32_t) nbytes);
 
 	return task_get_type_gid(p);
 }

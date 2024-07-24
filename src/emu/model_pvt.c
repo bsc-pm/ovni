@@ -35,7 +35,7 @@ create_values(const struct model_pvt_spec *pvt,
 		return 0;
 
 	for (const struct pcf_value_label *p = q; p->label != NULL; p++) {
-		if (pcf_add_value(t, p->value, p->label) == NULL) {
+		if (pcf_add_value(t, (int) p->value, p->label) == NULL) {
 			err("pcf_add_value failed");
 			return -1;
 		}
@@ -66,7 +66,7 @@ create_type(const struct model_pvt_spec *pvt,
 		return -1;
 	}
 
-	struct pcf_type *pcftype = pcf_add_type(pcf, type, label);
+	struct pcf_type *pcftype = pcf_add_type(pcf, (int) type, label);
 	if (pcftype == NULL) {
 		err("pcf_add_type failed");
 		return -1;
@@ -106,7 +106,7 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv, int id)
 	for (int i = 0; i < spec->nch; i++) {
 		struct chan *out = track_get_output(&cpu->track[i]);
 		long type = spec->pvt->type[i];
-		long row = scpu->gindex;
+		long row = (long) scpu->gindex;
 		long flags = flags_arr ? flags_arr[i] : 0;
 		if (prv_register(prv, row, type, &emu->bay, out, flags)) {
 			err("prv_register failed");
@@ -158,7 +158,7 @@ connect_thread_prv(struct emu *emu, struct thread *sth, struct prv *prv, int id)
 	for (int i = 0; i < spec->nch; i++) {
 		struct chan *out = track_get_output(&th->track[i]);
 		long type = spec->pvt->type[i];
-		long row = sth->gindex;
+		long row = (long) sth->gindex;
 		long flags = flags_arr ? flags_arr[i] : 0;
 		if (prv_register(prv, row, type, &emu->bay, out, flags)) {
 			err("prv_register failed");

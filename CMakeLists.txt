@@ -9,7 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 add_compile_options(-Wall -Wextra -Wformat
   -Wmissing-prototypes -Wstrict-prototypes
-  #-Wconversion -Wsign-conversion
+  -Wconversion -Wsign-conversion
   -Wold-style-definition -pedantic
   -Werror
 )

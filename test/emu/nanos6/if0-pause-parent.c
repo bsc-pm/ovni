@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -18,7 +18,7 @@ main(void)
 	int ntasks = 100;
 	uint32_t typeid = 1;
 
-	instr_nanos6_type_create(typeid);
+	instr_nanos6_type_create((int32_t) typeid);
 
 	/* Create and run the tasks, one nested into another */
 	for (int32_t id = 1; id <= ntasks; id++) {

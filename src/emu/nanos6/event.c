@@ -299,7 +299,7 @@ update_task_state(struct emu *emu)
 static int
 expand_transition_value(struct emu *emu, int was_running, int runs_now, char *tr_p)
 {
-	char tr = emu->ev->v;
+	char tr = (char) emu->ev->v;
 
 	/* Ensure we don't clobber the value */
 	if (tr == 'X' || tr == 'E') {
@@ -419,7 +419,7 @@ update_task(struct emu *emu)
 	struct task *next = bnext == NULL ? NULL : body_get_task(bnext);
 
 	/* Update the subsystem channel */
-	if (update_task_ss_channel(emu, emu->ev->v) != 0) {
+	if (update_task_ss_channel(emu, (char) emu->ev->v) != 0) {
 		err("update_task_ss_channel failed");
 		return -1;
 	}
@@ -467,7 +467,7 @@ create_task(struct emu *emu)
 	 * task, so we relax the model to allow this for now. */
 	flags |= TASK_FLAG_RELAX_NESTING;
 
-	if (task_create(info, type_id, task_id, flags) != 0) {
+	if (task_create(info, type_id, task_id, (uint32_t) flags) != 0) {
 		err("task_create failed");
 		return -1;
 	}

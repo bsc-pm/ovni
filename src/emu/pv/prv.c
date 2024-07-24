@@ -25,7 +25,7 @@ prv_open_file(struct prv *prv, long nrows, FILE *file)
 	prv->file = file;
 
 	/* Write fake header to allocate the space */
-	write_header(file, 0LL, nrows);
+	write_header(file, 0LL, (int) nrows);
 
 	return 0;
 }
@@ -48,7 +48,7 @@ prv_close(struct prv *prv)
 {
 	/* Fix the header with the current duration */
 	fseek(prv->file, 0, SEEK_SET);
-	write_header(prv->file, prv->time, prv->nrows);
+	write_header(prv->file, prv->time, (int) prv->nrows);
 	fclose(prv->file);
 	return 0;
 }

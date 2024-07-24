@@ -117,11 +117,11 @@ leading_zeros(size_t x)
 {
 	/* Call and if()'s optimized by the compiler with -O2 */
 	if (sizeof(size_t) == sizeof(unsigned int))
-		return __builtin_clz(x);
+		return __builtin_clz((unsigned int) x);
 	else if (sizeof(size_t) == sizeof(unsigned long))
-		return __builtin_clzl(x);
+		return __builtin_clzl((unsigned long) x);
 	else if (sizeof(size_t) == sizeof(unsigned long long))
-		return __builtin_clzll(x);
+		return __builtin_clzll((unsigned long long) x);
 	else
 		die("cannot find suitable size for __builtin_clz*");
 }
@@ -133,7 +133,7 @@ heap_get_move(size_t *node /*out*/)
 	size_t aux_node = *node;
 
 	// Round to previous po2
-	int shift = sizeof(size_t) * 8 - leading_zeros(aux_node) - 1;
+	int shift = (int) sizeof(size_t) * 8 - leading_zeros(aux_node) - 1;
 	size_t base = 1ULL << shift;
 
 	aux_node -= base / 2;

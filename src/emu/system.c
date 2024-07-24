@@ -226,7 +226,7 @@ create_system(struct system *sys, struct trace *trace)
 	const char *dir = trace->tracedir;
 
 	/* Allocate the lpt map */
-	sys->lpt = calloc(trace->nstreams, sizeof(struct lpt));
+	sys->lpt = calloc((size_t) trace->nstreams, sizeof(struct lpt));
 	if (sys->lpt == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -373,20 +373,20 @@ init_global_indices(struct system *sys)
 {
 	size_t iloom = 0;
 	for (struct loom *l = sys->looms; l; l = l->next)
-		loom_set_gindex(l, iloom++);
+		loom_set_gindex(l, (int64_t) iloom++);
 
 	sys->nprocs = 0;
 	for (struct proc *p = sys->procs; p; p = p->gnext)
-		proc_set_gindex(p, sys->nprocs++);
+		proc_set_gindex(p, (int64_t) sys->nprocs++);
 
 	sys->nthreads = 0;
 	for (struct thread *t = sys->threads; t; t = t->gnext)
-		thread_set_gindex(t, sys->nthreads++);
+		thread_set_gindex(t, (int64_t) sys->nthreads++);
 
 	sys->ncpus = 0;
 	sys->nphycpus = 0;
 	for (struct cpu *c = sys->cpus; c; c = c->next) {
-		cpu_set_gindex(c, sys->ncpus++);
+		cpu_set_gindex(c, (int64_t) sys->ncpus++);
 		if (!c->is_virtual)
 			sys->nphycpus++;
 	}
@@ -641,13 +641,13 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 {
 	/* Create Paraver traces */
 	struct pvt *pvt_cpu = NULL;
-	if ((pvt_cpu = recorder_add_pvt(rec, "cpu", sys->ncpus)) == NULL) {
+	if ((pvt_cpu = recorder_add_pvt(rec, "cpu", (long) sys->ncpus)) == NULL) {
 		err("recorder_add_pvt failed");
 		return -1;
 	}
 
 	struct pvt *pvt_th = NULL;
-	if ((pvt_th = recorder_add_pvt(rec, "thread", sys->nthreads)) == NULL) {
+	if ((pvt_th = recorder_add_pvt(rec, "thread", (long) sys->nthreads)) == NULL) {
 		err("recorder_add_pvt failed");
 		return -1;
 	}
@@ -667,7 +667,7 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 			return -1;
 		}
 
-		if (prf_add(prf, th->gindex, name) != 0) {
+		if (prf_add(prf, (long) th->gindex, name) != 0) {
 			err("prf_add failed for thread '%s'", th->id);
 			return -1;
 		}
@@ -688,7 +688,7 @@ system_connect(struct system *sys, struct bay *bay, struct recorder *rec)
 		}
 
 		struct prf *prf = pvt_get_prf(pvt_cpu);
-		if (prf_add(prf, cpu->gindex, cpu->name) != 0) {
+		if (prf_add(prf, (long) cpu->gindex, cpu->name) != 0) {
 			err("prf_add failed for cpu '%s'", cpu->name);
 			return -1;
 		}

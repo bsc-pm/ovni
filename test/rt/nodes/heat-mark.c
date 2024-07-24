@@ -93,7 +93,7 @@ static void
 reset(double *matrix)
 {
 	/* Set all elements to zero */
-	memset(matrix, 0, rows * cols * sizeof(double));
+	memset(matrix, 0, (size_t) rows * (size_t) cols * sizeof(double));
 
 	/* Set the left side to 1.0 */
 	for (long i = 0; i < rows; i++)
@@ -128,7 +128,9 @@ main(void)
 		die("cannot read pagesize");
 
 	double *matrix;
-	int err = posix_memalign((void **) &matrix, pagesize, rows * cols * sizeof(double));
+	int err = posix_memalign((void **) &matrix, (size_t) pagesize,
+			(size_t) rows * (size_t) cols * sizeof(double));
+
 	if (err || matrix == NULL)
 		die("posix_memalign failed:");
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "prf.h"
@@ -20,7 +20,7 @@ prf_open(struct prf *prf, const char *path, long nrows)
 	}
 
 	prf->nrows = nrows;
-	prf->rows = calloc(nrows, sizeof(struct prf_row));
+	prf->rows = calloc((size_t) nrows, sizeof(struct prf_row));
 
 	if (prf->rows == NULL) {
 		err("calloc failed:");

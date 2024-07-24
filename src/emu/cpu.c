@@ -78,8 +78,8 @@ cpu_set_loom(struct cpu *cpu, struct loom *loom)
 static int
 set_name(struct cpu *cpu)
 {
-	size_t i = loom_get_gindex(cpu->loom);
-	size_t j = cpu_get_phyid(cpu);
+	size_t i = (size_t) loom_get_gindex(cpu->loom);
+	size_t j = (size_t) cpu_get_phyid(cpu);
 	int n;
 
 	if (cpu->is_virtual)
@@ -162,7 +162,7 @@ cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec)
 		if (type < 0)
 			continue;
 
-		long row = cpu->gindex;
+		long row = (long) cpu->gindex;
 		long flags = prv_flags[i];
 		if (prv_register(prv, row, type, bay, c, flags)) {
 			err("prv_register failed");
@@ -176,7 +176,7 @@ cpu_connect(struct cpu *cpu, struct bay *bay, struct recorder *rec)
 struct pcf_value *
 cpu_add_to_pcf_type(struct cpu *cpu, struct pcf_type *type)
 {
-	return pcf_add_value(type, cpu->gindex + 1, cpu->name);
+	return pcf_add_value(type, (int) cpu->gindex + 1, cpu->name);
 }
 
 static struct thread *
@@ -215,8 +215,8 @@ cpu_update(struct cpu *cpu)
 		}
 	}
 
-	cpu->nth_running = running;
-	cpu->nth_active = active;
+	cpu->nth_running = (size_t) running;
+	cpu->nth_active = (size_t) active;
 
 	/* Only virtual cpus can be oversubscribed */
 	if (cpu->nth_running > 1 && !cpu->is_virtual) {
@@ -265,7 +265,7 @@ cpu_update(struct cpu *cpu)
 	}
 
 	/* Update nth_running number in the channel */
-	if (chan_set(&cpu->chan[CPU_CHAN_NRUN], value_int64(running)) != 0) {
+	if (chan_set(&cpu->chan[CPU_CHAN_NRUN], value_int64((int64_t) running)) != 0) {
 		err("chan_set nth_running failed");
 		return -1;
 	}

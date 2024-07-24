@@ -95,7 +95,7 @@ cindex(struct clkoff *table)
 		return -1;
 	}
 
-	table->index = calloc(table->nentries, sizeof(struct clkoff_entry *));
+	table->index = calloc((size_t) table->nentries, sizeof(struct clkoff_entry *));
 
 	if (table->index == NULL) {
 		err("calloc failed");

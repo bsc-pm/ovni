@@ -19,20 +19,20 @@ extern int64_t last_clock;
 int64_t get_clock(void);
 int64_t get_delta(void);
 
-#define INSTR_0ARG(name, mcv)                             \
-	static inline void name(void)                     \
-	{                                                 \
-		struct ovni_ev ev = {0};                  \
-		ovni_ev_set_clock(&ev, get_clock());      \
-		ovni_ev_set_mcv(&ev, mcv);                \
-		ovni_ev_emit(&ev);                        \
+#define INSTR_0ARG(name, mcv)                                     \
+	static inline void name(void)                             \
+	{                                                         \
+		struct ovni_ev ev = {0};                          \
+		ovni_ev_set_clock(&ev, (uint64_t) get_clock());   \
+		ovni_ev_set_mcv(&ev, mcv);                        \
+		ovni_ev_emit(&ev);                                \
 	}
 
 #define INSTR_1ARG(name, mcv, ta, a)                              \
 	static inline void name(ta a)                             \
 	{                                                         \
 		struct ovni_ev ev = {0};                          \
-		ovni_ev_set_clock(&ev, get_clock());              \
+		ovni_ev_set_clock(&ev, (uint64_t) get_clock());   \
 		ovni_ev_set_mcv(&ev, mcv);                        \
 		ovni_payload_add(&ev, (uint8_t *) &a, sizeof(a)); \
 		ovni_ev_emit(&ev);                                \
@@ -42,7 +42,7 @@ int64_t get_delta(void);
 	static inline void name(ta a, tb b)                       \
 	{                                                         \
 		struct ovni_ev ev = {0};                          \
-		ovni_ev_set_clock(&ev, get_clock());              \
+		ovni_ev_set_clock(&ev, (uint64_t) get_clock());   \
 		ovni_ev_set_mcv(&ev, mcv);                        \
 		ovni_payload_add(&ev, (uint8_t *) &a, sizeof(a)); \
 		ovni_payload_add(&ev, (uint8_t *) &b, sizeof(b)); \
@@ -53,7 +53,7 @@ int64_t get_delta(void);
 	static inline void name(ta a, tb b, tc c)                 \
 	{                                                         \
 		struct ovni_ev ev = {0};                          \
-		ovni_ev_set_clock(&ev, get_clock());              \
+		ovni_ev_set_clock(&ev, (uint64_t) get_clock());   \
 		ovni_ev_set_mcv(&ev, mcv);                        \
 		ovni_payload_add(&ev, (uint8_t *) &a, sizeof(a)); \
 		ovni_payload_add(&ev, (uint8_t *) &b, sizeof(b)); \
@@ -72,7 +72,7 @@ instr_thread_end(void)
 	struct ovni_ev ev = {0};
 
 	ovni_ev_set_mcv(&ev, "OHe");
-	ovni_ev_set_clock(&ev, get_clock());
+	ovni_ev_set_clock(&ev, (uint64_t) get_clock());
 	ovni_ev_emit(&ev);
 
 	/* Flush the events to disk before killing the thread */

@@ -20,7 +20,7 @@ static int
 html_encode(char *dst, int ndst, const char *src)
 {
 	int j = 0;
-	int nsrc = strlen(src);
+	int nsrc = (int) strlen(src);
 
 	for (int i = 0; i < nsrc; i++) {
 		/* Simple check */
@@ -36,7 +36,7 @@ html_encode(char *dst, int ndst, const char *src)
 			case '\'': strcpy(&dst[j], "&apos;"); j += 6; break;
 			case '<':  strcpy(&dst[j], "&lt;");   j += 4; break;
 			case '>':  strcpy(&dst[j], "&gt;");   j += 4; break;
-			default:   dst[j++] = c; break;
+			default:   dst[j++] = (char) c; break;
 		}
 	}
 

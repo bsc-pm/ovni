@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stddef.h>
@@ -12,8 +12,8 @@ emit_jumbo(uint8_t *buf, size_t size, int64_t clock)
 {
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, "OUj");
-	ovni_ev_set_clock(&ev, clock);
-	ovni_ev_jumbo_emit(&ev, buf, size);
+	ovni_ev_set_clock(&ev, (uint64_t) clock);
+	ovni_ev_jumbo_emit(&ev, buf, (uint32_t) size);
 }
 
 static void
@@ -21,7 +21,7 @@ emit(char *mcv, int64_t clock)
 {
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, mcv);
-	ovni_ev_set_clock(&ev, clock);
+	ovni_ev_set_clock(&ev, (uint64_t) clock);
 	ovni_ev_emit(&ev);
 }
 
@@ -37,11 +37,11 @@ fill(long room)
 	/* Skip the jumbo event header and payload size */
 	size_t header = ev_size + 4;
 
-	size_t payload_size = OVNI_MAX_EV_BUF - room - header;
+	size_t payload_size = (size_t) OVNI_MAX_EV_BUF - (size_t) room - header;
 	uint8_t *payload_buf = calloc(1, payload_size);
 
 	/* Fill the stream buffer */
-	int64_t t = ovni_clock_now();
+	int64_t t = (int64_t) ovni_clock_now();
 	emit_jumbo(payload_buf, payload_size, t);
 
 	/* Leave some room to prevent clashes */
@@ -70,9 +70,9 @@ test_flush_after_sort(void)
 	 */
 
 	/* Skip the two flush events and leave room for OU[ */
-	fill(3 * sizeof(struct ovni_ev_header));
+	fill(3 * (long) sizeof(struct ovni_ev_header));
 
-	int64_t t = ovni_clock_now();
+	int64_t t = (int64_t) ovni_clock_now();
 
 	/* Emit the opening of the sort region */
 	emit("OU[", t++);
@@ -85,7 +85,7 @@ test_flush_after_sort(void)
 	emit("KCI", t++ - 100);
 
 	/* Finish the sort region */
-	emit("OU]", ovni_clock_now());
+	emit("OU]", (int64_t) ovni_clock_now());
 }
 
 static void
@@ -94,7 +94,7 @@ test_unsorted(void)
 	/* Test unsorted events in the sorting region */
 
 	sleep_us(100); /* Make room */
-	int64_t t = ovni_clock_now();
+	int64_t t = (int64_t) ovni_clock_now();
 	emit("OU[", t);
 	emit("KCI", t + 2 - 100); /* out of order */
 	emit("KCO", t + 1 - 100);
@@ -106,7 +106,7 @@ test_overlap(void)
 {
 	/* Test overlapping events among regions */
 
-	int64_t t = ovni_clock_now();
+	int64_t t = (int64_t) ovni_clock_now();
 	/* Round time next 1 microsecond to be easier to read */
 	t += 1000 - (t % 1000);
 
@@ -127,8 +127,8 @@ test_overlap_flush(void)
 
 	/* Skip the two flush events and leave room for OU[ */
 	sleep_us(100);
-	fill(5 * sizeof(struct ovni_ev_header));
-	int64_t t = ovni_clock_now();
+	fill(5 * (long) sizeof(struct ovni_ev_header));
+	int64_t t = (int64_t) ovni_clock_now();
 
 	/* Round time next 1 microsecond to be easier to read */
 	t += 1000 - (t % 1000);
@@ -138,11 +138,11 @@ test_overlap_flush(void)
 	emit("KCI", t + 11);
 	emit("OU]", t + 21);
 	/* We need realistic clock due to incoming flush */
-	emit("OU[", ovni_clock_now());
+	emit("OU[", (int64_t) ovni_clock_now());
 	/* Flush here */
 	emit("KCO", t + 12);
 	emit("KCI", t + 13);
-	emit("OU]", ovni_clock_now());
+	emit("OU]", (int64_t) ovni_clock_now());
 }
 
 int

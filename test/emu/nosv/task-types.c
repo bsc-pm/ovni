@@ -19,13 +19,13 @@ main(void)
 	int ntypes = 10;
 
 	for (int i = 0; i < ntypes; i++)
-		instr_nosv_type_create(i + 1);
+		instr_nosv_type_create((int32_t) i + 1);
 
 	for (int i = 0; i < ntasks; i++) {
-		instr_nosv_task_create(i + 1, (i % ntypes) + 1);
-		instr_nosv_task_execute(i + 1, 0);
+		instr_nosv_task_create((uint32_t) i + 1, (uint32_t) ((i % ntypes) + 1));
+		instr_nosv_task_execute((uint32_t) i + 1, 0);
 		sleep_us(500);
-		instr_nosv_task_end(i + 1, 0);
+		instr_nosv_task_end((uint32_t) i + 1, 0);
 	}
 
 	instr_end();

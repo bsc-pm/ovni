@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <errno.h>
@@ -182,7 +182,7 @@ fill_offset(struct offset *offset, int nsamples)
 static void
 offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int verbose)
 {
-	double *delta = malloc(sizeof(double) * nsamples);
+	double *delta = malloc(sizeof(double) * (size_t) nsamples);
 
 	if (delta == NULL) {
 		perror("malloc");
@@ -199,7 +199,7 @@ offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int v
 		}
 	}
 
-	qsort(delta, nsamples, sizeof(double), cmp_double);
+	qsort(delta, (size_t) nsamples, sizeof(double), cmp_double);
 
 	cur->delta_median = delta[nsamples / 2];
 	cur->delta_mean = 0;
@@ -223,14 +223,14 @@ offset_compute_delta(struct offset *ref, struct offset *cur, int nsamples, int v
 static size_t
 offset_size(int nsamples)
 {
-	return sizeof(struct offset) + sizeof(double) * nsamples;
+	return sizeof(struct offset) + sizeof(double) * (size_t) nsamples;
 }
 
 static struct offset *
 table_get_offset(struct offset_table *table, int i, int nsamples)
 {
 	char *p = (char *) table->_offset;
-	p += i * offset_size(nsamples);
+	p += (size_t) i * offset_size(nsamples);
 
 	return (struct offset *) p;
 }
@@ -252,14 +252,14 @@ build_offset_table(int nsamples, int rank, int verbose)
 
 		MPI_Comm_size(MPI_COMM_WORLD, &table->nprocs);
 
-		table->_offset = calloc(table->nprocs, offset_size(nsamples));
+		table->_offset = calloc((size_t) table->nprocs, offset_size(nsamples));
 
 		if (table->_offset == NULL) {
 			perror("malloc");
 			exit(EXIT_FAILURE);
 		}
 
-		table->offset = malloc(sizeof(struct offset *) * table->nprocs);
+		table->offset = malloc(sizeof(struct offset *) * (size_t) table->nprocs);
 
 		if (table->offset == NULL) {
 			perror("malloc");
@@ -288,8 +288,8 @@ build_offset_table(int nsamples, int rank, int verbose)
 	void *sendbuf = rank == 0 ? MPI_IN_PLACE : offset;
 
 	/* Then collect all the offsets into the rank 0 */
-	MPI_Gather(sendbuf, offset_size(nsamples), MPI_CHAR,
-			offset, offset_size(nsamples), MPI_CHAR,
+	MPI_Gather(sendbuf, (int) offset_size(nsamples), MPI_CHAR,
+			offset, (int) offset_size(nsamples), MPI_CHAR,
 			0, MPI_COMM_WORLD);
 
 	/* Finish the offsets by computing the deltas on rank 0 */
@@ -399,7 +399,7 @@ do_work(struct options *options, int rank)
 		}
 
 		if (drift_mode)
-			sleep(options->drift_wait);
+			sleep((unsigned) options->drift_wait);
 	}
 
 	if (rank == 0)

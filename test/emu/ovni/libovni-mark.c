@@ -29,7 +29,7 @@ main(void)
 	instr_start(rank, nranks);
 
 	/* Deterministic rand() */
-	srand(100 + rank);
+	srand(100U + (unsigned) rank);
 
 	/* Test set without labels */
 

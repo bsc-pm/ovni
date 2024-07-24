@@ -30,8 +30,8 @@ cmp_int64(const void *a, const void *b)
 static void
 test_case(int64_t n, int64_t run)
 {
-	srand(run);
-	int64_t *arr = calloc(n, sizeof(int64_t));
+	srand((unsigned) run);
+	int64_t *arr = calloc((size_t) n, sizeof(int64_t));
 
 	if (arr == NULL)
 		die("calloc failed:");
@@ -39,14 +39,14 @@ test_case(int64_t n, int64_t run)
 	for (int64_t i = 0; i < n; i++)
 		arr[i] = randint();
 
-	qsort(arr, n, sizeof(int64_t), cmp_int64);
+	qsort(arr, (size_t) n, sizeof(int64_t), cmp_int64);
 
-	int64_t *copy = calloc(n, sizeof(int64_t));
+	int64_t *copy = calloc((size_t) n, sizeof(int64_t));
 
 	if (copy == NULL)
 		die("calloc failed:");
 
-	memcpy(copy, arr, n * sizeof(int64_t));
+	memcpy(copy, arr, (size_t) n * sizeof(int64_t));
 
 	int64_t iold = rand() % n;
 	int64_t old = arr[iold];
@@ -68,7 +68,7 @@ test_case(int64_t n, int64_t run)
 	sort_replace(arr, n, old, new);
 
 	copy[iold] = new;
-	qsort(copy, n, sizeof(int64_t), cmp_int64);
+	qsort(copy, (size_t) n, sizeof(int64_t), cmp_int64);
 
 	dbg("Contents after sort: ");
 	for (int64_t i = 0; i < n; i++) {
@@ -76,7 +76,7 @@ test_case(int64_t n, int64_t run)
 				i, arr[i], copy[i]);
 	}
 
-	if (memcmp(arr, copy, n * sizeof(int64_t)) == 0)
+	if (memcmp(arr, copy, (size_t) n * sizeof(int64_t)) == 0)
 		return;
 
 	die("mismatch");

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stddef.h>
@@ -12,8 +12,8 @@ emit_jumbo(uint8_t *buf, size_t size, int64_t clock)
 {
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, "OUj");
-	ovni_ev_set_clock(&ev, clock);
-	ovni_ev_jumbo_emit(&ev, buf, size);
+	ovni_ev_set_clock(&ev, (uint64_t) clock);
+	ovni_ev_jumbo_emit(&ev, buf, (uint32_t) size);
 }
 
 static void
@@ -21,7 +21,7 @@ emit(char *mcv, int64_t clock)
 {
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, mcv);
-	ovni_ev_set_clock(&ev, clock);
+	ovni_ev_set_clock(&ev, (uint64_t) clock);
 	ovni_ev_emit(&ev);
 }
 
@@ -36,7 +36,7 @@ main(void)
 	/* Leave some room to prevent clashes */
 	sleep_us(100); /* 100000 us */
 
-	int64_t t0 = ovni_clock_now();
+	int64_t t0 = (int64_t) ovni_clock_now();
 
 	emit("OU[", t0);
 
@@ -48,7 +48,7 @@ main(void)
 
 	/* Also test jumbo events */
 	for (int i = 0; i < BUFSIZE; i++)
-		buf[i] = i & 0xff;
+		buf[i] = (uint8_t) (i & 0xff);
 
 	emit_jumbo(buf, BUFSIZE, t);
 
@@ -56,7 +56,7 @@ main(void)
 	while ((int64_t) ovni_clock_now() < t)
 		sleep_us(10);
 
-	emit("OU]", ovni_clock_now());
+	emit("OU]", (int64_t) ovni_clock_now());
 
 	instr_end();
 

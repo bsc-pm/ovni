@@ -316,7 +316,7 @@ read_file(const char *filename)
 		fclose(fp);
 		return NULL;
 	}
-	size_to_read = pos;
+	size_to_read = (size_t) pos;
 	rewind(fp);
 	file_contents = (char *) parson_malloc(sizeof(char) * (size_to_read + 1));
 	if (!file_contents) {
@@ -361,7 +361,7 @@ remove_comments(char *string, const char *start_token, const char *end_token)
 			if (!ptr) {
 				return;
 			}
-			for (i = 0; i < (ptr - string) + end_token_len; i++) {
+			for (i = 0; i < (size_t) (ptr - string) + end_token_len; i++) {
 				string[i] = ' ';
 			}
 			string = ptr + end_token_len - 1;
@@ -503,7 +503,7 @@ json_object_dotremove_internal(JSON_Object *object, const char *name, int free_v
 	if (dot_pos == NULL) {
 		return json_object_remove_internal(object, name, free_value);
 	}
-	temp_value = json_object_getn_value(object, name, dot_pos - name);
+	temp_value = json_object_getn_value(object, name, (size_t) (dot_pos - name));
 	if (json_value_get_type(temp_value) != JSONObject) {
 		return JSONFailure;
 	}
@@ -638,13 +638,13 @@ parse_utf16(const char **unprocessed, char **processed)
 	if (cp < 0x80) {
 		processed_ptr[0] = (char) cp; /* 0xxxxxxx */
 	} else if (cp < 0x800) {
-		processed_ptr[0] = ((cp >> 6) & 0x1F) | 0xC0; /* 110xxxxx */
-		processed_ptr[1] = ((cp) &0x3F) | 0x80;	      /* 10xxxxxx */
+		processed_ptr[0] = (char) (((cp >> 6) & 0x1F) | 0xC0); /* 110xxxxx */
+		processed_ptr[1] = (char) (((cp) &0x3F) | 0x80);       /* 10xxxxxx */
 		processed_ptr += 1;
 	} else if (cp < 0xD800 || cp > 0xDFFF) {
-		processed_ptr[0] = ((cp >> 12) & 0x0F) | 0xE0; /* 1110xxxx */
-		processed_ptr[1] = ((cp >> 6) & 0x3F) | 0x80;  /* 10xxxxxx */
-		processed_ptr[2] = ((cp) &0x3F) | 0x80;	       /* 10xxxxxx */
+		processed_ptr[0] = (char) (((cp >> 12) & 0x0F) | 0xE0);/* 1110xxxx */
+		processed_ptr[1] = (char) (((cp >> 6) & 0x3F) | 0x80); /* 10xxxxxx */
+		processed_ptr[2] = (char) (((cp) &0x3F) | 0x80);       /* 10xxxxxx */
 		processed_ptr += 2;
 	} else if (cp >= 0xD800 && cp <= 0xDBFF) { /* lead surrogate (0xD800..0xDBFF) */
 		lead = cp;
@@ -657,10 +657,10 @@ parse_utf16(const char **unprocessed, char **processed)
 			return JSONFailure;
 		}
 		cp = ((((lead - 0xD800) & 0x3FF) << 10) | ((trail - 0xDC00) & 0x3FF)) + 0x010000;
-		processed_ptr[0] = (((cp >> 18) & 0x07) | 0xF0); /* 11110xxx */
-		processed_ptr[1] = (((cp >> 12) & 0x3F) | 0x80); /* 10xxxxxx */
-		processed_ptr[2] = (((cp >> 6) & 0x3F) | 0x80);	 /* 10xxxxxx */
-		processed_ptr[3] = (((cp) &0x3F) | 0x80);	 /* 10xxxxxx */
+		processed_ptr[0] = (char) (((cp >> 18) & 0x07) | 0xF0); /* 11110xxx */
+		processed_ptr[1] = (char) (((cp >> 12) & 0x3F) | 0x80); /* 10xxxxxx */
+		processed_ptr[2] = (char) (((cp >> 6) & 0x3F) | 0x80);	 /* 10xxxxxx */
+		processed_ptr[3] = (char) (((cp) &0x3F) | 0x80);	 /* 10xxxxxx */
 		processed_ptr += 3;
 	} else { /* trail surrogate before lead surrogate */
 		return JSONFailure;
@@ -758,7 +758,7 @@ get_quoted_string(const char **string, size_t *output_string_len)
 	if (status != JSONSuccess) {
 		return NULL;
 	}
-	input_string_len = *string - string_start - 2; /* length without quotes */
+	input_string_len = (size_t) (*string - string_start - 2); /* length without quotes */
 	return process_string(string_start + 1, input_string_len, output_string_len);
 }
 
@@ -957,7 +957,7 @@ parse_number_value(const char **string)
 	if (errno == ERANGE && (number == -HUGE_VAL || number == HUGE_VAL)) {
 		return NULL;
 	}
-	if ((errno && errno != ERANGE) || !is_decimal(*string, end - *string)) {
+	if ((errno && errno != ERANGE) || !is_decimal(*string, (size_t) (end - *string))) {
 		return NULL;
 	}
 	*string = end;
@@ -1410,7 +1410,7 @@ json_object_dotget_value(const JSON_Object *object, const char *name)
 	if (!dot_position) {
 		return json_object_get_value(object, name);
 	}
-	object = json_value_get_object(json_object_getn_value(object, name, dot_position - name));
+	object = json_value_get_object(json_object_getn_value(object, name, (size_t) (dot_position - name)));
 	return json_object_dotget_value(object, dot_position + 1);
 }
 
@@ -2253,7 +2253,7 @@ json_object_dotset_value(JSON_Object *object, const char *name, JSON_Value *valu
 	if (dot_pos == NULL) {
 		return json_object_set_value(object, name, value);
 	}
-	name_len = dot_pos - name;
+	name_len = (size_t) (dot_pos - name);
 	temp_value = json_object_getn_value(object, name, name_len);
 	if (temp_value) {
 		/* Don't overwrite existing non-object (unlike json_object_set_value, but it shouldn't be changed at this point) */

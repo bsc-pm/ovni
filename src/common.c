@@ -45,7 +45,7 @@ vaerr(const char *prefix, const char *func, const char *errstr, va_list ap)
 
 	vfprintf(stderr, errstr, ap);
 
-	int len = strlen(errstr);
+	int len = (int) strlen(errstr);
 
 	if (len > 0) {
 		char last = errstr[len - 1];
@@ -103,7 +103,7 @@ mkpath(const char *path, mode_t mode, int is_dir)
 	char *copypath = strdup(path);
 
 	/* Remove trailing slash */
-	int last = strlen(path) - 1;
+	int last = (int) strlen(path) - 1;
 	while (last > 0 && copypath[last] == '/')
 		copypath[last--] = '\0';
 

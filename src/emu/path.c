@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "path.h"
@@ -95,7 +95,7 @@ path_keep(char *path, int n)
 void
 path_remove_trailing(char *path)
 {
-	int n = strlen(path);
+	int n = (int) strlen(path);
 	for (int i = n - 1; i >= 0 && path[i] == '/'; i--) {
 		path[i] = '\0';
 	}

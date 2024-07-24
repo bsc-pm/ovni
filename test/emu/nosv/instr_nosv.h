@@ -21,7 +21,7 @@ instr_nosv_type_create(int32_t typeid)
 	struct ovni_ev ev = {0};
 
 	ovni_ev_set_mcv(&ev, "VYc");
-	ovni_ev_set_clock(&ev, get_clock());
+	ovni_ev_set_clock(&ev, (uint64_t) get_clock());
 
 	char buf[256];
 	char *p = buf;
@@ -33,7 +33,7 @@ instr_nosv_type_create(int32_t typeid)
 	sprintf(p, "testtype%d", typeid);
 	nbytes += strlen(p) + 1;
 
-	ovni_ev_jumbo_emit(&ev, (uint8_t *) buf, nbytes);
+	ovni_ev_jumbo_emit(&ev, (uint8_t *) buf, (uint32_t) nbytes);
 
 	return task_get_type_gid(p);
 }

@@ -22,7 +22,7 @@ init_chan(struct model_thread *th, const struct model_chan_spec *spec, int64_t g
 	const char *fmt = "%s.thread%"PRIi64".%s";
 	const char *prefix = spec->prefix;
 
-	th->ch = calloc(spec->nch, sizeof(struct chan));
+	th->ch = calloc((size_t) spec->nch, sizeof(struct chan));
 	if (th->ch == NULL) {
 		err("calloc failed:");
 		return -1;
@@ -30,7 +30,7 @@ init_chan(struct model_thread *th, const struct model_chan_spec *spec, int64_t g
 
 	for (int i = 0; i < spec->nch; i++) {
 		struct chan *c = &th->ch[i];
-		int type = spec->ch_stack[i];
+		enum chan_type type = spec->ch_stack[i] ? CHAN_STACK : CHAN_SINGLE;
 		const char *ch_name = spec->ch_names[i];
 		chan_init(c, type, fmt, prefix, gindex, ch_name);
 
@@ -45,7 +45,7 @@ init_chan(struct model_thread *th, const struct model_chan_spec *spec, int64_t g
 		}
 	}
 
-	th->track = calloc(spec->nch, sizeof(struct track));
+	th->track = calloc((size_t) spec->nch, sizeof(struct track));
 	if (th->track == NULL) {
 		err("calloc failed:");
 		return -1;

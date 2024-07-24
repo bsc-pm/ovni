@@ -21,7 +21,7 @@ model_evspec_init(struct model_evspec *evspec, struct model_spec *spec)
 	}
 
 	/* Preallocate a contiguous map, as we know the size */
-	evspec->alloc = calloc(evspec->nevents, sizeof(struct ev_spec));
+	evspec->alloc = calloc((size_t) evspec->nevents, sizeof(struct ev_spec));
 	if (evspec->alloc == NULL) {
 		err("calloc failed:");
 		return -1;

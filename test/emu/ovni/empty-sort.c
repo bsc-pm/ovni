@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -11,7 +11,7 @@ emit(char *mcv, int64_t clock)
 {
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, mcv);
-	ovni_ev_set_clock(&ev, clock);
+	ovni_ev_set_clock(&ev, (uint64_t) clock);
 	ovni_ev_emit(&ev);
 }
 
@@ -23,7 +23,7 @@ main(void)
 	/* Leave some room to prevent clashes */
 	sleep_us(100); /* 100000 us */
 
-	int64_t t0 = ovni_clock_now();
+	int64_t t0 = (int64_t) ovni_clock_now();
 
 	emit("OU[", t0);
 
@@ -33,7 +33,7 @@ main(void)
 		t += 33;
 	}
 
-	emit("OU]", ovni_clock_now());
+	emit("OU]", (int64_t) ovni_clock_now());
 
 	instr_end();
 

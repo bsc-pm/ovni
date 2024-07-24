@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdint.h>
@@ -13,7 +13,7 @@ emit(uint8_t *buf, size_t size)
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, "OB.");
 	ovni_ev_set_clock(&ev, ovni_clock_now());
-	ovni_ev_jumbo_emit(&ev, buf, size);
+	ovni_ev_jumbo_emit(&ev, buf, (uint32_t) size);
 }
 
 int

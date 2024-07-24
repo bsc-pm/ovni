@@ -288,7 +288,7 @@ task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
 
 	/* Emit types for all task types */
 	for (struct task_type *tt = types; tt != NULL; tt = tt->hh.next) {
-		struct pcf_value *pcfvalue = pcf_find_value(pcftype, tt->gid);
+		struct pcf_value *pcfvalue = pcf_find_value(pcftype, (int) tt->gid);
 		if (pcfvalue != NULL) {
 			/* Ensure the label is the same, so we know that
 			 * no collision occurred */
@@ -301,7 +301,7 @@ task_create_pcf_types(struct pcf_type *pcftype, struct task_type *types)
 			}
 		}
 
-		if (pcf_add_value(pcftype, tt->gid, tt->label) == NULL) {
+		if (pcf_add_value(pcftype, (int) tt->gid, tt->label) == NULL) {
 			err("pcf_add_value failed");
 			return -1;
 		}

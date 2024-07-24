@@ -147,7 +147,7 @@ create_mark_type(struct ovni_mark_emu *m, long type, enum chan_type ctype, const
 	struct mark_type *t = find_mark_type(m, type);
 
 	if (t != NULL) {
-		err("mark type %d already defined", type);
+		err("mark type %ld already defined", type);
 		return NULL;
 	}
 
@@ -627,7 +627,7 @@ int
 mark_event(struct emu *emu)
 {
 	if (emu->ev->payload_size != 8 + 4) {
-		err("unexpected payload size %d", emu->ev->payload_size);
+		err("unexpected payload size %zd", emu->ev->payload_size);
 		return -1;
 	}
 

@@ -1151,7 +1151,7 @@ ovni_mark_label(int32_t type, int64_t value, const char *label)
 		die("label '%s' already defined", label);
 
 	if (json_object_dotset_string(meta, key, label) != 0)
-		die("json_object_dotset_string() failed", type);
+		die("json_object_dotset_string() failed");
 }
 
 /**

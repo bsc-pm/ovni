@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(OVNI LANGUAGES C VERSION 1.9.1)
+project(OVNI LANGUAGES C VERSION 1.10.0)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 

@@ -266,6 +266,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://jungle.bsc.es/git/rarias/ovni
+[1.10.0]: https://github.com/rodarima/ovni/releases/tag/1.10.0
 [1.9.1]: https://github.com/rodarima/ovni/releases/tag/1.9.1
 [1.9.0]: https://github.com/rodarima/ovni/releases/tag/1.9.0
 [1.8.0]: https://github.com/rodarima/ovni/releases/tag/1.8.0

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nanos6_priv.h"
@@ -521,7 +521,8 @@ pre_type(struct emu *emu)
 	}
 
 	const uint8_t *data = &emu->ev->payload->jumbo.data[0];
-	uint32_t typeid = *(uint32_t *) data;
+	uint32_t typeid;
+	memcpy(&typeid, data, 4); /* May be unaligned */
 	data += 4;
 
 	const char *label = (const char *) data;

@@ -546,7 +546,8 @@ pre_type(struct emu *emu)
 	}
 
 	const uint8_t *data = &emu->ev->payload->jumbo.data[0];
-	uint32_t typeid = *(uint32_t *) data;
+	uint32_t typeid;
+	memcpy(&typeid, data, 4); /* May be unaligned */
 	data += 4;
 
 	const char *label = (const char *) data;

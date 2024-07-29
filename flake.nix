@@ -136,6 +136,11 @@
         '';
       });
 
+      ubsan = rt.overrideAttrs (old: {
+        pname = "ovni-ubsan";
+        cmakeFlags = old.cmakeFlags ++ [ "-DCMAKE_BUILD_TYPE=Ubsan" ];
+      });
+
       armv7 = (pkgs.pkgsCross.armv7l-hf-multiplatform.ovniLocal.overrideAttrs (old: {
         pname = "ovni-armv7";
         buildInputs = [];

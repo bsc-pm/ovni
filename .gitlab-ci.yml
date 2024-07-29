@@ -42,6 +42,13 @@ build:asan:
   script:
     - nix build -L --no-link .#ovniPackages.asan
 
+build:ubsan:
+  stage: build
+  tags:
+    - nix
+  script:
+    - nix build -L --no-link .#ovniPackages.ubsan
+
 build:nompi:
   stage: build
   tags:

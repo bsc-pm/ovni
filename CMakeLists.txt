@@ -67,7 +67,9 @@ set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_DEBUG} \
   -fno-omit-frame-pointer"
   CACHE STRING "Flags used by the C compiler during AddressSanitizer builds." FORCE)
 
-set(CMAKE_C_FLAGS_UBSAN "${CMAKE_C_FLAGS_DEBUG} -fsanitize=undefined"
+set(CMAKE_C_FLAGS_UBSAN "${CMAKE_C_FLAGS_DEBUG} \
+  -fsanitize=undefined \
+  -fno-sanitize-recover=all"
   CACHE STRING "Flags used by the C compiler during UndefinedBehaviorSanitizer builds." FORCE)
 
 find_program(IWYU NAMES include-what-you-use iwyu)

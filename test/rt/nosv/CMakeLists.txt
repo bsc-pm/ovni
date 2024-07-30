@@ -44,6 +44,7 @@ nosv_test(parallel-tasks.c SORT)
 nosv_test(inline.c SORT)
 nosv_test(mutex.c SORT LEVEL 3)
 nosv_test(barrier.c SORT LEVEL 3)
+nosv_test(overflow-kernel-ring.c SORT LEVEL 3)
 
 # Test multiple instrumentation levels
 nosv_test(several-tasks.c SORT NAME several-tasks-level-0 LEVEL 0)

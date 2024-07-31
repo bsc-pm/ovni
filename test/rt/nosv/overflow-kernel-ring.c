@@ -5,47 +5,44 @@
 #include <nosv/affinity.h>
 #include <stdatomic.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "common.h"
 #include "compat.h"
 
 int done = 0;
-
-/* https://gitlab.bsc.es/nos-v/nos-v/-/blob/master/src/include/instr.h?ref_type=heads#L542 */
-#define NOSV_INSTR_KBUFLEN (4UL * 1024UL * 1024UL) // 4 MB
+unsigned long ncs = 0;
+unsigned long nflush = 0;
 
 static void
 task_run(nosv_task_t task)
 {
 	UNUSED(task);
 
-	/* Cause enough context switches for the kernel ring to be full,
-	 * which wouldn't fail if nosv_waitfor() flushes the kernel
-	 * events. */
-
-	unsigned long fill = 3 * NOSV_INSTR_KBUFLEN / 4;
-	unsigned long n = fill / 16;
-
 	struct timespec one_ns = { .tv_sec = 0, .tv_nsec = 1 };
 
-	for (unsigned long run = 0; run < 3; run++) {
-		info("starting run %lu", run);
-		for (unsigned long i = 0; i < n; i++)
-			nanosleep(&one_ns, NULL);
-
-		info("starting waitfor");
-
-		if (nosv_waitfor(1, NULL) != 0)
-			die("nosv_waitfor failed");
-
-		info("end run %lu", run);
+	for (unsigned long i = 1; i <= ncs; i++) {
+		nanosleep(&one_ns, NULL);
+		/* Make a total of 16 waitfor calls to flush the ring buffer */
+		if (i % nflush == 0) {
+			info("flusing at %lu", i);
+			if (nosv_waitfor(1, NULL) != 0)
+				die("nosv_waitfor failed");
+		}
 	}
 
 	done = 1;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+	if (argc != 3)
+		die("usage: %s <num-cs> <num-flush>\n", argv[0]);
+
+	ncs = (unsigned long) atol(argv[1]);
+	nflush = (unsigned long) atol(argv[2]);
+
 	if (nosv_init())
 		die("nosv_init failed");
 

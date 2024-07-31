@@ -28,7 +28,14 @@ ovni.level = 3
 ovni.kernel_ringsize = ${ringsize}
 EOF
 
-$target $ncs $nflush 2>&1 | tee err.log
+# Should fail in runtime
+set +e
+$target $ncs $nflush 2> err.log
+rc=$?
+set -e
+
+# Dump log
+cat err.log
 
 # Ensure no nOS-V warnings at runtime
 if grep -c "cannot enable kernel events" err.log; then
@@ -36,12 +43,13 @@ if grep -c "cannot enable kernel events" err.log; then
   exit 1
 fi
 
-# We need to sort the trace as it has unsorted regions
-ovnisort ovni
+# Ensure it detects the error
+if ! grep -c "Kernel events lost" err.log; then
+  echo "cannot find 'Kernel events lost' error message" >&2
+  exit 1
+fi
 
-# Ensure we have at least the number of context switches we caused, and ensure
-# the number of "in" and "out" events match.
-ovnitop ovni | awk '{n[$1] = $2} END { if (n["KCO"] != n["KCI"] || n["KCO"] < '$ncs') exit 1 }'
-
-# Run the emulator
-ovniemu -l ovni
+if [ "$rc" == "0" ]; then
+  echo "program didn't failed" >&2
+  exit 1
+fi

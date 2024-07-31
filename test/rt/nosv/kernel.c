@@ -24,9 +24,8 @@ task_run(nosv_task_t task)
 
 	for (unsigned long i = 1; i <= ncs; i++) {
 		nanosleep(&one_ns, NULL);
-		/* Make a total of 16 waitfor calls to flush the ring buffer */
 		if (i % nflush == 0) {
-			info("flusing at %lu", i);
+			info("flushing at %lu", i);
 			if (nosv_waitfor(1, NULL) != 0)
 				die("nosv_waitfor failed");
 		}

@@ -25,7 +25,7 @@ nflush=$((2 * $ringsize / $cspair))
 cat > nosv.toml << EOF
 instrumentation.version = "ovni"
 ovni.level = 3
-ovni.kernel_ringsize = ${ringsize}
+ovni.kernel_ringsize = "${ringsize}"
 EOF
 
 # Should fail in runtime

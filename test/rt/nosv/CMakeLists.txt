@@ -12,9 +12,9 @@ if(NOT NOSV_FOUND)
   return()
 endif()
 
-# Needed for breakdown
-if("${NOSV_VERSION}" VERSION_LESS "2.3.0")
-  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 2.3.0")
+# Needed for breakdown and kernel fix
+if("${NOSV_VERSION}" VERSION_LESS "2.3.1")
+  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 2.3.1")
 endif()
 
 message(STATUS "Enabling nOS-V RT tests")

@@ -12,9 +12,9 @@ if(NOT NOSV_FOUND)
   return()
 endif()
 
-# Needed for breakdown and kernel fix
-if("${NOSV_VERSION}" VERSION_LESS "2.3.1")
-  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 2.3.1")
+# Needed for nosv_cond
+if("${NOSV_VERSION}" VERSION_LESS "3.1.0")
+  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 3.1.0")
 endif()
 
 message(STATUS "Enabling nOS-V RT tests")
@@ -44,6 +44,7 @@ nosv_test(parallel-tasks.c SORT)
 nosv_test(inline.c SORT)
 nosv_test(mutex.c SORT LEVEL 3)
 nosv_test(barrier.c SORT LEVEL 3)
+nosv_test(cond.c SORT LEVEL 3)
 
 # Test multiple instrumentation levels
 nosv_test(several-tasks.c SORT NAME several-tasks-level-0 LEVEL 0)

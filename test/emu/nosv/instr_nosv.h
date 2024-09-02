@@ -59,6 +59,12 @@ INSTR_0ARG(instr_nosv_mutex_trylock_enter, "VAt")
 INSTR_0ARG(instr_nosv_mutex_trylock_exit,  "VAT")
 INSTR_0ARG(instr_nosv_mutex_unlock_enter,  "VAu")
 INSTR_0ARG(instr_nosv_mutex_unlock_exit,   "VAU")
+INSTR_0ARG(instr_nosv_cond_wait_enter,      "VAo")
+INSTR_0ARG(instr_nosv_cond_wait_exit,       "VAO")
+INSTR_0ARG(instr_nosv_cond_signal_enter,    "VAg")
+INSTR_0ARG(instr_nosv_cond_signal_exit,     "VAG")
+INSTR_0ARG(instr_nosv_cond_broadcast_enter, "VAk")
+INSTR_0ARG(instr_nosv_cond_broadcast_exit,  "VAK")
 INSTR_0ARG(instr_nosv_attached, "VHa") /* deprecated */
 INSTR_0ARG(instr_nosv_detached, "VHA") /* deprecated */
 

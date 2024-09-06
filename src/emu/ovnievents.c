@@ -29,14 +29,14 @@ html_encode(char *dst, int ndst, const char *src)
 			return -1;
 		}
 
-		int c = src[i];
+		char c = src[i];
 		switch (c) {
 			case '&':  strcpy(&dst[j], "&amp;");  j += 5; break;
 			case '"':  strcpy(&dst[j], "&quot;"); j += 6; break;
 			case '\'': strcpy(&dst[j], "&apos;"); j += 6; break;
 			case '<':  strcpy(&dst[j], "&lt;");   j += 4; break;
 			case '>':  strcpy(&dst[j], "&gt;");   j += 4; break;
-			default:   dst[j++] = (char) c; break;
+			default:   dst[j++] = c; break;
 		}
 	}
 

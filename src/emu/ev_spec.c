@@ -363,8 +363,9 @@ print_arg(struct ev_arg *arg, const char *fmt, struct cursor *c, struct emu_ev *
 
 #define CASE(TYPE) \
 		do { \
-			TYPE *data = (TYPE *) &payload[arg->offset]; \
-			n = snprintf(c->out, (size_t) c->len, fmt, *data); \
+			TYPE data; \
+			memcpy(&data, &payload[arg->offset], sizeof(data)); \
+			n = snprintf(c->out, (size_t) c->len, fmt, data); \
 			if (n >= c->len) { \
 				err("no space for argument"); \
 				return -1; \

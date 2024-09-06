@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enable -Wconversion and -Wsign-conversion.
 
+### Fixed
+
+- Fix bug in ovnisort when injecting events in a previously modified section.
+
 ## [1.10.0] - 2024-07-26
 
 ### Changed

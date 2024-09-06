@@ -75,11 +75,10 @@ ring_add(struct ring *r, struct ovni_ev *ev)
 }
 
 static void
-ring_check(struct ring *r, long long from)
+ring_check(struct ring *r, long long start)
 {
 	uint64_t last_clock = 0;
-	long long start = from != -1 ? from : r->head;
-	for (long long i = start; i != r->tail; i = i + 1 >= r->size ? 0 : i + 1) {
+	for (long long i = start; i != r->tail; i = (i + 1) % r->size) {
 		uint64_t clock = r->ev[i]->header.clock;
 		if (clock < last_clock) {
 			die("ring not sorted at i=%lld, last_clock=%"PRIu64" clock=%"PRIu64 ,
@@ -281,6 +280,32 @@ write_stream(int fd, void *base, void *dst, const void *src, size_t size)
 	}
 }
 
+static void
+rebuild_ring(struct ring *r, long long start, struct ovni_ev *first, struct ovni_ev *last)
+{
+	long long nbad = 0;
+	long long n = 0;
+	struct ovni_ev *ev = first;
+
+	for (long long i = start; i != r->tail; i = i + 1 >= r->size ? 0 : i + 1) {
+		n++;
+		if (ev != r->ev[i])
+			nbad++;
+
+		if (ev >= last)
+			die("exceeding last pointer");
+
+		r->ev[i] = ev;
+		size_t size = ovni_ev_size(ev);
+		ev = (struct ovni_ev *) (((uint8_t *) ev) + size);
+	}
+
+	if (ev != last)
+		die("inconsistency: ev != last");
+
+	dbg("rebuilt ring with %lld / %lld misplaced events", nbad, n);
+}
+
 static int
 execute_sort_plan(struct sortplan *sp)
 {
@@ -321,6 +346,9 @@ execute_sort_plan(struct sortplan *sp)
 	write_stream(sp->fd, sp->base, first, buf, bufsize);
 
 	free(buf);
+
+	/* Pointers from the ring buffer are invalid now, rebuild them */
+	rebuild_ring(sp->r, dirty, first, sp->next);
 
 	/* Invariant: The ring buffer is always sorted here. Check from the
 	 * dirty position onwards, so we avoid scanning all events. */
@@ -386,12 +414,6 @@ stream_winsort(struct stream *stream, struct ring *r)
 			}
 		}
 
-		/* FIXME: After executing a sort plan, we may have pointers that
-		 * now point to garbage, as the events have moved. We can test
-		 * this by first sorting a given region so that it displaces the
-		 * offsets of the end marker, and then injecting events that are
-		 * inside the first unsorted region. Hopefully, trying to access
-		 * the clock of the end marker will now read garbage. */
 		ring_add(r, ev);
 	}
 

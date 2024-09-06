@@ -5,6 +5,7 @@ test_emu(flush-overhead.c DISABLED)
 test_emu(flush.c)
 test_emu(sort.c SORT)
 test_emu(sort-flush.c SORT)
+test_emu(sort-into-previous-region.c SORT DRIVER "sort-into-previous-region.driver.sh")
 test_emu(empty-sort.c SORT)
 test_emu(sort-first-and-full-ring.c SORT
   SHOULD_FAIL REGEX "cannot find a event previous to clock")

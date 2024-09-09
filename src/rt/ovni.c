@@ -530,6 +530,12 @@ thread_metadata_populate(void)
 
 	if (json_object_dotset_string(meta, "ovni.lib.commit", OVNI_GIT_COMMIT) != 0)
 		die("json_object_dotset_string failed");
+
+	if (json_object_dotset_number(meta, "ovni.tid", (double) rthread.tid) != 0)
+		die("json_object_dotset_number failed");
+
+	if (json_object_dotset_number(meta, "ovni.pid", (double) rproc.pid) != 0)
+		die("json_object_dotset_number failed");
 }
 
 static void

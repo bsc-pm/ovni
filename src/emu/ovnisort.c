@@ -296,7 +296,7 @@ rebuild_ring(struct ring *r, long long start, struct ovni_ev *first, struct ovni
 			die("exceeding last pointer");
 
 		r->ev[i] = ev;
-		size_t size = ovni_ev_size(ev);
+		size_t size = (size_t) ovni_ev_size(ev);
 		ev = (struct ovni_ev *) (((uint8_t *) ev) + size);
 	}
 

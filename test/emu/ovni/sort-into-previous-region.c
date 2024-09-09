@@ -19,7 +19,7 @@
  */
 
 static void
-emit(char *mcv, int64_t clock, int size)
+emit(char *mcv, uint64_t clock, int size)
 {
 	struct ovni_ev ev = {0};
 	ovni_ev_set_mcv(&ev, mcv);
@@ -40,7 +40,7 @@ main(void)
 
 	/* Leave some room to prevent clashes */
 	sleep_us(100); /* 100000 us */
-	int64_t t0 = ovni_clock_now();
+	uint64_t t0 = ovni_clock_now();
 	sleep_us(100); /* 100000 us */
 
 	/* We want it to end like this:

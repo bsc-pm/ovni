@@ -27,7 +27,7 @@ add_stream(struct trace *trace, struct stream *stream)
 }
 
 static int
-load_stream(struct trace *trace, const char *path)
+load_stream(struct trace *trace, const char *json_path)
 {
 	struct stream *stream = calloc(1, sizeof(struct stream));
 
@@ -35,6 +35,14 @@ load_stream(struct trace *trace, const char *path)
 		err("calloc failed:");
 		return -1;
 	}
+
+	/* The json_path must end in .../stream.json, so remove it */
+	char path[PATH_MAX];
+	if (path_copy(path, json_path) != 0) {
+		err("path_copy failed");
+		return -1;
+	}
+	path_dirname(path);
 
 	int offset = (int) strlen(trace->tracedir);
 	const char *relpath = path + offset;
@@ -53,44 +61,14 @@ load_stream(struct trace *trace, const char *path)
 }
 
 static int
-has_suffix(const char *str, const char *suffix)
+is_stream(const char *fpath)
 {
-	if (!str || !suffix)
-		return 0;
+	const char *filename = path_filename(fpath);
 
-	int lenstr = (int) strlen(str);
-	int lensuffix = (int) strlen(suffix);
-
-	if (lensuffix > lenstr)
-		return 0;
-
-	const char *p = str + lenstr - lensuffix;
-	if (strncmp(p, suffix, (size_t) lensuffix) == 0)
+	if (strcmp(filename, "stream.json") == 0)
 		return 1;
 
 	return 0;
-}
-
-static int
-is_stream(const char *fpath)
-{
-	if (has_suffix(fpath, OVNI_STREAM_EXT))
-		return 1;
-
-	/* For compatibility load the old streams too */
-	const char *filename = path_filename(fpath);
-
-	const char prefix[] = "thread.";
-	if (!path_has_prefix(filename, prefix))
-		return 0;
-
-	const char *tid = filename + strlen(prefix);
-	for (int i = 0; tid[i]; i++) {
-		if (tid[i] < '0' || tid[i] > '9')
-			return 0;
-	}
-
-	return 1;
 }
 
 static int

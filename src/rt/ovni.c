@@ -105,16 +105,33 @@ void ovni_version_check_str(const char *version)
 }
 
 static void
+create_thread_dir(void)
+{
+	char path[PATH_MAX];
+
+	int written = snprintf(path, PATH_MAX, "%s/thread.%d",
+			rproc.procdir, rthread.tid);
+
+	if (written >= PATH_MAX)
+		die("path too long: %s/thread.%d", rproc.procdir, rthread.tid);
+
+	/* The procdir must have been created earlier */
+	if (mkdir(path, 0755) != 0)
+		die("mkdir(%s) failed:", path);
+}
+
+static void
 create_trace_stream(void)
 {
 	char path[PATH_MAX];
 
-	int written = snprintf(path, PATH_MAX, "%s/thread.%d%s",
-			rproc.procdir, rthread.tid, OVNI_STREAM_EXT);
+	int written = snprintf(path, PATH_MAX, "%s/thread.%d/stream.obs",
+			rproc.procdir, rthread.tid);
 
-	if (written >= PATH_MAX)
-		die("thread trace path too long: %s/thread.%d%s",
-				rproc.procdir, rthread.tid, OVNI_STREAM_EXT);
+	if (written >= PATH_MAX) {
+		die("path too long: %s/thread.%d/stream.obs",
+				rproc.procdir, rthread.tid);
+	}
 
 	rthread.streamfd = open(path, O_WRONLY | O_CREAT, 0644);
 
@@ -465,11 +482,11 @@ static void
 thread_metadata_store(void)
 {
 	char path[PATH_MAX];
-	int written = snprintf(path, PATH_MAX, "%s/thread.%d.json",
+	int written = snprintf(path, PATH_MAX, "%s/thread.%d/stream.json",
 			rproc.procdir, rthread.tid);
 
 	if (written >= PATH_MAX)
-		die("thread trace path too long: %s/thread.%d.json",
+		die("thread trace path too long: %s/thread.%d/stream.json",
 				rproc.procdir, rthread.tid);
 
 	if (json_serialize_to_file_pretty(rthread.meta, path) != JSONSuccess)
@@ -578,6 +595,7 @@ ovni_thread_init(pid_t tid)
 	if (rthread.evbuf == NULL)
 		die("malloc failed:");
 
+	create_thread_dir();
 	create_trace_stream();
 	write_stream_header();
 

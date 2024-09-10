@@ -28,8 +28,10 @@ struct stream {
 	int active;
 	int unsorted;
 
-	char path[PATH_MAX];
+	char path[PATH_MAX]; /* To stream dir */
 	char relpath[PATH_MAX]; /* To tracedir */
+	char obspath[PATH_MAX]; /* To obs file */
+	char jsonpath[PATH_MAX]; /* To json file */
 
 	int64_t usize; /* Useful size for events */
 	int64_t offset;

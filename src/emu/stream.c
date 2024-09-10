@@ -158,25 +158,22 @@ stream_load(struct stream *stream, const char *tracedir, const char *relpath)
 
 	dbg("loading %s", stream->relpath);
 
-	char path_json[PATH_MAX];
-	char path_obs[PATH_MAX];
-
-	if (path_append(path_json, stream->path, "stream.json") != 0) {
+	if (path_append(stream->jsonpath, stream->path, "stream.json") != 0) {
 		err("path_append failed");
 		return -1;
 	}
 
-	if ((stream->meta = load_json(path_json)) == NULL) {
-		err("load_json failed for: %s", path_json);
+	if ((stream->meta = load_json(stream->jsonpath)) == NULL) {
+		err("load_json failed for: %s", stream->jsonpath);
 		return -1;
 	}
 
-	if (path_append(path_obs, stream->path, "stream.obs") != 0) {
+	if (path_append(stream->obspath, stream->path, "stream.obs") != 0) {
 		err("path_append failed");
 		return -1;
 	}
 
-	if (load_obs(stream, path_obs) != 0) {
+	if (load_obs(stream, stream->obspath) != 0) {
 		err("load_obs failed");
 		return -1;
 	}

@@ -361,7 +361,7 @@ execute_sort_plan(struct sortplan *sp)
 static int
 stream_winsort(struct stream *stream, struct ring *r)
 {
-	char *fn = stream->path;
+	char *fn = stream->obspath;
 	int fd = open(fn, O_WRONLY);
 
 	if (fd < 0)

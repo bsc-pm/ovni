@@ -188,8 +188,8 @@ ovni_add_cpu(int index, int phyid)
 	if (!rproc.ready)
 		die("process not yet initialized");
 
-	if (rproc.meta == NULL)
-		die("metadata not initialized");
+	if (!rthread.ready)
+		die("thread not yet initialized");
 
 	struct ovni_rcpu *cpu = malloc(sizeof(*cpu));
 	if (cpu == NULL)

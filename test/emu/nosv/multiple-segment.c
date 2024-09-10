@@ -27,10 +27,11 @@ main(void)
 	int app = rank / N;
 
 	char loom[128];
-	if (snprintf(loom, 128, "loom.%04d", app) >= 128)
+	if (snprintf(loom, 128, "node0.%04d", app) >= 128)
 		die("snprintf failed");
 
 	ovni_proc_init(1 + app, loom, getpid());
+	ovni_thread_init(get_tid());
 	ovni_proc_set_rank(rank, nranks);
 
 	/* Leader of the segment, must emit CPUs */
@@ -39,13 +40,13 @@ main(void)
 		for (int i = 0; i < N; i++) {
 			cpus[i] = app * N + i;
 			ovni_add_cpu(i, cpus[i]);
+			info("adding cpu %d to rank %d", i, rank);
 		}
 	}
 
 	int nlooms = nranks / N;
 	int lcpu = rank % N;
 
-	ovni_thread_init(get_tid());
 	instr_require("ovni");
 	instr_nosv_init();
 	instr_thread_execute(lcpu, -1, 0);

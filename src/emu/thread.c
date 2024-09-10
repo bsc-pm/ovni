@@ -417,8 +417,10 @@ thread_load_metadata(struct thread *thread, struct stream *s)
 		return -1;
 	}
 
-	if (json_object_dotget_number(meta, "ovni.finished") != 1)
-		warn("thread didn't finish properly: %s", thread->id);
+	if (json_object_dotget_number(meta, "ovni.finished") != 1) {
+		err("missing ovni.finished: %s", s->relpath);
+		return -1;
+	}
 
 	thread->meta = meta;
 

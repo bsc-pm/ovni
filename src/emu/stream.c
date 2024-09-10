@@ -113,6 +113,26 @@ load_obs(struct stream *stream, const char *path)
 	return 0;
 }
 
+static int
+check_version(JSON_Object *meta)
+{
+	JSON_Value *version_val = json_object_get_value(meta, "version");
+	if (version_val == NULL) {
+		err("missing attribute \"version\"");
+		return -1;
+	}
+
+	int version = (int) json_number(version_val);
+
+	if (version != OVNI_METADATA_VERSION) {
+		err("metadata version mismatch %d (expected %d)",
+				version, OVNI_METADATA_VERSION);
+		return -1;
+	}
+
+	return 0;
+}
+
 static JSON_Object *
 load_json(const char *path)
 {
@@ -129,6 +149,10 @@ load_json(const char *path)
 	}
 
 	/* TODO: Check version */
+	if (check_version(meta) != 0) {
+		err("check_version failed");
+		return NULL;
+	}
 
 	return meta;
 }

@@ -64,11 +64,11 @@ create_thread(struct proc *proc, struct stream *s)
 }
 
 static struct proc *
-create_proc(struct loom *loom, const char *tracedir, const char *relpath)
+create_proc(struct loom *loom, struct stream *s)
 {
-	int pid;
-	if (proc_relpath_get_pid(relpath, &pid) != 0) {
-		err("cannot get proc pid from %s", relpath);
+	int pid = proc_stream_get_pid(s);
+	if (pid < 0) {
+		err("cannot get proc pid from stream: %s", s->relpath);
 		return NULL;
 	}
 
@@ -84,23 +84,14 @@ create_proc(struct loom *loom, const char *tracedir, const char *relpath)
 		return NULL;
 	}
 
-	if (proc_init_begin(proc, relpath) != 0) {
-		err("proc_init_begin failed");
-		return NULL;
-	}
-
-	/* Build metadata path */
-	char mpath[PATH_MAX];
-
-	if (snprintf(mpath, PATH_MAX, "%s/%s/metadata.json",
-				tracedir, proc->id) >= PATH_MAX) {
-		err("path too long");
+	if (proc_init_begin(proc, pid) != 0) {
+		err("proc_init_begin failed: %s", s->relpath);
 		return NULL;
 	}
 
 	/* Load metadata too */
-	if (metadata_load_proc(mpath, loom, proc) != 0) {
-		err("cannot load metadata from %s", mpath);
+	if (metadata_load_proc(s, loom, proc) != 0) {
+		err("cannot load metadata from %s", s->relpath);
 		return NULL;
 	}
 
@@ -235,8 +226,6 @@ is_thread_stream(struct stream *s)
 static int
 create_system(struct system *sys, struct trace *trace)
 {
-	const char *dir = trace->tracedir;
-
 	/* Allocate the lpt map */
 	sys->lpt = calloc((size_t) trace->nstreams, sizeof(struct lpt));
 	if (sys->lpt == NULL) {
@@ -262,7 +251,7 @@ create_system(struct system *sys, struct trace *trace)
 		}
 
 		/* Loads metadata too */
-		struct proc *proc = create_proc(loom, dir, s->relpath);
+		struct proc *proc = create_proc(loom, s);
 		if (proc == NULL) {
 			err("create_proc failed");
 			return -1;

@@ -5,10 +5,10 @@
 #define METADATA_H
 
 #include "common.h"
+struct stream;
 struct loom;
 struct proc;
-struct thread;
 
-USE_RET int metadata_load_proc(const char *path, struct loom *loom, struct proc *proc);
+USE_RET int metadata_load_proc(struct stream *s, struct loom *loom, struct proc *proc);
 
 #endif /* METADATA_H */

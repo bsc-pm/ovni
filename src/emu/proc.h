@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef PROC_H
@@ -11,6 +11,7 @@
 #include "parson.h"
 #include "uthash.h"
 struct loom;
+struct stream;
 struct thread;
 
 struct proc {
@@ -45,8 +46,8 @@ struct proc {
 	struct extend ext;
 };
 
-USE_RET int proc_relpath_get_pid(const char *relpath, int *pid);
-USE_RET int proc_init_begin(struct proc *proc, const char *id);
+USE_RET int proc_stream_get_pid(struct stream *s);
+USE_RET int proc_init_begin(struct proc *proc, int pid);
 USE_RET int proc_init_end(struct proc *proc);
 USE_RET int proc_get_pid(struct proc *proc);
         void proc_set_gindex(struct proc *proc, int64_t gindex);

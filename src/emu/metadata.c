@@ -9,25 +9,8 @@
 #include "ovni.h"
 #include "parson.h"
 #include "proc.h"
+#include "stream.h"
 #include "thread.h"
-
-static JSON_Object *
-load_json(const char *path)
-{
-	JSON_Value *vmeta = json_parse_file_with_comments(path);
-	if (vmeta == NULL) {
-		err("json_parse_file_with_comments() failed");
-		return NULL;
-	}
-
-	JSON_Object *meta = json_value_get_object(vmeta);
-	if (meta == NULL) {
-		err("json_value_get_object() failed");
-		return NULL;
-	}
-
-	return meta;
-}
 
 static int
 check_version(JSON_Object *meta)
@@ -109,13 +92,9 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 }
 
 int
-metadata_load_proc(const char *path, struct loom *loom, struct proc *proc)
+metadata_load_proc(struct stream *s, struct loom *loom, struct proc *proc)
 {
-	JSON_Object *meta = load_json(path);
-	if (meta == NULL) {
-		err("cannot load proc metadata from file %s", path);
-		return -1;
-	}
+	JSON_Object *meta = stream_metadata(s);
 
 	if (check_version(meta) != 0) {
 		err("version check failed");

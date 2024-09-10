@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "proc.h"
@@ -6,82 +6,36 @@
 #include <stdlib.h>
 #include <string.h>
 #include "path.h"
+#include "stream.h"
 #include "thread.h"
 
-static int
-get_pid(const char *id, int *pid)
+int
+proc_stream_get_pid(struct stream *s)
 {
-	/* TODO: Store the PID the metadata.json instead */
+	JSON_Object *meta = stream_metadata(s);
 
-	/* The id must be like "loom.host01.123/proc.345" */
-	if (path_count(id, '/') != 1) {
-		err("proc id can only contain one '/': %s", id);
+	double pid = json_object_dotget_number(meta, "ovni.pid");
+
+	/* Zero is used for errors, so forbidden for pid too */
+	if (pid == 0) {
+		err("cannot get attribute ovni.pid for stream: %s",
+				s->relpath);
 		return -1;
 	}
 
-	/* Get the proc.345 part */
-	const char *procname;
-	if (path_next(id, '/', &procname) != 0) {
-		err("cannot get proc name");
-		return -1;
-	}
-
-	/* Ensure the prefix is ok */
-	const char prefix[] = "proc.";
-	if (!path_has_prefix(procname, prefix)) {
-		err("proc name must start with '%s': %s", prefix, id);
-		return -1;
-	}
-
-	/* Get the 345 part */
-	const char *pidstr;
-	if (path_next(procname, '.', &pidstr) != 0) {
-		err("cannot find proc dot in '%s'", id);
-		return -1;
-	}
-
-	*pid = atoi(pidstr);
-
-	return 0;
+	return (int) pid;
 }
 
 int
-proc_relpath_get_pid(const char *relpath, int *pid)
-{
-	char id[PATH_MAX];
-
-	if (snprintf(id, PATH_MAX, "%s", relpath) >= PATH_MAX) {
-		err("path too long");
-		return -1;
-	}
-
-	if (path_keep(id, 2) != 0) {
-		err("cannot delimite proc dir");
-		return -1;
-	}
-
-	return get_pid(id, pid);
-}
-
-int
-proc_init_begin(struct proc *proc, const char *relpath)
+proc_init_begin(struct proc *proc, int pid)
 {
 	memset(proc, 0, sizeof(struct proc));
 
 	proc->gindex = -1;
+	proc->pid = pid;
 
-	if (snprintf(proc->id, PATH_MAX, "%s", relpath) >= PATH_MAX) {
+	if (snprintf(proc->id, PATH_MAX, "proc.%d", pid) >= PATH_MAX) {
 		err("path too long");
-		return -1;
-	}
-
-	if (path_keep(proc->id, 2) != 0) {
-		err("cannot delimite proc dir");
-		return -1;
-	}
-
-	if (get_pid(proc->id, &proc->pid) != 0) {
-		err("cannot parse proc pid");
 		return -1;
 	}
 
@@ -118,15 +72,15 @@ proc_load_metadata(struct proc *proc, JSON_Object *meta)
 
 	proc->metadata_version = (int) json_number(version_val);
 
-	JSON_Value *appid_val = json_object_get_value(meta, "app_id");
+	JSON_Value *appid_val = json_object_dotget_value(meta, "ovni.app_id");
 	if (appid_val == NULL) {
-		err("missing attribute 'app_id' in metadata");
+		err("missing attribute 'ovni.app_id' in metadata");
 		return -1;
 	}
 
 	proc->appid = (int) json_number(appid_val);
 
-	JSON_Value *rank_val = json_object_get_value(meta, "rank");
+	JSON_Value *rank_val = json_object_dotget_value(meta, "ovni.rank");
 
 	if (rank_val != NULL)
 		proc->rank = (int) json_number(rank_val);

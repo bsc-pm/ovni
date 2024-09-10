@@ -56,6 +56,9 @@ struct ovni_rproc {
 	char loom[OVNI_MAX_HOSTNAME];
 	int ncpus;
 	clockid_t clockid;
+	int rank_set;
+	int rank;
+	int nranks;
 
 	int ready;
 
@@ -258,16 +261,9 @@ ovni_proc_set_rank(int rank, int nranks)
 	if (!rproc.ready)
 		die("process not yet initialized");
 
-	JSON_Object *meta = json_value_get_object(rproc.meta);
-
-	if (meta == NULL)
-		die("json_value_get_object failed");
-
-	if (json_object_set_number(meta, "rank", rank) != 0)
-		die("json_object_set_number for rank failed");
-
-	if (json_object_set_number(meta, "nranks", nranks) != 0)
-		die("json_object_set_number for nranks failed");
+	rproc.rank_set = 1;
+	rproc.rank = rank;
+	rproc.nranks = nranks;
 }
 
 /* Create $tracedir/loom.$loom/proc.$pid and return it in path. */
@@ -559,6 +555,9 @@ thread_metadata_populate(void)
 
 	if (json_object_dotset_string(meta, "ovni.loom", rproc.loom) != 0)
 		die("json_object_dotset_string failed");
+
+	if (json_object_dotset_number(meta, "ovni.app_id", rproc.app) != 0)
+		die("json_object_dotset_number for ovni.app_id failed");
 }
 
 static void
@@ -610,6 +609,16 @@ ovni_thread_init(pid_t tid)
 	rthread.ready = 1;
 }
 
+static void
+set_thread_rank(JSON_Object *meta)
+{
+	if (json_object_dotset_number(meta, "ovni.rank", rproc.rank) != 0)
+		die("json_object_set_number for rank failed");
+
+	if (json_object_dotset_number(meta, "ovni.nranks", rproc.nranks) != 0)
+		die("json_object_set_number for nranks failed");
+}
+
 void
 ovni_thread_free(void)
 {
@@ -623,6 +632,9 @@ ovni_thread_free(void)
 
 	if (meta == NULL)
 		die("json_value_get_object failed");
+
+	if (rproc.rank_set)
+		set_thread_rank(meta);
 
 	/* Mark it finished so we can detect partial streams */
 	if (json_object_dotset_number(meta, "ovni.finished", 1) != 0)

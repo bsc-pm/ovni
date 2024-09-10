@@ -128,6 +128,8 @@ load_json(const char *path)
 		return NULL;
 	}
 
+	/* TODO: Check version */
+
 	return meta;
 }
 

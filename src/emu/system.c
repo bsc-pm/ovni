@@ -221,6 +221,31 @@ report_libovni_version(struct system *sys)
 }
 
 static int
+is_thread_stream(struct stream *s)
+{
+	JSON_Object *meta = stream_metadata(s);
+	if (meta == NULL) {
+		err("no metadata for stream: %s", s->relpath);
+		return -1;
+	}
+
+	/* All streams must have a ovni.part attribute */
+	const char *part_type = json_object_dotget_string(meta, "ovni.part");
+
+	if (part_type == NULL) {
+		err("cannot get attribute ovni.part for stream: %s",
+				s->relpath);
+		return -1;
+	}
+
+	if (strcmp(part_type, "thread") == 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
+static int
 create_system(struct system *sys, struct trace *trace)
 {
 	const char *dir = trace->tracedir;
@@ -234,7 +259,11 @@ create_system(struct system *sys, struct trace *trace)
 
 	size_t i = 0;
 	for (struct stream *s = trace->streams; s ; s = s->next) {
-		if (!loom_matches(s->relpath)) {
+		int m = is_thread_stream(s);
+		if (m < 0) {
+			err("is_thread_stream failed");
+			return -1;
+		} else if (m == 0) {
 			warn("ignoring unknown stream %s", s->relpath);
 			continue;
 		}

@@ -20,6 +20,7 @@ struct pcf;
 struct proc;
 struct recorder;
 struct value;
+struct stream;
 
 /* Emulated thread runtime status */
 enum thread_state {
@@ -82,10 +83,10 @@ struct thread {
 	UT_hash_handle hh; /* threads in the process */
 };
 
-USE_RET int thread_relpath_get_tid(const char *relpath, int *tid);
-USE_RET int thread_init_begin(struct thread *thread, const char *relpath);
+USE_RET int thread_stream_get_tid(struct stream *s);
+USE_RET int thread_init_begin(struct thread *thread, int tid);
 USE_RET int thread_init_end(struct thread *thread);
-USE_RET int thread_load_metadata(struct thread *thread, JSON_Object *meta);
+USE_RET int thread_load_metadata(struct thread *thread, struct stream *s);
 USE_RET int thread_set_state(struct thread *th, enum thread_state state);
 USE_RET int thread_set_cpu(struct thread *th, struct cpu *cpu);
 USE_RET int thread_unset_cpu(struct thread *th);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "metadata.h"
@@ -130,28 +130,6 @@ metadata_load_proc(const char *path, struct loom *loom, struct proc *proc)
 
 	if (has_cpus(meta) && load_cpus(loom, meta) != 0) {
 		err("cannot load loom cpus");
-		return -1;
-	}
-
-	return 0;
-}
-
-int
-metadata_load_thread(const char *path, struct thread *thread)
-{
-	JSON_Object *meta = load_json(path);
-	if (meta == NULL) {
-		err("cannot load thread metadata from file %s", path);
-		return -1;
-	}
-
-	if (check_version(meta) != 0) {
-		err("version check failed");
-		return -1;
-	}
-
-	if (thread_load_metadata(thread, meta) != 0) {
-		err("cannot load thread attributes");
 		return -1;
 	}
 

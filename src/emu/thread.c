@@ -15,6 +15,7 @@
 #include "pv/prv.h"
 #include "pv/pvt.h"
 #include "recorder.h"
+#include "stream.h"
 #include "value.h"
 struct proc;
 
@@ -59,72 +60,34 @@ static const struct pcf_value_label (*pcf_labels[TH_CHAN_MAX])[] = {
 	[TH_CHAN_STATE] = &state_name,
 };
 
-static int
-get_tid(const char *id, int *tid)
+int
+thread_stream_get_tid(struct stream *s)
 {
-	/* The id must be like "loom.host01.123/proc.345/thread.567" */
-	if (path_count(id, '/') != 2) {
-		err("proc id can only contain two '/': %s", id);
+	JSON_Object *meta = stream_metadata(s);
+
+	double tid = json_object_dotget_number(meta, "ovni.tid");
+
+	/* Zero is used for errors, so forbidden for tid too */
+	if (tid == 0) {
+		err("cannot get attribute ovni.tid for stream: %s",
+				s->relpath);
 		return -1;
 	}
 
-	/* Get the thread.567 part */
-	const char *thname;
-	if (path_strip(id, 2, &thname) != 0) {
-		err("cannot get thread name");
-		return -1;
-	}
-
-	/* Ensure the prefix is ok */
-	const char prefix[] = "thread.";
-	if (!path_has_prefix(thname, prefix)) {
-		err("thread name must start with '%s': %s", prefix, thname);
-		return -1;
-	}
-
-	/* Get the 567 part */
-	const char *tidstr;
-	if (path_next(thname, '.', &tidstr) != 0) {
-		err("cannot find thread dot in '%s'", id);
-		return -1;
-	}
-
-	char *endptr;
-	errno = 0;
-	*tid = (int) strtol(tidstr, &endptr, 10);
-	if (errno != 0) {
-		err("strtol failed for '%s':", tidstr);
-		return -1;
-	}
-	if (endptr == tidstr) {
-		err("no digits in tid string '%s'", tidstr);
-		return -1;
-	}
-
-	return 0;
+	return (int) tid;
 }
 
 int
-thread_relpath_get_tid(const char *relpath, int *tid)
-{
-	return get_tid(relpath, tid);
-}
-
-int
-thread_init_begin(struct thread *thread, const char *relpath)
+thread_init_begin(struct thread *thread, int tid)
 {
 	memset(thread, 0, sizeof(struct thread));
 
 	thread->state = TH_ST_UNKNOWN;
 	thread->gindex = -1;
+	thread->tid = tid;
 
-	if (snprintf(thread->id, PATH_MAX, "%s", relpath) >= PATH_MAX) {
+	if (snprintf(thread->id, PATH_MAX, "thread.%d", tid) >= PATH_MAX) {
 		err("relpath too long");
-		return -1;
-	}
-
-	if (get_tid(thread->id, &thread->tid) != 0) {
-		err("cannot parse thread tid");
 		return -1;
 	}
 
@@ -445,12 +408,9 @@ thread_migrate_cpu(struct thread *th, struct cpu *cpu)
 }
 
 int
-thread_load_metadata(struct thread *thread, JSON_Object *meta)
+thread_load_metadata(struct thread *thread, struct stream *s)
 {
-	if (meta == NULL) {
-		err("metadata is null");
-		return -1;
-	}
+	JSON_Object *meta = stream_metadata(s);
 
 	if (thread->meta != NULL) {
 		err("thread %s already loaded metadata", thread->id);

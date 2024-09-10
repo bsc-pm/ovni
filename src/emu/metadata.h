@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef METADATA_H
@@ -10,6 +10,5 @@ struct proc;
 struct thread;
 
 USE_RET int metadata_load_proc(const char *path, struct loom *loom, struct proc *proc);
-USE_RET int metadata_load_thread(const char *path, struct thread *thread);
 
 #endif /* METADATA_H */

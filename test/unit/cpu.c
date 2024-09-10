@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/cpu.h"
@@ -27,7 +27,7 @@ test_oversubscription(void)
 
 	struct proc proc;
 
-	if (proc_init_begin(&proc, "loom.0/proc.0") != 0)
+	if (proc_init_begin(&proc, 1) != 0)
 		die("proc_init_begin failed");
 
 	proc_set_gindex(&proc, 0);
@@ -38,7 +38,7 @@ test_oversubscription(void)
 
 	struct thread th0, th1;
 
-	if (thread_init_begin(&th0, "loom.0/proc.0/thread.0.obs") != 0)
+	if (thread_init_begin(&th0, 1) != 0)
 		die("thread_init_begin failed");
 
 	thread_set_gindex(&th0, 0);
@@ -47,7 +47,7 @@ test_oversubscription(void)
 	if (thread_init_end(&th0) != 0)
 		die("thread_init_end failed");
 
-	if (thread_init_begin(&th1, "loom.1/proc.1/thread.1.obs") != 0)
+	if (thread_init_begin(&th1, 2) != 0)
 		die("thread_init_begin failed");
 
 	thread_set_gindex(&th1, 1);

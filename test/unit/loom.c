@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/loom.h"
@@ -8,19 +8,17 @@
 #include "emu/proc.h"
 #include "unittest.h"
 
-char testloom[] = "loom.0";
-char testproc[] = "loom.0/proc.1";
+char testloom[] = "node1";
+int testproc = 1;
 
 static void
 test_bad_name(struct loom *loom)
 {
-	ERR(loom_init_begin(loom, "blah"));
 	ERR(loom_init_begin(loom, "loom/blah"));
-	ERR(loom_init_begin(loom, "loom.123/testloom"));
-	ERR(loom_init_begin(loom, "loom.123/"));
 	ERR(loom_init_begin(loom, "/loom.123"));
 	ERR(loom_init_begin(loom, "./loom.123"));
 	OK(loom_init_begin(loom, "loom.123"));
+	OK(loom_init_begin(loom, "foo"));
 
 	err("ok");
 }
@@ -28,7 +26,7 @@ test_bad_name(struct loom *loom)
 static void
 test_hostname(struct loom *loom)
 {
-	OK(loom_init_begin(loom, "loom.node1.blah"));
+	OK(loom_init_begin(loom, "node1.blah"));
 
 	if (strcmp(loom->hostname, "node1") != 0)
 		die("wrong hostname: %s", loom->hostname);

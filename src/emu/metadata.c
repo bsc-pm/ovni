@@ -35,9 +35,9 @@ check_version(JSON_Object *meta)
 static int
 has_cpus(JSON_Object *meta)
 {
-	/* Only check for the "cpus" key, if it has zero elements is an error
-	 * that will be reported later */
-	if (json_object_get_array(meta, "cpus") != NULL)
+	/* Only check for the "ovni.loom_cpus" key, if it has zero
+	 * elements is an error that will be reported later */
+	if (json_object_dotget_array(meta, "ovni.loom_cpus") != NULL)
 		return 1;
 
 	return 0;
@@ -46,7 +46,7 @@ has_cpus(JSON_Object *meta)
 static int
 load_cpus(struct loom *loom, JSON_Object *meta)
 {
-	JSON_Array *cpuarray = json_object_get_array(meta, "cpus");
+	JSON_Array *cpuarray = json_object_dotget_array(meta, "ovni.loom_cpus");
 	if (cpuarray == NULL) {
 		err("cannot find 'cpus' array");
 		return -1;

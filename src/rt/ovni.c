@@ -17,6 +17,14 @@
 #include "ovni.h"
 #include "parson.h"
 #include "version.h"
+#include "utlist.h"
+
+struct ovni_rcpu {
+	int index;
+	int phyid;
+	struct ovni_rcpu *next;
+	struct ovni_rcpu *prev;
+};
 
 /* State of each thread on runtime */
 struct ovni_rthread {
@@ -34,6 +42,8 @@ struct ovni_rthread {
 
 	/* Buffer to write events */
 	uint8_t *evbuf;
+
+	struct ovni_rcpu *cpus;
 
 	JSON_Value *meta;
 };
@@ -54,7 +64,6 @@ struct ovni_rproc {
 	int app;
 	int pid;
 	char loom[OVNI_MAX_HOSTNAME];
-	int ncpus;
 	clockid_t clockid;
 	int rank_set;
 	int rank;
@@ -182,53 +191,14 @@ ovni_add_cpu(int index, int phyid)
 	if (rproc.meta == NULL)
 		die("metadata not initialized");
 
-	JSON_Object *meta = json_value_get_object(rproc.meta);
-
-	if (meta == NULL)
-		die("json_value_get_object() failed");
-
-	int first_time = 0;
-
-	/* Find the CPU array and create it if needed */
-	JSON_Array *cpuarray = json_object_dotget_array(meta, "cpus");
-
-	if (cpuarray == NULL) {
-		JSON_Value *value = json_value_init_array();
-		if (value == NULL)
-			die("json_value_init_array() failed");
-
-		cpuarray = json_array(value);
-		if (cpuarray == NULL)
-			die("json_array() failed");
-
-		first_time = 1;
-	}
-
-	JSON_Value *valcpu = json_value_init_object();
-	if (valcpu == NULL)
-		die("json_value_init_object() failed");
-
-	JSON_Object *cpu = json_object(valcpu);
+	struct ovni_rcpu *cpu = malloc(sizeof(*cpu));
 	if (cpu == NULL)
-		die("json_object() failed");
+		die("malloc failed:");
 
-	if (json_object_set_number(cpu, "index", index) != 0)
-		die("json_object_set_number() failed");
+	cpu->index = index;
+	cpu->phyid = phyid;
 
-	if (json_object_set_number(cpu, "phyid", phyid) != 0)
-		die("json_object_set_number() failed");
-
-	if (json_array_append_value(cpuarray, valcpu) != 0)
-		die("json_array_append_value() failed");
-
-	if (first_time) {
-		JSON_Value *value = json_array_get_wrapping_value(cpuarray);
-		if (value == NULL)
-			die("json_array_get_wrapping_value() failed");
-
-		if (json_object_set_value(meta, "cpus", value) != 0)
-			die("json_object_set_value failed");
-	}
+	DL_APPEND(rthread.cpus, cpu);
 }
 
 static void
@@ -619,6 +589,40 @@ set_thread_rank(JSON_Object *meta)
 		die("json_object_set_number for nranks failed");
 }
 
+static void
+set_thread_cpus(JSON_Object *meta)
+{
+	JSON_Value *value = json_value_init_array();
+	if (value == NULL)
+		die("json_value_init_array() failed");
+
+	JSON_Array *cpuarray = json_array(value);
+	if (cpuarray == NULL)
+		die("json_array() failed");
+
+	for (struct ovni_rcpu *c = rthread.cpus; c; c = c->next) {
+		JSON_Value *valcpu = json_value_init_object();
+		if (valcpu == NULL)
+			die("json_value_init_object() failed");
+
+		JSON_Object *cpu = json_object(valcpu);
+		if (cpu == NULL)
+			die("json_object() failed");
+
+		if (json_object_set_number(cpu, "index", c->index) != 0)
+			die("json_object_set_number() failed");
+
+		if (json_object_set_number(cpu, "phyid", c->phyid) != 0)
+			die("json_object_set_number() failed");
+
+		if (json_array_append_value(cpuarray, valcpu) != 0)
+			die("json_array_append_value() failed");
+	}
+
+	if (json_object_dotset_value(meta, "ovni.loom_cpus", value) != 0)
+		die("json_object_dotset_value failed");
+}
+
 void
 ovni_thread_free(void)
 {
@@ -635,6 +639,11 @@ ovni_thread_free(void)
 
 	if (rproc.rank_set)
 		set_thread_rank(meta);
+
+	/* It can happen there are no CPUs defined if there is another
+	 * process in the loom that defines them. */
+	if (rthread.cpus)
+		set_thread_cpus(meta);
 
 	/* Mark it finished so we can detect partial streams */
 	if (json_object_dotset_number(meta, "ovni.finished", 1) != 0)

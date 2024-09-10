@@ -8,9 +8,9 @@ test_files() {
   test -e "$dst"
   test -e "$dst/loom.node.1"
   test -e "$dst/loom.node.1/proc.123"
-  test -e "$dst/loom.node.1/proc.123/metadata.json"
-  test -e "$dst/loom.node.1/proc.123/thread.123.json"
-  test -e "$dst/loom.node.1/proc.123/thread.123.obs"
+  test -e "$dst/loom.node.1/proc.123/thread.123"
+  test -e "$dst/loom.node.1/proc.123/thread.123/stream.json"
+  test -e "$dst/loom.node.1/proc.123/thread.123/stream.obs"
 }
 
 test_no_files() {
@@ -18,9 +18,9 @@ test_no_files() {
   test '!' -e "$dst"
   test '!' -e "$dst/loom.node.1"
   test '!' -e "$dst/loom.node.1/proc.123"
-  test '!' -e "$dst/loom.node.1/proc.123/metadata.json"
-  test '!' -e "$dst/loom.node.1/proc.123/thread.123.json"
-  test '!' -e "$dst/loom.node.1/proc.123/thread.123.obs"
+  test '!' -e "$dst/loom.node.1/proc.123/thread.123"
+  test '!' -e "$dst/loom.node.1/proc.123/thread.123/stream.json"
+  test '!' -e "$dst/loom.node.1/proc.123/thread.123/stream.obs"
 }
 
 # Test setting OVNI_TMPDIR

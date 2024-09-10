@@ -556,6 +556,9 @@ thread_metadata_populate(void)
 
 	if (json_object_dotset_number(meta, "ovni.pid", (double) rproc.pid) != 0)
 		die("json_object_dotset_number failed");
+
+	if (json_object_dotset_string(meta, "ovni.loom", rproc.loom) != 0)
+		die("json_object_dotset_string failed");
 }
 
 static void

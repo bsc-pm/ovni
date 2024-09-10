@@ -131,16 +131,11 @@ find_loom(struct system *sys, const char *id)
 }
 
 static struct loom *
-create_loom(struct system *sys, const char *relpath)
+create_loom(struct system *sys, struct stream *s)
 {
-	char name[PATH_MAX];
-	if (snprintf(name, PATH_MAX, "%s", relpath) >= PATH_MAX) {
-		err("path too long: %s", relpath);
-		return NULL;
-	}
-
-	if (strtok(name, "/") == NULL) {
-		err("cannot find first '/': %s", relpath);
+	const char *name = loom_name(s);
+	if (name == NULL) {
+		err("loom_name failed");
 		return NULL;
 	}
 
@@ -268,7 +263,7 @@ create_system(struct system *sys, struct trace *trace)
 			continue;
 		}
 
-		struct loom *loom = create_loom(sys, s->relpath);
+		struct loom *loom = create_loom(sys, s);
 		if (loom == NULL) {
 			err("create_loom failed");
 			return -1;

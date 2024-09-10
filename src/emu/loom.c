@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "loom.h"
@@ -8,15 +8,13 @@
 #include "cpu.h"
 #include "path.h"
 #include "proc.h"
+#include "stream.h"
 #include "uthash.h"
-
-static const char *loom_prefix = "loom.";
 
 static void
 set_hostname(char host[PATH_MAX], const char name[PATH_MAX])
 {
-	/* Skip prefix */
-	const char *start = name + strlen(loom_prefix);
+	const char *start = name;
 
 	/* Copy until dot or end */
 	int i;
@@ -30,21 +28,25 @@ set_hostname(char host[PATH_MAX], const char name[PATH_MAX])
 	host[i] = '\0';
 }
 
-int
-loom_matches(const char *path)
+const char *
+loom_name(struct stream *s)
 {
-	return path_has_prefix(path, loom_prefix);
+	JSON_Object *meta = stream_metadata(s);
+	const char *loom = json_object_dotget_string(meta, "ovni.loom");
+
+	if (loom == NULL) {
+		err("cannot get attribute ovni.loom for stream: %s",
+				s->relpath);
+		return NULL;
+	}
+
+	return loom;
 }
 
 int
 loom_init_begin(struct loom *loom, const char *name)
 {
 	memset(loom, 0, sizeof(struct loom));
-
-	if (!path_has_prefix(name, loom_prefix)) {
-		err("loom name must start with '%s': %s", loom_prefix, name);
-		return -1;
-	}
 
 	if (strchr(name, '/') != NULL) {
 		err("loom name cannot contain '/': %s", name);

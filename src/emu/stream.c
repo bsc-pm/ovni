@@ -194,9 +194,13 @@ stream_data_get(struct stream *stream)
 	return stream->data;
 }
 
+/* Is never NULL */
 JSON_Object *
 stream_metadata(struct stream *stream)
 {
+	if (stream->meta == NULL)
+		die("stream metadata is NULL: %s", stream->relpath);
+
 	return stream->meta;
 }
 

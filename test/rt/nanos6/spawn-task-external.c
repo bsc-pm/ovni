@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* Spawn a task from an external thread that calls some nanos6
@@ -67,7 +67,7 @@ instr_thread_start(int32_t cpu, int32_t creator_tid, uint64_t tag)
 	ovni_payload_add(&ev, (uint8_t *) &tag, sizeof(tag));
 	ovni_ev_emit(&ev);
 
-	/* Flush the events to disk before killing the thread */
+	/* Flush the events to disk after creating the thread */
 	ovni_flush();
 }
 
@@ -82,6 +82,9 @@ instr_thread_end(void)
 
 	/* Flush the events to disk before killing the thread */
 	ovni_flush();
+
+	/* Finish the thread */
+	ovni_thread_free();
 }
 
 /* Call the nanos6_spawn_function from an external thread */

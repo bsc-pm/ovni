@@ -45,6 +45,10 @@ struct ovni_rthread {
 
 	struct ovni_rcpu *cpus;
 
+	/* Where the stream dir is finally copied */
+	char thdir_final[PATH_MAX];
+	char thdir[PATH_MAX];
+
 	JSON_Value *meta;
 };
 
@@ -70,6 +74,7 @@ struct ovni_rproc {
 	int nranks;
 
 	int ready;
+	int finished;
 
 	JSON_Value *meta;
 };
@@ -116,20 +121,26 @@ void ovni_version_check_str(const char *version)
 	/* Ignore the patch number */
 }
 
+/* Create dir $procdir/thread.$tid and return it in path. */
 static void
-create_thread_dir(void)
+mkdir_thread(char *path, const char *procdir, int tid)
 {
-	char path[PATH_MAX];
+	if (snprintf(path, PATH_MAX, "%s/thread.%d",
+				procdir, tid) >= PATH_MAX) {
+		die("path too long: %s/thread.%d", procdir, tid);
+	}
 
-	int written = snprintf(path, PATH_MAX, "%s/thread.%d",
-			rproc.procdir, rthread.tid);
+	if (mkpath(path, 0755, /* subdir */ 1))
+		die("mkpath %s failed:", path);
+}
 
-	if (written >= PATH_MAX)
-		die("path too long: %s/thread.%d", rproc.procdir, rthread.tid);
-
+static void
+create_thread_dir(int tid)
+{
 	/* The procdir must have been created earlier */
-	if (mkdir(path, 0755) != 0)
-		die("mkdir(%s) failed:", path);
+	mkdir_thread(rthread.thdir, rproc.procdir, tid);
+	if (rproc.move_to_final)
+		mkdir_thread(rthread.thdir_final, rproc.procdir_final, tid);
 }
 
 static void
@@ -149,31 +160,6 @@ create_trace_stream(void)
 
 	if (rthread.streamfd == -1)
 		die("open %s failed:", path);
-}
-
-static void
-proc_metadata_init(struct ovni_rproc *proc)
-{
-	proc->meta = json_value_init_object();
-
-	if (proc->meta == NULL)
-		die("failed to create metadata JSON object");
-}
-
-static void
-proc_metadata_store(JSON_Value *meta, const char *procdir)
-{
-	char path[PATH_MAX];
-
-	if (meta == NULL)
-		die("process metadata not initialized");
-
-	if (snprintf(path, PATH_MAX, "%s/metadata.json", procdir) >= PATH_MAX)
-		die("metadata path too long: %s/metadata.json",
-				procdir);
-
-	if (json_serialize_to_file_pretty(meta, path) != JSONSuccess)
-		die("failed to write process metadata");
 }
 
 void
@@ -199,30 +185,6 @@ ovni_add_cpu(int index, int phyid)
 	cpu->phyid = phyid;
 
 	DL_APPEND(rthread.cpus, cpu);
-}
-
-static void
-proc_set_app(int appid)
-{
-	JSON_Object *meta = json_value_get_object(rproc.meta);
-
-	if (meta == NULL)
-		die("json_value_get_object failed");
-
-	if (json_object_set_number(meta, "app_id", appid) != 0)
-		die("json_object_set_number for app_id failed");
-}
-
-static void
-proc_set_version(void)
-{
-	JSON_Object *meta = json_value_get_object(rproc.meta);
-
-	if (meta == NULL)
-		die("json_value_get_object failed");
-
-	if (json_object_set_number(meta, "version", OVNI_METADATA_VERSION) != 0)
-		die("json_object_set_number for version failed");
 }
 
 void
@@ -278,6 +240,9 @@ ovni_proc_init(int app, const char *loom, int pid)
 	if (rproc.ready)
 		die("pid %d already initialized", pid);
 
+	if (rproc.finished)
+		die("pid %d has finished, cannot init again", pid);
+
 	memset(&rproc, 0, sizeof(rproc));
 
 	if (strlen(loom) >= OVNI_MAX_HOSTNAME)
@@ -290,17 +255,13 @@ ovni_proc_init(int app, const char *loom, int pid)
 
 	create_proc_dir(loom, pid);
 
-	proc_metadata_init(&rproc);
-
 	rproc.ready = 1;
-
-	proc_set_version();
-	proc_set_app(app);
 }
 
 static int
 move_thread_to_final(const char *src, const char *dst)
 {
+	info("moving src=%s to dst=%s", src, dst);
 	char buffer[1024];
 
 	FILE *infile = fopen(src, "r");
@@ -333,38 +294,38 @@ move_thread_to_final(const char *src, const char *dst)
 }
 
 static void
-move_procdir_to_final(const char *procdir, const char *procdir_final)
+move_thdir_to_final(const char *thdir, const char *thdir_final)
 {
 	DIR *dir;
 	int ret = 0;
 
-	if ((dir = opendir(procdir)) == NULL) {
-		err("opendir %s failed:", procdir);
+	if ((dir = opendir(thdir)) == NULL) {
+		err("opendir %s failed:", thdir);
 		return;
 	}
 
 	struct dirent *dirent;
-	const char *prefix = "thread.";
+	const char *prefix = "stream.";
 	while ((dirent = readdir(dir)) != NULL) {
-		/* It should only contain thread.* directories, skip others */
+		/* It should only contain stream.* directories, skip others */
 		if (strncmp(dirent->d_name, prefix, strlen(prefix)) != 0)
 			continue;
 
 		char thread[PATH_MAX];
-		if (snprintf(thread, PATH_MAX, "%s/%s", procdir,
+		if (snprintf(thread, PATH_MAX, "%s/%s", thdir,
 				    dirent->d_name)
 				>= PATH_MAX) {
-			err("snprintf: path too large: %s/%s", procdir,
+			err("snprintf: path too large: %s/%s", thdir,
 					dirent->d_name);
 			ret = 1;
 			continue;
 		}
 
 		char thread_final[PATH_MAX];
-		if (snprintf(thread_final, PATH_MAX, "%s/%s", procdir_final,
+		if (snprintf(thread_final, PATH_MAX, "%s/%s", thdir_final,
 				    dirent->d_name)
 				>= PATH_MAX) {
-			err("snprintf: path too large: %s/%s", procdir_final,
+			err("snprintf: path too large: %s/%s", thdir_final,
 					dirent->d_name);
 			ret = 1;
 			continue;
@@ -378,7 +339,7 @@ move_procdir_to_final(const char *procdir, const char *procdir_final)
 
 	/* Warn the user, but we cannot do much at this point */
 	if (ret)
-		err("errors occurred when moving the trace to %s", procdir_final);
+		err("errors occurred when moving the thread dir to %s", thdir_final);
 }
 
 static void
@@ -395,18 +356,15 @@ ovni_proc_fini(void)
 	if (!rproc.ready)
 		die("process not initialized");
 
-	/* Mark the process no longer ready */
-	rproc.ready = 0;
-
 	if (rproc.move_to_final) {
-		proc_metadata_store(rproc.meta, rproc.procdir_final);
-		move_procdir_to_final(rproc.procdir, rproc.procdir_final);
 		try_clean_dir(rproc.procdir);
 		try_clean_dir(rproc.loomdir);
 		try_clean_dir(rproc.tmpdir);
-	} else {
-		proc_metadata_store(rproc.meta, rproc.procdir);
 	}
+
+	/* Mark the process no longer ready */
+	rproc.finished = 1;
+	rproc.ready = 0;
 }
 
 static void
@@ -570,7 +528,7 @@ ovni_thread_init(pid_t tid)
 	if (rthread.evbuf == NULL)
 		die("malloc failed:");
 
-	create_thread_dir();
+	create_thread_dir(tid);
 	create_trace_stream();
 	write_stream_header();
 
@@ -657,8 +615,14 @@ ovni_thread_free(void)
 	close(rthread.streamfd);
 	rthread.streamfd = -1;
 
-	rthread.ready = 0;
+	if (rproc.move_to_final) {
+		/* The dir rthread.thdir_final must exist in the FS */
+		move_thdir_to_final(rthread.thdir, rthread.thdir_final);
+		try_clean_dir(rthread.thdir);
+	}
+
 	rthread.finished = 1;
+	rthread.ready = 0;
 }
 
 int

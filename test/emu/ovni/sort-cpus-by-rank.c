@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdio.h>
@@ -36,6 +36,7 @@ main(void)
 	for (int i = 0; i < N; i++)
 		ovni_add_cpu(i, cpus[i]);
 
+	instr_require("ovni");
 	instr_thread_execute(-1, -1, 0);
 
 	instr_end();

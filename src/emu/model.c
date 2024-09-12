@@ -235,13 +235,6 @@ model_finish(struct model *model, struct emu *emu)
 static int
 should_enable(int have[3], struct model_spec *spec, struct thread *t)
 {
-	static int compat = 0;
-
-	/* Enable all models if we are in compatibility model. Don't check other
-	 * threads metadata */
-	if (compat)
-		return 1;
-
 	if (t->meta == NULL) {
 		err("missing metadata for thread %s", t->id);
 		return -1;
@@ -249,12 +242,8 @@ should_enable(int have[3], struct model_spec *spec, struct thread *t)
 
 	JSON_Object *require = json_object_dotget_object(t->meta, "ovni.require");
 	if (require == NULL) {
-		warn("missing 'ovni.require' key in thread %s", t->id);
-		warn("loading trace in compatibility mode");
-		warn("all models will be enabled (expect slowdown)");
-		warn("use ovni_thread_require() to enable only required models");
-		compat = 1;
-		return 1;
+		err("missing 'ovni.require' key in thread %s", t->id);
+		return -1;
 	}
 
 	/* May not have the current model */

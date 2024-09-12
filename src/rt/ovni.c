@@ -535,6 +535,8 @@ ovni_thread_init(pid_t tid)
 	thread_metadata_init();
 
 	rthread.ready = 1;
+
+	ovni_thread_require("ovni", OVNI_MODEL_VERSION);
 }
 
 static void

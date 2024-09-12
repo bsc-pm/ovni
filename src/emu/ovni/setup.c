@@ -13,6 +13,7 @@
 #include "model_cpu.h"
 #include "model_pvt.h"
 #include "model_thread.h"
+#include "ovni.h"
 #include "pv/pcf.h"
 #include "pv/prv.h"
 #include "system.h"
@@ -47,7 +48,7 @@ static struct ev_decl model_evlist[] = {
 
 struct model_spec model_ovni = {
 	.name    = model_name,
-	.version = "1.1.0",
+	.version = OVNI_MODEL_VERSION,
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_ovni_create,

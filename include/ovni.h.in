@@ -31,6 +31,9 @@ extern "C" {
 
 #define OVNI_STREAM_EXT ".obs"
 
+/* Version of the ovni model for events */
+#define OVNI_MODEL_VERSION "1.1.0"
+
 /* Follow https://semver.org rules for versioning */
 #define OVNI_LIB_VERSION "@PROJECT_VERSION@"
 #define OVNI_GIT_COMMIT  "@OVNI_GIT_COMMIT@"

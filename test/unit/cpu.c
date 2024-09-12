@@ -30,11 +30,9 @@ test_oversubscription(void)
 	if (proc_init_begin(&proc, 1) != 0)
 		die("proc_init_begin failed");
 
-	proc_set_gindex(&proc, 0);
+	proc.appid = 1;
 
-	/* FIXME: We shouldn't need to recreate a full process to test the CPU
-	 * affinity rules */
-	proc.metadata_loaded = 1;
+	proc_set_gindex(&proc, 0);
 
 	struct thread th0, th1;
 

@@ -65,7 +65,6 @@ test_duplicate_procs(struct loom *loom)
 	struct proc proc;
 	OK(loom_init_begin(loom, testloom));
 	OK(proc_init_begin(&proc, testproc));
-	proc.metadata_loaded = 1;
 	OK(loom_add_proc(loom, &proc));
 	ERR(loom_add_proc(loom, &proc));
 

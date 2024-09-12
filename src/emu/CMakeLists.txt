@@ -30,7 +30,6 @@ add_library(emu STATIC
   stream.c
   trace.c
   loom.c
-  metadata.c
   mux.c
   sort.c
   path.c

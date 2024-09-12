@@ -148,7 +148,6 @@ load_json(const char *path)
 		return NULL;
 	}
 
-	/* TODO: Check version */
 	if (check_version(meta) != 0) {
 		err("check_version failed");
 		return NULL;

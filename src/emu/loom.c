@@ -70,6 +70,84 @@ loom_init_begin(struct loom *loom, const char *name)
 	return 0;
 }
 
+/* Merges the metadata CPUs with the ones in the loom */
+static int
+load_cpus(struct loom *loom, JSON_Object *meta)
+{
+	JSON_Array *cpuarray = json_object_dotget_array(meta, "ovni.loom_cpus");
+
+	/* It may not have the CPUs defined */
+	if (cpuarray == NULL)
+		return 0;
+
+	size_t ncpus = json_array_get_count(cpuarray);
+	if (ncpus == 0) {
+		err("empty 'cpus' array in metadata");
+		return -1;
+	}
+
+	for (size_t i = 0; i < ncpus; i++) {
+		JSON_Object *jcpu = json_array_get_object(cpuarray, i);
+		if (jcpu == NULL) {
+			err("json_array_get_object() failed for cpu");
+			return -1;
+		}
+
+		/* Cast from double */
+		int index = (int) json_object_get_number(jcpu, "index");
+		int phyid = (int) json_object_get_number(jcpu, "phyid");
+
+		struct cpu *cpu = loom_find_cpu(loom, phyid);
+
+		if (cpu) {
+			/* Ensure they have the same index */
+			if (cpu->index != index) {
+				err("mismatch index in existing cpu: %d", index);
+				return -1;
+			}
+
+			/* Duplicated, ignore */
+			continue;
+		}
+
+		cpu = calloc(1, sizeof(struct cpu));
+		if (cpu == NULL) {
+			err("calloc failed:");
+			return -1;
+		}
+
+		cpu_init_begin(cpu, index, phyid, 0);
+
+		if (loom_add_cpu(loom, cpu) != 0) {
+			err("loom_add_cpu() failed");
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+/** Merges the given metadata with the one stored.
+ *
+ * It is an error to provide metadata that doesn't match with the already stored
+ * in the process.
+ *
+ * Precondition: The stream ovni.part must be "thread".
+ * Precondition: The stream version must be ok.
+ */
+int
+loom_load_metadata(struct loom *loom, struct stream *s)
+{
+	JSON_Object *meta = stream_metadata(s);
+
+	if (load_cpus(loom, meta) != 0) {
+		err("cannot load loom cpus");
+		return -1;
+	}
+
+	return 0;
+}
+
 void
 loom_set_gindex(struct loom *loom, int64_t gindex)
 {
@@ -183,6 +261,44 @@ by_phyid(struct cpu *c1, struct cpu *c2)
 		return 0;
 }
 
+int
+loom_set_rank_min(struct loom *loom)
+{
+	if (loom->rank_min != INT_MAX) {
+		err("rank_min already set");
+		return -1;
+	}
+
+	/* Ensure that all processes have a rank */
+	for (struct proc *p = loom->procs; p; p = p->hh.next) {
+		if (p->rank >= 0) {
+			loom->rank_enabled = 1;
+			break;
+		}
+	}
+
+	if (!loom->rank_enabled) {
+		dbg("loom %s has no rank information", loom->name);
+		return 0;
+	}
+
+	/* Ensure that all processes have a rank */
+	for (struct proc *p = loom->procs; p; p = p->hh.next) {
+		if (p->rank < 0) {
+			err("process %s has no rank information", p->id);
+			return -1;
+		}
+
+		/* Compute rank_min for CPU sorting */
+		if (p->rank < loom->rank_min)
+			loom->rank_min = p->rank;
+	}
+
+	dbg("loom %s has rank_min %d", loom->name, loom->rank_min);
+
+	return 0;
+}
+
 void
 loom_sort(struct loom *loom)
 {
@@ -200,22 +316,22 @@ loom_sort(struct loom *loom)
 int
 loom_init_end(struct loom *loom)
 {
-	/* Set rank enabled */
-	for (struct proc *p = loom->procs; p; p = p->hh.next) {
-		if (p->rank >= 0) {
-			loom->rank_enabled = 1;
-			break;
-		}
+	/* rank_min must be set */
+	if (loom->rank_enabled && loom->rank_min == INT_MAX) {
+		err("rank_min not set");
+		return -1;
 	}
 
-	/* Ensure that all processes have a rank */
-	if (loom->rank_enabled) {
-		for (struct proc *p = loom->procs; p; p = p->hh.next) {
-			if (p->rank < 0) {
-				err("process %s has no rank information", p->id);
-				return -1;
-			}
-		}
+	/* It is not valid to define a loom without CPUs */
+	if (loom->ncpus == 0) {
+		err("loom %s has no physical CPUs", loom->name);
+		return -1;
+	}
+
+	/* Or without processes */
+	if (loom->nprocs == 0) {
+		err("loom %s has no processes", loom->name);
+		return -1;
 	}
 
 	/* Populate cpus_array */
@@ -224,6 +340,7 @@ loom_init_end(struct loom *loom)
 		err("calloc failed:");
 		return -1;
 	}
+
 	for (struct cpu *c = loom->cpus; c; c = c->hh.next) {
 		int index = cpu_get_index(c);
 		if (index < 0 || (size_t) index >= loom->ncpus) {
@@ -278,34 +395,6 @@ loom_add_proc(struct loom *loom, struct proc *proc)
 		err("cannot modify procs of loom initialized");
 		return -1;
 	}
-
-	if (!proc->metadata_loaded) {
-		err("process %d hasn't loaded metadata", pid);
-		return -1;
-	}
-
-	if (loom->rank_enabled && proc->rank < 0) {
-		err("missing rank in process %d", pid);
-		return -1;
-	}
-
-	/* Check previous ranks if any */
-	if (!loom->rank_enabled && proc->rank >= 0) {
-		loom->rank_enabled = 1;
-
-		for (struct proc *p = loom->procs; p; p = p->hh.next) {
-			if (p->rank < 0) {
-				err("missing rank in process %d", p->pid);
-				return -1;
-			}
-
-			if (p->rank < loom->rank_min)
-				loom->rank_min = p->rank;
-		}
-	}
-
-	if (loom->rank_enabled && proc->rank < loom->rank_min)
-		loom->rank_min = proc->rank;
 
 	HASH_ADD_INT(loom->procs, pid, proc);
 	loom->nprocs++;

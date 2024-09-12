@@ -11,7 +11,6 @@
 #include "cpu.h"
 #include "emu_args.h"
 #include "loom.h"
-#include "metadata.h"
 #include "proc.h"
 #include "pv/prf.h"
 #include "pv/pvt.h"
@@ -73,30 +72,30 @@ create_proc(struct loom *loom, struct stream *s)
 	}
 
 	struct proc *proc = loom_find_proc(loom, pid);
-
-	if (proc != NULL)
-		return proc;
-
-	proc = malloc(sizeof(struct proc));
-
 	if (proc == NULL) {
-		err("malloc failed:");
-		return NULL;
+		/* Create a new process */
+
+		proc = malloc(sizeof(struct proc));
+
+		if (proc == NULL) {
+			err("malloc failed:");
+			return NULL;
+		}
+
+		if (proc_init_begin(proc, pid) != 0) {
+			err("proc_init_begin failed: %s", s->relpath);
+			return NULL;
+		}
+
+		if (loom_add_proc(loom, proc) != 0) {
+			err("loom_add_proc failed");
+			return NULL;
+		}
 	}
 
-	if (proc_init_begin(proc, pid) != 0) {
-		err("proc_init_begin failed: %s", s->relpath);
-		return NULL;
-	}
-
-	/* Load metadata too */
-	if (metadata_load_proc(s, loom, proc) != 0) {
-		err("cannot load metadata from %s", s->relpath);
-		return NULL;
-	}
-
-	if (loom_add_proc(loom, proc) != 0) {
-		err("loom_add_proc failed");
+	/* The appid is populated from the metadata */
+	if (proc_load_metadata(proc, s) != 0) {
+		err("proc_load_metadata failed");
 		return NULL;
 	}
 
@@ -139,6 +138,11 @@ create_loom(struct system *sys, struct stream *s)
 
 		DL_APPEND(sys->looms, loom);
 		sys->nlooms++;
+	}
+
+	if (loom_load_metadata(loom, s) != 0) {
+		err("loom_load_metadata failed for stream: %s", s->relpath);
+		return NULL;
 	}
 
 	return loom;
@@ -216,9 +220,8 @@ is_thread_stream(struct stream *s)
 		return -1;
 	}
 
-	if (strcmp(part_type, "thread") == 0) {
+	if (strcmp(part_type, "thread") == 0)
 		return 1;
-	}
 
 	return 0;
 }
@@ -235,11 +238,11 @@ create_system(struct system *sys, struct trace *trace)
 
 	size_t i = 0;
 	for (struct stream *s = trace->streams; s ; s = s->next) {
-		int m = is_thread_stream(s);
-		if (m < 0) {
+		int ok = is_thread_stream(s);
+		if (ok < 0) {
 			err("is_thread_stream failed");
 			return -1;
-		} else if (m == 0) {
+		} else if (ok == 0) {
 			warn("ignoring unknown stream %s", s->relpath);
 			continue;
 		}
@@ -250,7 +253,6 @@ create_system(struct system *sys, struct trace *trace)
 			return -1;
 		}
 
-		/* Loads metadata too */
 		struct proc *proc = create_proc(loom, s);
 		if (proc == NULL) {
 			err("create_proc failed");
@@ -270,14 +272,6 @@ create_system(struct system *sys, struct trace *trace)
 		lpt->thread = thread;
 
 		stream_data_set(s, lpt);
-	}
-
-	/* Ensure all looms have at least one CPU */
-	for (struct loom *l = sys->looms; l; l = l->next) {
-		if (l->ncpus == 0) {
-			err("loom %s has no physical CPUs", l->id);
-			return -1;
-		}
 	}
 
 	return 0;
@@ -557,6 +551,12 @@ set_sort_criteria(struct system *sys)
 	int some_have = 0;
 	int all_have = 1;
 	for (struct loom *l = sys->looms; l; l = l->next) {
+		/* Set the rank_min for later sorting */
+		if (loom_set_rank_min(l) != 0) {
+			err("loom_set_rank_min failed");
+			return -1;
+		}
+
 		if (l->rank_enabled)
 			some_have = 1;
 		else

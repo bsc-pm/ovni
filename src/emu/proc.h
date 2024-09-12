@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include "common.h"
 #include "extend.h"
-#include "parson.h"
 #include "uthash.h"
 struct loom;
 struct stream;
@@ -19,12 +18,11 @@ struct proc {
 	char id[PATH_MAX];
 	int is_init;
 
-	int metadata_loaded;
-	int metadata_version;
 	int pid;
 	int index;
 	int appid;
 	int rank;
+	int nranks;
 
 	int nthreads;
 	struct thread *threads;
@@ -53,7 +51,7 @@ USE_RET int proc_get_pid(struct proc *proc);
         void proc_set_gindex(struct proc *proc, int64_t gindex);
         void proc_set_loom(struct proc *proc, struct loom *loom);
         void proc_sort(struct proc *proc);
-USE_RET int proc_load_metadata(struct proc *proc, JSON_Object *meta);
+USE_RET int proc_load_metadata(struct proc *proc, struct stream *s);
 USE_RET struct thread *proc_find_thread(struct proc *proc, int tid);
 USE_RET int proc_add_thread(struct proc *proc, struct thread *thread);
         void proc_sort(struct proc *proc);

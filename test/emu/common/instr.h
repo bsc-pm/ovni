@@ -102,11 +102,10 @@ instr_start(int rank, int nranks)
 
 	ovni_version_check();
 	ovni_proc_init(1, rankname, getpid());
+	ovni_thread_init(get_tid());
 
 	if (nranks > 0)
 		ovni_proc_set_rank(rank, nranks);
-
-	ovni_thread_init(get_tid());
 
 	/* All ranks inform CPUs */
 	for (int i = 0; i < nranks; i++)

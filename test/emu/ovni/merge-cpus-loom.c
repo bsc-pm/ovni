@@ -19,8 +19,8 @@ start(int rank, int nranks)
 
 	/* Only one loom */
 	ovni_proc_init(1, hostname, getpid());
-	ovni_proc_set_rank(rank, nranks);
 	ovni_thread_init(get_tid());
+	ovni_proc_set_rank(rank, nranks);
 
 	/* Only emit a subset of CPUs up to the rank number */
 	for (int i = 0; i <= rank; i++)

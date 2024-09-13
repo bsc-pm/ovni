@@ -22,7 +22,7 @@ If the model is not enabled, no other function will be called.
 
 The create function is called for each enabled model to allow them to allocate
 all the required structures to perform the emulation using the
-[extend](../extend) mechanism. All the required channels must be created and
+[extend](extend.md) mechanism. All the required channels must be created and
 registered in the patch bay in this function, so other models can found them in
 the next stage.
 

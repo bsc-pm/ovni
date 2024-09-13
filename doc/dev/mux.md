@@ -1,6 +1,6 @@
 # Mux
 
-The emulator provides a mechanism to interconnect [channels](../channels) in a
+The emulator provides a mechanism to interconnect [channels](channels.md) in a
 similar way as an [analog
 multiplexer](https://en.wikipedia.org/wiki/Multiplexer) by using the `mux`
 module.
@@ -19,7 +19,7 @@ selected. This allows a multiplexer to act as a filter too.
 
 The typical use of multiplexers is to implement the tracking modes of channels.
 As an example, the following diagram shows two multiplexers used to implement
-the subsystem view of [Nanos6](../nanos6):
+the subsystem view of [Nanos6](../user/emulation/nanos6.md):
 
 ![Mux example](fig/mux.svg)
 
@@ -51,5 +51,5 @@ Multiplexers allow models to interact with each other in a controlled way. In
 the example, the blue channel (*nanos6.thread0.subsystem*) is directly modified by
 the Nanos6 model when a new event is received. While the red channels are
 controlled by the ovni model.  The rest of the channels are automatically updated
-in the propagation phase of the [bay](../patchbay) allowing the ovni model to
+in the propagation phase of the [bay](patchbay.md) allowing the ovni model to
 modify the Nanos6 Paraver view of the subsystems.

@@ -47,7 +47,7 @@ the following elements:
 
 - A single byte model identification (for example `O`).
 - A set of runtime events with that model identification (see the [list
-  of events](events)).
+  of events](events.md)).
 - Rules that determine which sequences of events are valid.
 - The emulation hooks that process each event and modify the state of
   the emulator.

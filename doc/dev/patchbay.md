@@ -1,6 +1,6 @@
 # Patch bay
 
-The patch bay (or simply bay) allows [channels](../channels/) to be registered
+The patch bay (or simply bay) allows [channels](channels.md) to be registered
 with their name so they are visible to all parts of the emulator and provides a
 way to run callbacks when the channels update their values.
 

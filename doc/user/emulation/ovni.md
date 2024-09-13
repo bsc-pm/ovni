@@ -60,4 +60,4 @@ will set all the channels to an error state.
 The emulator automatically switches the channels from one thread to
 another when a thread is switched from the CPU. So the different models
 don't need to worry about thread transitions. See the
-[channels](../channels) section for more information.
+[channels](../../dev/channels.md) section for more information.

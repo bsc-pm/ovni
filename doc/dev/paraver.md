@@ -16,7 +16,7 @@ A channel can be connected to each row in a trace with `prv_register()`, so the
 new values of the channel get written in the trace. Only null and int64 data
 values are supported for now.
 
-The emission phase is controlled by the [patch bay](../patchbay) and runs all
+The emission phase is controlled by the [patch bay](patchbay.md) and runs all
 the emit callbacks at once for all dirty channels.
 
 ## Duplicate values

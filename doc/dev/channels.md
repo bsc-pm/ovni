@@ -65,5 +65,5 @@ to write the duplicated value with no error.
 A unique function can be set to each channel which will be called once a channel
 becomes dirty with `chan_set_dirty_cb()`. This callback will be called before
 `chan_set()`, `chan_push()` or `chan_pop()` returns. The [patch
-bay](../patchbay) uses this callback to detect when a channel is modified an run
+bay](patchbay.md) uses this callback to detect when a channel is modified an run
 other callbacks.

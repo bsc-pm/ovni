@@ -24,7 +24,7 @@ trace is correct.
 
 You can use `ovni_ev_emit()` to record a new event. If you need more
 than 16 bytes of payload, use `ovni_ev_jumbo_emit()`. See the [trace
-specification](../trace_spec) for more details.
+specification](trace_spec.md) for more details.
 
 Compile and link with libovni. When you run your program, a new
 directory ovni will be created in the current directory `$PWD/ovni`

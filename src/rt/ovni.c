@@ -54,6 +54,10 @@ struct ovni_rthread {
 
 	struct ovni_rcpu *cpus;
 
+	int rank_set;
+	int rank;
+	int nranks;
+
 	/* Where the stream dir is finally copied */
 	char thdir_final[PATH_MAX];
 	char thdir[PATH_MAX];
@@ -78,9 +82,6 @@ struct ovni_rproc {
 	int pid;
 	char loom[OVNI_MAX_HOSTNAME];
 	clockid_t clockid;
-	int rank_set;
-	int rank;
-	int nranks;
 
 	atomic_int st;
 
@@ -201,9 +202,12 @@ ovni_proc_set_rank(int rank, int nranks)
 	if (rproc.st != ST_READY)
 		die("process not ready");
 
-	rproc.rank_set = 1;
-	rproc.rank = rank;
-	rproc.nranks = nranks;
+	if (!rthread.ready)
+		die("thread not yet initialized");
+
+	rthread.rank_set = 1;
+	rthread.rank = rank;
+	rthread.nranks = nranks;
 }
 
 /* Create $tracedir/loom.$loom/proc.$pid and return it in path. */
@@ -557,10 +561,10 @@ ovni_thread_init(pid_t tid)
 static void
 set_thread_rank(JSON_Object *meta)
 {
-	if (json_object_dotset_number(meta, "ovni.rank", rproc.rank) != 0)
+	if (json_object_dotset_number(meta, "ovni.rank", rthread.rank) != 0)
 		die("json_object_set_number for rank failed");
 
-	if (json_object_dotset_number(meta, "ovni.nranks", rproc.nranks) != 0)
+	if (json_object_dotset_number(meta, "ovni.nranks", rthread.nranks) != 0)
 		die("json_object_set_number for nranks failed");
 }
 
@@ -612,7 +616,7 @@ ovni_thread_free(void)
 	if (meta == NULL)
 		die("json_value_get_object failed");
 
-	if (rproc.rank_set)
+	if (rthread.rank_set)
 		set_thread_rank(meta);
 
 	/* It can happen there are no CPUs defined if there is another

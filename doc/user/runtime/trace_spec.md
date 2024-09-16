@@ -1,127 +1,149 @@
-# Trace specification
+# Trace specification v3
 
 !!! Important
 
 	This document refers to the trace specification for
-	the version 2
+	the version 3
 
-The ovni instrumentation library stores the information collected in a
-trace following the specification of this document.
+The ovni instrumentation library libovni stores the information
+collected in a runtime trace following the specification of this document.
+
+## Structure
+
+An ovni runtime trace (or simply, a trace) is composed of one or more
+[streams](../concepts/trace-model.md#stream), which are directories containing
+two mandatory files:
+
+- `stream.json` the stream metadata in JSON format.
+- `stream.obs` the binary stream with events.
+
+Each stream is assigned to a single *part* in the [part
+model](../concepts/part-model.md), usually assigned to a given thread.
+
+There are no imposed rules on how to organize the several streams into
+directories, but libovni uses the following approach for thread streams:
 
 The complete trace is stored in a top-level directory named `ovni`.
-Inside this directory you will find the loom directories with the prefix
-`loom.`. The name of the loom is built from the `loom` parameter of
-`ovni_proc_init()`, prefixing it with `loom.`.
+Inside this directory you will find the loom directories. The name of
+the loom directory is built from the `loom` parameter of `ovni_proc_init()`,
+prefixing it with `loom.`.
 
 Each loom directory contains one directory per process of that loom. The
 name is composed of the `proc.` prefix and the PID of the process
 specified in the `pid` argument to `ovni_proc_init()`.
 
-Each process directory contains:
+Inside each process there is one directory for each thread, composed by
+the `thread.` prefix and the TID, which are the streams. The files
+`stream.json` and `stream.obs` reside inside. Example:
 
-- The process metadata file `metadata.json`.
-- The thread streams, composed of:
-    - The binary stream like `thread.123.obs`
-    - The thread metadata like `thread.123.json`
+```
+ovni/loom.mio.nosv-u1000/proc.89719/thread.89719/stream.json
+ovni/loom.mio.nosv-u1000/proc.89719/thread.89719/stream.obs
+```
 
-## Process metadata
+This structure prevents collisions among threads with the same TID among nodes,
+while allowing dumping events from a single thread, process or loom with
+ovnidump.
 
-!!! Important
+## Stream metadata
 
-	Process metadata has version 2
+The `stream.json` metadata file contains information about the part that
+the stream is assigned to. This is generally used to determine the
+hierarchy of the part model.
 
-The process metadata file contains important information about the trace
-that is invariant during the complete execution, and generally is
-required to be available prior to processing the events in the trace.
-
-The metadata is stored in the JSON file `metadata.json` inside each
-process directory and contains the following keys:
+The JSON must be an object (dictionary) with the following mandatory
+keys:
 
 - `version`: a number specifying the version of the metadata format.
-  Must have the value 2 for this version.
-- `app_id`: the application ID, used to distinguish between applications
-  running on the same loom.
-- `rank`: the rank of the MPI process (optional).
-- `nranks`: number of total MPI processes (optional).
-- `cpus`: the array of $`N_c`$ CPUs available in the loom. Only one
-  process in the loom must contain this mandatory key. Each element is a
-  dictionary with the keys:
-  - `index`: containing the logical CPU index from 0 to $`N_c - 1`$.
-  - `phyid`: the number of the CPU as given by the operating system
-    (which can exceed $`N_c`$).
+  Must have the value 3 for this version.
 
-Here is an example of the `metadata.json` file:
+The rest of information is stored for each model.
 
-```
-{
-    "version": 2,
-    "app_id": 1,
-    "rank": 0,
-    "nranks": 4,
-    "cpus": [
-        {
-            "index": 0,
-            "phyid": 0
-        },
-        {
-            "index": 1,
-            "phyid": 1
-        },
-        {
-            "index": 2,
-            "phyid": 2
-        },
-        {
-            "index": 3,
-            "phyid": 3
-        }
-    ]
-}
-```
+In particular, the `ovni` model enforces the use of:
 
-## Thread metadata
+- `ovni.part`: the type of part this stream is assigned to, usually
+  `thread`.
+- `ovni.require`: a dictionary of model name and version which will
+  determine which models are enabled at emulation and the required
+  version.
+- `ovni.finished`: must be 1 to ensure the stream is complete (mandatory
+  in all streams).
 
-!!! Important
+### Thread stream metadata
 
-	Thread metadata has version 2
+For `thread` streams, the following attributes are used.
 
-The thread metadata stores constant information per thread, like the
-process metadata. The information is stored in a dictionary, where the
-name of the emulation models are used as keys. In particular, the
-libovni library writes information in the "ovni" key, such as the
-model requirements, and other information like the version of libovni
-used. Example:
+- `ovni.tid`: the TID of the thread (mandatory, per-thread).
+- `ovni.pid`: the PID of the process that the thread belongs to (mandatory, per-thread).
+- `ovni.app_id`: the application ID of the process (optional, per-process).
+- `ovni.rank`: the rank of the MPI process (optional, per-process).
+- `ovni.nranks`: number of total MPI processes (optional, per-process).
+- `ovni.loom`: the name of the loom that the process belongs to (mandatory, per-process).
+- `ovni.loom_cpus`: the array of N CPUs available in the loom
+  (mandatory, per-loom). Each element is a dictionary with the keys:
+    - `index`: containing the logical CPU index from 0 to N - 1.
+    - `phyid`: the number of the CPU as given by the operating system
+      (which can exceed N).
+
+Notice that some attributes don't need to be present in all thread
+streams. For example, per-process requires that at least one thread
+contains the attribute for each process. Similarly, per-loom requires
+that at least one thread of the loom emits the attribute.
+
+The final attribute value will be computed by merging all the values from the
+children metadata. Simple values like numbers or strings must match exactly if
+they appear duplicated, arrays are appended.
+
+Other attributes can be used for other models.
+
+Here is an example of the `stream.json` file for a thread of a nOS-V
+program:
 
 ```json
 {
-    "version": 2,
+    "version": 3,
     "ovni": {
         "lib": {
-            "version": "1.4.0",
-            "commit": "unknown"
+            "version": "1.10.0",
+            "commit": "dirty"
         },
+        "part": "thread",
+        "tid": 89719,
+        "pid": 89719,
+        "loom": "mio.nosv-u1000",
+        "app_id": 1,
         "require": {
-            "ovni": "1.0.0"
-        }
+            "ovni": "1.1.0",
+            "nosv": "2.3.0"
+        },
+        "loom_cpus": [
+            { "index": 0, "phyid": 0 },
+            { "index": 1, "phyid": 1 },
+            { "index": 2, "phyid": 2 },
+            { "index": 3, "phyid": 3 }
+        ],
+        "finished": 1
+    },
+    "nosv": {
+        "can_breakdown": false,
+        "lib_version": "2.3.1"
     }
 }
 ```
 
-The metadata is written to disk when the thread is first initialized
-and when the thread finishes.
-
-## Thread binary streams
+## Binary stream
 
 !!! Important
 
-	Thread binary stream has version 1
+	Binary streams have version 1
 
-Streams are a binary files that contains a succession of events with
-monotonically increasing clock values. Streams have a small header and
-the variable size events just after the header.
+A binary stream is a binary file named `stream.obs` that contains a
+succession of events with monotonically increasing clock values. They
+have a small header and the variable size events just after the header.
 
 The header contains the magic 4 bytes of "ovni" and a version number of
-4 bytes too. Here is a figure of the data stored in disk:
+4 bytes too. Here is a figure of the data stored in disk on a little
+endian machine:
 
 ![Stream](fig/stream.svg)
 
@@ -145,7 +167,7 @@ payload:
 - Normal events: with a payload up to 16 bytes
 - Jumbo events: with a payload up to $`2^{32}`$ bytes
 
-## Normal events
+### Normal events
 
 The normal events are composed of:
 
@@ -178,7 +200,7 @@ In the following figure you can see each field annotated:
 
 ![Normal event with payload content](fig/event-normal-payload.svg)
 
-## Jumbo events
+### Jumbo events
 
 The jumbo events are just like normal events but they can hold large
 data. The size of the jumbo data is stored as a 32 bits integer as a
@@ -203,10 +225,10 @@ In the following figure you can see each field annotated:
 
 ![Jumbo event](fig/event-jumbo.svg)
 
-## Design considerations
+### Design considerations
 
-The stream format has been designed to be very simple, so writing a
-parser library would take no more than 2 days for a single developer.
+The binary stream format has been designed to be very simple, so writing
+a parser library would take no more than 2 days for a single developer.
 
 The size of the events has been designed to be small, with 12 bytes per
 event when no payload is used.
@@ -239,11 +261,7 @@ raw stream in binary, as the MCV codes can be read as ASCII characters:
 This allows a human to detect signs of corruption by visually inspecting
 the streams.
 
-## Limitations
+### Limitations
 
 The streams are designed to be read only forward, as they only contain
 the size of each event in the header.
-
-Currently, we only support using the threads as sources of events, using
-one stream per thread. However, adding support for more streams from
-multiple sources is planned for the future.

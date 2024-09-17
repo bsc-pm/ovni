@@ -4,7 +4,7 @@ Ovni has a model to represent the hardware components as well as the software
 concepts like threads or processes. Each concept is considered to be a *part*.
 Here is an example diagram depicting the part hierarchy:
 
-![lalala](part-model.svg "foo bar")
+![Part model](part-model.svg)
 
 Notice how a loom can restrict the CPUs of the node to its child processes.
 

@@ -29,7 +29,6 @@ nav:
       - user/concepts/trace-model.md
     - 'Runtime':
       - user/runtime/index.md
-      - user/runtime/tracing.md
       - user/runtime/mark.md
       - user/runtime/distributed.md
       - user/runtime/kernel.md

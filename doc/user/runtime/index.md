@@ -15,14 +15,12 @@ To initialize libovni follow these steps in all threads:
    ovni function. It can be called multiple times from any thread, but only one
    is required.
 
-2. **Init the process**. Call `ovni_proc_init()` to initialize the process when
-   a new process begins the execution. It can only be called **once per
-   process** and it must be called before the thread is initialized.
+2. **Init the process**. Call `ovni_proc_init()` to initialize the process. It
+   can only be called **once per process** and it must be called before the
+   thread is initialized.
 
-3. **Init the thread**. Call `ovni_thread_init()` when a new thread begins the
-   execution (including the main process thread after the process is
-   initialized). Multiple attempts to initialize the thread are ignored with a
-   warning.
+3. **Init the thread**. Call `ovni_thread_init()` to initialize the thread.
+   Multiple attempts to initialize the same thread are ignored with a warning.
 
 The `ovni_proc_init()` arguments are as follows:
 
@@ -32,8 +30,8 @@ void ovni_proc_init(int app, const char *loom, int pid);
 
 The `app` defines the "appid" of the program, which must be a number >0. This is
 useful to run multiple processes some of which run the same "app", so you can
-tell which one is which. The `loom` defines the
-[loom](../concepts/part-model.md#loom) name and assignes the process to that
+tell which one is which. The `loom` argument defines the
+[loom](../concepts/part-model.md#loom) name and maps the process to that
 loom. It must be compose of the host name, a dot and a suffix. The PID is the
 one obtained by `getpid(2)`.
 
@@ -59,8 +57,8 @@ the thread stream.
 ## Start the execution
 
 The current thread must switch to the "Running" state before any event can be
-processed by the emulator. Do so by emitting a `OHx` event in the stream with
-the appropriate payload:
+processed by the emulator. Do so by emitting a [`OHx`
+event](../emulation/events.md#OHx) in the stream with the appropriate payload:
 
 ```c
 static void thread_execute(int32_t cpu, int32_t ctid, uint64_t tag)

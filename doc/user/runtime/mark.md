@@ -1,4 +1,4 @@
-# Mark API
+# Mark events
 
 The mark API allows you to add arbitrary events in a trace to mark regions of
 interest while debugging or developing a new program or library. The events are
@@ -79,6 +79,68 @@ void ovni_mark_pop(int32_t type, int64_t value);
 ```
 
 The value in the pop call must match the previous pushed value.
+
+<details>
+<summary>Example OmpSs-2 program</summary>
+<br>
+<div style="padding-left: 1em; border-left: 3px solid #ddd">
+<p>
+Here is a dummy program showing how to use the mark API with an OmpSs-2 program.
+Notice that there is no initialization of the current thread or process, as it
+already occurs inside the OmpSs-2 runtime before reaching the main.
+
+```c
+/* Build with:
+ *     $ clang -fompss-2 -lovni dummy.c -o dummy
+ * Enable instrumentation in nanos6:
+ *     $ echo 'version.instrument = "ovni"' > nanos6.toml
+ * Run:
+ *     $ ./dummy
+ * Emulate:
+ *     $ ovniemu ovni
+ * View timeline:
+ *     $ wxparaver ovni/cpu.prv ovni/cfg/cpu/ovni/mark.cfg
+ */
+#include <ovni.h>
+#include <unistd.h>
+
+enum { INDEX = 0, RUN = 1 };
+
+static void process(int run, int i)
+{
+    ovni_mark_push(RUN, run + 1);
+    ovni_mark_push(INDEX, i + 1);
+    usleep(10000); // Dummy operation for 10 ms
+    ovni_mark_pop(INDEX, i + 1);
+    ovni_mark_pop(RUN, run + 1);
+}
+
+int main(void)
+{
+    ovni_mark_type(INDEX, OVNI_MARK_STACK, "Index");
+    ovni_mark_type(RUN, OVNI_MARK_STACK, "Run");
+
+    for (int run = 0; run < 10; run++) {
+        for (int i = 0; i < 50; i++) {
+            #pragma oss task
+            process(run, i);
+        }
+    }
+
+    #pragma oss taskwait
+
+    return 0;
+}
+```
+
+<!-- Images don't seem to work via markdown -->
+<p>Here is the resulting timeline loaded in Paraver with the gradient color
+configuration, showing the first mark type (the index):
+<img style="margin-top: 1em" alt="" src="../fig/mark.png"></p>
+
+</div>
+</details>
+<p></p>
 
 ## Usage in Paraver
 

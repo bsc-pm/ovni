@@ -26,7 +26,7 @@ nav:
     - user/installation.md
     - 'Concepts':
       - user/concepts/part-model.md
-      - user/concepts/trace-model.md
+      - user/concepts/trace.md
     - 'Runtime':
       - user/runtime/index.md
       - user/runtime/env.md

@@ -11,7 +11,7 @@ collected in a runtime trace following the specification of this document.
 ## Structure
 
 An ovni runtime trace (or simply, a trace) is composed of one or more
-[streams](../concepts/trace-model.md#stream), which are directories containing
+[streams](../concepts/trace.md#stream), which are directories containing
 two mandatory files:
 
 - `stream.json` the stream metadata in JSON format.

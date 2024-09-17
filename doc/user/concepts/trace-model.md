@@ -1,6 +1,7 @@
-# Trace model
+# Trace concepts
 
-An event model is composed by a group of runtime events 
+When using libovni to generate traces or the emulator to process them, there are
+several concepts to keep in mind.
 
 ## Trace
 
@@ -9,14 +10,34 @@ known as a trace. A runtime trace stores the information as-is in disk from a
 program execution. While a emulation trace is generated from the runtime trace
 for visualization with Paraver.
 
-All the information is always stored inside the same directory, by default
-`ovni/`, which is known as the trace directory.
+Both runtime and emulation traces are always stored inside the same directory,
+by default `ovni/`, which is known as the *trace directory*.
 
 ## Event
 
 An event is a point in time that has some information associated. Events written
 at runtime by libovni have at MCV, a clock and a optional payload. The list of
 all events recognized by the emulator can be found [here](../emulation/events.md).
+
+Events can be displayed by ovnidump, which shows an explanation of what the
+event means:
+
+```txt
+$ ovnidump ovni/loom.hop.nosv-u1000/proc.1121064 | grep -A 10 VTx | head
+517267929632815  VTx  thread.1121064  executes the task 1 with bodyid 0
+517267930261672  VYc  thread.1121064  creates task type 2 with label "task"
+517267930875858  VTC  thread.1121064  creates parallel task 2 with type 2
+517267930877789  VU[  thread.1121064  starts submitting a task
+517267930877990  VU]  thread.1121064  stops  submitting a task
+517267930878098  VTC  thread.1121064  creates parallel task 3 with type 2
+517267930878196  VU[  thread.1121064  starts submitting a task
+517267930878349  VU]  thread.1121064  stops  submitting a task
+517267930878432  VTC  thread.1121064  creates parallel task 4 with type 2
+517267930878494  VU[  thread.1121064  starts submitting a task
+```
+
+There are two types or events: normal and jumbo events, the latter can hold
+large attached payloads.
 
 ## State
 
@@ -26,10 +47,24 @@ then written to the Paraver traces. An example is the thread state, which can
 change over time based on the events `OH*` that indicate a state transition
 of the current thread.
 
+In contrast with an event, states have a duration associated which can usually
+be observed in Paraver.
+
 ## MCV
 
-The MCV acronym is short of Model-Class-Value, which is a three character (byte)
-identification for events.
+The MCV acronym is the abbreviation of Model-Class-Value, which are a three
+characters that identify any event. The MCV is shown in the ovnitop and ovnidump
+tools and allows easy filtering with grep, for a single or related events:
+
+```
+$ ovnitop ovni | grep VT
+VTe      20002
+VTx      20002
+VTC        200
+VTc          2
+VTp          1
+VTr          1
+```
 
 ## Clock
 
@@ -53,6 +88,14 @@ An event model is composed of several components:
 ## Payload
 
 Events may have associated additional information which is stored in the stream.
+Normal events can hold up to 16 bytes, otherwise the jumbo events must be used
+to hold additional payload.
+
+## Stream
+
+A stream is a directory which contains a binary stream and the associated stream
+metadata file. Each stream is associated with a given part of a system. As of
+now, libovni can only generate streams associated to [threads](part-model.md#thread).
 
 ## Binary stream
 
@@ -63,10 +106,4 @@ Notice that each event may have different length.
 ## Stream metadata
 
 The stream metadata is a JSON file named `stream.json` which holds information
-about the stream.
-
-## Stream
-
-A stream is a directory which contains a binary stream and the associated stream
-metadata file. Each stream is associated with a given part of a system. As of
-now, libovni can only generate streams associated to [threads](part-model.md#thread).
+about the stream itself.

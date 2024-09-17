@@ -105,6 +105,10 @@ trace_load(struct trace *trace, const char *tracedir)
 		return -1;
 	}
 
+	/* Remove trailing slashes from tracedir */
+	path_remove_trailing(trace->tracedir);
+	tracedir = trace->tracedir;
+
 	/* Try to open the directory to catch permission errors */
 	DIR *dir = opendir(tracedir);
 	if (dir == NULL) {

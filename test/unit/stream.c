@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdio.h>
@@ -12,9 +12,26 @@
 #include "unittest.h"
 
 static void
+write_dummy_json(const char *path)
+{
+	const char *json = "{ \"version\" : 3 }";
+	FILE *f = fopen(path, "w");
+
+	if (f == NULL)
+		die("fopen json failed:");
+
+	if (fwrite(json, strlen(json), 1, f) != 1)
+		die("fwrite json failed:");
+
+	fclose(f);
+}
+
+static void
 test_ok(void)
 {
-	const char *fname = "stream-ok.obs";
+	OK(mkdir("ok", 0755));
+
+	const char *fname = "ok/stream.obs";
 	FILE *f = fopen(fname, "w");
 
 	if (f == NULL)
@@ -30,8 +47,10 @@ test_ok(void)
 
 	fclose(f);
 
+	write_dummy_json("ok/stream.json");
+
 	struct stream stream;
-	OK(stream_load(&stream, ".", fname));
+	OK(stream_load(&stream, ".", "ok"));
 
 	if (stream.active)
 		die("stream is active");
@@ -42,7 +61,9 @@ test_ok(void)
 static void
 test_bad(void)
 {
-	const char *fname = "stream-bad.obs";
+	OK(mkdir("bad", 0755));
+
+	const char *fname = "bad/stream.obs";
 	FILE *f = fopen(fname, "w");
 
 	if (f == NULL)
@@ -58,8 +79,10 @@ test_bad(void)
 
 	fclose(f);
 
+	write_dummy_json("bad/stream.json");
+
 	struct stream stream;
-	ERR(stream_load(&stream, ".", fname));
+	ERR(stream_load(&stream, ".", "bad"));
 
 	err("OK");
 }

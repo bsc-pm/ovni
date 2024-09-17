@@ -15,7 +15,7 @@ unit_test(cpu.c)
 unit_test(loom.c)
 unit_test(mux.c)
 unit_test(prv.c)
-#unit_test(stream.c) #FIXME
+unit_test(stream.c)
 unit_test(task.c)
 unit_test(value.c)
 unit_test(version.c)

@@ -180,7 +180,7 @@ ovni_add_cpu(int index, int phyid)
 	if (phyid < 0)
 		die("cannot use negative CPU id %d", phyid);
 
-	if (rproc.st != ST_READY)
+	if (atomic_load(&rproc.st) != ST_READY)
 		die("process not ready");
 
 	if (!rthread.ready)
@@ -199,7 +199,7 @@ ovni_add_cpu(int index, int phyid)
 void
 ovni_proc_set_rank(int rank, int nranks)
 {
-	if (rproc.st != ST_READY)
+	if (atomic_load(&rproc.st) != ST_READY)
 		die("process not ready");
 
 	if (!rthread.ready)
@@ -273,7 +273,7 @@ ovni_proc_init(int app, const char *loom, int pid)
 
 	create_proc_dir(loom, pid);
 
-	rproc.st = ST_READY;
+	atomic_store(&rproc.st, ST_READY);
 }
 
 static int
@@ -535,7 +535,7 @@ ovni_thread_init(pid_t tid)
 	if (tid == 0)
 		die("cannot use tid=%d", tid);
 
-	if (rproc.st != ST_READY)
+	if (atomic_load(&rproc.st) != ST_READY)
 		die("process not ready");
 
 	memset(&rthread, 0, sizeof(rthread));
@@ -770,7 +770,7 @@ ovni_flush(void)
 	if (!rthread.ready)
 		die("thread is not initialized");
 
-	if (rproc.st != ST_READY)
+	if (atomic_load(&rproc.st) != ST_READY)
 		die("process not ready");
 
 	ovni_ev_set_clock(&pre, ovni_clock_now());

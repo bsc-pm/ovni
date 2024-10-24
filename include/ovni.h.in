@@ -91,6 +91,8 @@ void ovni_version_get(const char **version, const char **commit);
 
 void ovni_proc_init(int app, const char *loom, int pid);
 
+int ovni_proc_isready(void);
+
 /* Sets the MPI rank of the current process and the number of total nranks */
 void ovni_proc_set_rank(int rank, int nranks);
 

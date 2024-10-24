@@ -315,6 +315,12 @@ ovni_proc_init(int app, const char *loom, int pid)
 	proc_set_app(app);
 }
 
+int
+ovni_proc_isready(void)
+{
+	return rproc.ready;
+}
+
 static int
 move_thread_to_final(const char *src, const char *dst)
 {

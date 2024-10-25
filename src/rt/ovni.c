@@ -279,7 +279,6 @@ ovni_proc_init(int app, const char *loom, int pid)
 static int
 move_thread_to_final(const char *src, const char *dst)
 {
-	info("moving src=%s to dst=%s", src, dst);
 	char buffer[1024];
 
 	FILE *infile = fopen(src, "r");

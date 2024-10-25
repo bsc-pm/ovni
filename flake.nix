@@ -15,30 +15,29 @@
       nosv = prev.nosv.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "3286ff5a788a989407519dd1dfe57c1750258d3f";
+        gitCommit = "c0564578b77bf4816eca1cdac07ea970584cfeed";
       };
       nanos6 = prev.nanos6.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "21fccec383a4136daf5919093a6ffcdc8c139bfe";
+        gitCommit = "f39ea57c67a613d098050e2bb251116a021e91e5";
       };
       nodes = prev.nodes.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "70ce0ed0a20842d8eb3124aa5db5916fb6fc238f";
+        gitCommit = "c97d7ca6f885500121a94c75df429c788e8d6cf8";
       };
       clangOmpss2Unwrapped = prev.clangOmpss2Unwrapped.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "b813108e2810c235480688ed7d1b0f1faf76e804";
+        gitCommit = "246e2df2eb10f52e48a57c8165074daecdb623f2";
       };
 
       # Use a fixed commit for libovni
       ovniFixed = prev.ovni.override {
         useGit = true;
         gitBranch = "master";
-        # Includes ovni_attr_* API
-        gitCommit = "d1e8a62396ae92934c0b6e248d5f6ff921bef56f";
+        gitCommit = "3bbfe0f0ecdf58e3f46ebafdf2540680f990b76b";
       };
       # Build with the current source
       ovniLocal = prev.ovni.overrideAttrs (old: rec {

@@ -97,6 +97,11 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 		int index = (int) json_object_get_number(jcpu, "index");
 		int phyid = (int) json_object_get_number(jcpu, "phyid");
 
+		if (index < 0 || index >= (int) ncpus) {
+			err("cpu index %d out of bounds", index);
+			return -1;
+		}
+
 		struct cpu *cpu = loom_find_cpu(loom, phyid);
 
 		if (cpu) {
@@ -108,6 +113,14 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 
 			/* Duplicated, ignore */
 			continue;
+		}
+
+		/* If we reach this point, there shouldn't be a CPU with the
+		 * same index either, as otherwise the phyid should have matched
+		 * before. So it is an error. */
+		if (loom_get_cpu(loom, index) != NULL) {
+			err("cpu index %d redefined with another phyid", index);
+			return -1;
 		}
 
 		cpu = calloc(1, sizeof(struct cpu));

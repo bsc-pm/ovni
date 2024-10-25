@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Introduce part model.
+
 ### Changed
 
 - Enable -Wconversion and -Wsign-conversion.
+- Update trace format to version 3.
+- The ovni.require metadata key is now mandatory.
+- Store process metadata in thread metadata.
 
 ### Fixed
 

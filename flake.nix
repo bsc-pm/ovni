@@ -32,6 +32,10 @@
         gitBranch = "master";
         gitCommit = "246e2df2eb10f52e48a57c8165074daecdb623f2";
       };
+      openmp = prev.openmp.overrideAttrs (old: {
+        # Newer version of LLVM OpenMP requires python3
+        nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ final.python3 ];
+      });
 
       # Use a fixed commit for libovni
       ovniFixed = prev.ovni.override {

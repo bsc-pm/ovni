@@ -9,7 +9,7 @@ the same node use the same environment variables.
 During the execution of your program, a per-thread buffer is kept where the new
 events are being recorded. When this buffer is full, it is written to disk and
 emptied, an operation known as flush. This may take a while depending on the
-underliying filesystem.
+underlying filesystem.
 
 Keep in mind that the thread will be blocked until the flush ends, so if your
 filesystem is slow it would interrupt the execution of your program for a long

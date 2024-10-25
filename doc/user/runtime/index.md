@@ -1,11 +1,11 @@
 # Introduction
 
-To use *libovni* to instrument a program, follow the next instructions
-carefully, or you may end up with an incomplete trace that is rejected at
+To use *libovni* to instrument a program follow the next instructions
+carefully or you may end up with an incomplete trace that is rejected at
 emulation.
 
 You can also generate a valid trace from your own software or hardware
-directly, but be sure to follow the [trace specification](trace_spec.md).
+directly following the [trace specification](trace_spec.md).
 
 ## Initialization
 
@@ -21,6 +21,7 @@ To initialize libovni follow these steps in all threads:
 
 3. **Init the thread**. Call `ovni_thread_init()` to initialize the thread.
    Multiple attempts to initialize the same thread are ignored with a warning.
+   Must be called by all threads.
 
 The `ovni_proc_init()` arguments are as follows:
 
@@ -32,7 +33,7 @@ The `app` defines the "appid" of the program, which must be a number >0. This is
 useful to run multiple processes some of which run the same "app", so you can
 tell which one is which. The `loom` argument defines the
 [loom](../concepts/part-model.md#loom) name and maps the process to that
-loom. It must be compose of the host name, a dot and a suffix. The PID is the
+loom. It must be composed of the host name, a dot and a suffix. The PID is the
 one obtained by `getpid(2)`.
 
 The `ovni_thread_init()` function only accepts one argument, the TID as returned
@@ -45,7 +46,8 @@ the thread stream.
 
 1. **Require models**. Call `ovni_thread_require()` with the required model
    version before emitting events for a given model. Only required once from a
-   thread in a given trace.
+   thread in a given trace. The `ovni` model is implicitly required when calling
+   `ovni_thread_init()`, so there is no need to add it again.
 
 2. **Emit loom CPUs**. Call `ovni_add_cpu()` to register each CPU in the loom. It can
    be done from a single thread or multiple threads, in the latter the list of
@@ -53,6 +55,18 @@ the thread stream.
 
 3. **Set the rank**. If you use MPI, call `ovni_proc_set_rank()` to register the
    rank and number of ranks of the current execution. Only once per process.
+
+When emitting the CPUs with:
+
+```c
+void ovni_add_cpu(int index, int phyid);
+```
+
+The `index` will be used to identify the CPU in the loom and goes from 0 to N -
+1, where N is the number of CPUs in the loom. It must match the index that is
+used in affinity events when a thread switches to another CPU. The `phyid` is
+only displayed in Paraver and is usually the same as the index, but it can be
+different if there are multiple looms per node.
 
 ## Start the execution
 
@@ -83,10 +97,10 @@ set to -1.
 
 After this point you can emit any other event from this thread. Use the
 `ovni_ev_*` set of functions to create and emit events. Notice that all events
-are refer to the current thread that emits them.
+refer to the current thread that emits them.
 
 If you need to store metadata information, use the `ovni_attr_*` set of
-functions. The metadata is stored in disk by `ovni_attr_fluch()` and when the
+functions. The metadata is stored in disk by `ovni_attr_flush()` and when the
 thread is freed by `ovni_thread_free()`.
 
 Attempting to emit events or writing metadata without having a thread
@@ -106,4 +120,4 @@ otherwise the trace **will be rejected**.
    to set the process state to finished.
 
 If a thread fails to perform these steps, the complete trace will be rejected by
-the emulator as it cannot guarantee the trace to be consistent.
+the emulator as it cannot guarantee it to be consistent.

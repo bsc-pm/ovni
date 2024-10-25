@@ -35,7 +35,6 @@ main(void)
 	for (int i = 0; i < N; i++)
 		ovni_add_cpu(i, cpus[i]);
 
-	instr_require("ovni");
 	instr_thread_execute(-1, -1, 0);
 
 	instr_end();

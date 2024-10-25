@@ -39,7 +39,6 @@ start_delayed(int rank, int nranks)
 	ovni_proc_init(1, rankname, getpid());
 	ovni_thread_init(get_tid());
 	ovni_proc_set_rank(rank, nranks);
-	instr_require("ovni");
 
 	/* All ranks inform CPUs */
 	for (int i = 0; i < nranks; i++)

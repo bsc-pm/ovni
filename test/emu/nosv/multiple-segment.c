@@ -47,7 +47,6 @@ main(void)
 	int nlooms = nranks / N;
 	int lcpu = rank % N;
 
-	instr_require("ovni");
 	instr_nosv_init();
 	instr_thread_execute(lcpu, -1, 0);
 

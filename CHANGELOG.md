@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Introduce part model.
+- Support for `nosv_cond_wait`, `nosv_cond_signal` and `nosv_cond_broadcast` events VA{oOgGkK}.
 
 ### Changed
 
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update trace format to version 3.
 - The ovni.require metadata key is now mandatory.
 - Store process metadata in thread metadata.
+- nOS-V model version increased to 2.4.0.
 
 ### Fixed
 

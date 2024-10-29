@@ -67,6 +67,12 @@ static const int ss_table[256][256][3] = {
 		['U'] = { CHSS, POP,  ST_API_MUTEX_UNLOCK },
 		['b'] = { CHSS, PUSH, ST_API_BARRIER_WAIT },
 		['B'] = { CHSS, POP,  ST_API_BARRIER_WAIT },
+		['o'] = { CHSS, PUSH, ST_API_COND_WAIT },
+		['O'] = { CHSS, POP,  ST_API_COND_WAIT },
+		['g'] = { CHSS, PUSH, ST_API_COND_SIGNAL },
+		['G'] = { CHSS, POP,  ST_API_COND_SIGNAL },
+		['k'] = { CHSS, PUSH, ST_API_COND_BCAST },
+		['K'] = { CHSS, POP,  ST_API_COND_BCAST },
 	},
 	/* FIXME: Move thread type to another channel, like nanos6 */
 	['H'] = {

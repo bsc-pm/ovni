@@ -621,7 +621,7 @@ List of events for the model *tampi* with identifier **`T`** at version `1.0.0`:
 
 ## Model nosv
 
-List of events for the model *nosv* with identifier **`V`** at version `2.3.0`:
+List of events for the model *nosv* with identifier **`V`** at version `2.4.0`:
 <dl>
 <dt><a id="VTc" href="#VTc"><pre>VTc(u32 taskid, u32 typeid)</pre></a></dt>
 <dd>creates task %{taskid} with type %{typeid}</dd>
@@ -715,6 +715,18 @@ List of events for the model *nosv* with identifier **`V`** at version `2.3.0`:
 <dd>enters nosv_barrier_wait()</dd>
 <dt><a id="VAB" href="#VAB"><pre>VAB</pre></a></dt>
 <dd>leaves nosv_barrier_wait()</dd>
+<dt><a id="VAo" href="#VAo"><pre>VAo</pre></a></dt>
+<dd>enters nosv_cond_wait()</dd>
+<dt><a id="VAO" href="#VAO"><pre>VAO</pre></a></dt>
+<dd>leaves nosv_cond_wait()</dd>
+<dt><a id="VAg" href="#VAg"><pre>VAg</pre></a></dt>
+<dd>enters nosv_cond_signal()</dd>
+<dt><a id="VAG" href="#VAG"><pre>VAG</pre></a></dt>
+<dd>leaves nosv_cond_signal()</dd>
+<dt><a id="VAk" href="#VAk"><pre>VAk</pre></a></dt>
+<dd>enters nosv_cond_broadcast()</dd>
+<dt><a id="VAK" href="#VAK"><pre>VAK</pre></a></dt>
+<dd>leaves nosv_cond_broadcast()</dd>
 <dt><a id="VHa" href="#VHa"><pre>VHa</pre></a></dt>
 <dd>enters nosv_attach()</dd>
 <dt><a id="VHA" href="#VHA"><pre>VHA</pre></a></dt>

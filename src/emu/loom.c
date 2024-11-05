@@ -97,7 +97,9 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 		int index = (int) json_object_get_number(jcpu, "index");
 		int phyid = (int) json_object_get_number(jcpu, "phyid");
 
-		if (index < 0 || index >= (int) ncpus) {
+		/* The index can exceed ncpus-1 when CPUs are partially
+		 * defined, but it cannot be negative. */
+		if (index < 0) {
 			err("cpu index %d out of bounds", index);
 			return -1;
 		}
@@ -190,10 +192,8 @@ loom_get_cpu(struct loom *loom, int index)
 	if (index == -1)
 		return &loom->vcpu;
 
-	if (index < 0 || (size_t) index >= loom->ncpus) {
-		err("cpu index out of bounds");
+	if (index < 0 || (size_t) index >= loom->ncpus)
 		return NULL;
-	}
 
 	return loom->cpus_array[index];
 }

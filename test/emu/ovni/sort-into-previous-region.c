@@ -36,12 +36,11 @@ emit(char *mcv, uint64_t clock, int size)
 int
 main(void)
 {
+	set_clock(1);
 	instr_start(0, 1);
 
 	/* Leave some room to prevent clashes */
-	sleep_us(100); /* 100000 us */
-	uint64_t t0 = ovni_clock_now();
-	sleep_us(100); /* 100000 us */
+	uint64_t t0 = 100;
 
 	/* We want it to end like this:
 	 *
@@ -68,6 +67,7 @@ main(void)
 	emit("OB.", t0 + 9, 0);
 	emit("OU]", t0 + 11, 0);
 
+	set_clock(200);
 	instr_end();
 
 	return 0;

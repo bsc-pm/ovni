@@ -3,21 +3,23 @@ target=$OVNI_TEST_BIN
 $target
 ovnisort ovni
 ovnidump ovni
-ovnidump ovni | awk 'NR == 1 {next} NR==2{t=$1} {print $1-t,$2} NR==13{exit}' > found
+ovnidump ovni | awk '{print $1,$2}' > found
 
 cat > expected <<EOF
-0 OB.
-1 OB.
-2 OB.
-3 OB.
-4 OB.
-5 OB.
-6 OU[
-7 OU]
-8 OB.
-9 OB.
-10 OU[
-11 OU]
+1 OHx
+100 OB.
+101 OB.
+102 OB.
+103 OB.
+104 OB.
+105 OB.
+106 OU[
+107 OU]
+108 OB.
+109 OB.
+110 OU[
+111 OU]
+200 OHe
 EOF
 
 diff -s found expected

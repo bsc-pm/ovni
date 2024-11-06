@@ -17,6 +17,7 @@ extern int64_t first_clock;
 extern int64_t last_clock;
 
 int64_t get_clock(void);
+void set_clock(int64_t t);
 int64_t get_delta(void);
 
 #define INSTR_0ARG(name, mcv)                                     \

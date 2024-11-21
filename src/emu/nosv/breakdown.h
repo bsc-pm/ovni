@@ -51,6 +51,7 @@ struct nosv_breakdown_emu {
 	int64_t nphycpus;
 	struct sort sort;
 	struct pvt *pvt;
+	int enabled;
 };
 
 #endif /* BREAKDOWN_H */

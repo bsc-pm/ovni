@@ -57,11 +57,11 @@ nosv_test(several-tasks.c SORT NAME several-tasks-level-4 LEVEL 4)
 
 # Same but with breakdown enabled
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-0 LEVEL 0 BREAKDOWN
-  SHOULD_FAIL REGEX "nosv.can_breakdown is false, missing events to enable breakdown")
+  REGEX "cannot enable breakdown for nOS-V model")
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-1 LEVEL 1 BREAKDOWN
-  SHOULD_FAIL REGEX "nosv.can_breakdown is false, missing events to enable breakdown")
+  REGEX "cannot enable breakdown for nOS-V model")
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-2 LEVEL 2 BREAKDOWN
-  SHOULD_FAIL REGEX "nosv.can_breakdown is false, missing events to enable breakdown")
+  REGEX "cannot enable breakdown for nOS-V model")
 # From level 3 up the breakdown can be enabled
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-3 LEVEL 3 BREAKDOWN)
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-4 LEVEL 4 BREAKDOWN)

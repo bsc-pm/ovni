@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "breakdown.h"
@@ -49,36 +49,49 @@ create_cpu(struct bay *bay, struct nosv_breakdown_cpu *bcpu, int64_t gindex)
 	return 0;
 }
 
-static int
-check_thread_metadata(struct thread *th)
-{
-	if (th->meta == NULL) {
-		err("thread has no metadata");
-		return -1;
-	}
-
-	JSON_Value *val = json_object_dotget_value(th->meta, "nosv.can_breakdown");
-	if (val == NULL) {
-		err("missing nosv.can_breakdown attribute");
-		return -1;
-	}
-
-	if (!json_value_get_boolean(val)) {
-		err("nosv.can_breakdown is false, missing events to enable breakdown");
-		return -1;
-	}
-
-	return 0;
-}
-
 int
 model_nosv_breakdown_create(struct emu *emu)
 {
+	struct nosv_emu *memu = EXT(emu, 'V');
+	struct nosv_breakdown_emu *bemu = &memu->breakdown;
+	size_t nbreakdown = 0;
+
+	/* Stop here if breakdown not enabled */
 	if (emu->args.breakdown == 0)
 		return 0;
 
-	struct nosv_emu *memu = EXT(emu, 'V');
-	struct nosv_breakdown_emu *bemu = &memu->breakdown;
+	/* We need to make sure that *all* threads have the can_breakdown key
+	 * present and set to true, as otherwise we may be missing some data in
+	 * the breakdown view. */
+	for (struct thread *th = emu->system.threads; th; th = th->gnext) {
+		/* All threads must have the can_breakdown key */
+		JSON_Value *val = json_object_dotget_value(th->meta,
+				"nosv.can_breakdown");
+
+		if (val == NULL) {
+			err("missing nosv.can_breakdown key: %s", th->id);
+			return -1;
+		}
+
+		if (json_value_get_type(val) != JSONBoolean) {
+			err("expected boolean nosv.can_breakdown key: %s", th->id);
+			return -1;
+		}
+
+		/* Count how many they have it enabled */
+		if (json_value_get_boolean(val))
+			nbreakdown++;
+	}
+
+	/* Enable breakdown if all threads can produce a breakdown trace */
+	if (nbreakdown != emu->system.nthreads) {
+		warn("cannot enable breakdown for nOS-V model (suitable %zd/%zd)",
+				nbreakdown, emu->system.nthreads);
+		return 0;
+	}
+
+	info("enabling breakdown for nOS-V model");
+	bemu->enabled = 1;
 
 	/* Count phy cpus */
 	struct system *sys = &emu->system;
@@ -107,13 +120,6 @@ model_nosv_breakdown_create(struct emu *emu)
 
 		if (create_cpu(&emu->bay, bcpu, cpu->gindex) != 0) {
 			err("create_cpu failed");
-			return -1;
-		}
-	}
-
-	for (struct thread *th = emu->system.threads; th; th = th->gnext) {
-		if (check_thread_metadata(th) != 0) {
-			err("bad nosv metadata in thread: %s", th->id);
 			return -1;
 		}
 	}
@@ -241,6 +247,10 @@ model_nosv_breakdown_connect(struct emu *emu)
 
 	struct nosv_emu *memu = EXT(emu, 'V');
 	struct nosv_breakdown_emu *bemu = &memu->breakdown;
+
+	if (!bemu->enabled)
+		return 0;
+
 	struct bay *bay = &emu->bay;
 	struct system *sys = &emu->system;
 
@@ -290,6 +300,10 @@ model_nosv_breakdown_finish(struct emu *emu,
 
 	struct nosv_emu *memu = EXT(emu, 'V');
 	struct nosv_breakdown_emu *bemu = &memu->breakdown;
+
+	if (!bemu->enabled)
+		return 0;
+
 	struct pcf *pcf = pvt_get_pcf(bemu->pvt);
 	long typeid = PRV_NOSV_BREAKDOWN;
 	char label[] = "CPU: nOS-V Runtime/Idle/Task breakdown";

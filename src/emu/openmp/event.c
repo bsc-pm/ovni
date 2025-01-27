@@ -153,6 +153,9 @@ create_task(struct emu *emu)
 	 * task, so we relax the model to allow this for now. */
 	uint32_t flags = TASK_FLAG_RELAX_NESTING;
 
+	/* https://gitlab.pm.bsc.es/rarias/ovni/-/issues/208 */
+	flags |= TASK_FLAG_RESURRECT;
+
 	if (task_create(info, typeid, taskid, flags) != 0) {
 		err("task_create failed");
 		return -1;

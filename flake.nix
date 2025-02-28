@@ -1,5 +1,5 @@
 {
-  inputs.nixpkgs.url = "nixpkgs";
+  inputs.nixpkgs.url = "nixpkgs/9c6b49aeac36e2ed73a8c472f1546f6d9cf1addc";
   inputs.bscpkgs.url = "git+https://git.sr.ht/~rodarima/bscpkgs";
   inputs.bscpkgs.inputs.nixpkgs.follows = "nixpkgs";
 

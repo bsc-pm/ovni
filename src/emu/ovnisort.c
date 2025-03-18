@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* This program is a really bad idea. It attempts to sort streams by using a
@@ -268,7 +268,7 @@ static void
 write_stream(int fd, void *base, void *dst, const void *src, size_t size)
 {
 	while (size > 0) {
-		off_t offset = (off_t) dst - (off_t) base;
+		off_t offset = (off_t) ((intptr_t) dst - (intptr_t) base);
 		ssize_t written = pwrite(fd, src, size, offset);
 
 		if (written < 0)

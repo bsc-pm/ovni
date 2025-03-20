@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nosv_priv.h"
@@ -26,6 +26,8 @@ static const int ss_table[256][256][3] = {
 		['f'] = { CHSS, POP,  ST_SCHED_HUNGRY },
 		['['] = { CHSS, PUSH, ST_SCHED_SERVING },
 		[']'] = { CHSS, POP,  ST_SCHED_SERVING },
+		['N'] = { CHSS, PUSH, ST_SCHED_SERVING }, /* Non-block */
+		['n'] = { CHSS, POP,  ST_SCHED_SERVING },
 		['@'] = { CHSS, IGN,  -1 },
 		['r'] = { CHSS, IGN,  -1 },
 		['s'] = { CHSS, IGN,  -1 },

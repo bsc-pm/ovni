@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nosv_priv.h"
@@ -46,7 +46,8 @@ static struct ev_decl model_evlist[] = {
 	{ "VS@", "self assigns itself a task" },
 	{ "VSh", "enters the hungry state, waiting for work" },
 	{ "VSf", "is no longer hungry" },
-	PAIR_E("VS[", "VS]", "scheduler server mode")
+	PAIR_E("VS[", "VS]", "scheduler server blocking mode")
+	PAIR_E("VSN", "VSn", "scheduler server non-blocking mode")
 
 	PAIR_S("VU[", "VU]", "submitting a task")
 	PAIR_S("VMa", "VMA", "allocating memory")
@@ -85,7 +86,7 @@ static struct ev_decl model_evlist[] = {
 
 struct model_spec model_nosv = {
 	.name    = model_name,
-	.version = "2.4.0",
+	.version = "2.5.0",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nosv_create,

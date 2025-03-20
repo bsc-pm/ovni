@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - OpenMP model version increased to 1.2.0.
+- nOS-V model version increased to 2.5.0.
 
 ### Added
 
 - Add support OpenMP label and task ID views.
+- Add support for nOS-V non-blocking scheduler server events (`VSN` and `VSn`).
 
 ## [1.11.0] - 2024-11-08
 

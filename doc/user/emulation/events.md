@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Nov 13 2024.
+Built on Mar 20 2025.
 
 ## Model nanos6
 
@@ -633,7 +633,7 @@ List of events for the model *tampi* with identifier **`T`** at version `1.0.0`:
 
 ## Model nosv
 
-List of events for the model *nosv* with identifier **`V`** at version `2.4.0`:
+List of events for the model *nosv* with identifier **`V`** at version `2.5.0`:
 <dl>
 <dt><a id="VTc" href="#VTc"><pre>VTc(u32 taskid, u32 typeid)</pre></a></dt>
 <dd>creates task %{taskid} with type %{typeid}</dd>
@@ -660,9 +660,13 @@ List of events for the model *nosv* with identifier **`V`** at version `2.4.0`:
 <dt><a id="VSf" href="#VSf"><pre>VSf</pre></a></dt>
 <dd>is no longer hungry</dd>
 <dt><a id="VS[" href="#VS["><pre>VS[</pre></a></dt>
-<dd>enters scheduler server mode</dd>
+<dd>enters scheduler server blocking mode</dd>
 <dt><a id="VS]" href="#VS]"><pre>VS]</pre></a></dt>
-<dd>leaves scheduler server mode</dd>
+<dd>leaves scheduler server blocking mode</dd>
+<dt><a id="VSN" href="#VSN"><pre>VSN</pre></a></dt>
+<dd>enters scheduler server non-blocking mode</dd>
+<dt><a id="VSn" href="#VSn"><pre>VSn</pre></a></dt>
+<dd>leaves scheduler server non-blocking mode</dd>
 <dt><a id="VU[" href="#VU["><pre>VU[</pre></a></dt>
 <dd>starts submitting a task</dd>
 <dt><a id="VU]" href="#VU]"><pre>VU]</pre></a></dt>

@@ -43,8 +43,10 @@ Track changes in emulator model versions.
 
 ## nOS-V
 
+- nosv 2.5.0
+    - Add support for non-blocking scheduler server events `VS{Nn}`.
 - nosv 2.4.0
-    - Add support for `nosv_cond_wait`, `nosv_cond_signal` and `nosv_cond_broadcast` events VA{oOgGkK}.
+    - Add support for `nosv_cond_wait`, `nosv_cond_signal` and `nosv_cond_broadcast` events `VA{oOgGkK}`.
 - nosv 2.3.0
     - Add `nosv.can_breakdown` attribute to metadata for breakdown checks.
 - nosv 2.2.0

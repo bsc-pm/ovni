@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 find_package(Nosv)
@@ -45,6 +45,8 @@ nosv_test(inline.c SORT)
 nosv_test(mutex.c SORT LEVEL 3)
 nosv_test(barrier.c SORT LEVEL 3)
 nosv_test(cond.c SORT LEVEL 3)
+nosv_test(yield-noisy.c NAME "yield-noisy-l3" DRIVER "yield-noisy-l3.driver.sh")
+nosv_test(yield-noisy.c NAME "yield-noisy-l4" DRIVER "yield-noisy-l4.driver.sh")
 
 # Test multiple instrumentation levels
 nosv_test(several-tasks.c SORT NAME several-tasks-level-0 LEVEL 0)

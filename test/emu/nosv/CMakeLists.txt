@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 test_emu(attach.c)
@@ -18,6 +18,7 @@ test_emu(require-missing.c
   NAME flag-enable-all
   DRIVER "flag-enable-all.driver.sh"
   REGEX "all .* models are enabled")
+test_emu(cannot-breakdown.c BREAKDOWN REGEX "WARN: cannot enable breakdown for nOS-V model")
 test_emu(parallel-tasks.c)
 test_emu(nest-to-parallel.c)
 test_emu(mutex.c)

@@ -5,6 +5,8 @@ export OMP_NUM_THREADS=1
 
 $target
 
+ovnisort ovni
+
 ovniemu -l ovni
 
 # Mark API adds 100 to the type

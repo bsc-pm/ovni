@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "nanos6_priv.h"
@@ -313,7 +313,7 @@ model_nanos6_create(struct emu *emu)
 	extend_set(&emu->ext, model_id, e);
 
 	if (model_nanos6_breakdown_create(emu) != 0) {
-		err("model_nanos6_breakdown_connect failed");
+		err("model_nanos6_breakdown_create failed");
 		return -1;
 	}
 

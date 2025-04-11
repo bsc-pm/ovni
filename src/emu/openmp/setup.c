@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "openmp_priv.h"
@@ -278,6 +278,19 @@ model_openmp_create(struct emu *emu)
 		}
 	}
 
+	struct openmp_emu *e = calloc(1, sizeof(struct openmp_emu));
+	if (e == NULL) {
+		err("calloc failed:");
+		return -1;
+	}
+
+	extend_set(&emu->ext, model_id, e);
+
+	if (model_openmp_breakdown_create(emu) != 0) {
+		err("model_openmp_breakdown_create failed");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -291,6 +304,11 @@ model_openmp_connect(struct emu *emu)
 
 	if (model_cpu_connect(emu, &cpu_spec) != 0) {
 		err("model_cpu_connect failed");
+		return -1;
+	}
+
+	if (model_openmp_breakdown_connect(emu) != 0) {
+		err("model_openmp_breakdown_connect failed");
 		return -1;
 	}
 
@@ -376,6 +394,11 @@ model_openmp_finish(struct emu *emu)
 
 	if (finish_pvt(emu, "cpu") != 0) {
 		err("finish_pvt cpu failed");
+		return -1;
+	}
+
+	if (model_openmp_breakdown_finish(emu, pcf_labels) != 0) {
+		err("model_openmp_breakdown_finish failed");
 		return -1;
 	}
 

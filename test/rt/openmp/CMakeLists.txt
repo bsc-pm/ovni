@@ -26,7 +26,7 @@ if(NOT NOSV_FOUND)
 endif()
 
 function(openmp_rt_test)
-  ovni_test(${ARGN})
+  ovni_test(${ARGN} SORT)
   target_compile_options("${OVNI_TEST_NAME}" PUBLIC "-fopenmp=libompv"
 	  "-no-pedantic")
   target_link_options("${OVNI_TEST_NAME}" PUBLIC "-fopenmp=libompv")
@@ -34,7 +34,7 @@ function(openmp_rt_test)
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "OMP_OVNI=1")
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
-    ENVIRONMENT "NOSV_CONFIG_OVERRIDE=instrumentation.version=ovni")
+    ENVIRONMENT "NOSV_CONFIG_OVERRIDE=instrumentation.version=ovni,ovni.level=3")
 endfunction()
 
 openmp_rt_test(active.c DRIVER active.driver.sh)
@@ -55,7 +55,7 @@ openmp_rt_test(taskloop.c)
 openmp_rt_test(taskwait.c)
 openmp_rt_test(team-distribute.c)
 openmp_rt_test(worksharing-and-tasks.c)
-openmp_rt_test(worksharing-mix.c)
+openmp_rt_test(worksharing-mix.c BREAKDOWN)
 openmp_rt_test(worksharing-task.c)
 openmp_rt_test(worksharing.c)
 openmp_rt_test(worksharing01.c)

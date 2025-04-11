@@ -177,6 +177,17 @@ currently running on each thread. The ID is a monotonically increasing
 identifier assigned on task creation. Lower IDs correspond to tasks
 created at an earlier point than higher IDs.
 
+# Breakdown (simple)
+
+A simplified view for the breakdown is generated when the emulator is run with
+the `-b` flag, the trace is stored in `openmp-breakdown.prv`. This breakdown
+view selects the label when it has a value or the subsystem otherwise. The view
+is sorted so that rows with same values are grouped together.
+
+Notice that unlike nOS-V or Nanos6, we don't include yet the information about
+the runtime waiting or making progress, but some information can be inferred
+from the subsystem states.
+
 ## Limitations
 
 As the compiler generates the code that perform the calls to the libompv

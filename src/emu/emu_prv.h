@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef EMU_PRV_H
@@ -35,6 +35,7 @@ enum emu_prv_types {
 	PRV_OPENMP_SUBSYSTEM = 50,
 	PRV_OPENMP_LABEL     = 51,
 	PRV_OPENMP_TASKID    = 52,
+	PRV_OPENMP_BREAKDOWN = 53,
 	PRV_OVNI_MARK        = 100,
 	/* User marks [100, 200) */
 	PRV_RESERVED         = 200,

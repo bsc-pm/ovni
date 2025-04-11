@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef OPENMP_PRIV_H
@@ -8,6 +8,7 @@
 #include "task.h"
 #include "model_cpu.h"
 #include "model_thread.h"
+#include "breakdown.h"
 
 /* Private enums */
 
@@ -63,6 +64,7 @@ struct openmp_thread {
 
 struct openmp_cpu {
 	struct model_cpu m;
+	struct breakdown_cpu breakdown;
 };
 
 struct openmp_proc {
@@ -70,10 +72,19 @@ struct openmp_proc {
 	struct task_info task_info;
 };
 
+struct openmp_emu {
+	struct breakdown_emu breakdown;
+};
+
 int model_openmp_probe(struct emu *emu);
 int model_openmp_create(struct emu *emu);
 int model_openmp_connect(struct emu *emu);
 int model_openmp_event(struct emu *emu);
 int model_openmp_finish(struct emu *emu);
+
+int model_openmp_breakdown_create(struct emu *emu);
+int model_openmp_breakdown_connect(struct emu *emu);
+int model_openmp_breakdown_finish(struct emu *emu,
+		const struct pcf_value_label **labels);
 
 #endif /* OPENMP_PRIV_H */

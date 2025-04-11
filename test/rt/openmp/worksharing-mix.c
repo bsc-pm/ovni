@@ -34,7 +34,7 @@ int main(void)
 		#pragma omp single
 		for (int i = 0; i < 100; i++)
 		{
-			#pragma omp task
+			#pragma omp task label("mini-task")
 			sleep_us(10);
 		}
 	}

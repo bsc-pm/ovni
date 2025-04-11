@@ -62,14 +62,15 @@
     };
     compilerList = with pkgs; [
       #gcc49Stdenv # broken
-      gcc6Stdenv
-      gcc7Stdenv
-      gcc8Stdenv
+      #gcc6Stdenv # deprecated
+      #gcc7Stdenv # deprecated
+      #gcc8Stdenv # deprecated
       gcc9Stdenv
       gcc10Stdenv
       gcc11Stdenv
       gcc12Stdenv
       gcc13Stdenv
+      gcc14Stdenv
     ];
     lib = pkgs.lib;
   in {

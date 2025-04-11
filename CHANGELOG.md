@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support OpenMP label and task ID views.
 - Add support for nOS-V non-blocking scheduler server events (`VSN` and `VSn`).
 - Add OpenMP simple breakdown view.
+- Add bench6 package to run full mini-apps for tests.
 
 ## [1.11.0] - 2024-11-08
 

@@ -32,6 +32,25 @@
         gitBranch = "master";
         gitCommit = "403fcf764e908b793cb8015d41dec119a2374a69";
       };
+      bench6 = prev.bench6.overrideAttrs (old: rec {
+        src = builtins.fetchGit {
+          url = "ssh://git@bscpm04.bsc.es/rarias/bench6.git";
+          ref = "master";
+          rev = "62f5970779b315fcb8939280727716748a3f3ca5";
+        };
+        version = src.shortRev;
+        cmakeFlags = [ "-DCMAKE_C_COMPILER=clang" "-DCMAKE_CXX_COMPILER=clang++" ];
+        env = with final; {
+          NANOS6_HOME = nanos6;
+          NODES_HOME = nodes;
+          NOSV_HOME = nosv;
+        };
+        buildInputs = with final; [ bigotes cmake clangOmpss2 openmp openmpv
+          nanos6 nodes nosv mpi tampi tagaspi gpi-2 openblas openblas.dev ovni
+        ];
+        hardeningDisable = [ "all" ];
+        dontStrip = true;
+      });
 
       # Use a fixed commit for libovni
       ovniFixed = prev.ovni.override {
@@ -116,7 +135,9 @@
         # We need to be able to exit the chroot to run Nanos6 tests, as they
         # require access to /sys for hwloc
         __noChroot = true;
-        buildInputs = old.buildInputs ++ (with pkgs; [ pkg-config nosv nanos6 nodes openmpv ]);
+        buildInputs = old.buildInputs ++ (with pkgs; [
+          pkg-config nosv nanos6 nodes openmpv bench6
+        ]);
         cmakeFlags = old.cmakeFlags ++ [ "-DENABLE_ALL_TESTS=ON" ];
         preConfigure = old.preConfigure or "" + ''
           export NOSV_HOME="${pkgs.nosv}"

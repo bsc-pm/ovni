@@ -29,4 +29,8 @@ function(openmp_bench_test)
     ENVIRONMENT "NOSV_CONFIG_OVERRIDE=instrumentation.version=ovni,ovni.level=3")
 endfunction()
 
+find_program(B6_HEAT_OMPV_PATH b6_heat_ompv REQUIRED)
+find_program(B6_HEAT_OMPV_PATH b6_heat_itampi_nodes_tasks REQUIRED)
+
 openmp_bench_test(dummy.c NAME b6_heat_ompv DRIVER b6_heat_ompv.sh)
+openmp_bench_test(dummy.c NAME b6_heat_itampi_nodes_tasks DRIVER b6_heat_itampi_nodes_tasks.sh)

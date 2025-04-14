@@ -29,4 +29,4 @@ function(openmp_bench_test)
     ENVIRONMENT "NOSV_CONFIG_OVERRIDE=instrumentation.version=ovni,ovni.level=3")
 endfunction()
 
-openmp_bench_test(dummy.c NAME heat DRIVER heat.sh)
+openmp_bench_test(dummy.c NAME b6_heat_ompv DRIVER b6_heat_ompv.sh)

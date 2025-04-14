@@ -96,6 +96,14 @@ if (NOT HAVE_CLOCK_GETTIME)
   endif()
 endif()
 
+# Check packages and features once
+find_package(Nanos6)
+find_package(Nodes)
+find_package(Nosv)
+find_package(Libompv)
+include(CheckPerfParanoid)
+include(CheckOmpSs2Compiler)
+
 add_subdirectory(include)
 add_subdirectory(src)
 

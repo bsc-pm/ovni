@@ -1,8 +1,6 @@
 # Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-find_package(Nosv)
-
 if(NOT NOSV_FOUND)
   if(ENABLE_ALL_TESTS)
     message(FATAL_ERROR "nOS-V not found, cannot enable nOS-V RT tests")
@@ -66,7 +64,6 @@ nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-2 LEVEL 2 BREA
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-3 LEVEL 3 BREAKDOWN)
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-4 LEVEL 4 BREAKDOWN)
 
-include(CheckPerfParanoid)
 if (PERF_PARANOID_KERNEL)
   message(STATUS "Enabling perf paranoid tests for nOS-V")
   nosv_test(kernel.c NAME kernel-overflow DRIVER "kernel-overflow.driver.sh")

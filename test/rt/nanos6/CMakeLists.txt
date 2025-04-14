@@ -1,8 +1,5 @@
-# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-find_package(Nanos6)
-include(CheckOmpSs2Compiler)
 
 if(NOT OMPSS2_COMPILER_FOUND)
   if(ENABLE_ALL_TESTS)

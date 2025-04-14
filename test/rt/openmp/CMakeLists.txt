@@ -1,36 +1,30 @@
 # Copyright (c) 2022-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-check_c_compiler_flag("-fopenmp=libompv" OPENMPV_COMPILER_FOUND)
-check_linker_flag(C "-fopenmp=libompv" OPENMPV_LINKER_FOUND)
-cmake_path(GET CMAKE_C_COMPILER PARENT_PATH CMAKE_C_COMPILER_PATH)
-
-if(NOT OPENMPV_COMPILER_FOUND OR NOT OPENMPV_LINKER_FOUND)
+if(NOT LIBOMPV_FOUND)
   if(ENABLE_ALL_TESTS)
-    message(FATAL_ERROR "Compiler doesn't support -fopenmp=libompv flag, cannot enable OpenMP-V RT tests")
+    message(FATAL_ERROR "Compiler doesn't support -fopenmp=libompv flag, cannot enable libompv RT tests")
   else()
-    message(STATUS "Compiler doesn't support -fopenmp=libompv flag, disabling OpenMP-V RT tests")
+    message(STATUS "Compiler doesn't support -fopenmp=libompv flag, disabling libompv RT tests")
   endif()
   return()
 endif()
-
-find_package(Nosv)
 
 if(NOT NOSV_FOUND)
   if(ENABLE_ALL_TESTS)
-    message(FATAL_ERROR "nOS-V not found, cannot enable OpenMP-V RT tests")
+    message(FATAL_ERROR "nOS-V not found, cannot enable libompv RT tests")
   else()
-    message(STATUS "nOS-V not found, disabling OpenMP-V RT tests")
+    message(STATUS "nOS-V not found, disabling libompv RT tests")
   endif()
   return()
 endif()
 
+message(STATUS "Enabling libompv RT tests")
+
 function(openmp_rt_test)
   ovni_test(${ARGN} SORT)
-  target_compile_options("${OVNI_TEST_NAME}" PUBLIC "-fopenmp=libompv"
-	  "-no-pedantic")
-  target_link_options("${OVNI_TEST_NAME}" PUBLIC "-fopenmp=libompv")
-  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE "m" PkgConfig::NOSV)
+  target_compile_options("${OVNI_TEST_NAME}" PUBLIC "-no-pedantic")
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE "m" Libompv PkgConfig::NOSV)
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "OMP_OVNI=1")
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY

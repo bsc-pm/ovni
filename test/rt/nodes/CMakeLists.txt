@@ -1,7 +1,6 @@
 # Copyright (c) 2022-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-find_package(Nodes)
 include(CheckOmpSs2Compiler)
 
 if(NOT OMPSS2_COMPILER_FOUND)
@@ -72,8 +71,6 @@ nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-2 LEV
 nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-3 LEVEL 3 SORT BREAKDOWN)
 nodes_rt_test(../nanos6/several-tasks.c NAME several-tasks-breakdown-level-4 LEVEL 4 SORT BREAKDOWN)
 
-
-include(CheckPerfParanoid)
 if (PERF_PARANOID_KERNEL)
   message(STATUS "Enabling perf paranoid tests for NODES")
   nodes_rt_test(fibonacci.c SORT LEVEL 3 DRIVER "fibonacci.driver.sh")

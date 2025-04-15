@@ -32,6 +32,7 @@
         gitBranch = "master";
         gitCommit = "403fcf764e908b793cb8015d41dec119a2374a69";
       };
+      mpi = prev.mpich;
       bench6 = prev.bench6.overrideAttrs (old: rec {
         src = builtins.fetchGit {
           url = "ssh://git@bscpm04.bsc.es/rarias/bench6.git";

@@ -37,7 +37,7 @@
         src = builtins.fetchGit {
           url = "ssh://git@bscpm04.bsc.es/rarias/bench6.git";
           ref = "master";
-          rev = "62f5970779b315fcb8939280727716748a3f3ca5";
+          rev = "14227b1aa5a17deb5b746eb9648de2eb89fe3521";
         };
         version = src.shortRev;
         cmakeFlags = [ "-DCMAKE_C_COMPILER=clang" "-DCMAKE_CXX_COMPILER=clang++" ];

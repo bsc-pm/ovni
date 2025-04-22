@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 check_c_compiler_flag("-fopenmp=libompv" OPENMPV_COMPILER_FOUND)
@@ -37,6 +37,7 @@ function(openmp_rt_test)
     ENVIRONMENT "NOSV_CONFIG_OVERRIDE=instrumentation.version=ovni")
 endfunction()
 
+openmp_rt_test(active.c DRIVER active.driver.sh)
 openmp_rt_test(barrier-explicit.c)
 openmp_rt_test(critical.c)
 openmp_rt_test(if0-nested-task.c)
@@ -46,6 +47,7 @@ openmp_rt_test(parallel-for.c)
 openmp_rt_test(parallel-loop.c)
 openmp_rt_test(parallel-nested.c)
 openmp_rt_test(parallel-task.c)
+openmp_rt_test(passive.c DRIVER passive.driver.sh)
 openmp_rt_test(sections.c)
 openmp_rt_test(simple-task.c)
 openmp_rt_test(task.c)

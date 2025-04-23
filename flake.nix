@@ -30,12 +30,8 @@
       clangOmpss2Unwrapped = prev.clangOmpss2Unwrapped.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "b7af30b36be3e7e90b33c5f01a3f7e3656df785f";
+        gitCommit = "403fcf764e908b793cb8015d41dec119a2374a69";
       };
-      openmp = prev.openmp.overrideAttrs (old: {
-        # Newer version of LLVM OpenMP requires python3
-        nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ final.python3 ];
-      });
 
       # Use a fixed commit for libovni
       ovniFixed = prev.ovni.override {

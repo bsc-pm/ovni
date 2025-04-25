@@ -45,6 +45,7 @@ nosv_test(barrier.c SORT LEVEL 3)
 nosv_test(cond.c SORT LEVEL 3)
 nosv_test(yield-noisy.c NAME "yield-noisy-l3" DRIVER "yield-noisy-l3.driver.sh")
 nosv_test(yield-noisy.c NAME "yield-noisy-l4" DRIVER "yield-noisy-l4.driver.sh")
+nosv_test(resubmit-race.c SORT)
 
 # Test multiple instrumentation levels
 nosv_test(several-tasks.c SORT NAME several-tasks-level-0 LEVEL 0)

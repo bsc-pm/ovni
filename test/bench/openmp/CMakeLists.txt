@@ -27,6 +27,7 @@ function(openmp_bench_test)
     ENVIRONMENT "OMP_OVNI=1")
   set_property(TEST "${OVNI_TEST_NAME}" APPEND PROPERTY
     ENVIRONMENT "NOSV_CONFIG_OVERRIDE=instrumentation.version=ovni,ovni.level=3")
+  set_tests_properties("${OVNI_TEST_NAME}" PROPERTIES TIMEOUT 300)
 endfunction()
 
 find_program(B6_HEAT_OMPV_PATH b6_heat_ompv REQUIRED)

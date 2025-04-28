@@ -86,7 +86,7 @@ static struct ev_decl model_evlist[] = {
 
 struct model_spec model_nosv = {
 	.name    = model_name,
-	.version = "2.5.0",
+	.version = "2.5.1",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nosv_create,

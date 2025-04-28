@@ -43,6 +43,8 @@ Track changes in emulator model versions.
 
 ## nOS-V
 
+- nosv 2.5.1
+    - Remove task complete callback from between `VTx` and `VTe` events.
 - nosv 2.5.0
     - Add support for non-blocking scheduler server events `VS{Nn}`.
 - nosv 2.4.0

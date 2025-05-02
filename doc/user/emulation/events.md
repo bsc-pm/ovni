@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Apr 28 2025.
+Built on May  2 2025.
 
 ## Model nanos6
 
@@ -437,7 +437,7 @@ List of events for the model *ovni* with identifier **`O`** at version `1.1.0`:
 
 ## Model openmp
 
-List of events for the model *openmp* with identifier **`P`** at version `1.2.0`:
+List of events for the model *openmp* with identifier **`P`** at version `1.2.1`:
 <dl>
 <dt><a id="PBb" href="#PBb"><pre>PBb</pre></a></dt>
 <dd>begins plain barrier</dd>

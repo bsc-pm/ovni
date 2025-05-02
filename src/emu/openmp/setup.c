@@ -82,7 +82,7 @@ static struct ev_decl model_evlist[] = {
 
 struct model_spec model_openmp = {
 	.name = model_name,
-	.version = "1.2.0",
+	.version = "1.2.1",
 	.evlist  = model_evlist,
 	.model = model_id,
 	.create  = model_openmp_create,

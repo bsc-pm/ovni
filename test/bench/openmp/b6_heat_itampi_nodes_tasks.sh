@@ -3,6 +3,8 @@ export NOSV_CONFIG_OVERRIDE=instrumentation.version=ovni,ovni.level=2
 #export OMP_NUM_THREADS=1
 export OMP_OVNI=1
 
+# FIXME: Disable OFI for now as we don't have a working hfi network
+export FI_PROVIDER=sockets
 b6_heat_itampi_nodes_tasks -b 128 -t 10
 
 ovnisort ovni

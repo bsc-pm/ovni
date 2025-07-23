@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set -ex
@@ -30,10 +30,24 @@ if [ -n "$OVNI_DRIVER" ]; then
 else
   if [ "$OVNI_NPROCS" -gt 1 ]; then
     for i in $(seq 1 "$OVNI_NPROCS"); do
+      rank=$(($i-1))
       # Run the test in the background
-      OVNI_RANK=$(($i-1)) OVNI_NRANKS=$OVNI_NPROCS "$testname" &
+      (OVNI_RANK=$rank OVNI_NRANKS=$OVNI_NPROCS "$testname" && echo ok > ovni.rc.$rank) &
     done
     wait
+    all_good=1
+    for i in $(seq 1 "$OVNI_NPROCS"); do
+      rank=$(($i-1))
+      # Run the test in the background
+      if ! grep -q ok "ovni.rc.$rank"; then
+        echo "Test for rank $rank failed"
+        all_good=0
+      fi
+    done
+    if [ "$all_good" != 1 ]; then
+      echo "Some tests failed"
+      exit 1
+    fi
   else
     "$testname"
   fi

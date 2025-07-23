@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2023-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <stdio.h>
@@ -31,8 +31,8 @@ main(void)
 		die("snprintf failed");
 
 	ovni_proc_init(1 + app, loom, getpid());
-	ovni_proc_set_rank(rank, nranks);
 	ovni_thread_init(get_tid());
+	ovni_proc_set_rank(rank, nranks);
 
 	/* Leader of the segment, must emit CPUs */
 	if (rank % N == 0) {

@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2022-2025 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later 
 
 test_emu(flush-overhead.c DISABLED)
@@ -33,3 +33,5 @@ test_emu(dummy.c NAME "match-doc-events" DRIVER "match-doc-events.sh")
 test_emu(dummy.c NAME "match-doc-version" DRIVER "match-doc-version.sh")
 test_emu(libovni-attr.c)
 test_emu(libovni-mark.c MP)
+test_emu(split-loom-cpus.c MP)
+test_emu(duplicated-cpu-index.c MP SHOULD_FAIL REGEX "cpu with index 0 already taken")

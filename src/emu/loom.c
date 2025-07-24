@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "loom.h"
@@ -117,14 +117,6 @@ load_cpus(struct loom *loom, JSON_Object *meta)
 			continue;
 		}
 
-		/* If we reach this point, there shouldn't be a CPU with the
-		 * same index either, as otherwise the phyid should have matched
-		 * before. So it is an error. */
-		if (loom_get_cpu(loom, index) != NULL) {
-			err("cpu index %d redefined with another phyid", index);
-			return -1;
-		}
-
 		cpu = calloc(1, sizeof(struct cpu));
 		if (cpu == NULL) {
 			err("calloc failed:");
@@ -189,6 +181,9 @@ loom_find_cpu(struct loom *loom, int phyid)
 struct cpu *
 loom_get_cpu(struct loom *loom, int index)
 {
+	if (loom->cpus_array == NULL)
+		die("cpus_array not yet populated");
+
 	if (index == -1)
 		return &loom->vcpu;
 

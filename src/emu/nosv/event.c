@@ -596,6 +596,8 @@ process_ev(struct emu *emu)
 			return pre_task(emu);
 		case 'Y':
 			return pre_type(emu);
+		case 'W':
+			return hwc_event(emu);
 		default:
 			err("unknown nOS-V event category");
 			return -1;

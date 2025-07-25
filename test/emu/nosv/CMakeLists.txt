@@ -38,3 +38,5 @@ test_emu(bad-nest-from-parallel.c SHOULD_FAIL
 
 test_emu(events-from-outside-cpu.c SHOULD_FAIL
   REGEX "current thread .* out of CPU")
+
+test_emu(hwc.c)

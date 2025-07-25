@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef INSTR_NOSV_H
@@ -36,6 +36,18 @@ instr_nosv_type_create(int32_t typeid)
 	ovni_ev_jumbo_emit(&ev, (uint8_t *) buf, (uint32_t) nbytes);
 
 	return task_get_type_gid(p);
+}
+
+static inline void
+instr_nosv_hwc(size_t n, int64_t *counters)
+{
+	struct ovni_ev ev = {0};
+
+	ovni_ev_set_mcv(&ev, "VWC");
+	ovni_ev_set_clock(&ev, (uint64_t) get_clock());
+
+	uint32_t nbytes = (uint32_t) (n * sizeof(int64_t));
+	ovni_ev_jumbo_emit(&ev, (uint8_t *) counters, (uint32_t) nbytes);
 }
 
 INSTR_2ARG(instr_nosv_task_create,     "VTc", uint32_t, taskid, uint32_t, typeid)

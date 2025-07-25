@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #ifndef NOSV_PRIV_H
@@ -6,9 +6,10 @@
 
 #include "breakdown.h"
 #include "emu.h"
-#include "task.h"
+#include "hwc.h"
 #include "model_cpu.h"
 #include "model_thread.h"
+#include "task.h"
 
 /* Private enums */
 
@@ -58,11 +59,13 @@ enum nosv_ss_values {
 struct nosv_thread {
 	struct model_thread m;
 	struct task_stack task_stack;
+	struct nosv_hwc_thread hwc;
 };
 
 struct nosv_cpu {
 	struct model_cpu m;
 	struct nosv_breakdown_cpu breakdown;
+	struct nosv_hwc_cpu hwc;
 };
 
 struct nosv_proc {
@@ -73,6 +76,7 @@ struct nosv_emu {
 	int connected;
 	int event;
 	struct nosv_breakdown_emu breakdown;
+	struct nosv_hwc_emu hwc;
 };
 
 enum nosv_progress {

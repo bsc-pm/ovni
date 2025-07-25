@@ -38,7 +38,9 @@ enum emu_prv_types {
 	PRV_OPENMP_BREAKDOWN = 53,
 	PRV_OVNI_MARK        = 100,
 	/* User marks [100, 200) */
-	PRV_RESERVED         = 200,
+	PRV_NOSV_HWC         = 200,
+	/* nOS-V HWC [200, 300) */
+	PRV_RESERVED         = 300,
 };
 
 #endif /* EMU_PRV_H */

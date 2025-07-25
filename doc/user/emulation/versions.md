@@ -45,6 +45,8 @@ Track changes in emulator model versions.
 
 ## nOS-V
 
+- nosv 2.6.0
+    - Add support for hardware counters event `VWC`.
 - nosv 2.5.1
     - Remove task complete callback from between `VTx` and `VTe` events.
 - nosv 2.5.0

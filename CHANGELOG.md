@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add support for hardware counters (HWC) in nOS-V.
+
+### Changed
+
+- Increase nOS-V model version to 2.6.0.
+
 ### Fixed
 
 - Fix a bug in ovniemu when loading loom CPUs from multiple threads.

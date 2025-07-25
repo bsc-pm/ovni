@@ -12,6 +12,7 @@
 #include "emu_prv.h"
 #include "ev_spec.h"
 #include "extend.h"
+#include "loom.h"
 #include "model.h"
 #include "model_chan.h"
 #include "model_cpu.h"
@@ -27,6 +28,7 @@
 #include "thread.h"
 #include "track.h"
 #include "value.h"
+#include "hwc.h"
 
 static const char model_name[] = "nosv";
 enum { model_id = 'V' };
@@ -81,12 +83,14 @@ static struct ev_decl model_evlist[] = {
 	{ "VPr", "sets progress state to Resting" },
 	{ "VPa", "sets progress state to Absorbing" },
 
+	{ "VWC+(i64 value)", "set hardware counters (first %{value})" },
+
 	{ NULL, NULL },
 };
 
 struct model_spec model_nosv = {
 	.name    = model_name,
-	.version = "2.5.1",
+	.version = "2.6.0",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nosv_create,
@@ -319,6 +323,11 @@ model_nosv_create(struct emu *emu)
 		return -1;
 	}
 
+	if (hwc_create(emu) != 0) {
+		err("hwc_create failed");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -337,6 +346,11 @@ model_nosv_connect(struct emu *emu)
 
 	if (emu->args.breakdown && model_nosv_breakdown_connect(emu) != 0) {
 		err("model_nosv_breakdown_connect failed");
+		return -1;
+	}
+
+	if (hwc_connect(emu) != 0) {
+		err("hwc_connect failed");
 		return -1;
 	}
 
@@ -438,6 +452,11 @@ model_nosv_finish(struct emu *emu)
 
 	if (model_nosv_breakdown_finish(emu, pcf_labels) != 0) {
 		err("model_nosv_breakdown_finish failed");
+		return -1;
+	}
+
+	if (hwc_finish(emu) != 0) {
+		err("hwc_finish failed");
 		return -1;
 	}
 

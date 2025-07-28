@@ -492,7 +492,7 @@ init_pcf(struct emu *emu, struct pcf *pcf)
 static int
 connect_thread(struct emu *emu)
 {
-	/* Get cpu PRV */
+	/* Get thread PVT */
 	struct pvt *pvt = recorder_find_pvt(&emu->recorder, "thread");
 	if (pvt == NULL) {
 		err("cannot find thread pvt");
@@ -555,7 +555,7 @@ connect_cpu_prv(struct emu *emu, struct cpu *scpu, struct prv *prv)
 		}
 
 		/* Then connect the output of the tracking module to the prv
-		 * trace for the current thread */
+		 * trace for the current cpu */
 		struct chan *out = track_get_output(track);
 		long row = (long) scpu->gindex;
 		long flags = PRV_SKIPDUPNULL;
@@ -589,7 +589,7 @@ connect_cpu(struct emu *emu)
 		}
 	}
 
-	/* Init thread PCF */
+	/* Init cpu PCF */
 	struct pcf *pcf = pvt_get_pcf(pvt);
 	if (init_pcf(emu, pcf) != 0) {
 		err("init_pcf failed");

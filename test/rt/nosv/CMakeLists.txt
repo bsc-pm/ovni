@@ -24,7 +24,7 @@ function(nosv_test)
   cmake_parse_arguments(
     NOSV_TEST "${switches}" "${single}" "${multi}" ${ARGN})
   ovni_test(${ARGN})
-  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE PkgConfig::NOSV)
+  target_link_libraries("${OVNI_TEST_NAME}" PRIVATE PkgConfig::NOSV m)
   set_property(TEST "${OVNI_TEST_NAME}" APPEND
     PROPERTY
       ENVIRONMENT "NOSV_CONFIG=${OVNI_TEST_SOURCE_DIR}/rt/nosv/nosv.toml")
@@ -64,6 +64,9 @@ nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-2 LEVEL 2 BREA
 # From level 3 up the breakdown can be enabled
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-3 LEVEL 3 BREAKDOWN)
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-4 LEVEL 4 BREAKDOWN)
+
+nosv_test(several-tasks.c NAME hwc-tasks DRIVER "hwc.driver.sh")
+nosv_test(hwc-stride.c DRIVER "hwc-stride.driver.sh")
 
 if (PERF_PARANOID_KERNEL)
   message(STATUS "Enabling perf paranoid tests for nOS-V")

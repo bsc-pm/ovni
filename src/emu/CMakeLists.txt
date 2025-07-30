@@ -39,6 +39,7 @@ add_library(emu STATIC
   pv/prv.c
   pv/pvt.c
   pv/cfg.c
+  pv/cfg_file.c
   recorder.c
   system.c
   task.c

@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "recorder.h"
@@ -16,6 +16,12 @@ recorder_init(struct recorder *rec, const char *dir)
 
 	if (snprintf(rec->dir, PATH_MAX, "%s", dir) >= PATH_MAX) {
 		err("snprintf failed: path too long");
+		return -1;
+	}
+
+	/* TODO: Use configs per pvt */
+	if (cfg_generate(rec->dir) != 0) {
+		err("cfg_generate failed");
 		return -1;
 	}
 
@@ -79,12 +85,6 @@ recorder_finish(struct recorder *rec)
 			err("pvt_close failed");
 			return -1;
 		}
-	}
-
-	/* TODO: Use configs per pvt */
-	if (cfg_generate(rec->dir) != 0) {
-		err("cfg_generate failed");
-		return -1;
 	}
 
 	return 0;

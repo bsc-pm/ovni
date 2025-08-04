@@ -15,7 +15,7 @@
       nosv = prev.nosv.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "83e7a1873b4f7b9e7226e8fda8985c7f33915fa1";
+        gitCommit = "efed594c3fdf0a2dd35ef98c9c941c896b4c65f6";
       };
       nanos6 = prev.nanos6.override {
         useGit = true;

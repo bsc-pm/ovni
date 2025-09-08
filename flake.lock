@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1741357271,
-        "narHash": "sha256-tmCTFMtk+JGUMtZCND9wwIoqxt5ASpEaWkWM5EjLAFI=",
+        "lastModified": 1757680122,
+        "narHash": "sha256-V8sN1npm8aE4o0CJROU4B7cUUzkla21wn2jud3F/pPU=",
         "ref": "refs/heads/master",
-        "rev": "f962816eabd534eafe948499322589921f230e72",
-        "revCount": 958,
+        "rev": "c7b5ec13b8d596a79942e5bd18ea7049472613b9",
+        "revCount": 984,
         "type": "git",
         "url": "https://git.sr.ht/~rodarima/bscpkgs"
       },

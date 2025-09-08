@@ -104,3 +104,32 @@ of CPUs in that state, not the physical CPUs like other views.
 Here is an example of the Heat mini-app:
 
 ![Breakdown example](fig/breakdown-nosv.png)
+
+## Hardware counters (HWC) view
+
+The hardware counter view allows you to see the *delta* of a given set of
+hardware counters over time. The counters are read at the beginning and end of
+tasks as well as at some nOS-V API methods.
+
+To enable support for HWC in nOS-V use at least level 2 in `ovni.level` or
+enable the "hwc" event set in nosv.toml. Then, make sure the
+`hwcounters.backend` option is set to "papi" and select the counters you want to
+enable in `hwcounters.papi_events`. Here is an example to trace total
+instructions and cycles:
+
+```
+instrumentation.version = "ovni"
+ovni.level = 2
+hwcounters.backend = "papi"
+hwcounters.papi_events = [ "PAPI_TOT_INS", "PAPI_TOT_CYC" ]
+```
+
+You can use the `papi_avail` tool to see which counters are available for a
+particular machine and a description of each counter. Each CPU has a limit in
+how many counters can be enabled at the same time, reported in the *Number
+Hardware Counters* line.
+
+The events for HWC are generated in cpu.prv and thread.prv for CPUs and threads,
+respectively. For each enabled hardware counter, a new configuration file will
+be created at `cfg/cpu/nosv/hwc-*.cfg` and `cfg/thread/nosv/hwc-*.cfg` with the
+corresponding name of the counter.

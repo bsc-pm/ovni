@@ -1,11 +1,9 @@
 {
-  inputs.nixpkgs.url = "nixpkgs/9c6b49aeac36e2ed73a8c472f1546f6d9cf1addc";
-  inputs.bscpkgs.url = "git+https://git.sr.ht/~rodarima/bscpkgs";
-  inputs.bscpkgs.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.jungle.url = "git+https://jungle.bsc.es/git/rarias/jungle";
 
   nixConfig.bash-prompt = "\[nix-develop\]$ ";
 
-  outputs = { self, nixpkgs, bscpkgs }:
+  outputs = { self, jungle }:
   let
     # Set to true to replace all libovni in all runtimes with the current
     # source. Causes large rebuilds on changes of ovni.
@@ -69,10 +67,10 @@
       # Select correct ovni for libovni
       ovni = if (useLocalOvni) then final.ovniLocal else final.ovniFixed;
     };
-    pkgs = import nixpkgs {
+    pkgs = import jungle.inputs.nixpkgs {
       system = "x86_64-linux";
       overlays = [
-        bscpkgs.bscOverlay
+        jungle.bscOverlay
         ovniOverlay
       ];
     };

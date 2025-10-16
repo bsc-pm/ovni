@@ -35,6 +35,8 @@ function(nosv_test)
 endfunction()
 
 nosv_test(attach.c SORT)
+nosv_test(attach-instr.c SORT)
+nosv_test(nosv-pthread.c SORT)
 nosv_test(waitfor.c SORT)
 nosv_test(several-tasks.c SORT)
 nosv_test(init-nested.c SORT)

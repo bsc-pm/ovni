@@ -36,12 +36,13 @@ nav:
       - user/runtime/trace_spec.md
     - 'Emulation':
       - user/emulation/index.md
-      - user/emulation/ovni.md
-      - user/emulation/nosv.md
-      - user/emulation/nanos6.md
-      - user/emulation/tampi.md
       - user/emulation/mpi.md
+      - user/emulation/nanos6.md
+      - user/emulation/nodes.md
+      - user/emulation/nosv.md
       - user/emulation/openmp.md
+      - user/emulation/ovni.md
+      - user/emulation/tampi.md
       - user/emulation/events.md
       - user/emulation/versions.md
     - CHANGELOG.md

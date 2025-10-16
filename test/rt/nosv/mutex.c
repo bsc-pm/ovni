@@ -1,7 +1,8 @@
-/* Copyright (c) 2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2024-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include <nosv.h>
+#include <nosv/compat.h>
 #include <unistd.h>
 
 #include "common.h"
@@ -19,20 +20,19 @@ main(void)
 	if (nosv_attach(&task, NULL, "attached-task", 0) != 0)
 		die("nosv_attach failed");
 
-
-	if (nosv_mutex_init(&mutex, NOSV_MUTEX_NONE) != 0)
+	if (nosv_mutex_init(&mutex, NULL) != 0)
 		die("nosv_mutex_init failed");
 
-	if (nosv_mutex_lock(mutex) != 0)
+	if (nosv_mutex_lock(&mutex) != 0)
 		die("nosv_mutex_lock failed");
 
-	if (nosv_mutex_trylock(mutex) != NOSV_ERR_BUSY)
+	if (nosv_mutex_trylock(&mutex) != EBUSY)
 		die("nosv_mutex_trylock failed");
 
-	if (nosv_mutex_unlock(mutex) != 0)
+	if (nosv_mutex_unlock(&mutex) != 0)
 		die("nosv_mutex_unlock failed");
 
-	if (nosv_mutex_destroy(mutex) != 0)
+	if (nosv_mutex_destroy(&mutex) != 0)
 		die("nosv_mutex_destroy failed");
 
 

@@ -1,10 +1,11 @@
-/* Copyright (c) 2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2024-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #define _DEFAULT_SOURCE
 
 #include <nosv.h>
 #include <nosv/affinity.h>
+#include <nosv/compat.h>
 #include <stdatomic.h>
 #include <unistd.h>
 
@@ -21,7 +22,7 @@ static void
 task_body(nosv_task_t task)
 {
 	UNUSED(task);
-	if (nosv_barrier_wait(barrier) != 0)
+	if (nosv_barrier_wait(&barrier) != 0)
 		die("nosv_barrier_wait failed");
 }
 
@@ -40,7 +41,7 @@ main(void)
 	nosv_task_type_t task_type;
 	nosv_type_init(&task_type, task_body, NULL, task_done, "task", NULL, NULL, 0);
 
-	if (nosv_barrier_init(&barrier, NOSV_BARRIER_NONE, NTASKS) != 0)
+	if (nosv_barrier_init(&barrier, NULL, NTASKS) != 0)
 		die("nosv_barrier_init failed");
 
 	for (int i = 0; i < NTASKS; i++)
@@ -55,7 +56,7 @@ main(void)
 	for (int i = 0; i < NTASKS; i++)
 		nosv_destroy(tasks[i], 0);
 
-	if (nosv_barrier_destroy(barrier) != 0)
+	if (nosv_barrier_destroy(&barrier) != 0)
 		die("nosv_barrier_destroy failed");
 
 	nosv_type_destroy(task_type, 0);

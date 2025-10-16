@@ -1,10 +1,11 @@
-/* Copyright (c) 2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2024-2025 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #define _DEFAULT_SOURCE
 
 #include <nosv.h>
 #include <nosv/affinity.h>
+#include <nosv/compat.h>
 #include <stdatomic.h>
 #include <unistd.h>
 
@@ -25,15 +26,15 @@ task_body(nosv_task_t task)
 {
 	UNUSED(task);
 	atomic_fetch_add(&nstarted, 1);
-	if (nosv_mutex_lock(mutex) != 0)
+	if (nosv_mutex_lock(&mutex) != 0)
 		die("nosv_mutex_lock failed");
 
 	while (!ready) {
-		if (nosv_cond_wait(cond, mutex) != 0)
+		if (nosv_cond_wait(&cond, &mutex) != 0)
 			die("nosv_cond_wait failed");
 	}
 
-	if (nosv_mutex_unlock(mutex) != 0)
+	if (nosv_mutex_unlock(&mutex) != 0)
 		die("nosv_mutex_unlock failed");
 }
 
@@ -48,23 +49,23 @@ static void
 task_broadcast_run(nosv_task_t task)
 {
 	UNUSED(task);
-	if (nosv_mutex_lock(mutex) != 0)
+	if (nosv_mutex_lock(&mutex) != 0)
 		die("nosv_mutex_lock failed");
 
 	atomic_store(&ready, 1);
-	if (nosv_cond_broadcast(cond) != 0)
+	if (nosv_cond_broadcast(&cond) != 0)
 		die("nosv_cond_broadcast failed");
 
-	if (nosv_mutex_unlock(mutex) != 0)
+	if (nosv_mutex_unlock(&mutex) != 0)
 		die("nosv_mutex_unlock failed");
 
-	if (nosv_mutex_lock(mutex) != 0)
+	if (nosv_mutex_lock(&mutex) != 0)
 		die("nosv_mutex_lock failed");
 
-	if (nosv_cond_signal(cond) != 0)
+	if (nosv_cond_signal(&cond) != 0)
 		die("nosv_cond_signal failed");
 
-	if (nosv_mutex_unlock(mutex) != 0)
+	if (nosv_mutex_unlock(&mutex) != 0)
 		die("nosv_mutex_unlock failed");
 }
 
@@ -80,10 +81,10 @@ main(void)
 	nosv_task_type_t task_type_broadcast;
 	nosv_type_init(&task_type_broadcast, task_broadcast_run, NULL, NULL, "task_broadcast", NULL, NULL, NOSV_TYPE_INIT_NONE);
 
-	if (nosv_cond_init(&cond, NOSV_COND_NONE) != 0)
+	if (nosv_cond_init(&cond, NULL) != 0)
 		die("nosv_cond_init failed");
 
-	if (nosv_mutex_init(&mutex, NOSV_MUTEX_NONE) != 0)
+	if (nosv_mutex_init(&mutex, NULL) != 0)
 		die("nosv_mutex_init failed");
 
 	for (int i = 0; i < NTASKS; i++)
@@ -107,10 +108,10 @@ main(void)
 
 	nosv_destroy(task_broadcast, NOSV_DESTROY_NONE);
 
-	if (nosv_cond_destroy(cond) != 0)
+	if (nosv_cond_destroy(&cond) != 0)
 		die("nosv_cond_destroy failed");
 
-	if (nosv_mutex_destroy(mutex) != 0)
+	if (nosv_mutex_destroy(&mutex) != 0)
 		die("nosv_mutex_destroy failed");
 
 	nosv_type_destroy(task_type, NOSV_TYPE_DESTROY_NONE);

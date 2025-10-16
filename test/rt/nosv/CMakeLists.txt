@@ -10,9 +10,9 @@ if(NOT NOSV_FOUND)
   return()
 endif()
 
-# Needed for nosv_cond
-if("${NOSV_VERSION}" VERSION_LESS "3.1.0")
-  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 3.1.0")
+# API breakage
+if("${NOSV_VERSION}" VERSION_LESS "4.0.0")
+  message(FATAL_ERROR "nOS-V version ${NOSV_VERSION} too old, required at least 4.0.0")
 endif()
 
 message(STATUS "Enabling nOS-V RT tests")

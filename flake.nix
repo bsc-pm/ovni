@@ -28,7 +28,7 @@
       clangOmpss2Unwrapped = prev.clangOmpss2Unwrapped.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "6ea3824988abf00ead8084994a922182bf5fd8ba";
+        gitCommit = "872ba63f86edaefc9787984ef3fae9f2f94e0124";
       };
       mpi = prev.mpich;
       bench6 = prev.bench6.overrideAttrs (old: rec {

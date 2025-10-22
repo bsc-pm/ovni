@@ -23,7 +23,7 @@
       nodes = prev.nodes.override {
         useGit = true;
         gitBranch = "master";
-        gitCommit = "c97d7ca6f885500121a94c75df429c788e8d6cf8";
+        gitCommit = "2fc2fd686a6c0f831323ff47c15480688f9b21ea";
       };
       clangOmpss2Unwrapped = prev.clangOmpss2Unwrapped.override {
         useGit = true;

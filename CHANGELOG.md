@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add support for `nosv_join` events AV{jJ}.
+- Add support for `nosv_join_all` events AV{mM}.
+- Add support for `nosv_wait` events AV{iI}.
+- Add support for `nosv_wait_all` events AV{nN}.
+
 ## [1.13.0] - 2025-10-24
 
 ### Added

@@ -63,6 +63,8 @@ INSTR_0ARG(instr_nosv_attach_enter, "VAa")
 INSTR_0ARG(instr_nosv_attach_exit,  "VAA")
 INSTR_0ARG(instr_nosv_detach_enter, "VAe")
 INSTR_0ARG(instr_nosv_detach_exit,  "VAE")
+INSTR_0ARG(instr_nosv_destroy_enter, "VAd")
+INSTR_0ARG(instr_nosv_destroy_exit, "VAD")
 INSTR_0ARG(instr_nosv_barrier_wait_enter,  "VAb")
 INSTR_0ARG(instr_nosv_barrier_wait_exit,   "VAB")
 INSTR_0ARG(instr_nosv_mutex_lock_enter,    "VAl")
@@ -79,6 +81,14 @@ INSTR_0ARG(instr_nosv_cond_broadcast_enter, "VAk")
 INSTR_0ARG(instr_nosv_cond_broadcast_exit,  "VAK")
 INSTR_0ARG(instr_nosv_attached, "VHa") /* deprecated */
 INSTR_0ARG(instr_nosv_detached, "VHA") /* deprecated */
+INSTR_0ARG(instr_nosv_join_enter, "VAj")
+INSTR_0ARG(instr_nosv_join_exit, "VAJ")
+INSTR_0ARG(instr_nosv_join_all_enter, "VAm")
+INSTR_0ARG(instr_nosv_join_all_exit, "VAM")
+INSTR_0ARG(instr_nosv_wait_enter, "VAi")
+INSTR_0ARG(instr_nosv_wait_exit, "VAI")
+INSTR_0ARG(instr_nosv_wait_all_enter, "VAn")
+INSTR_0ARG(instr_nosv_wait_all_exit, "VAN")
 
 
 #endif /* INSTR_NOSV_H */

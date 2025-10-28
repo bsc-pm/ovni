@@ -45,6 +45,11 @@ Track changes in emulator model versions.
 
 ## nOS-V
 
+- nosv 2.7.0
+    - Add support for `nosv_join` events `VA{jJ}`.
+    - Add support for `nosv_join_all` events `VA{mM}`.
+    - Add support for `nosv_wait` events `VA{iI}`.
+    - Add support for `nosv_wait_all` events `VA{nN}`.
 - nosv 2.6.0
     - Add support for hardware counters event `VWC`.
 - nosv 2.5.1

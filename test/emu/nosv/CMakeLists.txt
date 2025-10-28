@@ -23,6 +23,7 @@ test_emu(parallel-tasks.c)
 test_emu(nest-to-parallel.c)
 test_emu(mutex.c)
 test_emu(barrier.c)
+test_emu(join.c)
 test_emu(cond.c)
 
 test_emu(bad-nest-same-task.c SHOULD_FAIL

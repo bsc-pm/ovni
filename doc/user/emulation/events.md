@@ -1,7 +1,7 @@
 # Emulator events
 
 This is a exhaustive list of the events recognized by the emulator.
-Built on Jul 28 2025.
+Built on Oct 28 2025.
 
 ## Model nanos6
 
@@ -633,7 +633,7 @@ List of events for the model *tampi* with identifier **`T`** at version `1.0.0`:
 
 ## Model nosv
 
-List of events for the model *nosv* with identifier **`V`** at version `2.6.0`:
+List of events for the model *nosv* with identifier **`V`** at version `2.7.0`:
 <dl>
 <dt><a id="VTc" href="#VTc"><pre>VTc(u32 taskid, u32 typeid)</pre></a></dt>
 <dd>creates task %{taskid} with type %{typeid}</dd>
@@ -743,6 +743,22 @@ List of events for the model *nosv* with identifier **`V`** at version `2.6.0`:
 <dd>enters nosv_cond_broadcast()</dd>
 <dt><a id="VAK" href="#VAK"><pre>VAK</pre></a></dt>
 <dd>leaves nosv_cond_broadcast()</dd>
+<dt><a id="VAj" href="#VAj"><pre>VAj</pre></a></dt>
+<dd>enters nosv_join()</dd>
+<dt><a id="VAJ" href="#VAJ"><pre>VAJ</pre></a></dt>
+<dd>leaves nosv_join()</dd>
+<dt><a id="VAm" href="#VAm"><pre>VAm</pre></a></dt>
+<dd>enters nosv_join_all()</dd>
+<dt><a id="VAM" href="#VAM"><pre>VAM</pre></a></dt>
+<dd>leaves nosv_join_all()</dd>
+<dt><a id="VAi" href="#VAi"><pre>VAi</pre></a></dt>
+<dd>enters nosv_wait()</dd>
+<dt><a id="VAI" href="#VAI"><pre>VAI</pre></a></dt>
+<dd>leaves nosv_wait()</dd>
+<dt><a id="VAn" href="#VAn"><pre>VAn</pre></a></dt>
+<dd>enters nosv_wait_all()</dd>
+<dt><a id="VAN" href="#VAN"><pre>VAN</pre></a></dt>
+<dd>leaves nosv_wait_all()</dd>
 <dt><a id="VHa" href="#VHa"><pre>VHa</pre></a></dt>
 <dd>enters nosv_attach()</dd>
 <dt><a id="VHA" href="#VHA"><pre>VHA</pre></a></dt>

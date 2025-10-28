@@ -71,6 +71,10 @@ static struct ev_decl model_evlist[] = {
 	PAIR_E("VAo", "VAO", "nosv_cond_wait()")
 	PAIR_E("VAg", "VAG", "nosv_cond_signal()")
 	PAIR_E("VAk", "VAK", "nosv_cond_broadcast()")
+	PAIR_E("VAj", "VAJ", "nosv_join()")
+	PAIR_E("VAm", "VAM", "nosv_join_all()")
+	PAIR_E("VAi", "VAI", "nosv_wait()")
+	PAIR_E("VAn", "VAN", "nosv_wait_all()")
 
 	/* FIXME: VHA and VHa are not subsystems */
 	{ "VHa", "enters nosv_attach()" },
@@ -90,7 +94,7 @@ static struct ev_decl model_evlist[] = {
 
 struct model_spec model_nosv = {
 	.name    = model_name,
-	.version = "2.6.0",
+	.version = "2.7.0",
 	.evlist  = model_evlist,
 	.model   = model_id,
 	.create  = model_nosv_create,
@@ -172,6 +176,10 @@ static const struct pcf_value_label nosv_ss_values[] = {
 	{ ST_API_COND_WAIT,    "API: Cond wait" },
 	{ ST_API_COND_SIGNAL,  "API: Cond signal" },
 	{ ST_API_COND_BCAST,   "API: Cond broadcast" },
+	{ ST_API_JOIN,         "API: Join" },
+	{ ST_API_JOIN_ALL,     "API: Join all" },
+	{ ST_API_WAIT,         "API: Wait" },
+	{ ST_API_WAIT_ALL,     "API: Wait all" },
 	{ ST_WORKER,           "Thread: Worker" },
 	{ ST_DELEGATE,         "Thread: Delegate" },
 	{ EV_SCHED_SEND,       "EV Scheduler: Send task" },

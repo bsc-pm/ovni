@@ -1,4 +1,4 @@
-/* Copyright (c) 2025 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2025-2026 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 /*
@@ -22,7 +22,7 @@
 #include "common.h"
 #include "compat.h"
 
-#define NTASKS 200
+#define NTASKS 100
 atomic_int ncompleted = 0;
 
 nosv_task_t tasks[NTASKS];

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Barcelona Supercomputing Center (BSC)
+# Copyright (c) 2021-2026 Barcelona Supercomputing Center (BSC)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.20)
@@ -33,6 +33,7 @@ if(ENABLE_DEBUG_LOG)
 endif()
 
 add_definitions(-D_POSIX_C_SOURCE=200809L)
+add_definitions(-D_FILE_OFFSET_BITS=64)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING

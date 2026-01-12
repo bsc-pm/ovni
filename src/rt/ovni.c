@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2024 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2026 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: MIT */
 
 #include <dirent.h>
@@ -323,7 +323,15 @@ move_thdir_to_final(const char *thdir, const char *thdir_final)
 
 	struct dirent *dirent;
 	const char *prefix = "stream.";
-	while ((dirent = readdir(dir)) != NULL) {
+	while (1) {
+		errno = 0;
+		if ((dirent = readdir(dir)) == NULL) {
+			if (errno)
+				die("readdir failed:");
+
+			break;
+		}
+
 		/* It should only contain stream.* directories, skip others */
 		if (strncmp(dirent->d_name, prefix, strlen(prefix)) != 0)
 			continue;

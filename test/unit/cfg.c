@@ -1,4 +1,4 @@
-/* Copyright (c) 2021-2023 Barcelona Supercomputing Center (BSC)
+/* Copyright (c) 2021-2026 Barcelona Supercomputing Center (BSC)
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "emu/pv/cfg.h"
@@ -16,7 +16,7 @@ int main(void)
 	/* Check that one configuration file is present */
 	struct stat st;
 	if (stat("cfg/cpu/ovni/pid.cfg", &st) != 0)
-		die("stat failed");
+		die("stat failed:");
 
 	return 0;
 }

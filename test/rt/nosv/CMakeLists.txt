@@ -69,6 +69,7 @@ nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-3 LEVEL 3 BREA
 nosv_test(several-tasks.c SORT NAME several-tasks-breakdown-level-4 LEVEL 4 BREAKDOWN)
 
 nosv_test(several-tasks.c NAME hwc-tasks DRIVER "hwc.driver.sh")
+nosv_test(join.c NAME hwc-join DRIVER "hwc-join.driver.sh")
 nosv_test(hwc-stride.c DRIVER "hwc-stride.driver.sh")
 
 if (PERF_PARANOID_KERNEL)

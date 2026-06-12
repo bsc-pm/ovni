@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-06-12
+
+### Changed
+
+- Increase nOS-V model version to 2.7.0.
+
 ### Added
 
 - Add support for `nosv_join` events AV{jJ}.
@@ -321,6 +327,7 @@ are used along with some other changes.
 - First ovni release.
 
 [unreleased]: https://jungle.bsc.es/git/rarias/ovni
+[1.14.0]: https://github.com/rodarima/ovni/releases/tag/1.14.0
 [1.13.0]: https://github.com/rodarima/ovni/releases/tag/1.13.0
 [1.12.0]: https://github.com/rodarima/ovni/releases/tag/1.12.0
 [1.11.0]: https://github.com/rodarima/ovni/releases/tag/1.11.0

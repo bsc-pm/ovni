@@ -7,7 +7,7 @@
 
 #include "common.h"
 
-#define OK(x) do { if ((x) != 0) { die(#x " failed"); } } while (0)
+#define OK(x) do { int ret = x; if (ret != 0) { die(#x " failed with ret=%d", ret); } } while (0)
 
 nosv_task_t task_attach;
 atomic_int completed = 0;
